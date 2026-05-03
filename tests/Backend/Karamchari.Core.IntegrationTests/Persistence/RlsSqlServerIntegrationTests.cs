@@ -1,0 +1,274 @@
+using System.Data.Common;
+using FluentAssertions;
+using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Persistence;
+using Karamchari.Core.Persistence.Interceptors;
+using Karamchari.Core.Persistence.Provisioning;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
+using Testcontainers.MsSql;
+using Xunit;
+
+namespace Karamchari.Core.IntegrationTests.Persistence;
+
+[Collection(nameof(SqlServerRlsCollection))]
+public sealed class RlsSqlServerIntegrationTests(SqlServerRlsFixture fixture)
+{
+    private static readonly TenantContext TenantA = new("contoso", TenantSource.JwtClaim);
+    private static readonly TenantContext TenantB = new("fabrikam", TenantSource.JwtClaim);
+
+    [Fact]
+    public async Task Query_UnderTenantSessionContext_ReturnsOnlyRowsOwnedByThatTenant()
+    {
+        await using var db = fixture.CreateDbContext(TenantA);
+
+        var employees = await db.Employees
+            .AsNoTracking()
+            .OrderBy(employee => employee.Name)
+            .Select(employee => new { employee.TenantId, employee.Name })
+            .ToListAsync();
+
+        employees.Should().ContainSingle();
+        employees[0].TenantId.Should().Be(TenantA.TenantId);
+        employees[0].Name.Should().Be("Contoso Visible");
+    }
+
+    [Fact]
+    public async Task Insert_WithAnotherTenantIdUnderCurrentSession_IsBlockedByRls()
+    {
+        await using var db = fixture.CreateDbContext(TenantA);
+
+        var act = () => db.Database.ExecuteSqlRawAsync(
+            """
+            INSERT INTO [__tenant__].[Employees] ([Id], [TenantId], [Name])
+            VALUES ({0}, {1}, {2});
+            """,
+            Guid.NewGuid(),
+            TenantB.TenantId,
+            "Cross Tenant Insert");
+
+        await act.Should().ThrowAsync<Exception>()
+            .Where(ex => IsRlsBlockPredicateFailure(ex));
+    }
+
+    [Fact]
+    public async Task RawSql_BypassingSchemaRewriterAgainstAnotherTenantSchema_IsBlockedByRls()
+    {
+        await using var db = fixture.CreateDbContext(TenantA);
+        var sql =
+            $"INSERT INTO [{TenantB.SchemaName}].[Employees] ([Id], [TenantId], [Name]) VALUES ({{0}}, {{1}}, {{2}});";
+
+        var act = () => db.Database.ExecuteSqlRawAsync(
+            sql,
+            Guid.NewGuid(),
+            TenantB.TenantId,
+            "Raw Bypass Insert");
+
+        await act.Should().ThrowAsync<Exception>()
+            .Where(ex => IsRlsBlockPredicateFailure(ex));
+    }
+
+    private static bool IsRlsBlockPredicateFailure(Exception ex)
+    {
+        var current = ex;
+        while (current is not null)
+        {
+            if (current.Message.Contains("block predicate", StringComparison.OrdinalIgnoreCase)
+                || current.Message.Contains("security policy", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            current = current.InnerException;
+        }
+
+        return false;
+    }
+}
+
+[CollectionDefinition(nameof(SqlServerRlsCollection))]
+public sealed class SqlServerRlsCollection : ICollectionFixture<SqlServerRlsFixture>;
+
+public sealed class SqlServerRlsFixture : IAsyncLifetime
+{
+    private readonly MsSqlContainer _container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
+        .Build();
+
+    private string _connectionString = string.Empty;
+
+    public async Task InitializeAsync()
+    {
+        await _container.StartAsync();
+
+        var builder = new SqlConnectionStringBuilder(_container.GetConnectionString())
+        {
+            Pooling = false,
+            TrustServerCertificate = true,
+        };
+        _connectionString = builder.ConnectionString;
+
+        await ApplyRlsBootstrapAsync();
+        await ProvisionTenantAsync(new TenantContext("contoso", TenantSource.JwtClaim));
+        await ProvisionTenantAsync(new TenantContext("fabrikam", TenantSource.JwtClaim));
+        await SeedRowsBeforePoliciesAsync();
+        await ApplyTenantPolicyAsync(new TenantContext("contoso", TenantSource.JwtClaim));
+        await ApplyTenantPolicyAsync(new TenantContext("fabrikam", TenantSource.JwtClaim));
+    }
+
+    public Task DisposeAsync() => _container.DisposeAsync().AsTask();
+
+    public RlsTestDbContext CreateDbContext(TenantContext tenant)
+    {
+        var tenantProvider = new FixedTenantProvider(tenant);
+        var options = new DbContextOptionsBuilder<RlsTestDbContext>()
+            .UseSqlServer(_connectionString)
+            .AddInterceptors(
+                new TenantSchemaCommandInterceptor(
+                    tenantProvider,
+                    NullLogger<TenantSchemaCommandInterceptor>.Instance),
+                new RlsSessionContextInterceptor(
+                    tenantProvider,
+                    NullLogger<RlsSessionContextInterceptor>.Instance))
+            .Options;
+
+        return new RlsTestDbContext(options, tenantProvider);
+    }
+
+    private async Task ApplyRlsBootstrapAsync()
+    {
+        var generator = CreateRlsScriptGenerator();
+
+        foreach (var script in generator.BuildBootstrapScripts())
+        {
+            await ExecuteScriptAsync(script);
+        }
+    }
+
+    private async Task ProvisionTenantAsync(TenantContext tenant)
+    {
+        await ExecuteScriptAsync(
+            $$"""
+            IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = N'{{tenant.SchemaName}}')
+            BEGIN
+                EXEC(N'CREATE SCHEMA [{{tenant.SchemaName}}] AUTHORIZATION [dbo];');
+            END
+            GO
+
+            CREATE TABLE [{{tenant.SchemaName}}].[Employees]
+            (
+                [Id] UNIQUEIDENTIFIER NOT NULL CONSTRAINT [PK_{{tenant.SchemaName}}_Employees] PRIMARY KEY,
+                [TenantId] NVARCHAR(64) NOT NULL,
+                [Name] NVARCHAR(200) NOT NULL
+            );
+            GO
+            """);
+    }
+
+    private async Task SeedRowsBeforePoliciesAsync()
+    {
+        await ExecuteScriptAsync(
+            $$"""
+            INSERT INTO [tenant_contoso].[Employees] ([Id], [TenantId], [Name])
+            VALUES
+                (NEWID(), N'contoso', N'Contoso Visible'),
+                (NEWID(), N'fabrikam', N'Contoso Schema Contaminant');
+
+            INSERT INTO [tenant_fabrikam].[Employees] ([Id], [TenantId], [Name])
+            VALUES
+                (NEWID(), N'fabrikam', N'Fabrikam Visible'),
+                (NEWID(), N'contoso', N'Fabrikam Schema Contaminant');
+            GO
+            """);
+    }
+
+    private async Task ApplyTenantPolicyAsync(TenantContext tenant)
+    {
+        var generator = CreateRlsScriptGenerator();
+        await ExecuteScriptAsync(generator.BuildTenantPolicyScript(tenant));
+    }
+
+    private static RlsScriptGenerator CreateRlsScriptGenerator()
+    {
+        var registry = new TenantTableRegistry();
+        registry.Register(new TenantTable("Employees"));
+        return new RlsScriptGenerator(registry);
+    }
+
+    private async Task ExecuteScriptAsync(string script)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        foreach (var batch in SplitSqlBatches(script))
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = batch;
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
+    private static IEnumerable<string> SplitSqlBatches(string script)
+    {
+        var batch = new List<string>();
+
+        using var reader = new StringReader(script);
+        while (reader.ReadLine() is { } line)
+        {
+            if (string.Equals(line.Trim(), "GO", StringComparison.OrdinalIgnoreCase))
+            {
+                if (batch.Count > 0)
+                {
+                    yield return string.Join(Environment.NewLine, batch);
+                    batch.Clear();
+                }
+
+                continue;
+            }
+
+            batch.Add(line);
+        }
+
+        if (batch.Count > 0)
+        {
+            yield return string.Join(Environment.NewLine, batch);
+        }
+    }
+
+    private sealed class FixedTenantProvider(TenantContext tenant) : ITenantProvider
+    {
+        public TenantContext GetTenant() => tenant;
+
+        public bool TryGetTenant(out TenantContext? resolvedTenant)
+        {
+            resolvedTenant = tenant;
+            return true;
+        }
+    }
+}
+
+public sealed class RlsTestDbContext(DbContextOptions<RlsTestDbContext> options, ITenantProvider tenantProvider)
+    : KaramchariDbContext(options, tenantProvider)
+{
+    public DbSet<RlsTestEmployee> Employees => Set<RlsTestEmployee>();
+
+    protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RlsTestEmployee>(builder =>
+        {
+            builder.ToTable("Employees");
+            builder.HasKey(employee => employee.Id);
+            builder.Property(employee => employee.TenantId).HasMaxLength(64).IsRequired();
+            builder.Property(employee => employee.Name).HasMaxLength(200).IsRequired();
+        });
+    }
+}
+
+public sealed class RlsTestEmployee : ITenantOwned
+{
+    public Guid Id { get; private set; }
+
+    public string TenantId { get; private set; } = string.Empty;
+
+    public string Name { get; private set; } = string.Empty;
+}

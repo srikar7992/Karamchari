@@ -139,7 +139,13 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
             return;
         }
 
-        var rewritten = PlaceholderRegex().Replace(
+        var placeholderRegex = PlaceholderRegex();
+        if (!placeholderRegex.IsMatch(original))
+        {
+            return;
+        }
+
+        var rewritten = placeholderRegex.Replace(
             original,
             match => match.Groups["lb"].Success
                 ? $"[{tenant.SchemaName}]"

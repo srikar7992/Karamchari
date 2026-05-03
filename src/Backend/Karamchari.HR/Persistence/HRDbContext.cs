@@ -3,6 +3,7 @@ using Karamchari.Core.Persistence;
 using Karamchari.HR.Domain.Employees;
 using Karamchari.HR.Persistence.Configurations;
 using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.HR.Persistence;
