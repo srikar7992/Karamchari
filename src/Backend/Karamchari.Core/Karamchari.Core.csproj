@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Karamchari.Core — cross-cutting kernel.
+    Owns: domain primitives, multi-tenancy abstractions, persistence
+    interceptors, transactional outbox plumbing, DI composition.
+
+    Has NO knowledge of any specific bounded context (HR, Payroll, ...).
+    Bounded contexts depend on this project; never the reverse.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Core</RootNamespace>
+    <AssemblyName>Karamchari.Core</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- RLS DDL scripts are loaded as embedded resources by RlsScriptGenerator. -->
+    <EmbeddedResource Include="Persistence\Sql\**\*.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Karamchari.Core.UnitTests" />
+  </ItemGroup>
+
+</Project>

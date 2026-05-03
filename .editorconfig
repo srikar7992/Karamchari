@@ -1,0 +1,76 @@
+# ============================================================
+# Karamchari .editorconfig
+# Solution-wide formatting + analyzer rules.
+# ============================================================
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,csproj,props,targets}]
+indent_size = 2
+
+[*.{js,jsx,ts,tsx}]
+indent_size = 2
+
+[*.{md,mdx}]
+trim_trailing_whitespace = false
+
+# ----------------------------------------------------------------------
+# C# language conventions
+# ----------------------------------------------------------------------
+[*.cs]
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# var preferences — explicit types preferred, except when obvious from RHS.
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+# File-scoped namespaces (modern C#)
+csharp_style_namespace_declarations = file_scoped:warning
+
+# Nullable / null checking
+dotnet_style_null_propagation = true:warning
+dotnet_style_coalesce_expression = true:warning
+csharp_style_throw_expression = true:suggestion
+
+# Expression-bodied members
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_expression_bodied_constructors = false:silent
+csharp_style_expression_bodied_operators = when_on_single_line:silent
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_indexers = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+
+# Pattern matching
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+
+# Naming
+dotnet_naming_rule.interfaces_should_start_with_i.severity = warning
+dotnet_naming_rule.interfaces_should_start_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_should_start_with_i.style = i_prefix
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.i_prefix.required_prefix = I
+dotnet_naming_style.i_prefix.capitalization = pascal_case
+
+# Async method names should end with Async
+dotnet_naming_rule.async_methods_end_with_async.severity = warning
+dotnet_naming_rule.async_methods_end_with_async.symbols = async_methods
+dotnet_naming_rule.async_methods_end_with_async.style = async_suffix
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.required_modifiers = async
+dotnet_naming_style.async_suffix.required_suffix = Async
+dotnet_naming_style.async_suffix.capitalization = pascal_case
+
+# Treat key correctness analyzers as errors
+dotnet_diagnostic.CA1062.severity = warning   # null-arg checks
+dotnet_diagnostic.CA2007.severity = none      # ConfigureAwait — we are an ASP.NET Core app, no SyncCtx
+dotnet_diagnostic.CA1848.severity = warning   # use LoggerMessage source-generated logging

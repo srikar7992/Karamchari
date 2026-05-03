@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Karamchari.Payroll — Payroll bounded context.
+    Same isolation rules as HR: no cross-context EF/DbContext references.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Payroll</RootNamespace>
+    <AssemblyName>Karamchari.Payroll</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
+  </ItemGroup>
+
+</Project>

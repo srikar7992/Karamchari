@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Karamchari.Api — the REST BFF host.
+    The only project that references every bounded context: it composes them
+    into a single deployable. Domain logic does NOT live here.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Api</RootNamespace>
+    <AssemblyName>Karamchari.Api</AssemblyName>
+    <UserSecretsId>karamchari-api-dev</UserSecretsId>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.Azure.ServiceBus.Core" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\Karamchari.HR\Karamchari.HR.csproj" />
+    <ProjectReference Include="..\Karamchari.Payroll\Karamchari.Payroll.csproj" />
+  </ItemGroup>
+
+</Project>
