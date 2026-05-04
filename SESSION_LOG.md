@@ -13,6 +13,53 @@
 
 ---
 
+## 2026-05-03 — Day 3: tests + frontend portal + end-to-end loop closed
+
+### Shipped (combined: user-led + this session)
+
+**Backend (user-led between sessions):**
+- `Karamchari.Core.UnitTests` (xUnit + FluentAssertions + NSubstitute) — 10 tests passing covering `HttpTenantProvider` (every disagreement / missing-source / untrusted-header path) and `TenantSchemaCommandInterceptor` (placeholder rewrite, missing tenant, bad schema name, no-op cases).
+- `Karamchari.Core.IntegrationTests` (Testcontainers.MsSql against `mcr.microsoft.com/mssql/server:2022-latest`) — `RlsSqlServerIntegrationTests` proves schema rewrite + `SESSION_CONTEXT` + RLS BLOCK predicates compose under real SQL Server. Project compiles; run blocked locally only by Docker not running.
+- Both test projects added to `Karamchari.sln`.
+- `Testcontainers.MsSql` 4.10.0 pinned in `Directory.Packages.props`.
+- **Real interceptor bug fix in `TenantSchemaCommandInterceptor.cs:144`**: SQL containing `__tenant__` as a substring of another identifier was tripping the post-rewrite `ReferenceEquals(rewritten, original)` throw. Added an explicit `placeholderRegex.IsMatch(original)` check before the `Replace` so the fast-path bail returns cleanly when the regex's word boundaries don't match. Found by the unit tests — exactly what the test pyramid is for.
+- HR grew: `Department` aggregate, `DepartmentCreatedConsumer`, `IOrganizationService` + `OrganizationService`, `CreateDepartmentCommand` contract.
+- Api: `DevelopmentTenantAuthenticationHandler` (validates `X-Tenant-Id` + matching `X-Karamchari-Gateway` proof, synthesizes a principal with the tenant claim) for dev so the FE can authenticate before Entra ID is wired. New endpoints `GET /api/hr/departments` and `POST /api/hr/departments`. Dev `appsettings.Development.json` ships `Tenancy:TrustedGatewayFingerprint = "local-dev-gateway"`.
+- `MassTransit.Abstractions` 8.3.0 pinned in CPM.
+
+**This session:**
+- **Loosened `TenantContext.TenantIdPattern`** from `^[a-z0-9][a-z0-9-]{0,49}$` to `^[a-z0-9][a-z0-9_-]{0,49}$` so `sch_oakridge`-style underscored ids pass validation. `RlsScriptGenerator.TenantIdRegex` already allowed underscores, so only one file changed. Schema name derivation unaffected.
+- **Stitch UI mocks extracted** to `docs/design/stitch/` — 4 HTML pages plus `monolith_precision/DESIGN.md` design system reference.
+- **Next.js 15 App Router portal** scaffolded by hand at `src/Frontend/portal/` (npm, plain Next.js — no Nx for now). Tailwind 3.4 with the Monolith Precision token set, Inter via `next/font/google`, Material Symbols via Google Fonts CDN.
+- **Centralized `api` client** at `src/lib/api/client.ts` — fetch-based, auto-attaches `X-Tenant-Id` and `X-Karamchari-Gateway`, surfaces typed `ApiError` with `code`/`status`/`reason`/`displayMessage`. Env-var-driven (`NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_DEFAULT_TENANT_ID`, `NEXT_PUBLIC_GATEWAY_FINGERPRINT`) so we never hardcode tenant ids in source.
+- **TanStack Query v5** wired via `Providers` (`'use client'`) inside the root `layout.tsx`. Sane defaults (30s staleTime, 5min gcTime, no refetchOnWindowFocus, retry 1). Devtools in dev only.
+- **`useDepartments` + `useCreateDepartment`** hooks, mirror DTOs in `src/lib/types/department.ts`.
+- **shadcn-style primitives** hand-rolled: `Table`, `Card`, `Button`, `StatusDot`. App shell with `Sidebar` (active-route nav, tenant id badge) and `Topbar` (page title + action slot).
+- **`/dashboard`**: static port of the Stitch dashboard mock (KPIs, recent activity, system status) using the shared shell. **`/directory`**: live data from `useDepartments` rendered in the shadcn Table with proper loading skeletons / empty / error states. `/` redirects to `/dashboard`.
+- **Backend dev CORS policy** (`Karamchari.Api/Cors/DevPortalCors.cs`): allows `http://localhost:3000`, the two tenant headers, and standard verbs. **No credentials** (header auth, not cookies). Wired in `Program.cs` only when `IsDevelopment()`. `UseCors` runs before `UseAuthentication` so preflights succeed without auth.
+- **Portal README** with quick-start, header contract, conventions.
+- **CLAUDE.md updated**: tenant id regex, FE stack section, current state for Day 3, next-up list re-prioritized (Docker-up + smoke test), next ADR number bumped to 0004.
+
+### Decisions
+
+- **Tenant id underscores allowed.** The cost/value of being strict about hyphen-only was nil; allowing underscores matches school-flavoured ids (`sch_oakridge`) without compromising schema-name safety (the schema name regex already allowed underscores).
+- **Plain Next.js, not Nx.** Single FE app for now — Nx multiplies setup cost without solving any problem we have today. We'll lift into Nx when admin/ops apps land.
+- **Hand-rolled shadcn primitives, not the CLI.** We need 4 components; the CLI brings a Radix/CVA dependency tree and is fiddly against an existing project. We can adopt the CLI later if we need 20+ primitives.
+- **No axios.** Native fetch is enough; one less dependency and one less bundle KB.
+- **Frontend env contract is dev-only.** `NEXT_PUBLIC_DEFAULT_TENANT_ID` and `NEXT_PUBLIC_GATEWAY_FINGERPRINT` exist purely so local dev works against `appsettings.Development.json`. In prod, the tenant comes from the user's signed JWT and the gateway proof is injected by APIM — neither lives in a frontend env. `.env.example` and the README make this explicit.
+- **CORS without credentials.** We auth via headers, not cookies. Allowing credentials would force tighter origin handling for no benefit.
+
+### Next up
+
+1. Start Docker Desktop and run the integration tests (`dotnet test tests/Backend/Karamchari.Core.IntegrationTests`) to prove the RLS pipeline end-to-end.
+2. Run BFF + portal locally and exercise `GET /api/hr/departments` and `POST /api/hr/departments` from the UI; confirm new rows appear after invalidation.
+3. Targeted unit tests for `TenantStampingInterceptor`, `RlsScriptGenerator`, `DevelopmentTenantAuthenticationHandler`.
+4. `IExceptionHandler` + RFC 7807 ProblemDetails to replace the inline middleware.
+5. JWT bearer config from `IConfiguration` + tenant-registry validation (disabled / not found / expired).
+6. `Karamchari.Provisioning` service (bootstrap + per-tenant DDL apply).
+
+---
+
 ## 2026-05-02 — Day 2.5: project continuity setup
 
 ### Shipped

@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Monolith Precision base layer.
+ * - True dark backgrounds; Inter sans, system mono.
+ * - Hairline ghost borders via the borderColor.DEFAULT token.
+ * - Material Symbols loaded via the layout's <link> tag for icons.
+ */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    background-color: #131313;
+    color: #e2e2e2;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Material Symbols base styling — kept minimal so callers can override weight. */
+  .material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 20;
+    user-select: none;
+  }
+
+  /* Selection contrast against the dark surface. */
+  ::selection {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+  }
+}
+
+@layer components {
+  /* "Ghost" border used for elevation hints — see DESIGN.md Elevation & Depth. */
+  .ghost-border {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

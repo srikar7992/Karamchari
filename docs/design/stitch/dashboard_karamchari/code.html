@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HR Admin Dashboard - Oakridge School</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#131313",
+                        "tertiary-container": "#e2e2e2",
+                        "on-primary-container": "#636565",
+                        "inverse-surface": "#e2e2e2",
+                        "outline": "#8e9192",
+                        "secondary-container": "#3a4a5f",
+                        "on-primary": "#2f3131",
+                        "inverse-primary": "#5d5f5f",
+                        "surface-tint": "#c6c6c7",
+                        "surface-container-highest": "#353535",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-bright": "#393939",
+                        "error": "#ffb4ab",
+                        "tertiary": "#ffffff",
+                        "primary-fixed-dim": "#c6c6c7",
+                        "surface-dim": "#131313",
+                        "surface": "#131313",
+                        "primary-container": "#e2e2e2",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-background": "#e2e2e2",
+                        "on-primary-fixed-variant": "#454747",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#2f3131",
+                        "secondary": "#b7c8e1",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-secondary": "#213145",
+                        "surface-container": "#1f1f1f",
+                        "outline-variant": "#444748",
+                        "on-tertiary-container": "#636565",
+                        "on-secondary-fixed": "#0b1c30",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-container-low": "#1b1b1b",
+                        "on-error": "#690005",
+                        "surface-variant": "#353535",
+                        "primary": "#ffffff",
+                        "on-secondary-container": "#a9bad3",
+                        "on-surface-variant": "#c4c7c8",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "primary-fixed": "#e2e2e2",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-primary-fixed": "#1a1c1c",
+                        "on-surface": "#e2e2e2",
+                        "secondary-fixed": "#d3e4fe",
+                        "inverse-on-surface": "#303030",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#38485d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "lg": "1.5rem",
+                        "xs": "0.25rem",
+                        "margin": "2rem",
+                        "gutter": "1.5rem",
+                        "md": "1rem",
+                        "sm": "0.5rem",
+                        "xl": "2.5rem"
+                    },
+                    "fontFamily": {
+                        "h1": ["Inter"],
+                        "mono": ["monospace"],
+                        "display": ["Inter"],
+                        "body-large": ["Inter"],
+                        "body-base": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "h2": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h1": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+                        "mono": ["13px", { "lineHeight": "1.4", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "600" }],
+                        "body-large": ["16px", { "lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "body-base": ["14px", { "lineHeight": "1.5", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "label-caps": ["11px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "h2": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen selection:bg-primary selection:text-on-primary">
+<!-- Shared Component: SideNavBar -->
+<nav class="bg-black fixed left-0 top-0 h-screen w-64 border-r border-white/10 flex flex-col h-full py-6 px-4 z-50">
+<!-- Header -->
+<div class="flex items-center gap-3 px-2 mb-10">
+<div class="h-8 w-8 rounded-DEFAULT bg-white/10 flex items-center justify-center overflow-hidden border border-white/20">
+<img alt="Oakridge School Logo" class="w-full h-full object-cover opacity-80" data-alt="A highly minimal, monochrome logo design featuring geometric interlocking shapes, suitable for an enterprise institution. The logo uses stark whites and deep blacks, presenting a clinical and authoritative visual identity without any decorative elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBf4GWzxkGKp6Aa5eulEm_oxiPJeZHYdoO7QOU8nJZrKBHLrnUzlMniHThB_CJwGF_tMZPhjAKEHc0ATwrxSCnyXg7bKAk4YXG6j-I7MlGTdh253lkHRX8mpsq7HpAn3zpMB_nEu8AdHIM-vTLvsx-_EuDsO_BGL2ilHq-IAW6QBdo64GmLSbCGuNh5p-P4Whch-ZHej1zh_sm-X7BqIP9WNfN9KH6XxpCor8gi0tzpe8NfWQZ1ccPNCsfZbBkxos6D66yIVuAhnDc"/>
+</div>
+<div>
+<h2 class="text-lg font-bold tracking-tighter text-white leading-tight">Oakridge School</h2>
+<p class="font-['Inter'] text-[10px] tracking-widest text-zinc-500 uppercase mt-0.5">Enterprise EMS</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-white font-semibold bg-white/5 border-r-2 border-white transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-white/90 group-hover:text-white" style="font-size: 18px;">dashboard</span>
+<span class="font-['Inter'] text-sm tracking-tight">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-zinc-500 hover:text-white transition-colors hover:bg-white/5 transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-zinc-500 group-hover:text-white" style="font-size: 18px;">groups</span>
+<span class="font-['Inter'] text-sm tracking-tight">Directory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-zinc-500 hover:text-white transition-colors hover:bg-white/5 transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-zinc-500 group-hover:text-white" style="font-size: 18px;">calendar_today</span>
+<span class="font-['Inter'] text-sm tracking-tight">Time Off</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-zinc-500 hover:text-white transition-colors hover:bg-white/5 transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-zinc-500 group-hover:text-white" style="font-size: 18px;">payments</span>
+<span class="font-['Inter'] text-sm tracking-tight">Payroll</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-zinc-500 hover:text-white transition-colors hover:bg-white/5 transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-zinc-500 group-hover:text-white" style="font-size: 18px;">settings</span>
+<span class="font-['Inter'] text-sm tracking-tight">Settings</span>
+</a>
+</div>
+<!-- User Profile (Bottom) -->
+<div class="mt-auto border-t border-white/10 pt-4 px-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden border border-white/10">
+<img alt="Admin User" class="w-full h-full object-cover grayscale" data-alt="A black and white, highly professional portrait of a male enterprise software administrator. Lighting is sharp and dramatic, creating a serious, calm, and authoritative mood against a pure black background. No distracting elements in the frame." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiKs4WbHcUZhwSpMY3iKYkeYBTt60HYgHH3wSwMtN7GtKe-TVmKAOfVUPLI1o_B8cj9MyYlwqTM1khRKnRNpPV5fN2ZBIfxcwqCDC5kZ7AirkZCcoZTIoUh8p2y3ETBhW0iDCT9e_4OHCPKrY1OcfutU1LzVryZvuQDWJyTgob75xCNiMENZg-2Y5Fjv15g3g_wN1gZkdGAxE5zLdpW-foET0K04ngNGrR_us8HJLLR3bWuOmbj4_UujTNp_iFWRA_Y1zXqgDBPyM"/>
+</div>
+<div class="flex flex-col">
+<span class="font-['Inter'] text-xs font-medium text-white">Admin User</span>
+<span class="font-['Inter'] text-[10px] text-zinc-500">System Admin</span>
+</div>
+</div>
+</div>
+</nav>
+<!-- Shared Component: TopNavBar -->
+<header class="bg-black/80 backdrop-blur-md fixed top-0 right-0 w-[calc(100%-16rem)] border-b border-white/10 flex items-center justify-between h-14 px-8 ml-64 z-40">
+<div class="flex items-center gap-6 h-full">
+<!-- Search Bar (on_left logic) -->
+<div class="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors cursor-pointer group w-64 border-b border-transparent focus-within:border-white/20 pb-1">
+<span class="material-symbols-outlined text-[16px]">search</span>
+<input class="bg-transparent border-none text-xs font-['Inter'] tracking-wide text-white placeholder-zinc-600 focus:ring-0 focus:outline-none w-full p-0" placeholder="Search employee, action or command..." type="text"/>
+<span class="font-mono text-mono text-zinc-600 border border-white/10 rounded px-1.5 py-0.5 text-[9px]">⌘K</span>
+</div>
+<!-- Navigation Links -->
+<div class="hidden lg:flex h-full ml-8">
+<a class="h-full flex items-center px-4 font-['Inter'] text-xs font-medium uppercase tracking-widest text-white border-b border-white cursor-pointer active:opacity-70" href="#">
+                    Dashboard
+                </a>
+<a class="h-full flex items-center px-4 font-['Inter'] text-xs font-medium uppercase tracking-widest text-zinc-500 hover:text-white transition-opacity cursor-pointer active:opacity-70" href="#">
+                    Analytics
+                </a>
+</div>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-4">
+<button class="bg-white text-black px-4 py-1.5 font-label-caps text-label-caps rounded-DEFAULT hover:bg-white/90 transition-colors flex items-center justify-center cursor-pointer active:opacity-70">
+                Invite
+            </button>
+<div class="flex items-center gap-3 border-l border-white/10 pl-4">
+<button class="text-zinc-500 hover:text-white transition-opacity cursor-pointer active:opacity-70 relative">
+<span class="material-symbols-outlined text-[18px]">notifications</span>
+<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-white rounded-full"></span>
+</button>
+<button class="text-zinc-500 hover:text-white transition-opacity cursor-pointer active:opacity-70">
+<span class="material-symbols-outlined text-[18px]">help_outline</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-14 p-margin xl:p-[3rem] flex flex-col gap-xl">
+<!-- Header Section -->
+<div class="flex flex-col gap-sm">
+<h1 class="font-h1 text-h1 text-white">Overview</h1>
+<p class="font-body-base text-body-base text-on-surface-variant">System metrics and pending administrative actions.</p>
+</div>
+<!-- KPI Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Card 1 -->
+<div class="border border-white/10 bg-surface-container-lowest p-lg rounded-DEFAULT flex flex-col gap-4 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-label-caps text-zinc-500 uppercase tracking-widest">Total Headcount</span>
+<span class="material-symbols-outlined text-zinc-600 text-[18px]">groups</span>
+</div>
+<div class="flex items-baseline gap-3">
+<span class="font-display text-display text-white tracking-tighter">1,248</span>
+<div class="flex items-center text-xs text-white/60 font-mono">
+<span class="material-symbols-outlined text-[12px] mr-1">arrow_upward</span>
+                        12 this month
+                    </div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="border border-white/10 bg-surface-container-lowest p-lg rounded-DEFAULT flex flex-col gap-4 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-label-caps text-zinc-500 uppercase tracking-widest">Pending Time Off</span>
+<span class="material-symbols-outlined text-zinc-600 text-[18px]">calendar_clock</span>
+</div>
+<div class="flex items-baseline gap-3">
+<span class="font-display text-display text-white tracking-tighter">34</span>
+<span class="font-mono text-mono text-zinc-500">Requests</span>
+</div>
+<div class="mt-auto pt-2 border-t border-white/5">
+<a class="font-label-caps text-label-caps text-white/60 hover:text-white transition-colors flex items-center gap-1" href="#">
+                        Review Queue <span class="material-symbols-outlined text-[12px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="border border-white/10 bg-surface-container-lowest p-lg rounded-DEFAULT flex flex-col gap-4 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-label-caps text-zinc-500 uppercase tracking-widest">Next Payroll Cutoff</span>
+<span class="material-symbols-outlined text-zinc-600 text-[18px]">event</span>
+</div>
+<div class="flex items-baseline gap-3">
+<span class="font-display text-display text-white tracking-tighter">Oct 15</span>
+</div>
+<div class="flex items-center gap-2 mt-auto">
+<div class="w-1.5 h-1.5 rounded-full bg-white/40"></div>
+<span class="font-mono text-mono text-zinc-500 text-[11px]">3 days remaining</span>
+</div>
+</div>
+</div>
+<!-- Two Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mt-4">
+<!-- Left Column: Activity Feed -->
+<div class="lg:col-span-8 flex flex-col gap-md">
+<div class="flex items-center justify-between pb-2 border-b border-white/10">
+<h3 class="font-h2 text-h2 text-white text-[18px]">Recent Activity</h3>
+<button class="font-label-caps text-label-caps text-zinc-500 hover:text-white transition-colors">View All</button>
+</div>
+<div class="flex flex-col">
+<!-- Feed Item -->
+<div class="group flex gap-4 py-4 border-b border-white/5 hover:bg-white/[0.02] px-2 -mx-2 rounded transition-colors">
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-white/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-zinc-400 text-[14px]">person_add</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="font-body-base text-body-base text-white/90">
+<span class="font-medium text-white">Justin</span> completed onboarding profile.
+                            </p>
+<span class="font-mono text-mono text-[11px] text-zinc-600 mt-0.5">2 hours ago · Engineering Dept</span>
+</div>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+<button class="text-zinc-400 hover:text-white"><span class="material-symbols-outlined text-[16px]">more_horiz</span></button>
+</div>
+</div>
+<!-- Feed Item -->
+<div class="group flex gap-4 py-4 border-b border-white/5 hover:bg-white/[0.02] px-2 -mx-2 rounded transition-colors">
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-white/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-zinc-400 text-[14px]">description</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="font-body-base text-body-base text-white/90">
+                                Q3 Performance Reviews published for <span class="font-medium text-white">Sales Team</span>.
+                            </p>
+<span class="font-mono text-mono text-[11px] text-zinc-600 mt-0.5">5 hours ago · System Auto</span>
+</div>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+<button class="text-zinc-400 hover:text-white"><span class="material-symbols-outlined text-[16px]">more_horiz</span></button>
+</div>
+</div>
+<!-- Feed Item -->
+<div class="group flex gap-4 py-4 border-b border-white/5 hover:bg-white/[0.02] px-2 -mx-2 rounded transition-colors">
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-white/10 overflow-hidden shrink-0">
+<img alt="Sarah Connor" class="w-full h-full object-cover grayscale" data-alt="A black and white portrait of a female employee. High contrast, clinical lighting against a dark background, matching the enterprise dashboard's hyper-minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3h2QOlL3FHJLQdlC1DlWCcwMyKXpvZ-ii_10iPfZtkEQFO32l-qtZHpyViDH37BC724-EnJM3bjiQiA4T9P2je3elTU0cYdEFLQ2GGwoNcMMNFXTTiRrNQH-nmRGggO3L1wQIvhrK31P4CSOp4ECjXbS2CippIFsGZOjr2gDxWwe74nQcVMSfVWly3MqK_9nm0l144lS0u30ZIoGXOtPIuPC-iZhxRUO2JqbSMYiv3p-D3IgbSTdaN3NOq8NoxYerugOpaw3PlVg"/>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="font-body-base text-body-base text-white/90">
+<span class="font-medium text-white">Sarah Connor</span> requested 3 days of PTO.
+                            </p>
+<span class="font-mono text-mono text-[11px] text-zinc-600 mt-0.5">Yesterday · Pending Approval</span>
+</div>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="bg-white/10 text-white font-label-caps text-[10px] px-2 py-1 rounded-DEFAULT hover:bg-white hover:text-black transition-colors">Approve</button>
+<button class="bg-transparent border border-white/20 text-zinc-400 font-label-caps text-[10px] px-2 py-1 rounded-DEFAULT hover:text-white transition-colors">Deny</button>
+</div>
+</div>
+<!-- Feed Item -->
+<div class="group flex gap-4 py-4 border-b border-transparent hover:bg-white/[0.02] px-2 -mx-2 rounded transition-colors">
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-white/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-zinc-400 text-[14px]">payments</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="font-body-base text-body-base text-white/90">
+                                Direct deposit info updated by <span class="font-medium text-white">Marcus</span>.
+                            </p>
+<span class="font-mono text-mono text-[11px] text-zinc-600 mt-0.5">Yesterday · Payroll Dept</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Alerts -->
+<div class="lg:col-span-4 flex flex-col gap-md">
+<div class="flex items-center justify-between pb-2 border-b border-white/10">
+<h3 class="font-h2 text-h2 text-white text-[18px] flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-white"></span>
+                        Requires Attention
+                    </h3>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Alert Item (High Priority) -->
+<div class="bg-surface-container-lowest border border-white/10 rounded-DEFAULT p-4 flex flex-col gap-3 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-[2px] bg-white"></div>
+<div class="flex items-start justify-between gap-4">
+<div class="flex flex-col gap-1">
+<span class="font-body-base text-body-base font-medium text-white">Missing I-9 Forms</span>
+<p class="font-body-base text-body-base text-[13px] text-zinc-400 leading-snug">3 recent hires have not submitted mandatory I-9 documentation within the 3-day window.</p>
+</div>
+</div>
+<div class="flex items-center gap-3 mt-1">
+<button class="text-[11px] font-label-caps tracking-widest uppercase text-white hover:underline underline-offset-4">Review Hires</button>
+</div>
+</div>
+<!-- Alert Item (Warning) -->
+<div class="bg-surface-container-lowest border border-white/10 rounded-DEFAULT p-4 flex flex-col gap-3">
+<div class="flex items-start justify-between gap-4">
+<div class="flex flex-col gap-1">
+<span class="font-body-base text-body-base font-medium text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-zinc-500">warning</span>
+                                    Payroll Anomalies
+                                </span>
+<p class="font-body-base text-body-base text-[13px] text-zinc-400 leading-snug">System detected unusually high overtime hours for the support division this period.</p>
+</div>
+</div>
+<div class="flex items-center gap-3 mt-1">
+<button class="text-[11px] font-label-caps tracking-widest uppercase text-white hover:underline underline-offset-4">Run Audit</button>
+</div>
+</div>
+<!-- Alert Item (Info) -->
+<div class="bg-surface-container-lowest border border-white/10 rounded-DEFAULT p-4 flex flex-col gap-3">
+<div class="flex items-start justify-between gap-4">
+<div class="flex flex-col gap-1">
+<span class="font-body-base text-body-base font-medium text-white">Compliance Training</span>
+<p class="font-body-base text-body-base text-[13px] text-zinc-400 leading-snug">Annual security training deadline is approaching. 42 employees remaining.</p>
+</div>
+</div>
+<div class="flex items-center gap-3 mt-1">
+<button class="text-[11px] font-label-caps tracking-widest uppercase text-white hover:underline underline-offset-4">Send Reminders</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

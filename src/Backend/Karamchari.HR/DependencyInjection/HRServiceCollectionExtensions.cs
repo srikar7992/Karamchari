@@ -1,7 +1,9 @@
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Messaging;
+using Karamchari.HR.Contracts.Organization;
 using Karamchari.HR.Messaging;
 using Karamchari.HR.Persistence;
+using Karamchari.HR.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,12 +24,14 @@ public static class HRServiceCollectionExtensions
 
         // RLS: Employees lives under each tenant's schema and must be covered by the
         // per-tenant security policy. Forgetting this line is a security regression.
+        services.RegisterTenantTable("Departments");
         services.RegisterTenantTable("Employees");
 
         // Replace the Core-shipped fail-closed null dispatcher with the
         // MassTransit-backed publisher. Replace (not Add) ensures we win even
         // if AddKaramchariCore registered the null implementation first.
         services.Replace(ServiceDescriptor.Scoped<IDomainEventDispatcher, MassTransitDomainEventDispatcher>());
+        services.AddScoped<IOrganizationService, OrganizationService>();
 
         services.AddDbContext<HRDbContext>((serviceProvider, options) =>
         {

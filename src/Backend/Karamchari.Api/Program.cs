@@ -1,9 +1,15 @@
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Multitenancy;
+using Karamchari.Api.Cors;
+using Karamchari.Api.Security;
+using Karamchari.HR.Contracts.Organization;
 using Karamchari.HR.DependencyInjection;
+using Karamchari.HR.Messaging.Consumers;
 using Karamchari.HR.Persistence;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Karamchari.Api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +32,8 @@ builder.Services.AddKaramchariCore(builder.Configuration);
 builder.Services.AddMassTransit(bus =>
 {
     bus.SetKebabCaseEndpointNameFormatter();
+
+    bus.AddConsumer<DepartmentCreatedConsumer>();
 
     bus.AddEntityFrameworkOutbox<HRDbContext>(outbox =>
     {
@@ -60,13 +68,32 @@ builder.Services.AddMassTransit(bus =>
 // ---------------------------------------------------------------------------
 // Authentication / authorization
 // ---------------------------------------------------------------------------
-// JWT bearer is wired up here; full configuration (authority, audience, JWKS)
-// will land in a follow-up so we stay honest about Day-1 scope.
+// Production uses JWT bearer. Development uses a local gateway-proof scheme so
+// Postman/curl can exercise tenant resolution before Entra ID is wired.
 // ---------------------------------------------------------------------------
-builder.Services
-    .AddAuthentication("Bearer")
-    .AddJwtBearer("Bearer", _ => { /* TODO: bind from configuration */ });
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services
+        .AddAuthentication(DevelopmentTenantAuthenticationHandler.SchemeName)
+        .AddScheme<AuthenticationSchemeOptions, DevelopmentTenantAuthenticationHandler>(
+            DevelopmentTenantAuthenticationHandler.SchemeName,
+            _ => { });
+}
+else
+{
+    builder.Services
+        .AddAuthentication("Bearer")
+        .AddJwtBearer("Bearer", _ => { /* TODO: bind from configuration */ });
+}
+
 builder.Services.AddAuthorization();
+
+// Dev-only CORS so the Next.js portal at http://localhost:3000 can hit the BFF.
+// Production runs same-origin behind APIM, so no production CORS is registered.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddKaramchariDevCors();
+}
 
 // ---------------------------------------------------------------------------
 // Bounded-context wiring lives in dedicated AddXxx extension methods within
@@ -79,6 +106,13 @@ var app = builder.Build();
 // ---------------------------------------------------------------------------
 // Pipeline
 // ---------------------------------------------------------------------------
+// CORS must run BEFORE auth so the browser preflight (which carries no creds)
+// gets a fast 204 with the right Access-Control-Allow-* headers.
+if (app.Environment.IsDevelopment())
+{
+    app.UseKaramchariDevCors();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -136,15 +170,35 @@ hr.MapGet("/employees", async (HRDbContext db, CancellationToken cancellationTok
     return Results.Ok(employees);
 });
 
-app.Run();
+hr.MapGet("/departments", async (HRDbContext db, CancellationToken cancellationToken) =>
+{
+    var departments = await db.Departments
+        .AsNoTracking()
+        .OrderBy(d => d.Name)
+        .Select(d => new DepartmentListItem(
+            d.Id,
+            d.Name,
+            d.Description,
+            d.IsActive))
+        .Take(100)
+        .ToListAsync(cancellationToken);
 
-internal sealed record EmployeeListItem(
-    Guid Id,
-    string EmployeeNumber,
-    string LegalName,
-    string? WorkEmail,
-    DateOnly HiredOn,
-    string Status);
+    return Results.Ok(departments);
+})
+.WithName("ListDepartments");
+
+hr.MapPost("/departments", async (
+    CreateDepartmentCommand command,
+    IOrganizationService organizationService,
+    CancellationToken cancellationToken) =>
+{
+    var departmentId = await organizationService.CreateDepartmentAsync(command, cancellationToken);
+
+    return Results.Created($"/api/hr/departments/{departmentId}", new { id = departmentId });
+})
+.WithName("CreateDepartment");
+
+app.Run();
 
 namespace Karamchari.Api
 {

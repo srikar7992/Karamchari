@@ -1,5 +1,6 @@
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
+using Karamchari.HR.Domain.Departments;
 using Karamchari.HR.Domain.Employees;
 using Karamchari.HR.Persistence.Configurations;
 using MassTransit;
@@ -23,10 +24,13 @@ public sealed class HRDbContext : KaramchariDbContext
     /// </summary>
     private const string MessagingSchema = "dbo";
 
+    public DbSet<Department> Departments => Set<Department>();
+
     public DbSet<Employee> Employees => Set<Employee>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfiguration(new DepartmentConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
 
         // MassTransit's transactional outbox entities. Adding them registers the

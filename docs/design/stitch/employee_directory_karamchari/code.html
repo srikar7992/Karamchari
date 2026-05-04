@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Employee Directory</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "background": "#131313",
+                      "tertiary-container": "#e2e2e2",
+                      "on-primary-container": "#636565",
+                      "inverse-surface": "#e2e2e2",
+                      "outline": "#8e9192",
+                      "secondary-container": "#3a4a5f",
+                      "on-primary": "#2f3131",
+                      "inverse-primary": "#5d5f5f",
+                      "surface-tint": "#c6c6c7",
+                      "surface-container-highest": "#353535",
+                      "surface-container-high": "#2a2a2a",
+                      "surface-bright": "#393939",
+                      "error": "#ffb4ab",
+                      "tertiary": "#ffffff",
+                      "primary-fixed-dim": "#c6c6c7",
+                      "surface-dim": "#131313",
+                      "surface": "#131313",
+                      "primary-container": "#e2e2e2",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "on-background": "#e2e2e2",
+                      "on-primary-fixed-variant": "#454747",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary": "#2f3131",
+                      "secondary": "#b7c8e1",
+                      "tertiary-fixed": "#e2e2e2",
+                      "on-secondary": "#213145",
+                      "surface-container": "#1f1f1f",
+                      "outline-variant": "#444748",
+                      "on-tertiary-container": "#636565",
+                      "on-secondary-fixed": "#0b1c30",
+                      "tertiary-fixed-dim": "#c6c6c7",
+                      "surface-container-low": "#1b1b1b",
+                      "on-error": "#690005",
+                      "surface-variant": "#353535",
+                      "primary": "#ffffff",
+                      "on-secondary-container": "#a9bad3",
+                      "on-surface-variant": "#c4c7c8",
+                      "on-tertiary-fixed-variant": "#454747",
+                      "primary-fixed": "#e2e2e2",
+                      "on-tertiary-fixed": "#1a1c1c",
+                      "surface-container-lowest": "#0e0e0e",
+                      "on-primary-fixed": "#1a1c1c",
+                      "on-surface": "#e2e2e2",
+                      "secondary-fixed": "#d3e4fe",
+                      "inverse-on-surface": "#303030",
+                      "error-container": "#93000a",
+                      "on-secondary-fixed-variant": "#38485d"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "lg": "1.5rem",
+                      "xs": "0.25rem",
+                      "margin": "2rem",
+                      "gutter": "1.5rem",
+                      "md": "1rem",
+                      "sm": "0.5rem",
+                      "xl": "2.5rem"
+              },
+              "fontFamily": {
+                      "h1": ["Inter"],
+                      "mono": ["monospace"],
+                      "display": ["Inter"],
+                      "body-large": ["Inter"],
+                      "body-base": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "h2": ["Inter"]
+              },
+              "fontSize": {
+                      "h1": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+                      "mono": ["13px", { "lineHeight": "1.4", "letterSpacing": "0em", "fontWeight": "400" }],
+                      "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "600" }],
+                      "body-large": ["16px", { "lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                      "body-base": ["14px", { "lineHeight": "1.5", "letterSpacing": "0em", "fontWeight": "400" }],
+                      "label-caps": ["11px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                      "h2": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.02em", "fontWeight": "500" }]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-base text-body-base antialiased h-screen overflow-hidden flex selection:bg-surface-container-highest">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-screen w-64 border-r border-white/10 bg-black flex flex-col py-6 px-4 z-20">
+<!-- Brand Header -->
+<div class="flex items-center gap-3 mb-10 px-2">
+<div class="w-8 h-8 rounded-DEFAULT bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img alt="Oakridge School Logo" class="w-full h-full object-cover opacity-80 mix-blend-luminosity" data-alt="A highly stylized, minimalist abstract geometric logo design. The logo consists of sharp intersecting lines and a perfect circle, rendered in stark monochrome white on a pure black background. The style is ultra-modern, corporate, and precise, evoking an advanced technology or enterprise engineering brand identity without any colorful distractions." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOMDkktsA3tbGDUny3fGbmO_6Ic7-thjy5vqQuV1yDTvZHtXY9aK07fuU7Pbo1IDe9cMzqIsL-FmXx0p5WTf4I77KFDs4RY_GD3p59V_o4lZCfahYoMmrqyQC4JjHPiRTL5caGeoJyVjuzjDp4csJx_jmR8kqeFQY4YulAWNg9ZPSc-MnpMtqGTDVPWQtohYNKDxS42vkWqwQfknx6hPWgd0iL_rE4Dl16-xLR7vvF4PiHEaggCCq0iRUr7qE3I9pJePwcDcMG17E"/>
+</div>
+<div>
+<div class="text-lg font-bold tracking-tighter text-white leading-tight">Oakridge School</div>
+<div class="text-xs text-on-surface-variant font-mono">Enterprise EMS</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1 flex-1">
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 text-zinc-500 hover:text-white hover:bg-white/5 transition-all duration-200 ease-in-out rounded-DEFAULT font-['Inter'] text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+                Dashboard
+            </a>
+<!-- Active -->
+<a class="flex items-center gap-3 px-3 py-2 text-white font-semibold bg-white/5 border-r-2 border-white transition-all duration-200 ease-in-out rounded-l-DEFAULT font-['Inter'] text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined text-[18px]">groups</span>
+                Directory
+            </a>
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 text-zinc-500 hover:text-white hover:bg-white/5 transition-all duration-200 ease-in-out rounded-DEFAULT font-['Inter'] text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                Time Off
+            </a>
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 text-zinc-500 hover:text-white hover:bg-white/5 transition-all duration-200 ease-in-out rounded-DEFAULT font-['Inter'] text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+                Payroll
+            </a>
+</nav>
+<div class="mt-auto">
+<a class="flex items-center gap-3 px-3 py-2 text-zinc-500 hover:text-white hover:bg-white/5 transition-all duration-200 ease-in-out rounded-DEFAULT font-['Inter'] text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+                Settings
+            </a>
+</div>
+</aside>
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] border-b border-white/10 bg-black/80 backdrop-blur-md flex items-center justify-between h-14 px-8 ml-64 z-10">
+<nav class="flex items-center gap-6 h-full">
+<a class="flex items-center h-full text-zinc-500 hover:text-white transition-opacity cursor-pointer active:opacity-70 font-['Inter'] text-xs font-medium uppercase tracking-widest" href="#">
+                Dashboard
+            </a>
+<a class="flex items-center h-full text-zinc-500 hover:text-white transition-opacity cursor-pointer active:opacity-70 font-['Inter'] text-xs font-medium uppercase tracking-widest" href="#">
+                Analytics
+            </a>
+</nav>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<button class="text-zinc-500 hover:text-white transition-opacity cursor-pointer active:opacity-70 flex items-center">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="text-zinc-500 hover:text-white transition-opacity cursor-pointer active:opacity-70 flex items-center">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+</div>
+<div class="h-4 w-[1px] bg-white/10"></div>
+<button class="text-sm font-medium text-white hover:opacity-80 transition-opacity">
+                Invite
+            </button>
+<div class="w-7 h-7 rounded-full bg-surface-container overflow-hidden border border-white/10">
+<img alt="User Profile Avatar" class="w-full h-full object-cover mix-blend-luminosity" data-alt="A close-up portrait of a professional man, rendered in strict black and white. The lighting is dramatic and directional, creating a sharp, modern, and clinical aesthetic typical of high-end corporate headshots. The background is pure dark gray to blend seamlessly with a dark mode interface, emphasizing extreme minimalism and focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJi8gdiM8QAL-KPy4upuR67uMNY4GUWJI-IqBQq6G-sS_kK4NX5qzESM9vSWtx_8w8P3y13YVo6-GNxFRUNi0hrg11SLeGEbKy-cfd5qSTyIOqeZ10nRc2mIWA3VqVHixjBUSIGZCg0EzsV99X6igXLNr_mQlrYYMe2-CuGz1mKLiQqJgG_wPIU5fUu2r_guxaujodLhoos3jewoxhw_ZkW4iRb1BnYa2L-F5paBRQTy0WxMTzDNN212on-IIrUlOx_soCDHtqy2c"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-64 mt-14 flex flex-col h-[calc(100vh-3.5rem)] relative overflow-hidden bg-background">
+<!-- Action Bar -->
+<div class="px-8 py-6 flex items-center justify-between shrink-0">
+<div>
+<h1 class="font-h2 text-h2 text-on-surface mb-1">Directory</h1>
+<p class="font-body-base text-body-base text-on-surface-variant">Manage employee records and organizational structure.</p>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search -->
+<div class="relative w-64 group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant group-focus-within:text-on-surface transition-colors">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant/30 text-on-surface font-body-base text-body-base rounded-DEFAULT pl-10 pr-4 py-1.5 focus:outline-none focus:border-outline focus:bg-surface-container transition-all placeholder:text-on-surface-variant/50" placeholder="Search records..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex items-center gap-2 border border-outline-variant/30 rounded-DEFAULT bg-surface-container-low p-1">
+<button class="px-3 py-1 text-sm text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1">
+                        Department <span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<div class="w-[1px] h-4 bg-outline-variant/30"></div>
+<button class="px-3 py-1 text-sm text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1">
+                        Role <span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<div class="w-[1px] h-4 bg-outline-variant/30"></div>
+<button class="px-3 py-1 text-sm text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1">
+                        Status <span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+<!-- Primary Action -->
+<button class="bg-primary text-on-primary font-body-base text-body-base px-4 py-2 rounded-DEFAULT hover:bg-tertiary-container transition-colors flex items-center gap-2 font-medium ml-2">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Add Employee
+                </button>
+</div>
+</div>
+<!-- Edge-to-Edge Data Table -->
+<div class="flex-1 overflow-auto w-full px-8 pb-8">
+<table class="w-full text-left border-collapse">
+<thead class="sticky top-0 bg-background z-10">
+<tr class="border-b border-outline-variant/50 font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+<th class="py-4 font-normal w-[30%]">Employee</th>
+<th class="py-4 font-normal w-[20%]">Role</th>
+<th class="py-4 font-normal w-[20%]">Department</th>
+<th class="py-4 font-normal w-[15%]">Status</th>
+<th class="py-4 font-normal w-[15%] text-right pr-4">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-base text-body-base text-on-surface">
+<!-- Row 1 -->
+<tr class="border-b border-outline-variant/20 hover:bg-surface-container-low transition-colors group">
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden shrink-0">
+<img alt="Sarah Jenkins" class="w-full h-full object-cover mix-blend-luminosity opacity-80" data-alt="A minimalist black and white headshot of a woman facing forward. The lighting is flat and neutral, avoiding heavy shadows to create an ultra-clean, clinical look suitable for an enterprise directory. The background is a solid, slightly textured dark gray. The overall mood is serious, professional, and stripped of extraneous visual noise." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWEW6ck2caVazxSzNZtFO9Lc8ruQbnIzZPQxsiyU_uBP7dbh6e5xkgUp1ZTDu6NckcXaHRJwLNdf4MG3B9FcRVjX8YRrN5EQm6Qvv_6NpQm__2mf2damw0LETchfta3hG2gMWwENmnwHyY3utFQLjLyn4ZvplihkCGN5ULrxPlA0bvLvQtTe5WTJ9R8MrrbEJAh7-VLEAjDGvxEB7IiMkfVBja7t_lgvjoTEMy6z7KLsyUvSlIjh98yFGeOMnrSn01j7Q5kkK0eLA"/>
+</div>
+<div>
+<div class="font-medium">Sarah Jenkins</div>
+<div class="text-xs text-on-surface-variant font-mono mt-0.5">s.jenkins@oakridge.edu</div>
+</div>
+</div>
+</td>
+<td class="py-4 text-on-surface-variant">Principal Engineer</td>
+<td class="py-4 text-on-surface-variant">Technology</td>
+<td class="py-4">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-surface-container-high border border-outline-variant/30 text-xs font-mono">
+<div class="w-1.5 h-1.5 rounded-full bg-primary/80"></div>
+                                Active
+                            </div>
+</td>
+<td class="py-4 text-right pr-4">
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 hover:text-primary transition-all p-1">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-outline-variant/20 hover:bg-surface-container-low transition-colors group">
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden shrink-0 flex items-center justify-center text-xs font-medium text-on-surface-variant border border-outline-variant/30">
+                                    MR
+                                </div>
+<div>
+<div class="font-medium">Marcus Reeves</div>
+<div class="text-xs text-on-surface-variant font-mono mt-0.5">m.reeves@oakridge.edu</div>
+</div>
+</div>
+</td>
+<td class="py-4 text-on-surface-variant">Director of Operations</td>
+<td class="py-4 text-on-surface-variant">Administration</td>
+<td class="py-4">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-surface-container-high border border-outline-variant/30 text-xs font-mono">
+<div class="w-1.5 h-1.5 rounded-full bg-primary/80"></div>
+                                Active
+                            </div>
+</td>
+<td class="py-4 text-right pr-4">
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 hover:text-primary transition-all p-1">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-outline-variant/20 hover:bg-surface-container-low transition-colors group">
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden shrink-0">
+<img alt="David Chen" class="w-full h-full object-cover mix-blend-luminosity opacity-80" data-alt="A stark, high-contrast monochrome portrait of a male professional. The image features deep blacks and harsh highlights, simulating a technical or highly engineered aesthetic. The subject is framed tightly. The background is a void-like black, integrating perfectly with an aggressive dark-mode user interface. No warm tones are present." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBguDg2FJiBwFWfXP43yneiIvcnhkUeUcqrSUJPBs5AdjF9zccgnVoVkx_W4FH-T7p30kJeoTHpDj0WapAcv18ZMEb6rtFAR27s4cVtMQZs0KKVXtuCUrkSZuPZ2d3tboCylnq0wNq-SyKsQ6x_3MIZJeuHZ3TzdK6XOoRbFqko6-VXLDVU_a4TFpMoHsrJtIow4P4Y8fmBIEy1KjKjq0_WjsavDZ-wr_1oDIlHMliF7inUZWDbScD2jq_lySORiQFpq1JTu4NVwKI"/>
+</div>
+<div>
+<div class="font-medium">David Chen</div>
+<div class="text-xs text-on-surface-variant font-mono mt-0.5">d.chen@oakridge.edu</div>
+</div>
+</div>
+</td>
+<td class="py-4 text-on-surface-variant">Senior Analyst</td>
+<td class="py-4 text-on-surface-variant">Finance</td>
+<td class="py-4">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-surface-container-high border border-outline-variant/30 text-xs font-mono opacity-60">
+<div class="w-1.5 h-1.5 rounded-full bg-outline-variant"></div>
+                                On Leave
+                            </div>
+</td>
+<td class="py-4 text-right pr-4">
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 hover:text-primary transition-all p-1">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="border-b border-outline-variant/20 hover:bg-surface-container-low transition-colors group">
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden shrink-0 flex items-center justify-center text-xs font-medium text-on-surface-variant border border-outline-variant/30">
+                                    EL
+                                </div>
+<div>
+<div class="font-medium">Elena Rostova</div>
+<div class="text-xs text-on-surface-variant font-mono mt-0.5">e.rostova@oakridge.edu</div>
+</div>
+</div>
+</td>
+<td class="py-4 text-on-surface-variant">Product Designer</td>
+<td class="py-4 text-on-surface-variant">Design</td>
+<td class="py-4">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-surface-container-high border border-outline-variant/30 text-xs font-mono">
+<div class="w-1.5 h-1.5 rounded-full bg-primary/80"></div>
+                                Active
+                            </div>
+</td>
+<td class="py-4 text-right pr-4">
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 hover:text-primary transition-all p-1">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="border-b border-outline-variant/20 hover:bg-surface-container-low transition-colors group">
+<td class="py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden shrink-0 flex items-center justify-center text-xs font-medium text-on-surface-variant border border-outline-variant/30">
+                                    JW
+                                </div>
+<div>
+<div class="font-medium">James Wilson</div>
+<div class="text-xs text-on-surface-variant font-mono mt-0.5">j.wilson@oakridge.edu</div>
+</div>
+</div>
+</td>
+<td class="py-4 text-on-surface-variant">Marketing Lead</td>
+<td class="py-4 text-on-surface-variant">Marketing</td>
+<td class="py-4">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-surface-container-high border border-outline-variant/30 text-xs font-mono text-error">
+<div class="w-1.5 h-1.5 rounded-full bg-error"></div>
+                                Terminated
+                            </div>
+</td>
+<td class="py-4 text-right pr-4">
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 hover:text-primary transition-all p-1">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</main>
+<!-- Drawer Overlay (Simulating open state for demonstration) -->
+<div class="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-40 transition-opacity"></div>
+<!-- Right-side Slide-out Drawer (Sheet) -->
+<div class="fixed inset-y-0 right-0 w-[440px] bg-surface border-l border-outline-variant/30 z-50 flex flex-col shadow-2xl transform transition-transform translate-x-0">
+<!-- Drawer Header -->
+<div class="px-8 py-6 border-b border-outline-variant/30 flex items-center justify-between shrink-0">
+<div>
+<h2 class="font-h2 text-h2 text-on-surface mb-1">New Employee</h2>
+<p class="font-mono text-mono text-on-surface-variant">Record ID: PENDING</p>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-DEFAULT hover:bg-surface-container">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+</div>
+<!-- Drawer Content (Scrollable) -->
+<div class="flex-1 overflow-y-auto p-8 flex flex-col gap-xl">
+<!-- Section: Personal -->
+<section class="flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest border-b border-outline-variant/20 pb-2">Personal Information</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-1">
+<label class="font-mono text-[10px] uppercase text-on-surface-variant tracking-wider">First Name</label>
+<input class="w-full bg-transparent border-b border-outline-variant/50 py-1.5 font-body-base text-body-base text-on-surface focus:border-primary outline-none transition-colors" placeholder="e.g. Jane" type="text"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-mono text-[10px] uppercase text-on-surface-variant tracking-wider">Last Name</label>
+<input class="w-full bg-transparent border-b border-outline-variant/50 py-1.5 font-body-base text-body-base text-on-surface focus:border-primary outline-none transition-colors" placeholder="e.g. Doe" type="text"/>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-mono text-[10px] uppercase text-on-surface-variant tracking-wider">Personal Email</label>
+<input class="w-full bg-transparent border-b border-outline-variant/50 py-1.5 font-body-base text-body-base text-on-surface focus:border-primary outline-none transition-colors" placeholder="jane.doe@example.com" type="email"/>
+</div>
+</section>
+<!-- Section: Employment -->
+<section class="flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest border-b border-outline-variant/20 pb-2">Employment Details</h3>
+<div class="flex flex-col gap-1">
+<label class="font-mono text-[10px] uppercase text-on-surface-variant tracking-wider">Job Title / Role</label>
+<input class="w-full bg-transparent border-b border-outline-variant/50 py-1.5 font-body-base text-body-base text-on-surface focus:border-primary outline-none transition-colors" placeholder="e.g. Software Engineer" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-1">
+<label class="font-mono text-[10px] uppercase text-on-surface-variant tracking-wider">Department</label>
+<select class="w-full bg-transparent border-b border-outline-variant/50 py-1.5 font-body-base text-body-base text-on-surface focus:border-primary outline-none transition-colors appearance-none cursor-pointer">
+<option class="text-on-surface-variant" disabled="" selected="" value="">Select Dept...</option>
+<option class="bg-surface" value="tech">Technology</option>
+<option class="bg-surface" value="design">Design</option>
+<option class="bg-surface" value="sales">Sales</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-mono text-[10px] uppercase text-on-surface-variant tracking-wider">Start Date</label>
+<input class="w-full bg-transparent border-b border-outline-variant/50 py-1.5 font-body-base text-body-base text-on-surface focus:border-primary outline-none transition-colors" type="date"/>
+</div>
+</div>
+</section>
+<!-- Section: Compensation -->
+<section class="flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest border-b border-outline-variant/20 pb-2">Compensation Base</h3>
+<div class="flex flex-col gap-1">
+<label class="font-mono text-[10px] uppercase text-on-surface-variant tracking-wider">Annual Salary (USD)</label>
+<div class="relative">
+<span class="absolute left-0 top-1.5 text-on-surface-variant font-mono">$</span>
+<input class="w-full bg-transparent border-b border-outline-variant/50 py-1.5 pl-4 font-mono text-body-base text-on-surface focus:border-primary outline-none transition-colors" placeholder="120,000" type="text"/>
+</div>
+</div>
+</section>
+</div>
+<!-- Drawer Footer (Actions) -->
+<div class="px-8 py-6 border-t border-outline-variant/30 bg-surface-container-lowest shrink-0 flex items-center justify-end gap-3">
+<button class="px-4 py-2 font-body-base text-body-base text-on-surface hover:bg-surface-container transition-colors rounded-DEFAULT border border-transparent">
+                Cancel
+            </button>
+<button class="px-6 py-2 font-body-base text-body-base bg-primary text-on-primary hover:opacity-90 transition-opacity rounded-DEFAULT font-medium">
+                Save Record
+            </button>
+</div>
+</div>
+</body></html>

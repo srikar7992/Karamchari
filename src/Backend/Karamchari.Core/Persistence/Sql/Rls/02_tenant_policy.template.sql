@@ -4,7 +4,7 @@
 -- Template. Tokens substituted by RlsScriptGenerator at provisioning time:
 --   {{PolicyName}}    e.g.  TenantPolicy_acme
 --   {{SchemaName}}    e.g.  tenant_acme
---   {{TableList}}     repeated FILTER + BLOCK ADD lines, generated per registered table
+--   TableList         repeated FILTER + BLOCK ADD lines, generated per registered table
 --
 -- A policy holds many predicates and is created/altered atomically. We emit:
 --   FILTER PREDICATE   — protects SELECT (visible rows must match TenantId)

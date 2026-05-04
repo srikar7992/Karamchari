@@ -9,8 +9,13 @@ namespace Karamchari.Core.Multitenancy;
 /// </summary>
 public sealed partial record TenantContext
 {
-    /// <summary>Allowed tenant id format. Lowercase, hyphenated, 1-50 chars; safe to use as a SQL schema suffix.</summary>
-    public const string TenantIdPattern = "^[a-z0-9][a-z0-9-]{0,49}$";
+    /// <summary>
+    /// Allowed tenant id format. Lowercase alphanumeric plus hyphen and underscore, 1-50 chars.
+    /// Safe to use as a SQL schema suffix because <see cref="SchemaName"/> only ever
+    /// concatenates this against the fixed <see cref="SchemaPrefix"/>; no other character
+    /// classes are accepted, so the schema name itself stays inside <c>[A-Za-z0-9_]</c>.
+    /// </summary>
+    public const string TenantIdPattern = "^[a-z0-9][a-z0-9_-]{0,49}$";
 
     /// <summary>Schema prefix used in storage. Combined with <see cref="TenantId"/> -> <c>tenant_acme</c>.</summary>
     public const string SchemaPrefix = "tenant_";
