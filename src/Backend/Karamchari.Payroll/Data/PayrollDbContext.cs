@@ -1,5 +1,6 @@
 using Karamchari.Core.Multitenancy;
 using Karamchari.Payroll.Domain;
+using Karamchari.Payroll.Domain.SalaryStructures;
 using Karamchari.Payroll.StateMachines;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,6 +46,16 @@ public class PayrollDbContext : KaramchariDbContext
     public DbSet<PayrollTimesheetLedger> TimesheetLedger => Set<PayrollTimesheetLedger>();
 
     /// <summary>
+    /// Gets the master salary components set.
+    /// </summary>
+    public DbSet<SalaryComponent> SalaryComponents => Set<SalaryComponent>();
+
+    /// <summary>
+    /// Gets the salary templates set.
+    /// </summary>
+    public DbSet<SalaryTemplate> SalaryTemplates => Set<SalaryTemplate>();
+
+    /// <summary>
     /// Configures the domain model for the Payroll context.
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>
@@ -87,6 +98,21 @@ public class PayrollDbContext : KaramchariDbContext
             b.ToTable("PayrollTimesheetLedger");
             b.HasKey(x => x.Id);
             b.Property(x => x.TotalHours).HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<SalaryComponent>(b =>
+        {
+            b.ToTable("SalaryComponents");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(128);
+        });
+
+        modelBuilder.Entity<SalaryTemplate>(b =>
+        {
+            b.ToTable("SalaryTemplates");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(128);
+            b.OwnsMany(x => x.Components, c => c.ToJson());
         });
     }
 }

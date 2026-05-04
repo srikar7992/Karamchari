@@ -1,6 +1,7 @@
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Payroll.Consumers;
 using Karamchari.Payroll.Data;
+using Karamchari.Payroll.Services;
 using Karamchari.Payroll.StateMachines;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,8 @@ public static class PayrollServiceCollectionExtensions
         services.RegisterTenantTable("PayrollDeductions");
         services.RegisterTenantTable("PayrollSchedules");
         services.RegisterTenantTable("PayrollTimesheetLedger");
+        services.RegisterTenantTable("SalaryComponents");
+        services.RegisterTenantTable("SalaryTemplates");
 
         services.AddDbContext<PayrollDbContext>((serviceProvider, options) =>
         {

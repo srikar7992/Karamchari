@@ -11,6 +11,8 @@ using Karamchari.TimeAttendance.Persistence;
 using Karamchari.TimeAttendance.Domain.Holidays;
 using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Domain.Timesheets;
+using Karamchari.Payroll.Domain.SalaryStructures;
+using Karamchari.Payroll.Services;
 using Karamchari.TimeAttendance.Contracts;
 using Karamchari.Core.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -101,6 +103,55 @@ app.MapGet("/api/payroll/runs", async (PayrollDbContext dbContext) =>
         .ToListAsync();
         
     return Results.Ok(runs);
+});
+
+// --- Salary Structure API ---
+
+// Creates a new master salary component.
+app.MapPost("/api/payroll/salary-components", async (CreateSalaryComponentRequest request, PayrollDbContext dbContext) =>
+{
+    var component = SalaryComponent.Create(request.Name, request.Type, request.Rounding);
+    dbContext.SalaryComponents.Add(component);
+    await dbContext.SaveChangesAsync();
+    return Results.Created($"/api/payroll/salary-components/{component.Id}", component);
+});
+
+// Returns all salary components for the current tenant.
+app.MapGet("/api/payroll/salary-components", async (PayrollDbContext dbContext) =>
+{
+    var components = await dbContext.SalaryComponents.ToListAsync();
+    return Results.Ok(components);
+});
+
+// Creates a new salary template.
+app.MapPost("/api/payroll/salary-templates", async (CreateSalaryTemplateRequest request, PayrollDbContext dbContext) =>
+{
+    var template = SalaryTemplate.Create(request.Name);
+    foreach (var comp in request.Components)
+    {
+        template.AddComponent(comp);
+    }
+    dbContext.SalaryTemplates.Add(template);
+    await dbContext.SaveChangesAsync();
+    return Results.Created($"/api/payroll/salary-templates/{template.Id}", template);
+});
+
+// Dry-runs a CTC breakdown calculation based on a template.
+app.MapPost("/api/payroll/salary-templates/{id}/calculate", async (
+    Guid id, 
+    CalculateCTCBreakdownRequest request, 
+    PayrollDbContext dbContext) =>
+{
+    var template = await dbContext.SalaryTemplates.FindAsync(id);
+    if (template == null) return Results.NotFound("Template not found");
+    
+    var masterComponents = await dbContext.SalaryComponents.ToListAsync();
+    
+    // In a high-throughput system, this CompiledExecutionPlan would be cached in Redis/Memory.
+    var plan = CTCTemplateCompiler.Compile(template, masterComponents);
+    var result = CTCBreakdownService.Calculate(request.AnnualCTC, plan, request.Overrides);
+    
+    return Results.Ok(result);
 });
 
 // --- Time & Attendance API ---
@@ -506,4 +557,19 @@ namespace Karamchari.Api
     /// </summary>
     /// <param name="Reason">The reason for rejection.</param>
     public record RejectTimesheetRequest(string Reason);
+
+    /// <summary>
+    /// Request contract for creating a master salary component.
+    /// </summary>
+    public record CreateSalaryComponentRequest(string Name, ComponentType Type, RoundingStrategy Rounding);
+
+    /// <summary>
+    /// Request contract for creating a salary template.
+    /// </summary>
+    public record CreateSalaryTemplateRequest(string Name, List<SalaryTemplateComponent> Components);
+
+    /// <summary>
+    /// Request contract for calculating a CTC breakdown.
+    /// </summary>
+    public record CalculateCTCBreakdownRequest(decimal AnnualCTC, Dictionary<Guid, decimal>? Overrides);
 }
