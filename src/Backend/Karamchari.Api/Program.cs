@@ -11,8 +11,11 @@ using Karamchari.TimeAttendance.Persistence;
 using Karamchari.TimeAttendance.Domain.Holidays;
 using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Domain.Timesheets;
+using Karamchari.Payroll.Domain;
 using Karamchari.Payroll.Domain.SalaryStructures;
 using Karamchari.Payroll.Services;
+using Karamchari.Payroll.Services.Statutory;
+using Karamchari.Payroll.Services.Statutory.Rules;
 using Karamchari.TimeAttendance.Contracts;
 using Karamchari.Core.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -152,6 +155,38 @@ app.MapPost("/api/payroll/salary-templates/{id}/calculate", async (
     var result = CTCBreakdownService.Calculate(request.AnnualCTC, plan, request.Overrides);
     
     return Results.Ok(result);
+});
+
+// Performs a full salary calculation including statutory deductions (EPF, ESIC).
+app.MapPost("/api/payroll/salary-templates/{id}/calculate-statutory", async (
+    Guid id, 
+    CalculateStatutoryRequest request, 
+    PayrollDbContext dbContext,
+    StatutoryPipelineEngine engine) =>
+{
+    var template = await dbContext.SalaryTemplates.FindAsync(id);
+    if (template == null) return Results.NotFound("Template not found");
+    
+    var masterComponents = await dbContext.SalaryComponents.ToListAsync();
+    var plan = CTCTemplateCompiler.Compile(template, masterComponents);
+    var breakdown = CTCBreakdownService.Calculate(request.AnnualCTC, plan, request.Overrides);
+    
+    // Load profile or use defaults for the dry-run
+    var profile = request.EmployeeId.HasValue 
+        ? await dbContext.PayrollProfiles.FirstOrDefaultAsync(p => p.EmployeeId == request.EmployeeId.Value)
+        : PayrollProfile.CreateDraft(Guid.Empty);
+        
+    // In a real app, the rule set would be resolved via a factory based on the current date
+    var ruleSet = new FY20262027RuleSet(request.EpfBaseComponentIds);
+    var context = new StatutoryContext(breakdown, profile!, ruleSet.Year);
+    
+    var result = StatutoryPipelineEngine.Execute(context, ruleSet);
+    
+    return Results.Ok(new 
+    {
+        Breakdown = breakdown,
+        Statutory = result
+    });
 });
 
 // --- Time & Attendance API ---
@@ -572,4 +607,13 @@ namespace Karamchari.Api
     /// Request contract for calculating a CTC breakdown.
     /// </summary>
     public record CalculateCTCBreakdownRequest(decimal AnnualCTC, Dictionary<Guid, decimal>? Overrides);
+
+    /// <summary>
+    /// Request contract for a full statutory pay calculation.
+    /// </summary>
+    public record CalculateStatutoryRequest(
+        decimal AnnualCTC, 
+        Guid? EmployeeId, 
+        List<Guid> EpfBaseComponentIds, 
+        Dictionary<Guid, decimal>? Overrides);
 }

@@ -2,6 +2,7 @@ using Karamchari.Core.DependencyInjection;
 using Karamchari.Payroll.Consumers;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Services;
+using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.StateMachines;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -33,8 +34,11 @@ public static class PayrollServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(busConfigurator);
 
-        // RLS: PayrollProfiles lives under each tenant's schema and must be covered by the
-        // per-tenant security policy. Forgetting this line is a security regression.
+        services.AddSingleton<CTCTemplateCompiler>();
+        services.AddSingleton<CTCBreakdownService>();
+        services.AddSingleton<StatutoryPipelineEngine>();
+
+        // RLS Configuration
         services.RegisterTenantTable("PayrollProfiles");
         services.RegisterTenantTable("PayrollRunStates");
         services.RegisterTenantTable("PayrollDeductions");

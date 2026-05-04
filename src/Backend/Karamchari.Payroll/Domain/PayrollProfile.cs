@@ -59,6 +59,16 @@ public class PayrollProfile : ITenantOwned
     /// </summary>
     public bool IsActive { get; private set; }
 
+    /// <summary>
+    /// Gets a value indicating whether the employee has opted for Voluntary PF (overriding the ₹15,000 cap).
+    /// </summary>
+    public bool OptedForVoluntaryPF { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether ESIC is locked for the current contribution period.
+    /// </summary>
+    public bool IsEsicLocked { get; private set; }
+
     private PayrollProfile()
     {
         Currency = string.Empty;
