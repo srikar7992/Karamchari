@@ -19,7 +19,7 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
     /// <summary>
     /// Gets the state representing the approval pending phase.
     /// </summary>
-    public State PendingApproval { get; private set; } = null!;
+    public State PendingReview { get; private set; } = null!;
     /// <summary>
     /// Gets the state representing the finalized phase.
     /// </summary>
@@ -35,9 +35,9 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
     /// </summary>
     public Event<EmployeePayCalculatedEvent> PayCalculated { get; private set; } = null!;
     /// <summary>
-    /// Gets the event for approving a payroll run.
+    /// Gets the event for locking a payroll run.
     /// </summary>
-    public Event<PayrollRunApprovedCommand> ApproveCommand { get; private set; } = null!;
+    public Event<LockPayrollRunCommand> LockCommand { get; private set; } = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PayrollRunStateMachine"/> class.
@@ -50,7 +50,7 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
         // Correlate the events to the Saga instance
         Event(() => StartCommand, x => x.CorrelateById(context => context.Message.RunId));
         Event(() => PayCalculated, x => x.CorrelateById(context => context.Message.RunId));
-        Event(() => ApproveCommand, x => x.CorrelateById(context => context.Message.RunId));
+        Event(() => LockCommand, x => x.CorrelateById(context => context.Message.RunId));
 
         // Define the behavior
         Initially(
@@ -79,16 +79,33 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
 
         During(Calculating,
             When(PayCalculated)
-                .Then(context => context.Saga.ProcessedEmployees++)
-                // If Processed == Total, transition to PendingApproval
+                .Then(context => 
+                {
+                    context.Saga.ProcessedEmployees++;
+                    context.Saga.TotalGross += context.Message.Gross;
+                    context.Saga.TotalNet += context.Message.NetPay;
+                })
+                // If Processed == Total, transition to PendingReview
                 .If(context => context.Saga.ProcessedEmployees >= context.Saga.TotalEmployeesToProcess, 
-                    binder => binder.TransitionTo(PendingApproval))
+                    binder => binder.TransitionTo(PendingReview))
         );
 
-        During(PendingApproval,
-            When(ApproveCommand)
-                .Then(context => context.Saga.CompletedAt = DateTime.UtcNow)
+        During(PendingReview,
+            When(LockCommand)
+                .Then(context => 
+                {
+                    context.Saga.LockedBy = context.Message.ApprovedBy;
+                    context.Saga.LockedAt = DateTime.UtcNow;
+                    context.Saga.CompletedAt = DateTime.UtcNow;
+                })
                 .TransitionTo(Finalized)
+                // Publish an internal integration event that the PublishPayslipsConsumer will handle
+                .PublishAsync(context => context.Init<PayrollRunLockedIntegrationEvent>(new
+                {
+                    RunId = context.Saga.CorrelationId,
+                    TenantId = context.Saga.TenantId,
+                    PeriodName = context.Saga.PeriodName
+                }))
         );
     }
 }

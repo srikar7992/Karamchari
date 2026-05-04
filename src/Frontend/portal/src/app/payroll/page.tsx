@@ -16,7 +16,10 @@ import { StartRunModal } from "@/components/ui/start-run-modal";
 import { usePayrollRuns } from "@/lib/hooks/use-payroll";
 import type { ApiError } from "@/lib/api/errors";
 
+import { useRouter } from "next/navigation";
+
 export default function PayrollPage() {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: runs, isLoading, isError, error } = usePayrollRuns();
 
@@ -32,10 +35,10 @@ export default function PayrollPage() {
             Calculating
           </span>
         );
-      case "PendingApproval":
+      case "PendingReview":
         return (
           <span className="inline-flex items-center rounded-full bg-tertiary-container/30 px-2 py-0.5 text-xs font-medium text-tertiary border border-tertiary/30">
-            Pending Approval
+            Pending Review
           </span>
         );
       case "Finalized":
@@ -104,7 +107,11 @@ export default function PayrollPage() {
                         : 0;
 
                     return (
-                      <TableRow key={run.id}>
+                      <TableRow 
+                        key={run.correlationId} 
+                        className="cursor-pointer hover:bg-surface-container-low transition-colors"
+                        onClick={() => router.push(`/payroll/runs/${run.correlationId}`)}
+                      >
                         <TableCell className="font-medium">{run.periodName}</TableCell>
                         <TableCell>{renderStatus(run.currentState)}</TableCell>
                         <TableCell>

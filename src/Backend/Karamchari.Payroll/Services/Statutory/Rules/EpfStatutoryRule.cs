@@ -32,14 +32,16 @@ public sealed class EpfStatutoryRule : IStatutoryRule
         decimal epfBaseWage = context.GetBaseWage(_epfBaseComponentIds);
 
         // If not opting for Voluntary PF (VPF), cap the base at ₹15,000 for statutory deduction
+        string explanation = $"12% of wage base (₹{epfBaseWage:N2})";
         if (!context.Profile.OptedForVoluntaryPF && epfBaseWage > StatutoryWageCap)
         {
             epfBaseWage = StatutoryWageCap;
+            explanation = $"12% of capped wage base (₹{StatutoryWageCap:N2})";
         }
 
         // Round to nearest rupee as per EPF standards
         decimal epfDeduction = Math.Round(epfBaseWage * EpfRate, 0, MidpointRounding.AwayFromZero);
 
-        return new StatutoryResult(Name, epfDeduction, true, "Standard 12% statutory deduction applied.");
+        return new StatutoryResult(Name, epfDeduction, true, explanation);
     }
 }

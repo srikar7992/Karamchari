@@ -40,7 +40,19 @@ public class PayrollRunState : SagaStateMachineInstance
     /// </summary>
     public int TotalEmployeesToProcess { get; set; }
     /// <summary>
-    /// Gets or sets the number of employees already processed.
+    /// Gets or sets the total number of employees already processed.
     /// </summary>
     public int ProcessedEmployees { get; set; }
+
+    // Summary Totals
+    /// <summary>Gets or sets the total gross payout.</summary>
+    public decimal TotalGross { get; set; }
+    /// <summary>Gets or sets the total net payout.</summary>
+    public decimal TotalNet { get; set; }
+
+    // Audit Info
+    /// <summary>Gets or sets the user who locked the run.</summary>
+    public string? LockedBy { get; set; }
+    /// <summary>Gets or sets the date and time the run was locked.</summary>
+    public DateTime? LockedAt { get; set; }
 }

@@ -1,0 +1,28 @@
+namespace Karamchari.Payroll.Services.Payslip;
+
+/// <summary>
+/// Defines a service for generating a PDF payslip from data.
+/// </summary>
+public interface IPayslipGenerator
+{
+    /// <summary>
+    /// Generates a PDF byte array from the provided payslip data.
+    /// </summary>
+    byte[] Generate(PayslipData data);
+}
+
+/// <summary>
+/// Defines a service for persisting generated payslips.
+/// </summary>
+public interface IPayslipStorage
+{
+    /// <summary>
+    /// Saves the payslip PDF to storage.
+    /// </summary>
+    Task<string> SaveAsync(string employeeId, string periodName, byte[] pdfBytes);
+
+    /// <summary>
+    /// Retrieves the payslip PDF from storage.
+    /// </summary>
+    Task<byte[]> GetAsync(string employeeId, string periodName);
+}

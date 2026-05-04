@@ -2,7 +2,9 @@ using Karamchari.Core.DependencyInjection;
 using Karamchari.Payroll.Consumers;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Services;
+using Karamchari.Payroll.Services.Payslip;
 using Karamchari.Payroll.Services.Statutory;
+using Karamchari.Payroll.Services.Declarations;
 using Karamchari.Payroll.StateMachines;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +39,24 @@ public static class PayrollServiceCollectionExtensions
         services.AddSingleton<CTCTemplateCompiler>();
         services.AddSingleton<CTCBreakdownService>();
         services.AddSingleton<StatutoryPipelineEngine>();
+        
+        services.AddScoped<IProfessionalTaxRepository, ProfessionalTaxRepository>();
+        services.AddScoped<IProfessionalTaxProvider, CachedProfessionalTaxProvider>();
+        
+        services.AddScoped<IIncomeProjectionService, IncomeProjectionService>();
+        services.AddScoped<IExemptionCalculator, ExemptionCalculator>();
+        services.AddScoped<ITaxSlabProvider, TaxSlabProvider>();
+        services.AddScoped<IITDeclarationRepository, ITDeclarationRepository>();
+        
+        services.AddSingleton<IPayslipGenerator, QuestPdfPayslipGenerator>();
+        services.AddSingleton<IPayslipStorage, LocalFilePayslipStorage>();
+
+        // Declaration & Proof Services
+        services.AddScoped<IDocumentAnalyzer, AzureDocumentAnalyzer>();
+        services.AddScoped<IProofStorage, LocalProofStorage>();
+        services.AddScoped<ITDeclarationService>();
+
+        services.AddMemoryCache();
 
         // RLS Configuration
         services.RegisterTenantTable("PayrollProfiles");
@@ -46,6 +66,9 @@ public static class PayrollServiceCollectionExtensions
         services.RegisterTenantTable("PayrollTimesheetLedger");
         services.RegisterTenantTable("SalaryComponents");
         services.RegisterTenantTable("SalaryTemplates");
+        services.RegisterTenantTable("ProfessionalTaxSlabs");
+        services.RegisterTenantTable("ITDeclarations");
+        services.RegisterTenantTable("PayrollLedger");
 
         services.AddDbContext<PayrollDbContext>((serviceProvider, options) =>
         {
@@ -59,6 +82,8 @@ public static class PayrollServiceCollectionExtensions
 
         busConfigurator.AddConsumer<EmployeeOnboardedConsumer>();
         busConfigurator.AddConsumer<CalculateAllEmployeePayConsumer>();
+        busConfigurator.AddConsumer<GeneratePayslipConsumer>();
+        busConfigurator.AddConsumer<PayrollRunLockedConsumer>();
         busConfigurator.AddConsumer<LeaveRequestApprovedConsumer>();
         busConfigurator.AddConsumer<TenantProvisionedConsumer>();
         busConfigurator.AddConsumer<TimesheetApprovedConsumer>();

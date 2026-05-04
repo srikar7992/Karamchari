@@ -35,8 +35,10 @@ const GATEWAY_HEADER = "X-Karamchari-Gateway";
 
 async function request<T>(path: string, init: ApiRequestInit = {}): Promise<T> {
   const url = buildUrl(path);
-const headers: Record<string, string> = {
+  const headers: Record<string, string> = {
     Accept: "application/json",
+    [TENANT_HEADER]: init.tenantId ?? process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID ?? "",
+    [GATEWAY_HEADER]: process.env.NEXT_PUBLIC_GATEWAY_FINGERPRINT ?? "",
     ...(init.headers ?? {}),
   };
 

@@ -1,6 +1,7 @@
 namespace Karamchari.Payroll.Domain;
 
 using Karamchari.Core.Multitenancy;
+using Karamchari.Payroll.Domain.Statutory;
 
 /// <summary>
 /// Defines how an employee is compensated (Fixed vs Variable).
@@ -68,6 +69,52 @@ public class PayrollProfile : ITenantOwned
     /// Gets a value indicating whether ESIC is locked for the current contribution period.
     /// </summary>
     public bool IsEsicLocked { get; private set; }
+
+    /// <summary>
+    /// Gets the state code for Professional Tax jurisdiction (e.g., "TS").
+    /// </summary>
+    public string StateCode { get; private set; } = "TS";
+
+    /// <summary>
+    /// Gets the income tax regime selected by the employee.
+    /// </summary>
+    public TaxRegime TaxRegime { get; private set; } = TaxRegime.New;
+
+    /// <summary>
+    /// Gets a value indicating whether the employee's work location is in a Metro city (for HRA).
+    /// </summary>
+    public bool IsMetro { get; private set; }
+
+    /// <summary>Gets the Total Annual CTC.</summary>
+    public decimal AnnualCTC { get; private set; }
+
+    /// <summary>Gets the assigned Salary Template ID.</summary>
+    public Guid SalaryTemplateId { get; private set; }
+
+    /// <summary>
+    /// Creates a shallow clone with an overridden tax regime (for simulations).
+    /// </summary>
+    public PayrollProfile CloneWithRegime(TaxRegime regime)
+    {
+        return new PayrollProfile
+        {
+            Id = this.Id,
+            EmployeeId = this.EmployeeId,
+            TenantId = this.TenantId,
+            PayType = this.PayType,
+            BaseSalary = this.BaseSalary,
+            HourlyRate = this.HourlyRate,
+            Currency = this.Currency,
+            IsActive = this.IsActive,
+            OptedForVoluntaryPF = this.OptedForVoluntaryPF,
+            IsEsicLocked = this.IsEsicLocked,
+            StateCode = this.StateCode,
+            IsMetro = this.IsMetro,
+            AnnualCTC = this.AnnualCTC,
+            SalaryTemplateId = this.SalaryTemplateId,
+            TaxRegime = regime
+        };
+    }
 
     private PayrollProfile()
     {

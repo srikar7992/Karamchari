@@ -13,14 +13,16 @@ public record StartPayrollRunCommand(Guid RunId, string TenantId, string PeriodN
 /// </summary>
 /// <param name="RunId">The associated payroll run identifier.</param>
 /// <param name="EmployeeId">The employee identifier.</param>
+/// <param name="Gross">The calculated gross pay.</param>
 /// <param name="NetPay">The final calculated net pay after deductions.</param>
-public record EmployeePayCalculatedEvent(Guid RunId, Guid EmployeeId, decimal NetPay);
+public record EmployeePayCalculatedEvent(Guid RunId, Guid EmployeeId, decimal Gross, decimal NetPay);
 
 /// <summary>
-/// Command to approve and finalize a payroll run.
+/// Command to lock and approve a payroll run.
 /// </summary>
 /// <param name="RunId">The payroll run identifier.</param>
-public record PayrollRunApprovedCommand(Guid RunId);
+/// <param name="ApprovedBy">The admin user who approved the run.</param>
+public record LockPayrollRunCommand(Guid RunId, string ApprovedBy);
 
 /// <summary>
 /// Command to trigger the calculation of pay for all active employees in a run.

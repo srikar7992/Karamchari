@@ -65,3 +65,17 @@ appsettings.*.Local.json
 build_results_*.txt
 *.log
 
+test_results_v2.txt
+test_results_v3.txt
+test_results_v4.txt
+test_results_v5.txt
+test_results_v6.txt
+test_results_v7.txt
+test_results_v8.txt
+test_results_v9.txt
+test_results_v10.txt
+test_results_v11.txt
+test_results_v12.txt
+test_results_v13.txt
+test_results_v14.txt
+test_results.txt

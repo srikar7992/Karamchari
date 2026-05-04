@@ -19,6 +19,10 @@
 
   <ItemGroup>
     <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="QuestPDF" />
+    <PackageReference Include="Azure.AI.DocumentIntelligence" Version="1.0.0-beta.2" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 using Karamchari.Core.Multitenancy;
 using Karamchari.Payroll.Domain;
 using Karamchari.Payroll.Domain.SalaryStructures;
+using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.Payroll.StateMachines;
 using Microsoft.EntityFrameworkCore;
 
@@ -54,6 +55,21 @@ public class PayrollDbContext : KaramchariDbContext
     /// Gets the salary templates set.
     /// </summary>
     public DbSet<SalaryTemplate> SalaryTemplates => Set<SalaryTemplate>();
+
+    /// <summary>
+    /// Gets the Professional Tax slabs set.
+    /// </summary>
+    public DbSet<ProfessionalTaxSlab> ProfessionalTaxSlabs => Set<ProfessionalTaxSlab>();
+
+    /// <summary>
+    /// Gets the IT declarations set.
+    /// </summary>
+    public DbSet<ITDeclaration> ITDeclarations => Set<ITDeclaration>();
+
+    /// <summary>
+    /// Gets the payroll ledger entries set.
+    /// </summary>
+    public DbSet<PayrollLedgerEntry> PayrollLedger => Set<PayrollLedgerEntry>();
 
     /// <summary>
     /// Configures the domain model for the Payroll context.
@@ -113,6 +129,41 @@ public class PayrollDbContext : KaramchariDbContext
             b.HasKey(x => x.Id);
             b.Property(x => x.Name).HasMaxLength(128);
             b.OwnsMany(x => x.Components, c => c.ToJson());
+        });
+
+        modelBuilder.Entity<ProfessionalTaxSlab>(b =>
+        {
+            b.ToTable("ProfessionalTaxSlabs");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.StateCode).HasMaxLength(10);
+            b.Property(x => x.MinGross).HasPrecision(18, 2);
+            b.Property(x => x.MaxGross).HasPrecision(18, 2);
+            b.Property(x => x.MonthlyTaxAmount).HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<ITDeclaration>(b =>
+        {
+            b.ToTable("ITDeclarations");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.EmployeeId, x.FinancialYear });
+            b.HasIndex(x => x.Status);
+
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.ClaimedAmount).HasPrecision(18, 2);
+            b.Property(x => x.ApprovedAmount).HasPrecision(18, 2);
+
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        modelBuilder.Entity<PayrollLedgerEntry>(b =>
+        {
+            b.ToTable("PayrollLedger");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.EmployeeId, x.FinancialYearStart });
+            b.Property(x => x.MonthlyGross).HasPrecision(18, 2);
+            b.Property(x => x.TdsDeducted).HasPrecision(18, 2);
+            b.Property(x => x.NetPay).HasPrecision(18, 2);
+            b.OwnsOne(x => x.Deductions, d => d.ToJson());
         });
     }
 }

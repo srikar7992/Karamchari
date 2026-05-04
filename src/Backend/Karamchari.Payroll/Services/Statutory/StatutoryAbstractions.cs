@@ -20,6 +20,9 @@ public class StatutoryContext
     
     /// <summary>Gets the current financial year.</summary>
     public FinancialYear Year { get; }
+
+    /// <summary>Gets the specific month being processed (1-12).</summary>
+    public int PayrollMonth { get; }
     
     /// <summary>Gets the running ledger of deductions applied during this pipeline run.</summary>
     public Dictionary<string, decimal> ComputedValues { get; } = new();
@@ -27,11 +30,12 @@ public class StatutoryContext
     /// <summary>
     /// Initializes a new instance of the <see cref="StatutoryContext"/> class.
     /// </summary>
-    public StatutoryContext(CTCBreakdownResult breakdown, PayrollProfile profile, FinancialYear year)
+    public StatutoryContext(CTCBreakdownResult breakdown, PayrollProfile profile, FinancialYear year, int payrollMonth)
     {
         Breakdown = breakdown;
         Profile = profile;
         Year = year;
+        PayrollMonth = payrollMonth;
     }
 
     /// <summary>
@@ -65,7 +69,11 @@ public interface IStatutoryRule
 /// <summary>
 /// The result of applying a single statutory rule.
 /// </summary>
-public record StatutoryResult(string RuleName, decimal Amount, bool IsApplicable, string Notes);
+/// <param name="RuleName">The name of the rule.</param>
+/// <param name="Amount">The calculated deduction amount.</param>
+/// <param name="IsApplicable">Whether the rule was applicable for the given context.</param>
+/// <param name="Explanation">A human-readable breakdown of how the amount was derived.</param>
+public record StatutoryResult(string RuleName, decimal Amount, bool IsApplicable, string Explanation);
 
 /// <summary>
 /// The final result of the statutory pipeline execution.
