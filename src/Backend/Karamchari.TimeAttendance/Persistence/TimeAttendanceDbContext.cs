@@ -2,6 +2,7 @@ using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.TimeAttendance.Domain.Holidays;
 using Karamchari.TimeAttendance.Domain.Leaves;
+using Karamchari.TimeAttendance.Domain.Timesheets;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.TimeAttendance.Persistence;
@@ -42,6 +43,11 @@ public class TimeAttendanceDbContext : KaramchariDbContext
     public DbSet<LeaveBalance> LeaveBalances => Set<LeaveBalance>();
 
     /// <summary>
+    /// Gets the weekly timesheets set.
+    /// </summary>
+    public DbSet<Timesheet> Timesheets => Set<Timesheet>();
+
+    /// <summary>
     /// Configures the domain model for the TimeAttendance context.
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>
@@ -66,6 +72,7 @@ public class TimeAttendanceDbContext : KaramchariDbContext
         {
             b.ToTable("LeavePolicies");
             b.HasKey(x => x.Id);
+            b.OwnsOne(x => x.Rules, r => r.ToJson());
         });
 
         modelBuilder.Entity<LeaveRequest>(b =>
@@ -78,6 +85,17 @@ public class TimeAttendanceDbContext : KaramchariDbContext
         {
             b.ToTable("LeaveBalances");
             b.HasKey(x => x.Id);
+        });
+
+        modelBuilder.Entity<Timesheet>(b =>
+        {
+            b.ToTable("Timesheets");
+            b.HasKey(x => x.Id);
+            
+            // Mapped to a JSON column for flexible, week-bounded entries.
+            b.OwnsMany(x => x.Entries, e => e.ToJson());
+            
+            b.Property(x => x.TotalHours).HasPrecision(18, 2);
         });
     }
 }

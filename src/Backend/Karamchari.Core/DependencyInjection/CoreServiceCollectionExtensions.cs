@@ -1,4 +1,4 @@
-﻿using Karamchari.Core.Messaging;
+using Karamchari.Core.Messaging;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence.Interceptors;
 using Karamchari.Core.Persistence.Provisioning;

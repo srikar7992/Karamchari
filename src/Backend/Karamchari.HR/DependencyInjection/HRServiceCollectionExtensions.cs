@@ -24,13 +24,18 @@ public static class HRServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The configuration.</param>
+    /// <param name="busConfigurator">The MassTransit bus registration configurator.</param>
     /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddKaramchariHR(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        MassTransit.IBusRegistrationConfigurator busConfigurator)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(busConfigurator);
+
+        busConfigurator.AddConsumer<Karamchari.HR.Consumers.TenantProvisionedConsumer>();
 
         // RLS: Employees lives under each tenant's schema and must be covered by the
         // per-tenant security policy. Forgetting this line is a security regression.

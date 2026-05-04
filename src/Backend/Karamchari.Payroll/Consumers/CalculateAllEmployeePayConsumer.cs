@@ -70,12 +70,46 @@ public class CalculateAllEmployeePayConsumer : IConsumer<CalculateAllEmployeePay
         // 2. The Loop (The "Scatter")
         foreach (var profile in activeProfiles)
         {
-            // Simulate heavy calculation (Taxes, Deductions, etc.)
-            // In a production app, this would be a separate micro-service or a complex library call.
-            await Task.Delay(100, context.CancellationToken).ConfigureAwait(false); 
-            
+            // 2a. Calculate Gross Pay based on PayType
+            decimal grossPay = 0;
+            if (profile.PayType == Domain.PayType.Hourly)
+            {
+                // Fetch all approved, unprocessed hours for this employee
+                var timesheets = await _dbContext.TimesheetLedger
+                    .Where(t => t.EmployeeId == profile.EmployeeId && !t.IsProcessed)
+                    .ToListAsync(context.CancellationToken)
+                    .ConfigureAwait(false);
+
+                grossPay = timesheets.Sum(t => t.TotalHours) * profile.HourlyRate;
+
+                // Mark hours as processed to prevent double-pay in future runs
+                foreach (var t in timesheets)
+                {
+                    t.MarkAsProcessed();
+                }
+            }
+            else
+            {
+                grossPay = profile.BaseSalary;
+            }
+
+            // 3. Apply Deductions (Unpaid leaves, etc.)
+            var deductions = await _dbContext.PayrollDeductions
+                .Where(d => d.EmployeeId == profile.EmployeeId && d.PeriodName == message.PeriodName && !d.IsProcessed)
+                .ToListAsync(context.CancellationToken)
+                .ConfigureAwait(false);
+
+            decimal totalDeductions = deductions.Sum(d => d.Amount);
+            decimal netPay = grossPay - totalDeductions;
+
+            // Mark deductions as processed for this run
+            foreach (var d in deductions)
+            {
+                d.MarkAsProcessed();
+            }
+
             // 3. Report back to the Saga (The "Gather" trigger)
-            await _publishEndpoint.Publish(new EmployeePayCalculatedEvent(message.RunId, profile.EmployeeId), context.CancellationToken)
+            await _publishEndpoint.Publish(new EmployeePayCalculatedEvent(message.RunId, profile.EmployeeId, netPay), context.CancellationToken)
                 .ConfigureAwait(false);
         }
 

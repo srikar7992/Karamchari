@@ -70,7 +70,11 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
                         .ConfigureAwait(false);
                 })
                 .TransitionTo(Calculating)
-                .PublishAsync(context => context.Init<CalculateAllEmployeePayCommand>(new { RunId = context.Saga.CorrelationId }))
+                .PublishAsync(context => context.Init<CalculateAllEmployeePayCommand>(new 
+                { 
+                    RunId = context.Saga.CorrelationId,
+                    PeriodName = context.Saga.PeriodName 
+                }))
         );
 
         During(Calculating,

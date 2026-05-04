@@ -1,4 +1,4 @@
-﻿namespace Karamchari.Core.Multitenancy;
+namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Origin of a resolved tenant identifier. Used for diagnostics and cross-source
@@ -15,4 +15,7 @@ public enum TenantSource
 
     /// <summary>Resolved from the request host (subdomain). Routing aid only â€” never authoritative.</summary>
     HostSubdomain = 2,
+
+    /// <summary>System-resolved during a physical provisioning background task. Trusted.</summary>
+    Provisioning = 3,
 }

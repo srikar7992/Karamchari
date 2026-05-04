@@ -17,7 +17,7 @@ export function AddEmployeeModal({
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [legalName, setLegalName] = useState("");
   const [workEmail, setWorkEmail] = useState("");
-  const [hiredOn, setHiredOn] = useState(new Date().toISOString().split("T")[0]);
+  const [hiredOn, setHiredOn] = useState(new Date().toISOString().split("T")[0] ?? "");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 

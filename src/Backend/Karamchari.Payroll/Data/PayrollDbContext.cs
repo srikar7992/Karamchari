@@ -30,6 +30,19 @@ public class PayrollDbContext : KaramchariDbContext
     /// Gets the payroll run states set (Saga state).
     /// </summary>
     public DbSet<PayrollRunState> PayrollRunStates => Set<PayrollRunState>();
+    /// <summary>
+    /// Gets the payroll deductions set.
+    /// </summary>
+    public DbSet<PayrollDeduction> PayrollDeductions => Set<PayrollDeduction>();
+    /// <summary>
+    /// Gets the payroll schedules set.
+    /// </summary>
+    public DbSet<PayrollSchedule> PayrollSchedules => Set<PayrollSchedule>();
+
+    /// <summary>
+    /// Gets the localized timesheet ledger.
+    /// </summary>
+    public DbSet<PayrollTimesheetLedger> TimesheetLedger => Set<PayrollTimesheetLedger>();
 
     /// <summary>
     /// Configures the domain model for the Payroll context.
@@ -53,6 +66,27 @@ public class PayrollDbContext : KaramchariDbContext
             b.HasKey(x => x.CorrelationId);
             b.Property(x => x.CurrentState).HasMaxLength(64);
             // In a real app, you'd apply the RLS function here via EF Core mapping
+        });
+
+        modelBuilder.Entity<PayrollDeduction>(b =>
+        {
+            b.ToTable("PayrollDeductions");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Amount).HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<PayrollSchedule>(b =>
+        {
+            b.ToTable("PayrollSchedules");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(128);
+        });
+
+        modelBuilder.Entity<PayrollTimesheetLedger>(b =>
+        {
+            b.ToTable("PayrollTimesheetLedger");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TotalHours).HasPrecision(18, 2);
         });
     }
 }

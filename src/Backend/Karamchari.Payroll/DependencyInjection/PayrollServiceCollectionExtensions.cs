@@ -36,6 +36,9 @@ public static class PayrollServiceCollectionExtensions
         // per-tenant security policy. Forgetting this line is a security regression.
         services.RegisterTenantTable("PayrollProfiles");
         services.RegisterTenantTable("PayrollRunStates");
+        services.RegisterTenantTable("PayrollDeductions");
+        services.RegisterTenantTable("PayrollSchedules");
+        services.RegisterTenantTable("PayrollTimesheetLedger");
 
         services.AddDbContext<PayrollDbContext>((serviceProvider, options) =>
         {
@@ -49,6 +52,9 @@ public static class PayrollServiceCollectionExtensions
 
         busConfigurator.AddConsumer<EmployeeOnboardedConsumer>();
         busConfigurator.AddConsumer<CalculateAllEmployeePayConsumer>();
+        busConfigurator.AddConsumer<LeaveRequestApprovedConsumer>();
+        busConfigurator.AddConsumer<TenantProvisionedConsumer>();
+        busConfigurator.AddConsumer<TimesheetApprovedConsumer>();
         
         busConfigurator.AddSagaStateMachine<PayrollRunStateMachine, PayrollRunState>()
             .EntityFrameworkRepository(r =>

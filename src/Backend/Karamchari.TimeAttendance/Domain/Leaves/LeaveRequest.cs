@@ -8,12 +8,13 @@ using Karamchari.Core.Multitenancy;
 /// </summary>
 public sealed class LeaveRequest : AggregateRoot<Guid>, ITenantOwned
 {
-    private LeaveRequest(Guid id, Guid employeeId, Guid policyId, DateOnly startDate, DateOnly endDate, string? reason) : base(id)
+    private LeaveRequest(Guid id, Guid employeeId, Guid policyId, DateOnly startDate, DateOnly endDate, double actualDays, string? reason) : base(id)
     {
         EmployeeId = employeeId;
         PolicyId = policyId;
         StartDate = startDate;
         EndDate = endDate;
+        ActualDays = actualDays;
         Reason = reason;
         Status = LeaveRequestStatus.Pending;
         RequestedOnUtc = DateTime.UtcNow;
@@ -60,6 +61,11 @@ public sealed class LeaveRequest : AggregateRoot<Guid>, ITenantOwned
     public LeaveRequestStatus Status { get; private set; }
 
     /// <summary>
+    /// Gets the calculated actual leave days (excluding holidays/weekends).
+    /// </summary>
+    public double ActualDays { get; private set; }
+
+    /// <summary>
     /// Gets the date and time the request was made.
     /// </summary>
     public DateTime RequestedOnUtc { get; private set; }
@@ -71,12 +77,14 @@ public sealed class LeaveRequest : AggregateRoot<Guid>, ITenantOwned
     /// <param name="policyId">The leave policy identifier.</param>
     /// <param name="startDate">The start date.</param>
     /// <param name="endDate">The end date.</param>
+    /// <param name="actualDays">The pre-calculated actual days.</param>
     /// <param name="reason">The reason.</param>
     /// <returns>A new <see cref="LeaveRequest"/> instance.</returns>
-    public static LeaveRequest Create(Guid employeeId, Guid policyId, DateOnly startDate, DateOnly endDate, string? reason = null)
+    public static LeaveRequest Create(Guid employeeId, Guid policyId, DateOnly startDate, DateOnly endDate, double actualDays, string? reason = null)
     {
         if (endDate < startDate) throw new ArgumentException("End date cannot be before start date.");
-        return new LeaveRequest(Guid.NewGuid(), employeeId, policyId, startDate, endDate, reason?.Trim());
+        if (actualDays <= 0) throw new ArgumentException("Actual days must be greater than zero.");
+        return new LeaveRequest(Guid.NewGuid(), employeeId, policyId, startDate, endDate, actualDays, reason?.Trim());
     }
 
     /// <summary>

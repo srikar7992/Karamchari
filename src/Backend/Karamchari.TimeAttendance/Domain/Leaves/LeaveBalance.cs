@@ -74,4 +74,14 @@ public sealed class LeaveBalance : AggregateRoot<Guid>, ITenantOwned
         if (days > RemainingBalance) throw new InvalidOperationException("Insufficient leave balance.");
         UsedBalance += days;
     }
+
+    /// <summary>
+    /// Refunds leave days back to the balance.
+    /// </summary>
+    /// <param name="days">The number of days to refund.</param>
+    public void Refund(double days)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(days);
+        UsedBalance = Math.Max(0, UsedBalance - days);
+    }
 }

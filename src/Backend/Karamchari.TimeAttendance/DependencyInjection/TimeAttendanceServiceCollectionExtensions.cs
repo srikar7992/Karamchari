@@ -1,4 +1,5 @@
 using Karamchari.Core.DependencyInjection;
+using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,13 +19,18 @@ public static class TimeAttendanceServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The configuration.</param>
+    /// <param name="busConfigurator">The MassTransit bus registration configurator.</param>
     /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddKaramchariTimeAttendance(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        MassTransit.IBusRegistrationConfigurator busConfigurator)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(busConfigurator);
+
+        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TenantProvisionedConsumer>();
 
         // RLS: Register tables for multi-tenancy enforcement
         services.RegisterTenantTable("HolidayCalendars");
@@ -32,6 +38,7 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.RegisterTenantTable("LeavePolicies");
         services.RegisterTenantTable("LeaveRequests");
         services.RegisterTenantTable("LeaveBalances");
+        services.RegisterTenantTable("Timesheets");
 
         services.AddDbContext<TimeAttendanceDbContext>((serviceProvider, options) =>
         {
@@ -42,6 +49,8 @@ public static class TimeAttendanceServiceCollectionExtensions
             options.UseSqlServer(connectionString);
             options.AddKaramchariInterceptors(serviceProvider);
         });
+
+        services.AddScoped<LeaveRequestService>();
 
         return services;
     }
