@@ -8,17 +8,30 @@ public sealed class StatutoryPipelineEngine
     /// <summary>
     /// Executes the pipeline for a given context and ruleset.
     /// </summary>
-    public static StatutoryExecutionResult Execute(StatutoryContext context, IStatutoryRuleSet ruleSet)
+    public static async Task<StatutoryExecutionResult> ExecuteAsync(StatutoryContext context, IStatutoryRuleSet ruleSet)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(ruleSet);
 
-        foreach (var rule in ruleSet.Rules.OrderBy(r => r.ExecutionOrder))
+        foreach (var ruleMetadata in ruleSet.Rules.OrderBy(r => r.ExecutionOrder))
         {
-            var result = rule.Apply(context);
+            StatutoryResult result;
+            if (ruleMetadata is IAsyncStatutoryRule asyncRule)
+            {
+                result = await asyncRule.ApplyAsync(context);
+            }
+            else if (ruleMetadata is IStatutoryRule syncRule)
+            {
+                result = syncRule.Apply(context);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unknown rule type: {ruleMetadata.GetType().Name}");
+            }
+
             if (result.IsApplicable)
             {
-                context.ComputedValues[rule.Name] = result.Amount;
+                context.ComputedValues[result.RuleName] = result.Amount;
             }
         }
 
@@ -39,5 +52,5 @@ public interface IStatutoryRuleSet
     FinancialYear Year { get; }
     
     /// <summary>Gets the sorted list of rules.</summary>
-    IReadOnlyList<IStatutoryRule> Rules { get; }
+    IReadOnlyList<IStatutoryRuleMetadata> Rules { get; }
 }

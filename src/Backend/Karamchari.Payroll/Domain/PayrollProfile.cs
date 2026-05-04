@@ -36,6 +36,11 @@ public class PayrollProfile : ITenantOwned
     public Guid EmployeeId { get; private set; }
 
     /// <summary>
+    /// Gets the cached employee name for reporting and payslips.
+    /// </summary>
+    public string EmployeeName { get; private set; } = string.Empty;
+
+    /// <summary>
     /// Gets the compensation type.
     /// </summary>
     public PayType PayType { get; private set; }
@@ -100,6 +105,7 @@ public class PayrollProfile : ITenantOwned
         {
             Id = this.Id,
             EmployeeId = this.EmployeeId,
+            EmployeeName = this.EmployeeName,
             TenantId = this.TenantId,
             PayType = this.PayType,
             BaseSalary = this.BaseSalary,
@@ -122,7 +128,29 @@ public class PayrollProfile : ITenantOwned
     }
 
     /// <summary>
-    /// Creates a new draft payroll profile.
+    /// Creates a new draft payroll profile with a cached employee name.
+    /// Used by <c>EmployeeOnboardedConsumer</c> when creating the profile from an integration event.
+    /// </summary>
+    /// <param name="employeeId">The employee identifier.</param>
+    /// <param name="legalName">The employee's legal name cached for reporting and payslips.</param>
+    /// <returns>A new <see cref="PayrollProfile"/> instance.</returns>
+    public static PayrollProfile CreateDraft(Guid employeeId, string legalName)
+    {
+        return new PayrollProfile
+        {
+            Id = Guid.NewGuid(),
+            EmployeeId = employeeId,
+            EmployeeName = legalName,
+            PayType = PayType.Salaried,
+            BaseSalary = 0.00m,
+            HourlyRate = 0.00m,
+            Currency = "USD",
+            IsActive = false
+        };
+    }
+
+    /// <summary>
+    /// Creates a new draft payroll profile (for testing and simulation use).
     /// </summary>
     /// <param name="employeeId">The employee identifier.</param>
     /// <returns>A new <see cref="PayrollProfile"/> instance.</returns>

@@ -79,13 +79,15 @@ public class ITDeclaration : ITenantOwned
         VerifiedAt = DateTime.UtcNow;
     }
 
-    public void Reject(string reason)
+    public void Reject(string reason, string rejectedBy)
     {
         if (Status != VerificationStatus.PendingReview && Status != VerificationStatus.Submitted)
             throw new InvalidOperationException($"Cannot reject declaration in {Status} state.");
 
         Status = VerificationStatus.Rejected;
         RejectionReason = reason;
+        VerifiedBy = rejectedBy;
+        VerifiedAt = DateTime.UtcNow;
     }
 
     public void Supersede()

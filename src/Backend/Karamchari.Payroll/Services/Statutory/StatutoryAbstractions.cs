@@ -50,20 +50,37 @@ public class StatutoryContext
 }
 
 /// <summary>
-/// Defines a single statutory calculation rule.
+/// Common metadata for all statutory rules.
 /// </summary>
-public interface IStatutoryRule
+public interface IStatutoryRuleMetadata
 {
     /// <summary>Gets the unique name of the rule (e.g., "EPF_Employee").</summary>
     string Name { get; }
     
     /// <summary>Gets the execution order relative to other rules.</summary>
     int ExecutionOrder { get; }
-    
+}
+
+/// <summary>
+/// Defines a single statutory calculation rule.
+/// </summary>
+public interface IStatutoryRule : IStatutoryRuleMetadata
+{
     /// <summary>
     /// Applies the rule to the current context.
     /// </summary>
     StatutoryResult Apply(StatutoryContext context);
+}
+
+/// <summary>
+/// Defines a statutory calculation rule that requires asynchronous execution (e.g. database lookups).
+/// </summary>
+public interface IAsyncStatutoryRule : IStatutoryRuleMetadata
+{
+    /// <summary>
+    /// Applies the rule asynchronously.
+    /// </summary>
+    ValueTask<StatutoryResult> ApplyAsync(StatutoryContext context);
 }
 
 /// <summary>

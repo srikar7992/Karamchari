@@ -13,16 +13,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
-    <ProjectReference Include="..\Karamchari.HR\Karamchari.HR.csproj" />
-    <ProjectReference Include="..\Karamchari.TimeAttendance\Karamchari.TimeAttendance.csproj" />
+    <ProjectReference Include="..\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MassTransit" />
     <PackageReference Include="MassTransit.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="EFCore.BulkExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="QuestPDF" />
-    <PackageReference Include="Azure.AI.DocumentIntelligence" Version="1.0.0-beta.2" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
+    <PackageReference Include="Azure.AI.DocumentIntelligence" />
+    <PackageReference Include="Azure.Storage.Blobs" />
   </ItemGroup>
 </Project>

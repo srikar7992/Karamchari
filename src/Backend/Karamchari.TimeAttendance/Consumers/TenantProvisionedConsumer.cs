@@ -1,7 +1,7 @@
 namespace Karamchari.TimeAttendance.Consumers;
 
 using MassTransit;
-using Karamchari.Core.Contracts;
+using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.TimeAttendance.Persistence;
 using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Domain.Holidays;

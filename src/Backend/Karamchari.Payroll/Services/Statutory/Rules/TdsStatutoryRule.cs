@@ -6,7 +6,7 @@ using Karamchari.Payroll.Domain.Statutory;
 /// Implements the Tax Deducted at Source (TDS) calculation rule.
 /// This is a complex rule that annualizes income, applies exemptions, and projects tax liability.
 /// </summary>
-public sealed class TdsStatutoryRule : IStatutoryRule
+public sealed class TdsStatutoryRule : IAsyncStatutoryRule
 {
     private readonly IIncomeProjectionService _projectionService;
     private readonly IExemptionCalculator _exemptionCalculator;
@@ -35,15 +35,15 @@ public sealed class TdsStatutoryRule : IStatutoryRule
     public int ExecutionOrder => 99; // Runs last
 
     /// <inheritdoc/>
-    public StatutoryResult Apply(StatutoryContext context)
+    public async ValueTask<StatutoryResult> ApplyAsync(StatutoryContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        // 1. Get Annual Projection (Sync bridge for now)
-        var projection = _projectionService.ProjectAnnualIncomeAsync(context).GetAwaiter().GetResult();
+        // 1. Get Annual Projection (Asynchronously)
+        var projection = await _projectionService.ProjectAnnualIncomeAsync(context);
 
-        // 2. Get Approved IT Declarations
-        var approvedDeclarations = _declarationRepository.GetApprovedDeclarationsAsync(context.Profile.EmployeeId, context.Year.StartYear).GetAwaiter().GetResult();
+        // 2. Get Approved IT Declarations (Asynchronously)
+        var approvedDeclarations = await _declarationRepository.GetApprovedDeclarationsAsync(context.Profile.EmployeeId, context.Year.StartYear);
 
         decimal section80C = approvedDeclarations.Where(d => d.Category == "80C").Sum(d => d.ApprovedAmount ?? 0);
         decimal section80D = approvedDeclarations.Where(d => d.Category == "80D").Sum(d => d.ApprovedAmount ?? 0);

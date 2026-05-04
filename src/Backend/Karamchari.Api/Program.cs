@@ -16,13 +16,37 @@ using Karamchari.Payroll.Domain.SalaryStructures;
 using Karamchari.Payroll.Services;
 using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
+using Karamchari.Payroll.Services.Declarations;
 using Karamchari.TimeAttendance.Contracts;
 using Karamchari.Core.Contracts;
+using Karamchari.Core.Contracts.IntegrationEvents;
+using Karamchari.Core.Multitenancy;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 // Entry point for the Karamchari API.
-// Composes all bounded contexts and shared infrastructure.
 var builder = WebApplication.CreateBuilder(args);
+
+// Rate Limiting Configuration
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("ai", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromSeconds(10);
+        opt.QueueLimit = 2;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+
+    options.AddFixedWindowLimiter("ess", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromSeconds(1);
+    });
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 // Add Core Infrastructure (Multitenancy, Interceptors)
 builder.Services.AddKaramchariCore(builder.Configuration);
@@ -41,8 +65,19 @@ builder.Services.AddMassTransit(x =>
     builder.Services.AddKaramchariTimeAttendance(builder.Configuration, x);
     builder.Services.AddKaramchariPayroll(builder.Configuration, x);
 
-    // Transactional Outbox for HR Context
+    // Transactional Outbox — one per DbContext that publishes domain/integration events.
+    // Outbox tables (InboxState, OutboxMessage, OutboxState) are pinned to dbo (shared infra, not tenant-owned).
     x.AddEntityFrameworkOutbox<HRDbContext>(o =>
+    {
+        o.UseSqlServer();
+        o.UseBusOutbox();
+    });
+    x.AddEntityFrameworkOutbox<PayrollDbContext>(o =>
+    {
+        o.UseSqlServer();
+        o.UseBusOutbox();
+    });
+    x.AddEntityFrameworkOutbox<TimeAttendanceDbContext>(o =>
     {
         o.UseSqlServer();
         o.UseBusOutbox();
@@ -51,10 +86,19 @@ builder.Services.AddMassTransit(x =>
     x.UsingInMemory((context, cfg) =>
     {
         cfg.ConfigureEndpoints(context);
+
+        // Global Concurrency and Retry Policy
+        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+        
+        // Bounded Concurrency: Limits simultaneous processing to protect the DB
+        // In production, this would be tuned based on CPU cores and DB capacity
+        cfg.ConcurrentMessageLimit = 8; 
     });
 });
 
 var app = builder.Build();
+
+app.UseRateLimiter();
 
 // --- Tenant Provisioning API ---
 
@@ -83,17 +127,16 @@ app.MapPost("/api/tenants", async (
 // --- Payroll API ---
 
 // Initiates a new payroll run saga.
-app.MapPost("/api/payroll/runs", async (StartPayrollRunRequest request, IPublishEndpoint publishEndpoint) =>
+app.MapPost("/api/payroll/runs", async (StartPayrollRunRequest request, IPublishEndpoint publishEndpoint, ITenantProvider tenantProvider) =>
 {
     // Generate a COMB GUID for better SQL Server indexing performance
     var runId = NewId.NextGuid();
-    
-    // In this modular monolith, the tenant is resolved automatically by HttpTenantProvider
-    // but for the command we pass it explicitly so the saga knows its home.
-    var tenantId = "tenant_oakridge"; 
-    
-    await publishEndpoint.Publish(new StartPayrollRunCommand(runId, tenantId, request.PeriodName));
-    
+
+    // Resolve tenant from the authenticated request (JWT or gateway header)
+    var tenant = tenantProvider.GetTenant();
+
+    await publishEndpoint.Publish(new StartPayrollRunCommand(runId, tenant.TenantId, request.PeriodName));
+
     return Results.Accepted($"/api/payroll/runs/{runId}", new { RunId = runId });
 });
 
@@ -236,35 +279,32 @@ app.MapPost("/api/payroll/salary-templates/{id}/calculate", async (
     return Results.Ok(result);
 });
 
-// Performs a full salary calculation including statutory deductions (EPF, ESIC).
+// Performs a full salary calculation including statutory deductions (EPF, ESIC, PT, TDS).
 app.MapPost("/api/payroll/salary-templates/{id}/calculate-statutory", async (
-    Guid id, 
-    CalculateStatutoryRequest request, 
+    Guid id,
+    CalculateStatutoryRequest request,
     PayrollDbContext dbContext,
-    StatutoryPipelineEngine engine) =>
+    IProfessionalTaxProvider ptProvider,
+    IIncomeProjectionService projectionService,
+    IExemptionCalculator exemptionCalculator,
+    ITaxSlabProvider taxSlabProvider,
+    IITDeclarationRepository declarationRepository) =>
 {
     var template = await dbContext.SalaryTemplates.FindAsync(id);
     if (template == null) return Results.NotFound("Template not found");
-    
+
     var masterComponents = await dbContext.SalaryComponents.ToListAsync();
     var plan = CTCTemplateCompiler.Compile(template, masterComponents);
     var breakdown = CTCBreakdownService.Calculate(request.AnnualCTC, plan, request.Overrides);
-    
+
     // Load profile or use defaults for the dry-run
-    var profile = request.EmployeeId.HasValue 
+    var profile = request.EmployeeId.HasValue
         ? await dbContext.PayrollProfiles.FirstOrDefaultAsync(p => p.EmployeeId == request.EmployeeId.Value)
         : PayrollProfile.CreateDraft(Guid.Empty);
-        
-    // Resolve Statutory dependencies from DI
-    var ptProvider = context.RequestServices.GetRequiredService<IProfessionalTaxProvider>();
-    var projectionService = context.RequestServices.GetRequiredService<IIncomeProjectionService>();
-    var exemptionCalculator = context.RequestServices.GetRequiredService<IExemptionCalculator>();
-    var taxSlabProvider = context.RequestServices.GetRequiredService<ITaxSlabProvider>();
-    var declarationRepository = context.RequestServices.GetRequiredService<IITDeclarationRepository>();
-    
+
     // In a real app, the rule set would be resolved via a factory based on the current date
     var ruleSet = new FY20262027RuleSet(
-        request.EpfBaseComponentIds, 
+        request.EpfBaseComponentIds,
         ptProvider,
         projectionService,
         exemptionCalculator,
@@ -273,7 +313,7 @@ app.MapPost("/api/payroll/salary-templates/{id}/calculate-statutory", async (
 
     var statutoryContext = new StatutoryContext(breakdown, profile!, ruleSet.Year, DateTime.UtcNow.Month);
     
-    var result = StatutoryPipelineEngine.Execute(statutoryContext, ruleSet);
+    var result = await StatutoryPipelineEngine.ExecuteAsync(statutoryContext, ruleSet);
     
     return Results.Ok(new 
     {
@@ -751,12 +791,12 @@ app.MapPost("/api/ess/tax-simulator/dry-run", async (
     // Run Old Regime
     var oldProfile = profile.CloneWithRegime(TaxRegime.Old);
     var oldContext = new StatutoryContext(breakdown, oldProfile, fy, DateTime.UtcNow.Month);
-    var oldResult = StatutoryPipelineEngine.Execute(oldContext, ruleSet);
+    var oldResult = await StatutoryPipelineEngine.ExecuteAsync(oldContext, ruleSet);
 
     // Run New Regime
     var newProfile = profile.CloneWithRegime(TaxRegime.New);
     var newContext = new StatutoryContext(breakdown, newProfile, fy, DateTime.UtcNow.Month);
-    var newResult = StatutoryPipelineEngine.Execute(newContext, ruleSet);
+    var newResult = await StatutoryPipelineEngine.ExecuteAsync(newContext, ruleSet);
 
     decimal oldTax = oldResult.Deductions.GetValueOrDefault("TDS", 0);
     decimal newTax = newResult.Deductions.GetValueOrDefault("TDS", 0);
@@ -768,7 +808,8 @@ app.MapPost("/api/ess/tax-simulator/dry-run", async (
         oldTax < newTax ? "Old Regime" : "New Regime",
         oldTax < newTax ? "Based on your deductions, the Old Regime provides higher savings." : "The New Regime is more beneficial due to lower overall tax rates."
     ));
-});
+})
+.RequireRateLimiting("ess");
 
 // Uploads and analyzes a tax investment proof using Azure AI Document Intelligence.
 app.MapPost("/api/ess/declarations/analyze", async (
@@ -802,7 +843,8 @@ app.MapPost("/api/ess/declarations/analyze", async (
     // 4. Return: Return normalized DTO with Storage URI for audit linkage
     return Results.Ok(result with { StorageUri = storageUri });
 })
-.DisableAntiforgery(); 
+.DisableAntiforgery()
+.RequireRateLimiting("ai"); 
 
 // --- Admin Tax Verification API ---
 
@@ -847,7 +889,8 @@ app.MapPut("/api/admin/declarations/{id}/approve", async (Guid id, [FromBody] de
 // Rejects a tax declaration with a reason.
 app.MapPut("/api/admin/declarations/{id}/reject", async (Guid id, [FromBody] string reason, ITDeclarationService service) =>
 {
-    await service.RejectAsync(id, reason);
+    var rejectedBy = "HR_Admin_01"; // In real app, resolve from JWT
+    await service.RejectAsync(id, reason, rejectedBy);
     return Results.NoContent();
 });
 

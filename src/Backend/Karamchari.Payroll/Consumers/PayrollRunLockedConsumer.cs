@@ -1,6 +1,7 @@
 namespace Karamchari.Payroll.Consumers;
 
-using Karamchari.Core.Contracts;
+using Karamchari.Core.Contracts.IntegrationEvents;
+using Karamchari.Core.Contracts.IntegrationEvents.V2;
 using Karamchari.Payroll.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +42,7 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
 
             await _publishEndpoint.Publish(new PayrollRunCompletedIntegrationEvent(
                 entry.EmployeeId,
+                profile?.EmployeeName ?? "Unknown Employee",
                 message.TenantId,
                 message.PeriodName,
                 entry.MonthlyGross,

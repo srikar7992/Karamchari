@@ -1,4 +1,5 @@
-﻿using Karamchari.HR.Contracts.Employees;
+using Karamchari.Core.Contracts.IntegrationEvents;
+using Karamchari.Core.Contracts.IntegrationEvents.V1;
 using Karamchari.HR.Domain.Employees;
 using Karamchari.HR.Persistence;
 using MassTransit;

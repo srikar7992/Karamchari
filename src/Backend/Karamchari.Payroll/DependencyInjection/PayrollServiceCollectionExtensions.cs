@@ -81,7 +81,8 @@ public static class PayrollServiceCollectionExtensions
         });
 
         busConfigurator.AddConsumer<EmployeeOnboardedConsumer>();
-        busConfigurator.AddConsumer<CalculateAllEmployeePayConsumer>();
+        busConfigurator.AddConsumer<CalculateAllEmployeePayCommandConsumer>(); // I should rename the other one or keep it
+        busConfigurator.AddConsumer<PayrollBatchConsumer>();
         busConfigurator.AddConsumer<GeneratePayslipConsumer>();
         busConfigurator.AddConsumer<PayrollRunLockedConsumer>();
         busConfigurator.AddConsumer<LeaveRequestApprovedConsumer>();

@@ -1,10 +1,10 @@
 namespace Karamchari.Payroll.Tests;
 
+using Karamchari.Payroll.Domain;
 using Karamchari.Payroll.Domain.Statutory;
+using Karamchari.Payroll.Services;
 using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
-using Karamchari.Payroll.Services;
-using Karamchari.Payroll.Domain;
 using NSubstitute;
 
 public class TDSTests
@@ -12,28 +12,67 @@ public class TDSTests
     private static readonly FinancialYear FY2026 = new(2026, 2027);
 
     [Fact]
-    public void TdsShouldCalculateMonthlyDeductionBasedOnProjection()
+    public async Task TdsShouldCalculateMonthlyDeductionBasedOnProjection()
     {
         // Arrange
-        var context = CreateContext(300000); // 3L Gross -> Above 50k Std Ded -> ~2.5L Taxable (New Regime Nil)
-        
+        var context = CreateContext(300000); // 3L Gross
+
         var projection = Substitute.For<IIncomeProjectionService>();
         projection.ProjectAnnualIncomeAsync(Arg.Any<StatutoryContext>())
-            .Returns(new AnnualProjection(0, 0, 1200000, 12)); // 1.2M Annual
+            .Returns(Task.FromResult(new AnnualProjection(0, 0, 1200000, 12)));
 
         var exemption = Substitute.For<IExemptionCalculator>();
+        exemption.CalculateHraExemption(Arg.Any<decimal>(), Arg.Any<decimal>(), Arg.Any<decimal>(), Arg.Any<bool>())
+            .Returns(0m);
+
         var slabs = Substitute.For<ITaxSlabProvider>();
-        slabs.CalculateAnnualTax(Arg.Any<decimal>(), Arg.Any<TaxRegime>()).Returns(120000m); // 1.2L Tax
+        slabs.CalculateAnnualTax(Arg.Any<decimal>(), Arg.Any<TaxRegime>())
+            .Returns(120000m); // 1.2L annual tax → 10k/month
 
         var repo = Substitute.For<IITDeclarationRepository>();
+        repo.GetApprovedDeclarationsAsync(Arg.Any<Guid>(), Arg.Any<int>())
+            .Returns(Task.FromResult<IReadOnlyList<ITDeclaration>>(Array.Empty<ITDeclaration>()));
 
         var rule = new TdsStatutoryRule(projection, exemption, slabs, repo);
 
         // Act
-        var result = rule.Apply(context);
+        var result = await rule.ApplyAsync(context);
 
         // Assert
+        Assert.True(result.IsApplicable);
+        Assert.Equal("TDS", result.RuleName);
         Assert.Equal(10000, result.Amount); // 120,000 / 12
+    }
+
+    [Fact]
+    public async Task TdsShouldReturnZeroWhenNoTaxLiability()
+    {
+        // Arrange — income below 7L → New regime tax = 0 (rebate u/s 87A)
+        var context = CreateContext(50000);
+
+        var projection = Substitute.For<IIncomeProjectionService>();
+        projection.ProjectAnnualIncomeAsync(Arg.Any<StatutoryContext>())
+            .Returns(Task.FromResult(new AnnualProjection(0, 0, 600000, 12)));
+
+        var exemption = Substitute.For<IExemptionCalculator>();
+        exemption.CalculateHraExemption(Arg.Any<decimal>(), Arg.Any<decimal>(), Arg.Any<decimal>(), Arg.Any<bool>())
+            .Returns(0m);
+
+        var slabs = Substitute.For<ITaxSlabProvider>();
+        slabs.CalculateAnnualTax(Arg.Any<decimal>(), Arg.Any<TaxRegime>())
+            .Returns(0m); // Below 87A threshold
+
+        var repo = Substitute.For<IITDeclarationRepository>();
+        repo.GetApprovedDeclarationsAsync(Arg.Any<Guid>(), Arg.Any<int>())
+            .Returns(Task.FromResult<IReadOnlyList<ITDeclaration>>(Array.Empty<ITDeclaration>()));
+
+        var rule = new TdsStatutoryRule(projection, exemption, slabs, repo);
+
+        // Act
+        var result = await rule.ApplyAsync(context);
+
+        // Assert
+        Assert.Equal(0, result.Amount);
     }
 
     [Fact]
@@ -46,11 +85,15 @@ public class TDSTests
         decimal rent = 240000;
 
         // Act
-        // Case 1: Metro (50% of Basic = 2.5L, Rent - 10% Basic = 1.9L, HRA = 2L) -> Min is 1.9L
-        var exemptionMetro = calc.CalculateHraExemption(basic, hra, rent, true);
+        // Metro: Min(50% Basic=250k, Rent-10%Basic=190k, HRA=200k) → Min is 190k
+        var exemptionMetro = calc.CalculateHraExemption(basic, hra, rent, isMetro: true);
+
+        // Non-metro: Min(40% Basic=200k, Rent-10%Basic=190k, HRA=200k) → Min is 190k
+        var exemptionNonMetro = calc.CalculateHraExemption(basic, hra, rent, isMetro: false);
 
         // Assert
         Assert.Equal(190000, exemptionMetro);
+        Assert.Equal(190000, exemptionNonMetro); // same here because rent factor is the binding constraint
     }
 
     [Fact]
@@ -66,6 +109,21 @@ public class TDSTests
         // Assert
         Assert.Equal(0, taxUnder7L);
         Assert.True(taxOver7L > 0);
+    }
+
+    [Fact]
+    public void OldRegimeShouldApplySlabsAbove250k()
+    {
+        // Arrange
+        var provider = new TaxSlabProvider();
+
+        // Act — old regime basic exemption is 2.5L; income just above that
+        var taxAt0 = provider.CalculateAnnualTax(250000, TaxRegime.Old);
+        var taxAt500k = provider.CalculateAnnualTax(500000, TaxRegime.Old);
+
+        // Assert
+        Assert.Equal(0, taxAt0);
+        Assert.True(taxAt500k > 0); // 250k @ 5% = 12,500 + 4% cess
     }
 
     private static StatutoryContext CreateContext(decimal gross)

@@ -1,5 +1,6 @@
 using MassTransit;
 using Karamchari.Payroll.Contracts;
+using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Payroll.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

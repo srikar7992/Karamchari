@@ -30,3 +30,11 @@ public record LockPayrollRunCommand(Guid RunId, string ApprovedBy);
 /// <param name="RunId">The associated payroll run identifier.</param>
 /// <param name="PeriodName">The name of the payroll period (used to query localized deductions).</param>
 public record CalculateAllEmployeePayCommand(Guid RunId, string PeriodName);
+
+/// <summary>
+/// Command to process a specific batch of employees within a payroll run.
+/// </summary>
+/// <param name="RunId">The associated payroll run identifier.</param>
+/// <param name="PeriodName">The name of the payroll period.</param>
+/// <param name="EmployeeIds">The list of employee identifiers to process.</param>
+public record ProcessPayrollBatchCommand(Guid RunId, string PeriodName, List<Guid> EmployeeIds);

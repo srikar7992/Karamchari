@@ -2,6 +2,8 @@ namespace Karamchari.Payroll.Services.Declarations;
 
 using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.Payroll.Services.Statutory;
+using MassTransit;
+using Karamchari.Core.Contracts.IntegrationEvents;
 
 /// <summary>
 /// Service for managing the tax declaration lifecycle.
@@ -9,10 +11,12 @@ using Karamchari.Payroll.Services.Statutory;
 public class ITDeclarationService
 {
     private readonly IITDeclarationRepository _repo;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public ITDeclarationService(IITDeclarationRepository repo)
+    public ITDeclarationService(IITDeclarationRepository repo, IPublishEndpoint publishEndpoint)
     {
         _repo = repo;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task ApproveAsync(Guid id, decimal approvedAmount, string approver)
@@ -25,13 +29,22 @@ public class ITDeclarationService
         await _repo.SaveChangesAsync();
     }
 
-    public async Task RejectAsync(Guid id, string reason)
+    public async Task RejectAsync(Guid id, string reason, string rejectedBy)
     {
         var declaration = await _repo.GetByIdAsync(id) 
             ?? throw new InvalidOperationException("Declaration not found.");
 
-        declaration.Reject(reason);
+        declaration.Reject(reason, rejectedBy);
 
         await _repo.SaveChangesAsync();
+
+        // Trigger Notification to Employee
+        // This event would be handled by a NotificationConsumer to send email/SMS/Push
+        await _publishEndpoint.Publish(new ITDeclarationRejectedIntegrationEvent(
+            declaration.Id,
+            declaration.EmployeeId,
+            declaration.Category,
+            reason
+        ));
     }
 }

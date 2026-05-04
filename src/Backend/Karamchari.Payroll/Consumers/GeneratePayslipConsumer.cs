@@ -1,6 +1,7 @@
 namespace Karamchari.Payroll.Consumers;
 
-using Karamchari.Core.Contracts;
+using Karamchari.Core.Contracts.IntegrationEvents;
+using Karamchari.Core.Contracts.IntegrationEvents.V2;
 using Karamchari.Payroll.Services.Payslip;
 using Karamchari.Payroll.Data;
 using MassTransit;
@@ -52,7 +53,7 @@ public sealed class GeneratePayslipConsumer : IConsumer<PayrollRunCompletedInteg
 
         // 3. Map to PayslipData DTO
         var payslipData = new PayslipData(
-            EmployeeName: string.Concat("Employee ", message.EmployeeId.ToString().AsSpan(0, 8)),
+            EmployeeName: message.EmployeeName,
             EmployeeId: message.EmployeeId.ToString().AsSpan(0, 8).ToString(),
             Month: message.PeriodName,
             Gross: message.Gross,

@@ -1,4 +1,5 @@
-using Karamchari.HR.Contracts.Employees;
+using Karamchari.Core.Contracts.IntegrationEvents;
+using Karamchari.Core.Contracts.IntegrationEvents.V1;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
 using MassTransit;
@@ -48,7 +49,7 @@ public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationE
             return;
         }
 
-        var profile = PayrollProfile.CreateDraft(message.EmployeeId);
+        var profile = PayrollProfile.CreateDraft(message.EmployeeId, message.LegalName);
         _dbContext.PayrollProfiles.Add(profile);
 
         await _dbContext.SaveChangesAsync(context.CancellationToken);

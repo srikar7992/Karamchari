@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
     <ProjectReference Include="..\Karamchari.HR\Karamchari.HR.csproj" />
     <ProjectReference Include="..\Karamchari.Payroll\Karamchari.Payroll.csproj" />
     <ProjectReference Include="..\Karamchari.TimeAttendance\Karamchari.TimeAttendance.csproj" />

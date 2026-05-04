@@ -11,7 +11,7 @@ public sealed class FY20262027RuleSet : IStatutoryRuleSet
     public FinancialYear Year => new(2026, 2027);
 
     /// <inheritdoc/>
-    public IReadOnlyList<IStatutoryRule> Rules { get; }
+    public IReadOnlyList<IStatutoryRuleMetadata> Rules { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FY20262027RuleSet"/> class.
@@ -30,7 +30,7 @@ public sealed class FY20262027RuleSet : IStatutoryRuleSet
         ITaxSlabProvider taxSlabProvider,
         IITDeclarationRepository declarationRepository)
     {
-        Rules = new List<IStatutoryRule>
+        Rules = new List<IStatutoryRuleMetadata>
         {
             new EpfStatutoryRule(tenantEpfComponentIds),
             new EsicStatutoryRule(),

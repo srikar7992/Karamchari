@@ -47,13 +47,20 @@ public sealed class AzureDocumentAnalyzer : IDocumentAnalyzer
         DateTime? date = ExtractDate(result);
         string? vendor = ExtractVendor(result);
 
+        // 4. Return: Return normalized DTO with Storage URI for audit linkage
+        // Real confidence would be an average of field confidences
+        float confidence = result.Pages.Count > 0 ? 0.95f : 0.0f;
+        
+        // Low confidence heuristic (simulated)
+        if (amount == null || date == null) confidence = 0.5f;
+
         return new DocumentAnalysisResult
         {
             Category = category,
             ExtractedAmount = amount,
             DocumentDate = date,
             Vendor = vendor,
-            Confidence = 0.90f // Placeholder: Real confidence comes from field analysis
+            Confidence = confidence
         };
     }
 
