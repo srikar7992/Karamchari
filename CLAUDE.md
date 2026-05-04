@@ -111,9 +111,10 @@ ADRs in `docs/adr/`. Read top-to-bottom before changing anything load-bearing.
 - **Domain events:** sealed records. Capture `OccurredOnUtc` at construction (so retries don't drift). `EventId` is also the downstream idempotency key.
 - **Tests:** xUnit + FluentAssertions + NSubstitute. Integration tests use Microsoft.AspNetCore.Mvc.Testing + a real SQL Server testcontainer.
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`). Reference ADR numbers when relevant.
-- **Naming for new tenants:** lowercase, hyphens allowed, `^[a-z0-9][a-z0-9-]{0,49}$`. Schema becomes `tenant_<id-with-hyphens-as-underscores>`.
+- **Naming for new tenants:** lowercase alphanumeric plus hyphen and underscore, `^[a-z0-9][a-z0-9_-]{0,49}$`. Schema becomes `tenant_<id-with-hyphens-as-underscores>` (underscores pass through; hyphens are mapped to underscores). Examples: `acme`, `globex-co`, `sch_oakridge`.
+- **Frontend:** plain Next.js 15 App Router under `src/Frontend/portal/` (no Nx, deferred). Single `api` client at `@/lib/api/client` is the only path to the BFF. Tenant context is sent via `X-Tenant-Id` + `X-Karamchari-Gateway` headers (the second is dev only — APIM injects it in prod). DTOs in `src/lib/types/` are hand-mirrored from `Karamchari.Api.Models` (no codegen yet).
 
-## 6. Current state (as of 2026-05-02)
+## 6. Current state (as of 2026-05-03)
 
 ### Built and verified
 
@@ -141,30 +142,35 @@ ADRs in `docs/adr/`. Read top-to-bottom before changing anything load-bearing.
   - `MassTransitDomainEventDispatcher` — publishes via `IPublishEndpoint` under each event's runtime type.
   - `AddKaramchariHR` — registers `Employees` as a tenant table, replaces the null dispatcher with the MassTransit one, registers `HRDbContext`.
 - `Karamchari.Api`:
-  - Wires Core + MassTransit (Azure Service Bus in non-Dev, in-memory bus in Dev) + JWT bearer scaffold + HR.
-  - `GET /api/hr/employees` (auth required, projects to `EmployeeListItem`).
+  - Wires Core + MassTransit (Azure Service Bus in non-Dev, in-memory bus in Dev) + auth + HR.
+  - Auth: dev uses `DevelopmentTenantAuthenticationHandler` (validates `X-Tenant-Id` + matching `X-Karamchari-Gateway` proof and synthesizes a principal with the tenant claim); prod uses JWT bearer (config TODO).
+  - `GET /api/hr/employees`, `GET /api/hr/departments`, `POST /api/hr/departments` (auth required).
   - `/health/live` and `/health/ready` (anonymous).
+  - Dev-only CORS policy `KaramchariDevPortal` allows `http://localhost:3000`, the two tenant headers, and standard verbs. No credentials (header auth, not cookies).
   - Inline tenant-resolution exception handler (TODO: replace with `IExceptionHandler`).
 - `Karamchari.Payroll`: project + csproj only (placeholder).
-- ADRs 0001 and 0002 written.
+- `Karamchari.HR`: now also has `Department` aggregate, `DepartmentCreatedConsumer`, `IOrganizationService` / `OrganizationService`, `CreateDepartmentCommand` contract.
+- Tests: `Karamchari.Core.UnitTests` (xUnit + FluentAssertions + NSubstitute, 10 passing) and `Karamchari.Core.IntegrationTests` (Testcontainers.MsSql against `mcr.microsoft.com/mssql/server:2022-latest`, blocked locally only by Docker not running).
+- **Frontend portal**: `src/Frontend/portal` — plain Next.js 15 App Router, React 19, TypeScript, Tailwind 3.4, TanStack Query v5, hand-rolled shadcn-style primitives. Runs at `http://localhost:3000`. Live `/directory` page reads from `GET /api/hr/departments`; `/dashboard` is a static port of the Stitch mock with the same shell. Stitch HTML mocks live in `docs/design/stitch/`.
+- ADRs 0001, 0002, 0003 written.
 
 ### Not yet built (priority order)
 
-1. **SQL Server testcontainer integration test** (HIGHEST priority — the only thing that proves schema rewrite + session context + RLS BLOCK predicates compose correctly under real SQL Server).
-2. Targeted unit tests:
-   - `HttpTenantProvider`: every disagreement / missing-source / untrusted-header path.
-   - `TenantSchemaCommandInterceptor`: placeholder rewrite, refuse on missing tenant, refuse on bad schema name, no-op on no placeholder.
+1. **Run the SQL Server testcontainer integration test once Docker is available** — start Docker Desktop and run `dotnet test tests/Backend/Karamchari.Core.IntegrationTests`. It's the only thing that proves schema rewrite + session context + RLS BLOCK predicates compose under real SQL Server.
+2. **End-to-end smoke against the live portal** — run the BFF + portal locally, log in via dev auth, exercise `GET /api/hr/departments` and `POST /api/hr/departments` from the portal, confirm the new row appears after invalidation.
+3. **More targeted unit tests**:
    - `TenantStampingInterceptor`: stamps on insert, rejects mismatched insert/update/delete.
    - `RlsScriptGenerator`: bootstrap output, per-tenant output with multiple registered tables, identifier rejection.
-3. Replace inline tenant-resolution middleware with `IExceptionHandler` + RFC 7807 ProblemDetails.
-4. Bind real JWT bearer config from `IConfiguration` (authority, audience, JWKS) + tenant-registry validation (disabled / not found / expired).
-5. `Karamchari.Provisioning` service that runs:
+   - `DevelopmentTenantAuthenticationHandler`: missing header, missing proof, mismatched proof, malformed tenant id.
+4. Replace inline tenant-resolution middleware with `IExceptionHandler` + RFC 7807 ProblemDetails.
+5. Bind real JWT bearer config from `IConfiguration` (authority, audience, JWKS) + tenant-registry validation (disabled / not found / expired).
+6. `Karamchari.Provisioning` service that runs:
    - Bootstrap scripts on deploy.
    - Per-tenant: `CREATE SCHEMA`, run EF migrations against the tenant schema, run per-tenant RLS policy.
-6. Outbox relay implementation (drain MassTransit's outbox under `dbo` — single relay, no per-tenant scoping needed).
-7. Background job tenant scope: `IBackgroundTenantScope` + `WithTenantAsync(tenantId, ...)` wrapper for the relay and any future workers.
-8. First Payroll aggregate + bounded context wiring (will trigger the lift of `MassTransitDomainEventDispatcher` from HR into a shared `Karamchari.Messaging` project).
-9. Frontend: initialize Nx + Next.js workspace under `src/Frontend/`.
+7. Outbox relay implementation (drain MassTransit's outbox under `dbo` — single relay, no per-tenant scoping needed).
+8. Background job tenant scope: `IBackgroundTenantScope` + `WithTenantAsync(tenantId, ...)` wrapper for the relay and any future workers.
+9. First Payroll aggregate + bounded context wiring (will trigger the lift of `MassTransitDomainEventDispatcher` from HR into a shared `Karamchari.Messaging` project).
+10. Frontend follow-ups: login page + auth flow against real JWT, employee directory page (the Stitch employee_directory mock), payroll-run page, OpenAPI codegen for DTOs to replace hand-mirrored types.
 
 ### Open questions / explicit deferrals
 
@@ -177,7 +183,7 @@ ADRs in `docs/adr/`. Read top-to-bottom before changing anything load-bearing.
 1. **Read this file first.** Then check `SESSION_LOG.md` for what the previous session shipped.
 2. **Before any creative work**, ask the user clarifying questions (`AskUserQuestion`). Do not assume scope.
 3. **Use TodoList** for any multi-step work — Cowork renders it as a progress widget.
-4. **Architectural rules in section 2 are immutable.** Any deviation requires an explicit user decision recorded in a new ADR (next number: 0003).
+4. **Architectural rules in section 2 are immutable.** Any deviation requires an explicit user decision recorded in a new ADR (next number: 0004).
 5. **When the user changes a file under your nose** (system-reminder mentions a modification), reconcile with their direction — don't revert.
 6. **Verification step is mandatory** before declaring work complete. Re-grep against the rule audits in `SESSION_LOG.md` (or write new ones for new rules).
 7. **Always commit** at the end of a session: `git add -A && git commit -m "<conventional message>"`.

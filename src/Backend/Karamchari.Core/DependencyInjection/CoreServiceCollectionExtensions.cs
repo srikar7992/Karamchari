@@ -1,4 +1,4 @@
-using Karamchari.Core.Messaging;
+﻿using Karamchari.Core.Messaging;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence.Interceptors;
 using Karamchari.Core.Persistence.Provisioning;
@@ -29,7 +29,7 @@ public static class CoreServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        // Tenancy options — strongly typed, validated on first resolution.
+        // Tenancy options â€” strongly typed, validated on first resolution.
         services
             .AddOptions<TenantOptions>()
             .Bind(configuration.GetSection(TenantOptions.SectionName))
@@ -40,7 +40,7 @@ public static class CoreServiceCollectionExtensions
         // is a no-op if already registered, so it's safe to call from Core.
         services.AddHttpContextAccessor();
 
-        // Tenant provider must be Scoped — it caches the resolution on HttpContext.Items.
+        // Tenant provider must be Scoped â€” it caches the resolution on HttpContext.Items.
         services.AddScoped<ITenantProvider, HttpTenantProvider>();
 
         // Interceptors are stateless w.r.t. EF, but they depend on the scoped
@@ -53,7 +53,7 @@ public static class CoreServiceCollectionExtensions
         // Default no-op dispatcher: a bounded context (or the API host) MUST
         // override this with a real implementation (e.g. MassTransitDomainEventDispatcher
         // in HR) before any aggregate is saved with pending events. The default
-        // is fail-closed — any save with pending events will throw.
+        // is fail-closed â€” any save with pending events will throw.
         services.TryAddScopedDomainEventDispatcher();
 
         // Tenant table registry is the single source of truth for RLS coverage.
@@ -64,7 +64,7 @@ public static class CoreServiceCollectionExtensions
         services.AddSingleton<ITenantTableRegistry>(registry);
         services.AddSingleton<RlsScriptGenerator>();
 
-        // Single TimeProvider instance is fine — TimeProvider.System is thread-safe.
+        // Single TimeProvider instance is fine â€” TimeProvider.System is thread-safe.
         // Tests can swap in a FakeTimeProvider before calling AddKaramchariCore.
         services.TryAddSingletonTimeProvider();
 
@@ -74,7 +74,7 @@ public static class CoreServiceCollectionExtensions
     /// <summary>
     /// Registers a tenant-owned table so RLS policies cover it. Call once per
     /// table from each bounded context's <c>AddKaramchari{Context}</c> extension.
-    /// Forgetting to call this is a security regression — RLS won't apply to
+    /// Forgetting to call this is a security regression â€” RLS won't apply to
     /// the missing table.
     /// </summary>
     public static IServiceCollection RegisterTenantTable(this IServiceCollection services, string tableName)
@@ -93,7 +93,7 @@ public static class CoreServiceCollectionExtensions
         if (registryDescriptor.ImplementationInstance is not ITenantTableRegistry instance)
         {
             throw new InvalidOperationException(
-                "ITenantTableRegistry must be registered as a concrete singleton instance — see AddKaramchariCore.");
+                "ITenantTableRegistry must be registered as a concrete singleton instance â€” see AddKaramchariCore.");
         }
 
         instance.Register(table);

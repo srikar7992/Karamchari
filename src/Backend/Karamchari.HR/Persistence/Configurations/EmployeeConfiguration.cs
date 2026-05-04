@@ -1,4 +1,4 @@
-using Karamchari.HR.Domain.Employees;
+﻿using Karamchari.HR.Domain.Employees;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,6 +6,9 @@ namespace Karamchari.HR.Persistence.Configurations;
 
 internal sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
 {
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Employee> builder)
     {
         builder.ToTable("Employees");

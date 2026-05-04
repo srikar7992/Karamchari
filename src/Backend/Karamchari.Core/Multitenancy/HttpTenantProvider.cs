@@ -11,13 +11,13 @@ namespace Karamchari.Core.Multitenancy;
 ///
 /// Resolution order (per the architecture charter):
 /// <list type="number">
-///   <item>JWT claim — authoritative for user-driven requests.</item>
-///   <item>Trusted gateway header — accepted only when the gateway proof header is present and valid.</item>
-///   <item>Host subdomain — used only to corroborate the JWT, never as the source of truth.</item>
+///   <item>JWT claim â€” authoritative for user-driven requests.</item>
+///   <item>Trusted gateway header â€” accepted only when the gateway proof header is present and valid.</item>
+///   <item>Host subdomain â€” used only to corroborate the JWT, never as the source of truth.</item>
 /// </list>
 ///
 /// If multiple sources are present they must agree; disagreement is an error.
-/// There is no fallback — missing tenant context is fatal for any request that
+/// There is no fallback â€” missing tenant context is fatal for any request that
 /// reaches this provider.
 /// </summary>
 internal sealed class HttpTenantProvider : ITenantProvider
@@ -38,6 +38,9 @@ internal sealed class HttpTenantProvider : ITenantProvider
         _logger = logger;
     }
 
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public TenantContext GetTenant()
     {
         var httpContext = _httpContextAccessor.HttpContext
@@ -55,6 +58,9 @@ internal sealed class HttpTenantProvider : ITenantProvider
         return resolved;
     }
 
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public bool TryGetTenant([NotNullWhen(true)] out TenantContext? tenant)
     {
         try
@@ -126,9 +132,12 @@ internal sealed class HttpTenantProvider : ITenantProvider
         // Header is meaningful only when the gateway proof is present and matches.
         if (string.IsNullOrEmpty(_options.TrustedGatewayFingerprint))
         {
-            _logger.LogWarning(
-                "Tenant header {Header} present but TrustedGatewayFingerprint is not configured. Header ignored.",
-                _options.TenantHeaderName);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(
+                    "Tenant header {Header} present but TrustedGatewayFingerprint is not configured. Header ignored.",
+                    _options.TenantHeaderName);
+            }
             return null;
         }
 

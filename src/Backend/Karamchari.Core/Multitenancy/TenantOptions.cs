@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Karamchari.Core.Multitenancy;
 
@@ -13,6 +13,9 @@ namespace Karamchari.Core.Multitenancy;
 /// </summary>
 public sealed class TenantOptions
 {
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public const string SectionName = "Tenancy";
 
     /// <summary>JWT claim type that carries the tenant id. Defaults to <c>"tenant_id"</c>.</summary>
@@ -44,7 +47,7 @@ public sealed class TenantOptions
     public bool RequireSubdomainAgreement { get; init; } = true;
 
     /// <summary>
-    /// Comma-separated list of host suffixes considered "the app" — e.g.
+    /// Comma-separated list of host suffixes considered "the app" â€” e.g.
     /// <c>karamchari.com,karamchari.dev</c>. Used to peel the tenant subdomain
     /// off the request host. Required when <see cref="RequireSubdomainAgreement"/> is true.
     /// </summary>

@@ -1,7 +1,7 @@
 namespace Karamchari.Core.Domain.Primitives;
 
 /// <summary>
-/// Base class for aggregate roots. An aggregate is the consistency boundary —
+/// Base class for aggregate roots. An aggregate is the consistency boundary â€”
 /// state changes that span multiple entities must go through the root.
 ///
 /// Aggregate roots accumulate <see cref="IDomainEvent"/>s during a unit of work.
@@ -15,8 +15,15 @@ public abstract class AggregateRoot<TId> : Entity<TId>, IHasDomainEvents
 {
     private readonly List<IDomainEvent> _domainEvents = [];
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AggregateRoot{TId}"/> class.
+    /// </summary>
+    /// <param name="id">The aggregate identifier.</param>
     protected AggregateRoot(TId id) : base(id) { }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AggregateRoot{TId}"/> class for EF Core.
+    /// </summary>
     protected AggregateRoot() { /* EF materialization */ }
 
     /// <summary>Read-only view of pending domain events. The collection is mutated only via <see cref="RaiseDomainEvent"/> and <see cref="ClearDomainEvents"/>.</summary>
@@ -24,7 +31,7 @@ public abstract class AggregateRoot<TId> : Entity<TId>, IHasDomainEvents
 
     /// <summary>
     /// Records a domain event. Events are dispatched only after the aggregate's
-    /// state has been committed — never publish synchronously inside a method.
+    /// state has been committed â€” never publish synchronously inside a method.
     /// </summary>
     protected void RaiseDomainEvent(IDomainEvent @event)
     {

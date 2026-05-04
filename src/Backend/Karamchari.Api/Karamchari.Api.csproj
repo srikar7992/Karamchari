@@ -18,12 +18,14 @@
     <PackageReference Include="MassTransit.Azure.ServiceBus.Core" />
     <PackageReference Include="MassTransit.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\Karamchari.HR\Karamchari.HR.csproj" />
     <ProjectReference Include="..\Karamchari.Payroll\Karamchari.Payroll.csproj" />
+    <ProjectReference Include="..\Karamchari.TimeAttendance\Karamchari.TimeAttendance.csproj" />
   </ItemGroup>
 
 </Project>

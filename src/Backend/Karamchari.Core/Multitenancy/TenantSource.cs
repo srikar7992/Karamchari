@@ -1,4 +1,4 @@
-namespace Karamchari.Core.Multitenancy;
+﻿namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Origin of a resolved tenant identifier. Used for diagnostics and cross-source
@@ -13,6 +13,6 @@ public enum TenantSource
     /// <summary>Resolved from an <c>X-Tenant-Id</c>-style header injected by the API gateway. Trusted only on the gateway-only network path.</summary>
     TrustedHeader = 1,
 
-    /// <summary>Resolved from the request host (subdomain). Routing aid only — never authoritative.</summary>
+    /// <summary>Resolved from the request host (subdomain). Routing aid only â€” never authoritative.</summary>
     HostSubdomain = 2,
 }

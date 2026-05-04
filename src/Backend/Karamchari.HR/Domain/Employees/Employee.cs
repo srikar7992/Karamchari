@@ -31,18 +31,44 @@ public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
         LegalName = string.Empty;
     }
 
+    /// <summary>
+    /// Gets the tenant identifier.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Gets the unique employee number.
+    /// </summary>
     public string EmployeeNumber { get; private set; }
 
+    /// <summary>
+    /// Gets the legal name of the employee.
+    /// </summary>
     public string LegalName { get; private set; }
 
+    /// <summary>
+    /// Gets the work email address of the employee.
+    /// </summary>
     public string? WorkEmail { get; private set; }
 
+    /// <summary>
+    /// Gets the date the employee was hired.
+    /// </summary>
     public DateOnly HiredOn { get; private set; }
 
+    /// <summary>
+    /// Gets the current employment status.
+    /// </summary>
     public EmploymentStatus Status { get; private set; }
 
+    /// <summary>
+    /// Hires a new employee.
+    /// </summary>
+    /// <param name="employeeNumber">The employee number.</param>
+    /// <param name="legalName">The legal name.</param>
+    /// <param name="workEmail">The work email.</param>
+    /// <param name="hiredOn">The hire date.</param>
+    /// <returns>A new <see cref="Employee"/> instance.</returns>
     public static Employee Hire(
         string employeeNumber,
         string legalName,
@@ -59,10 +85,21 @@ public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
         return employee;
     }
 
+    /// <summary>
+    /// Renames the employee.
+    /// </summary>
+    /// <param name="legalName">The new legal name.</param>
     public void Rename(string legalName) => LegalName = NormalizeRequired(legalName, nameof(legalName));
 
+    /// <summary>
+    /// Changes the employee's work email.
+    /// </summary>
+    /// <param name="workEmail">The new work email.</param>
     public void ChangeWorkEmail(string? workEmail) => WorkEmail = NormalizeOptional(workEmail);
 
+    /// <summary>
+    /// Terminates the employee's employment.
+    /// </summary>
     public void Terminate()
     {
         if (Status == EmploymentStatus.Terminated)

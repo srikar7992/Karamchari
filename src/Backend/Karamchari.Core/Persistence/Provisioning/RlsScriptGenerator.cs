@@ -11,7 +11,7 @@ namespace Karamchari.Core.Persistence.Provisioning;
 /// service.
 ///
 /// All identifier inputs (tenant id, schema name, table names) are re-validated
-/// at the SQL boundary even though they come from validated types — defence in
+/// at the SQL boundary even though they come from validated types â€” defence in
 /// depth, since we're about to embed them in DDL.
 /// </summary>
 public sealed partial class RlsScriptGenerator
@@ -28,6 +28,10 @@ public sealed partial class RlsScriptGenerator
 
     private readonly ITenantTableRegistry _tableRegistry;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RlsScriptGenerator"/> class.
+    /// </summary>
+    /// <param name="tableRegistry">The table registry.</param>
     public RlsScriptGenerator(ITenantTableRegistry tableRegistry)
     {
         _tableRegistry = tableRegistry;
@@ -35,10 +39,10 @@ public sealed partial class RlsScriptGenerator
 
     /// <summary>
     /// One-time database bootstrap: creates the <c>security</c> schema and the
-    /// shared <c>fn_tenant_access</c> predicate function. Idempotent — safe to
+    /// shared <c>fn_tenant_access</c> predicate function. Idempotent â€” safe to
     /// re-run on every deploy.
     /// </summary>
-    public IReadOnlyList<string> BuildBootstrapScripts() =>
+    public static IReadOnlyList<string> BuildBootstrapScripts() =>
     [
         ReadEmbeddedResource(SecuritySchemaResource),
         ReadEmbeddedResource(PredicateFunctionResource),
@@ -93,13 +97,13 @@ public sealed partial class RlsScriptGenerator
         foreach (var table in tables)
         {
             // Re-validate names at the SQL boundary.
-            if (!TenantTable.TableName_IsValid(table.TableName))
+            if (!TenantTable.TableNameIsValid(table.TableName))
             {
                 throw new InvalidOperationException(
                     $"Registered table name '{table.TableName}' failed boundary validation; refusing to emit DDL.");
             }
 
-            if (!TenantTable.TableName_IsValid(table.TenantIdColumn))
+            if (!TenantTable.TableNameIsValid(table.TenantIdColumn))
             {
                 throw new InvalidOperationException(
                     $"Registered TenantId column '{table.TenantIdColumn}' failed boundary validation; refusing to emit DDL.");

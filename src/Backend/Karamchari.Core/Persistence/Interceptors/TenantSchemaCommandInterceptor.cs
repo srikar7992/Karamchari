@@ -11,7 +11,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// to the active tenant's schema, immediately before SQL Server executes it.
 ///
 /// Why this and not <c>IModelCacheKeyFactory</c>? Including the tenant id in the
-/// model cache key produces one compiled EF model per tenant — at scale that
+/// model cache key produces one compiled EF model per tenant â€” at scale that
 /// blows up memory and warmup time. We keep a single compiled model and shift
 /// tenant resolution to command execution.
 ///
@@ -19,7 +19,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// <list type="bullet">
 ///   <item>An active tenant <b>must</b> be resolvable. No default fallback.</item>
 ///   <item>The tenant schema name must match the validated format defined on <see cref="TenantContext"/>.</item>
-///   <item>The placeholder must be unambiguous in the SQL — see <see cref="PlaceholderRegex"/>.</item>
+///   <item>The placeholder must be unambiguous in the SQL â€” see <see cref="PlaceholderRegex"/>.</item>
 /// </list>
 /// </summary>
 public sealed partial class TenantSchemaCommandInterceptor : DbCommandInterceptor
@@ -35,13 +35,18 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         RegexOptions.CultureInvariant | RegexOptions.Compiled)]
     private static partial Regex PlaceholderRegex();
 
-    /// <summary>Validates that the substituted schema is itself safe to embed in SQL — defence-in-depth, since the value already came from a validated <see cref="TenantContext"/>.</summary>
+    /// <summary>Validates that the substituted schema is itself safe to embed in SQL â€” defence-in-depth, since the value already came from a validated <see cref="TenantContext"/>.</summary>
     [GeneratedRegex(@"^tenant_[a-z0-9_]{1,64}$", RegexOptions.CultureInvariant | RegexOptions.Compiled)]
     private static partial Regex SchemaNameRegex();
 
     private readonly ITenantProvider _tenantProvider;
     private readonly ILogger<TenantSchemaCommandInterceptor> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantSchemaCommandInterceptor"/> class.
+    /// </summary>
+    /// <param name="tenantProvider">The tenant provider.</param>
+    /// <param name="logger">The logger.</param>
     public TenantSchemaCommandInterceptor(
         ITenantProvider tenantProvider,
         ILogger<TenantSchemaCommandInterceptor> logger)
@@ -50,6 +55,9 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         _logger = logger;
     }
 
+    /// <summary>
+    /// Rewrites the command text before a reader is executed.
+    /// </summary>
     public override InterceptionResult<DbDataReader> ReaderExecuting(
         DbCommand command,
         CommandEventData eventData,
@@ -59,6 +67,9 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         return base.ReaderExecuting(command, eventData, result);
     }
 
+    /// <summary>
+    /// Rewrites the command text before a reader is executed asynchronously.
+    /// </summary>
     public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
         DbCommand command,
         CommandEventData eventData,
@@ -69,6 +80,9 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
     }
 
+    /// <summary>
+    /// Rewrites the command text before a non-query is executed.
+    /// </summary>
     public override InterceptionResult<int> NonQueryExecuting(
         DbCommand command,
         CommandEventData eventData,
@@ -78,6 +92,9 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         return base.NonQueryExecuting(command, eventData, result);
     }
 
+    /// <summary>
+    /// Rewrites the command text before a non-query is executed asynchronously.
+    /// </summary>
     public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
         DbCommand command,
         CommandEventData eventData,
@@ -88,6 +105,9 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         return base.NonQueryExecutingAsync(command, eventData, result, cancellationToken);
     }
 
+    /// <summary>
+    /// Rewrites the command text before a scalar is executed.
+    /// </summary>
     public override InterceptionResult<object> ScalarExecuting(
         DbCommand command,
         CommandEventData eventData,
@@ -97,6 +117,9 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         return base.ScalarExecuting(command, eventData, result);
     }
 
+    /// <summary>
+    /// Rewrites the command text before a scalar is executed asynchronously.
+    /// </summary>
     public override ValueTask<InterceptionResult<object>> ScalarExecutingAsync(
         DbCommand command,
         CommandEventData eventData,
@@ -112,7 +135,7 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         ArgumentNullException.ThrowIfNull(command);
 
         // Resolve the tenant first. If anything goes wrong, throwing here means
-        // the SQL never executes — RLS would catch it anyway, but we want loud
+        // the SQL never executes â€” RLS would catch it anyway, but we want loud
         // failures to stay loud.
         var tenant = _tenantProvider.GetTenant();
 
@@ -154,7 +177,7 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         if (ReferenceEquals(rewritten, original))
         {
             // Match-but-no-substitution should never happen given the regex,
-            // but if it does we treat it as a bug — better to throw than to
+            // but if it does we treat it as a bug â€” better to throw than to
             // silently run the wrong SQL.
             throw new InvalidOperationException(
                 "Tenant schema rewrite matched the placeholder but produced no substitution.");

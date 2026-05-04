@@ -1,5 +1,6 @@
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Messaging;
+using Karamchari.HR.Contracts.Employees;
 using Karamchari.HR.Contracts.Organization;
 using Karamchari.HR.Messaging;
 using Karamchari.HR.Persistence;
@@ -11,10 +12,19 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Karamchari.HR.DependencyInjection;
 
+/// <summary>
+/// Extension methods for registering HR module services.
+/// </summary>
 public static class HRServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
+    /// <summary>
+    /// Adds the HR module services to the service collection.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddKaramchariHR(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -32,6 +42,11 @@ public static class HRServiceCollectionExtensions
         // if AddKaramchariCore registered the null implementation first.
         services.Replace(ServiceDescriptor.Scoped<IDomainEventDispatcher, MassTransitDomainEventDispatcher>());
         services.AddScoped<IOrganizationService, OrganizationService>();
+        services.AddScoped<IEmployeeService, EmployeeService>();
+        
+        services.Configure<DocumentIntelligenceOptions>(
+            configuration.GetSection(DocumentIntelligenceOptions.SectionName));
+        services.AddScoped<IDocumentIntelligenceService, DocumentIntelligenceService>();
 
         services.AddDbContext<HRDbContext>((serviceProvider, options) =>
         {

@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  karamchari.api:
+    image: karamchari-api:latest
+    build:
+      context: .
+      dockerfile: src/Backend/Karamchari.Api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__KaramchariDb=Server=sqlserver;Database=Karamchari;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=True
+      - ConnectionStrings__Redis=redis:6379
+    depends_on:
+      - sqlserver
+      - redis
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Your_password123
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  sqlserver-data:

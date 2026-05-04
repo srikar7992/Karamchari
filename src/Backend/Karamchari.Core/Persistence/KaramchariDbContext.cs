@@ -13,12 +13,12 @@ namespace Karamchari.Core.Persistence;
 ///         that placeholder to the active tenant's schema at command execution time.</item>
 ///   <item>Derived contexts add MassTransit's transactional outbox entities
 ///         (<c>InboxState</c>, <c>OutboxMessage</c>, <c>OutboxState</c>) and
-///         pin them to <c>dbo</c> — the bus outbox is shared infrastructure,
+///         pin them to <c>dbo</c> â€” the bus outbox is shared infrastructure,
 ///         not tenant-owned.</item>
 /// </list>
 ///
 /// Derived contexts (e.g. <c>HRDbContext</c>) override <see cref="OnDomainModelCreating"/>
-/// — they must <b>not</b> override <see cref="OnModelCreating"/> directly, since
+/// â€” they must <b>not</b> override <see cref="OnModelCreating"/> directly, since
 /// it's sealed to guarantee the multi-tenant defaults are always applied first.
 /// </summary>
 public abstract class KaramchariDbContext : DbContext
@@ -35,6 +35,11 @@ public abstract class KaramchariDbContext : DbContext
 
     private readonly ITenantProvider _tenantProvider;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="KaramchariDbContext"/> class.
+    /// </summary>
+    /// <param name="options">The options for this context.</param>
+    /// <param name="tenantProvider">The tenant provider to resolve the active tenant.</param>
     protected KaramchariDbContext(DbContextOptions options, ITenantProvider tenantProvider)
         : base(options)
     {
@@ -48,6 +53,10 @@ public abstract class KaramchariDbContext : DbContext
     /// </summary>
     internal ITenantProvider TenantProvider => _tenantProvider;
 
+    /// <summary>
+    /// Configures the default schema and applies domain model configurations.
+    /// </summary>
+    /// <param name="modelBuilder">The builder being used to construct the model for this context.</param>
     protected sealed override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);

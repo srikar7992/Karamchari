@@ -35,14 +35,15 @@ const GATEWAY_HEADER = "X-Karamchari-Gateway";
 
 async function request<T>(path: string, init: ApiRequestInit = {}): Promise<T> {
   const url = buildUrl(path);
-  const tenantId = init.tenantId ?? apiConfig.defaultTenantId;
-
-  const headers: Record<string, string> = {
+const headers: Record<string, string> = {
     Accept: "application/json",
-    [TENANT_HEADER]: tenantId,
-    [GATEWAY_HEADER]: apiConfig.gatewayFingerprint,
     ...(init.headers ?? {}),
   };
+
+  const devToken = process.env.NEXT_PUBLIC_DEV_BEARER_TOKEN;
+  if (devToken) {
+    headers["Authorization"] = `Bearer ${devToken}`;
+  }
 
   let body: BodyInit | undefined;
   if (init.rawBody !== undefined) {

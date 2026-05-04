@@ -1,4 +1,4 @@
-namespace Karamchari.Core.Persistence.Provisioning;
+﻿namespace Karamchari.Core.Persistence.Provisioning;
 
 /// <summary>
 /// Singleton registry of every tenant-owned table that requires RLS.

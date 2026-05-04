@@ -13,7 +13,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// <list type="bullet">
 ///   <item><b>Insert:</b> if the entity has a blank TenantId, populate it with
 ///         the current tenant. If it has one already, it must match the
-///         current tenant — otherwise the save is rejected as a cross-tenant
+///         current tenant â€” otherwise the save is rejected as a cross-tenant
 ///         write attempt.</item>
 ///   <item><b>Update / Delete:</b> the TenantId on the tracked entity must
 ///         match the current tenant. Modifying the TenantId is never allowed
@@ -32,6 +32,11 @@ public sealed class TenantStampingInterceptor : SaveChangesInterceptor
     private readonly ITenantProvider _tenantProvider;
     private readonly ILogger<TenantStampingInterceptor> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantStampingInterceptor"/> class.
+    /// </summary>
+    /// <param name="tenantProvider">The tenant provider.</param>
+    /// <param name="logger">The logger.</param>
     public TenantStampingInterceptor(
         ITenantProvider tenantProvider,
         ILogger<TenantStampingInterceptor> logger)
@@ -40,10 +45,14 @@ public sealed class TenantStampingInterceptor : SaveChangesInterceptor
         _logger = logger;
     }
 
+    /// <summary>
+    /// Stamps and validates tenant IDs before saving changes synchronously.
+    /// </summary>
     public override InterceptionResult<int> SavingChanges(
         DbContextEventData eventData,
         InterceptionResult<int> result)
     {
+        ArgumentNullException.ThrowIfNull(eventData);
         if (eventData.Context is { } ctx)
         {
             StampAndValidate(ctx);
@@ -52,11 +61,15 @@ public sealed class TenantStampingInterceptor : SaveChangesInterceptor
         return base.SavingChanges(eventData, result);
     }
 
+    /// <summary>
+    /// Stamps and validates tenant IDs before saving changes asynchronously.
+    /// </summary>
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(eventData);
         if (eventData.Context is { } ctx)
         {
             StampAndValidate(ctx);
@@ -67,7 +80,7 @@ public sealed class TenantStampingInterceptor : SaveChangesInterceptor
 
     private void StampAndValidate(DbContext context)
     {
-        // We need a tenant. If none is resolvable, refuse the save — any tenant-owned
+        // We need a tenant. If none is resolvable, refuse the save â€” any tenant-owned
         // write without a tenant context is a bug, period.
         var tenant = _tenantProvider.GetTenant();
         var expectedTenantId = tenant.TenantId;
@@ -99,10 +112,13 @@ public sealed class TenantStampingInterceptor : SaveChangesInterceptor
         if (string.IsNullOrWhiteSpace(current))
         {
             prop.CurrentValue = expectedTenantId;
-            _logger.LogTrace(
-                "Stamped TenantId={TenantId} on inserted {EntityType}.",
-                expectedTenantId,
-                entry.Entity.GetType().Name);
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                _logger.LogTrace(
+                    "Stamped TenantId={TenantId} on inserted {EntityType}.",
+                    expectedTenantId,
+                    entry.Entity.GetType().Name);
+            }
             return;
         }
 

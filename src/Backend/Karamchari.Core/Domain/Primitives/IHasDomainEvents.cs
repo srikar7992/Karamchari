@@ -11,7 +11,13 @@ namespace Karamchari.Core.Domain.Primitives;
 /// </summary>
 public interface IHasDomainEvents
 {
+    /// <summary>
+    /// Gets the pending domain events.
+    /// </summary>
     IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
 
+    /// <summary>
+    /// Clears the pending domain events.
+    /// </summary>
     void ClearDomainEvents();
 }

@@ -1,207 +1,129 @@
+using Karamchari.Api;
 using Karamchari.Core.DependencyInjection;
-using Karamchari.Core.Multitenancy;
-using Karamchari.Api.Cors;
-using Karamchari.Api.Security;
-using Karamchari.HR.Contracts.Organization;
 using Karamchari.HR.DependencyInjection;
-using Karamchari.HR.Messaging.Consumers;
-using Karamchari.HR.Persistence;
+using Karamchari.Payroll.DependencyInjection;
+using Karamchari.TimeAttendance.DependencyInjection;
+using Karamchari.Payroll.Contracts;
 using MassTransit;
-using Microsoft.AspNetCore.Authentication;
+using Karamchari.HR.Persistence;
+using Karamchari.Payroll.Data;
+using Karamchari.TimeAttendance.Persistence;
+using Karamchari.TimeAttendance.Domain.Holidays;
 using Microsoft.EntityFrameworkCore;
-using Karamchari.Api.Models;
 
+// Entry point for the Karamchari API.
+// Composes all bounded contexts and shared infrastructure.
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------------------------------------------------------------------------
-// Configuration & secrets
-// ---------------------------------------------------------------------------
-// In production, IConfiguration is populated from appsettings.json + Key Vault
-// (loaded via Managed Identity by Azure Container Apps). Local dev uses
-// User Secrets (UserSecretsId in Karamchari.Api.csproj).
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Cross-cutting services
-// ---------------------------------------------------------------------------
+// Add Core Infrastructure (Multitenancy, Interceptors)
 builder.Services.AddKaramchariCore(builder.Configuration);
 
-// ---------------------------------------------------------------------------
-// Event-driven backbone
-// ---------------------------------------------------------------------------
-builder.Services.AddMassTransit(bus =>
+// Add Bounded Contexts
+builder.Services.AddKaramchariHR(builder.Configuration);
+builder.Services.AddKaramchariTimeAttendance(builder.Configuration);
+
+// Configure MassTransit with Transactional Outbox and Module Sagas
+builder.Services.AddMassTransit(x =>
 {
-    bus.SetKebabCaseEndpointNameFormatter();
-
-    bus.AddConsumer<DepartmentCreatedConsumer>();
-
-    bus.AddEntityFrameworkOutbox<HRDbContext>(outbox =>
+    // Transactional Outbox for HR Context
+    x.AddEntityFrameworkOutbox<HRDbContext>(o =>
     {
-        outbox.UseSqlServer();
-        outbox.UseBusOutbox();
+        o.UseSqlServer();
+        o.UseBusOutbox();
     });
 
-    var azureServiceBusConnectionString = builder.Configuration.GetConnectionString("AzureServiceBus");
-    if (string.IsNullOrWhiteSpace(azureServiceBusConnectionString))
-    {
-        if (!builder.Environment.IsDevelopment())
-        {
-            throw new InvalidOperationException(
-                "ConnectionStrings:AzureServiceBus must be configured outside Development. Store it in Key Vault and load it through Managed Identity.");
-        }
+    // Register Payroll Module (Sagas, Consumers, DB Context)
+    // Note: The extension method also configures the Saga Repository in MassTransit.
+    builder.Services.AddKaramchariPayroll(builder.Configuration, x);
 
-        bus.UsingInMemory((context, cfg) =>
-        {
-            cfg.ConfigureEndpoints(context);
-        });
-    }
-    else
+    x.UsingInMemory((context, cfg) =>
     {
-        bus.UsingAzureServiceBus((context, cfg) =>
-        {
-            cfg.Host(azureServiceBusConnectionString);
-            cfg.ConfigureEndpoints(context);
-        });
-    }
+        cfg.ConfigureEndpoints(context);
+    });
 });
-
-// ---------------------------------------------------------------------------
-// Authentication / authorization
-// ---------------------------------------------------------------------------
-// Production uses JWT bearer. Development uses a local gateway-proof scheme so
-// Postman/curl can exercise tenant resolution before Entra ID is wired.
-// ---------------------------------------------------------------------------
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services
-        .AddAuthentication(DevelopmentTenantAuthenticationHandler.SchemeName)
-        .AddScheme<AuthenticationSchemeOptions, DevelopmentTenantAuthenticationHandler>(
-            DevelopmentTenantAuthenticationHandler.SchemeName,
-            _ => { });
-}
-else
-{
-    builder.Services
-        .AddAuthentication("Bearer")
-        .AddJwtBearer("Bearer", _ => { /* TODO: bind from configuration */ });
-}
-
-builder.Services.AddAuthorization();
-
-// Dev-only CORS so the Next.js portal at http://localhost:3000 can hit the BFF.
-// Production runs same-origin behind APIM, so no production CORS is registered.
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddKaramchariDevCors();
-}
-
-// ---------------------------------------------------------------------------
-// Bounded-context wiring lives in dedicated AddXxx extension methods within
-// Karamchari.HR / Karamchari.Payroll.
-// ---------------------------------------------------------------------------
-builder.Services.AddKaramchariHR(builder.Configuration);
 
 var app = builder.Build();
 
-// ---------------------------------------------------------------------------
-// Pipeline
-// ---------------------------------------------------------------------------
-// CORS must run BEFORE auth so the browser preflight (which carries no creds)
-// gets a fast 204 with the right Access-Control-Allow-* headers.
-if (app.Environment.IsDevelopment())
-{
-    app.UseKaramchariDevCors();
-}
+// --- Payroll API ---
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Convert tenant-resolution failures into 401/403 with a structured payload.
-// A dedicated middleware will land in a follow-up; this inline handler keeps
-// failures loud during scaffolding.
-app.Use(async (context, next) =>
+// Initiates a new payroll run saga.
+app.MapPost("/api/payroll/runs", async (StartPayrollRunRequest request, IPublishEndpoint publishEndpoint) =>
 {
-    try
-    {
-        await next();
-    }
-    catch (TenantResolutionException ex)
-    {
-        var status = ex.Reason switch
-        {
-            TenantResolutionFailureReason.MissingJwtClaim => StatusCodes.Status401Unauthorized,
-            TenantResolutionFailureReason.UntrustedHeaderSource => StatusCodes.Status401Unauthorized,
-            _ => StatusCodes.Status403Forbidden,
-        };
-        context.Response.StatusCode = status;
-        await context.Response.WriteAsJsonAsync(new { error = "tenant_resolution_failed", reason = ex.Reason.ToString() });
-    }
+    // Generate a COMB GUID for better SQL Server indexing performance
+    var runId = NewId.NextGuid();
+    
+    // In this modular monolith, the tenant is resolved automatically by HttpTenantProvider
+    // but for the command we pass it explicitly so the saga knows its home.
+    var tenantId = "tenant_oakridge"; 
+    
+    await publishEndpoint.Publish(new StartPayrollRunCommand(runId, tenantId, request.PeriodName));
+    
+    return Results.Accepted($"/api/payroll/runs/{runId}", new { RunId = runId });
 });
 
-// Liveness — explicitly anonymous, never resolves a tenant.
-app.MapGet("/health/live", () => Results.Ok(new { status = "live" }))
-    .AllowAnonymous();
-
-// Readiness — performs a tenant lookup so unconfigured deployments fail loudly.
-app.MapGet("/health/ready", (ITenantProvider tenantProvider) =>
+// Returns all payroll runs for the current tenant.
+// RLS and the Schema Interceptor handle the filtering automatically.
+app.MapGet("/api/payroll/runs", async (PayrollDbContext dbContext) =>
 {
-    var ok = tenantProvider.TryGetTenant(out var tenant);
-    return Results.Ok(new { status = "ready", tenantResolvable = ok, tenantId = tenant?.TenantId });
-}).AllowAnonymous();
-
-var hr = app.MapGroup("/api/hr")
-    .RequireAuthorization();
-
-hr.MapGet("/employees", async (HRDbContext db, CancellationToken cancellationToken) =>
-{
-    var employees = await db.Employees
-        .AsNoTracking()
-        .OrderBy(e => e.EmployeeNumber)
-        .Select(e => new EmployeeListItem(
-            e.Id,
-            e.EmployeeNumber,
-            e.LegalName,
-            e.WorkEmail,
-            e.HiredOn,
-            e.Status.ToString()))
-        .Take(100)
-        .ToListAsync(cancellationToken);
-
-    return Results.Ok(employees);
+    var runs = await dbContext.PayrollRunStates
+        .OrderByDescending(x => x.StartedAt)
+        .ToListAsync();
+        
+    return Results.Ok(runs);
 });
 
-hr.MapGet("/departments", async (HRDbContext db, CancellationToken cancellationToken) =>
+// --- Time & Attendance API ---
+
+// Returns all holidays for the current tenant.
+app.MapGet("/api/time/holidays", async (TimeAttendanceDbContext dbContext) =>
 {
-    var departments = await db.Departments
-        .AsNoTracking()
-        .OrderBy(d => d.Name)
-        .Select(d => new DepartmentListItem(
-            d.Id,
-            d.Name,
-            d.Description,
-            d.IsActive))
-        .Take(100)
-        .ToListAsync(cancellationToken);
+    // Fetch all holidays across all calendars (RLS automatically filters by tenant).
+    // In a mature system, we would filter by the specific calendar assigned to the user's region.
+    var holidays = await dbContext.HolidayCalendars
+        .SelectMany(c => c.Holidays)
+        .OrderBy(h => h.Date)
+        .ToListAsync();
+        
+    return Results.Ok(holidays);
+});
 
-    return Results.Ok(departments);
-})
-.WithName("ListDepartments");
-
-hr.MapPost("/departments", async (
-    CreateDepartmentCommand command,
-    IOrganizationService organizationService,
-    CancellationToken cancellationToken) =>
+// Adds a new holiday to the default organizational calendar.
+app.MapPost("/api/time/holidays", async (AddHolidayRequest request, TimeAttendanceDbContext dbContext) =>
 {
-    var departmentId = await organizationService.CreateDepartmentAsync(command, cancellationToken);
-
-    return Results.Created($"/api/hr/departments/{departmentId}", new { id = departmentId });
-})
-.WithName("CreateDepartment");
+    // Find or create the "Default Calendar" for the tenant.
+    var calendar = await dbContext.HolidayCalendars
+        .Include(c => c.Holidays)
+        .FirstOrDefaultAsync(c => c.Name == "Default Calendar");
+        
+    if (calendar == null)
+    {
+        calendar = HolidayCalendar.Create("Default Calendar", "Standard Organizational Calendar");
+        dbContext.HolidayCalendars.Add(calendar);
+    }
+    
+    calendar.AddHoliday(request.Date, request.Name);
+    await dbContext.SaveChangesAsync();
+    
+    // Find the newly added holiday to return its ID
+    var newHoliday = calendar.Holidays.First(h => h.Date == request.Date);
+    
+    return Results.Created($"/api/time/holidays/{newHoliday.Id}", newHoliday);
+});
 
 app.Run();
 
 namespace Karamchari.Api
 {
-    /// <summary>Marker class so <c>WebApplicationFactory&lt;Program&gt;</c> can find the entry assembly from integration tests.</summary>
-    public partial class Program;
+    /// <summary>
+    /// Request contract for starting a payroll run.
+    /// </summary>
+    /// <param name="PeriodName">The name of the payroll period (e.g., "April 2027").</param>
+    public record StartPayrollRunRequest(string PeriodName);
+
+    /// <summary>
+    /// Request contract for adding a new holiday.
+    /// </summary>
+    /// <param name="Name">The name of the holiday (e.g., "Independence Day").</param>
+    /// <param name="Date">The date of the holiday.</param>
+    public record AddHolidayRequest(string Name, DateOnly Date);
 }

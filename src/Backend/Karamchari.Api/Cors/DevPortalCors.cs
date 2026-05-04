@@ -1,11 +1,11 @@
-namespace Karamchari.Api.Cors;
+﻿namespace Karamchari.Api.Cors;
 
 /// <summary>
 /// Development-only CORS for the Next.js portal at <c>http://localhost:3000</c>.
 ///
 /// Production traffic is fronted by APIM at the same origin as the SPA, so we
 /// don't need a production CORS policy at all. If we ever do, that policy must
-/// be a separate code path with an explicit allowlist read from configuration —
+/// be a separate code path with an explicit allowlist read from configuration â€”
 /// never enable a permissive policy in production.
 ///
 /// Notes:
@@ -18,8 +18,14 @@ namespace Karamchari.Api.Cors;
 /// </summary>
 public static class DevPortalCors
 {
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public const string PolicyName = "KaramchariDevPortal";
 
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public static IServiceCollection AddKaramchariDevCors(this IServiceCollection services) =>
         services.AddCors(options =>
         {
@@ -34,10 +40,13 @@ public static class DevPortalCors
                         "X-Tenant-Id",
                         "X-Karamchari-Gateway")
                     .WithExposedHeaders("Content-Type", "Content-Length");
-                // Intentionally NO .AllowCredentials() — we authenticate via headers, not cookies.
+                // Intentionally NO .AllowCredentials() â€” we authenticate via headers, not cookies.
             });
         });
 
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public static IApplicationBuilder UseKaramchariDevCors(this IApplicationBuilder app) =>
         app.UseCors(PolicyName);
 }

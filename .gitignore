@@ -60,3 +60,8 @@ secrets.json
 appsettings.*.Development.json
 appsettings.*.Local.json
 .user.secrets
+
+# Build artifacts and logs
+build_results_*.txt
+*.log
+

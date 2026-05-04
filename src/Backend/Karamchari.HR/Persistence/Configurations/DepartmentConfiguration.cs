@@ -1,4 +1,4 @@
-using Karamchari.HR.Domain.Departments;
+﻿using Karamchari.HR.Domain.Departments;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,6 +6,9 @@ namespace Karamchari.HR.Persistence.Configurations;
 
 internal sealed class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 {
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Department> builder)
     {
         builder.ToTable("Departments");

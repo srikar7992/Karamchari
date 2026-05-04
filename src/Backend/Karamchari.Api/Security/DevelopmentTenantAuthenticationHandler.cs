@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Karamchari.Core.Multitenancy;
 using Microsoft.AspNetCore.Authentication;
@@ -8,6 +8,9 @@ namespace Karamchari.Api.Security;
 
 internal sealed class DevelopmentTenantAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public const string SchemeName = "DevelopmentTenant";
 
     private readonly TenantOptions _tenantOptions;

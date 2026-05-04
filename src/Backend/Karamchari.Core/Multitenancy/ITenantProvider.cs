@@ -1,4 +1,4 @@
-namespace Karamchari.Core.Multitenancy;
+﻿namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Request-scoped accessor for the active tenant.
@@ -10,7 +10,7 @@ namespace Karamchari.Core.Multitenancy;
 ///
 /// There is intentionally **no** "TryGet" or "default tenant" surface: every
 /// piece of code below this layer treats tenant resolution as a hard
-/// precondition — silent fallbacks are how cross-tenant leaks are born.
+/// precondition â€” silent fallbacks are how cross-tenant leaks are born.
 /// </summary>
 public interface ITenantProvider
 {
@@ -24,7 +24,7 @@ public interface ITenantProvider
 
     /// <summary>
     /// Indicates whether <see cref="GetTenant"/> would succeed without throwing.
-    /// Use sparingly — only for diagnostics, telemetry tagging, and the few
+    /// Use sparingly â€” only for diagnostics, telemetry tagging, and the few
     /// edges (health checks, anonymous metadata endpoints) that legitimately
     /// run without a tenant. Business logic must call <see cref="GetTenant"/>.
     /// </summary>

@@ -7,7 +7,7 @@ namespace Karamchari.Core.Persistence.Provisioning;
 /// Bounded contexts register their tables via <see cref="ITenantTableRegistry"/>;
 /// the registry is consumed by <c>RlsScriptGenerator</c> at tenant provisioning time.
 ///
-/// We don't carry the schema name here — every tenant table lives under the
+/// We don't carry the schema name here â€” every tenant table lives under the
 /// active tenant's schema, derived per-tenant during provisioning.
 /// </summary>
 public sealed partial record TenantTable
@@ -19,9 +19,14 @@ public sealed partial record TenantTable
     private static partial Regex TableNameRegex();
 
     /// <summary>Public boundary-check used by the RLS script generator before any identifier is embedded in DDL.</summary>
-    public static bool TableName_IsValid(string identifier) =>
+    public static bool TableNameIsValid(string identifier) =>
         !string.IsNullOrWhiteSpace(identifier) && TableNameRegex().IsMatch(identifier);
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantTable"/> class.
+    /// </summary>
+    /// <param name="tableName">The name of the table.</param>
+    /// <param name="tenantIdColumn">The name of the tenant ID column.</param>
     public TenantTable(string tableName, string tenantIdColumn = "TenantId")
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
@@ -45,7 +50,13 @@ public sealed partial record TenantTable
         TenantIdColumn = tenantIdColumn;
     }
 
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public string TableName { get; }
 
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public string TenantIdColumn { get; }
 }

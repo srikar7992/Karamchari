@@ -1,10 +1,10 @@
-namespace Karamchari.Core.Multitenancy;
+﻿namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Marker for an entity whose rows belong to a tenant and must therefore
 /// carry a <c>TenantId</c> column. The presence of this column is what lets
 /// SQL Server Row-Level Security policies enforce isolation at the database
-/// layer — the predicate compares the row's <see cref="TenantId"/> against
+/// layer â€” the predicate compares the row's <see cref="TenantId"/> against
 /// <c>SESSION_CONTEXT(N'TenantId')</c>.
 ///
 /// Schema isolation already places these rows under the tenant's own schema;

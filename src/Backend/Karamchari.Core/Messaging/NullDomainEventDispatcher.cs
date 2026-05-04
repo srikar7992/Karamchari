@@ -1,11 +1,11 @@
-using Karamchari.Core.Domain.Primitives;
+﻿using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Core.Messaging;
 
 /// <summary>
 /// Default <see cref="IDomainEventDispatcher"/> registered by
 /// <c>AddKaramchariCore</c>. Throws if any code path tries to dispatch a real
-/// event — this is intentional: shipping a no-op publisher to production would
+/// event â€” this is intentional: shipping a no-op publisher to production would
 /// silently drop domain events.
 ///
 /// A bounded context (or the API host) MUST register a real implementation
@@ -13,6 +13,9 @@ namespace Karamchari.Core.Messaging;
 /// </summary>
 internal sealed class NullDomainEventDispatcher : IDomainEventDispatcher
 {
+    /// <summary>
+    /// TODO: Add XML documentation.
+    /// </summary>
     public Task DispatchAsync(IReadOnlyCollection<IDomainEvent> events, CancellationToken cancellationToken = default)
     {
         if (events.Count == 0)

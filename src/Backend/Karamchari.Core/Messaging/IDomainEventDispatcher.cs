@@ -1,11 +1,11 @@
-using Karamchari.Core.Domain.Primitives;
+﻿using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Core.Messaging;
 
 /// <summary>
 /// Dispatches the domain events drained from aggregate roots during a save.
 /// Implementations are expected to publish onto the messaging backbone in a
-/// way that participates in the surrounding database transaction —
+/// way that participates in the surrounding database transaction â€”
 /// e.g. MassTransit's bus outbox captures publishes inside a SaveChanges
 /// scope and persists them atomically with the aggregate's state change.
 ///
