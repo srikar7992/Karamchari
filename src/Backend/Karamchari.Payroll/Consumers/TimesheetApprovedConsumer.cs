@@ -4,6 +4,7 @@ using MassTransit;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 /// Records approved timesheet hours in the localized payroll ledger.
@@ -29,6 +30,13 @@ public sealed class TimesheetApprovedConsumer : IConsumer<TimesheetApprovedInteg
     {
         ArgumentNullException.ThrowIfNull(context);
 
+        // Idempotency: the TimesheetId is the natural deduplication key.
+        // On retry the same event arrives with the same TimesheetId — skip silently.
+        var alreadyRecorded = await _dbContext.TimesheetLedger
+            .AnyAsync(t => t.TimesheetId == context.Message.TimesheetId, context.CancellationToken);
+
+        if (alreadyRecorded) return;
+
         var entry = PayrollTimesheetLedger.Record(
             context.Message.TimesheetId,
             context.Message.EmployeeId,
@@ -36,7 +44,7 @@ public sealed class TimesheetApprovedConsumer : IConsumer<TimesheetApprovedInteg
             context.Message.TotalHours);
 
         _dbContext.TimesheetLedger.Add(entry);
-        
-        await _dbContext.SaveChangesAsync();
+
+        await _dbContext.SaveChangesAsync(context.CancellationToken);
     }
 }

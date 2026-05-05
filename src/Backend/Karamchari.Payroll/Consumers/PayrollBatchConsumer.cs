@@ -11,6 +11,7 @@ using Karamchari.Payroll.Services.Statutory.Rules;
 using Karamchari.Payroll.Domain;
 using EFCore.BulkExtensions;
 using Microsoft.Extensions.Caching.Memory;
+using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Payroll.Consumers;
 
@@ -28,6 +29,7 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
     private readonly IExemptionCalculator _exemptionCalculator;
     private readonly ITaxSlabProvider _taxSlabProvider;
     private readonly IITDeclarationRepository _declarationRepository;
+    private readonly ITenantProvider _tenantProvider;
 
     public PayrollBatchConsumer(
         PayrollDbContext dbContext,
@@ -37,7 +39,8 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
         IIncomeProjectionService projectionService,
         IExemptionCalculator exemptionCalculator,
         ITaxSlabProvider taxSlabProvider,
-        IITDeclarationRepository declarationRepository)
+        IITDeclarationRepository declarationRepository,
+        ITenantProvider tenantProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
@@ -47,6 +50,7 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
         _exemptionCalculator = exemptionCalculator;
         _taxSlabProvider = taxSlabProvider;
         _declarationRepository = declarationRepository;
+        _tenantProvider = tenantProvider;
     }
 
     public async Task Consume(ConsumeContext<ProcessPayrollBatchCommand> context)
@@ -54,9 +58,15 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
         var message = context.Message;
         var employeeIds = message.EmployeeIds;
 
+        // Resolve tenant once per batch — scoped to this HTTP/message context.
+        var tenant = _tenantProvider.GetTenant();
+        var tenantId = tenant.TenantId;
+
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("Processing payroll batch of {Count} employees for Run {RunId}", employeeIds.Count, message.RunId);
+            _logger.LogInformation(
+                "Processing payroll batch of {Count} employees for Run {RunId}, Tenant {TenantId}",
+                employeeIds.Count, message.RunId, tenantId);
         }
 
         // 0. Idempotency Check
@@ -69,7 +79,8 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
 
         if (!pendingEmployeeIds.Any())
         {
-            _logger.LogInformation("All employees in batch for Run {RunId} already processed. Skipping.", message.RunId);
+            _logger.LogInformation(
+                "All employees in batch for Run {RunId} already processed. Skipping.", message.RunId);
             return;
         }
 
@@ -78,13 +89,20 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
             .Where(p => pendingEmployeeIds.Contains(p.EmployeeId))
             .ToListAsync(context.CancellationToken);
 
-        // Cache-optimized fetching of master components and templates
-        var masterComponents = await _cache.GetOrCreateAsync("master_salary_components", async entry => {
+        // Cache keys are scoped per tenant to prevent cross-tenant data leaks in the
+        // in-process IMemoryCache. Without the tenant prefix, tenant A's salary
+        // components would be returned to tenant B on a cache hit.
+        var componentsCacheKey = $"salary_components:{tenantId}";
+        var templatesCacheKey = $"salary_templates:{tenantId}";
+
+        var masterComponents = await _cache.GetOrCreateAsync(componentsCacheKey, async entry =>
+        {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
             return await _dbContext.SalaryComponents.ToListAsync(context.CancellationToken);
         }) ?? new List<SalaryComponent>();
 
-        var allTemplates = await _cache.GetOrCreateAsync("salary_templates", async entry => {
+        var allTemplates = await _cache.GetOrCreateAsync(templatesCacheKey, async entry =>
+        {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
             return await _dbContext.SalaryTemplates.ToListAsync(context.CancellationToken);
         }) ?? new List<SalaryTemplate>();
@@ -94,23 +112,31 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
 
         foreach (var profile in profiles)
         {
-            // Calculation logic (same as before, but optimized with local lookups)
-            decimal baseMonthlyGross = profile.PayType == PayType.Hourly 
-                ? await GetHourlyGrossAsync(profile, context.CancellationToken)
-                : profile.BaseSalary;
+            // For salaried employees use AnnualCTC (the agreed total cost) as the CTC breakdown
+            // input — BaseSalary is the pre-template monthly floor used only for hourly fallback.
+            // Passing BaseSalary * 12 would zero-out all template calculations for any profile
+            // where BaseSalary has not yet been explicitly overridden (e.g. newly onboarded drafts).
+            decimal annualCtc = profile.PayType == PayType.Hourly
+                ? await GetHourlyGrossAsync(profile, context.CancellationToken) * 12
+                : profile.AnnualCTC;
 
             var externalDeductions = await _dbContext.PayrollDeductions
                 .Where(d => d.EmployeeId == profile.EmployeeId && d.PeriodName == message.PeriodName && !d.IsProcessed)
                 .ToListAsync(context.CancellationToken);
 
             decimal totalExternalDeductions = externalDeductions.Sum(d => d.Amount);
-            decimal finalMonthlyGross = baseMonthlyGross - totalExternalDeductions;
+            // External deductions (e.g. unpaid leave) reduce the monthly gross derived from the
+            // AnnualCTC breakdown — they are not subtracted from the CTC input itself.
+            decimal externalDeductionMonthly = totalExternalDeductions;
 
             var template = allTemplates.FirstOrDefault(t => t.Id == profile.SalaryTemplateId);
             if (template == null) continue;
 
             var plan = CTCTemplateCompiler.Compile(template, masterComponents);
-            var breakdown = CTCBreakdownService.Calculate(finalMonthlyGross * 12, plan);
+            // Calculate the full CTC breakdown using the agreed annual CTC, then subtract
+            // external per-period deductions from the derived monthly gross.
+            var breakdown = CTCBreakdownService.Calculate(annualCtc, plan);
+            decimal finalMonthlyGross = breakdown.MonthlyGross - externalDeductionMonthly;
 
             var ruleSet = new FY20262027RuleSet(
                 new List<Guid> { Guid.Parse("00000000-0000-0000-0000-000000000001") },
@@ -135,7 +161,15 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
             foreach (var d in externalDeductions) d.MarkAsProcessed();
         }
 
-        // 2. High-Performance Bulk Insert
+        // 2. High-Performance Bulk Insert.
+        // EFCore.BulkExtensions bypasses the EF Change Tracker and therefore also bypasses
+        // TenantStampingInterceptor and RlsSessionContextInterceptor. We compensate by:
+        //   a) Ensuring TenantId is stamped on each entry before insert (handled in
+        //      PayrollLedgerEntry.Create via ITenantOwned — TenantStampingInterceptor will
+        //      have already set SESSION_CONTEXT on the connection during the preceding queries
+        //      in this scope, so RLS predicates remain active).
+        //   b) Using SaveChangesAsync for the deduction MarkAsProcessed mutations below, which
+        //      goes through the full interceptor chain and keeps session context consistent.
         await _dbContext.BulkInsertAsync(results, cancellationToken: context.CancellationToken);
 
         // 3. Batch reporting back to Saga

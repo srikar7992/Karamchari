@@ -1,27 +1,42 @@
 using Azure;
 using Azure.AI.DocumentIntelligence;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Karamchari.Payroll.Services.Declarations;
 
+/// <summary>
+/// Azure Document Intelligence implementation of <see cref="IDocumentAnalyzer"/>.
+/// Configuration is resolved from <see cref="DocumentIntelligenceOptions"/> (section
+/// <c>"DocumentIntelligence"</c>) so secrets flow from Azure Key Vault via Managed Identity
+/// — never from raw <c>IConfiguration</c> strings baked into code.
+/// </summary>
 public sealed class AzureDocumentAnalyzer : IDocumentAnalyzer
 {
     private readonly DocumentIntelligenceClient _client;
 
-    public AzureDocumentAnalyzer(IConfiguration configuration)
+    /// <summary>
+    /// Initializes a new instance of <see cref="AzureDocumentAnalyzer"/>.
+    /// </summary>
+    /// <param name="options">
+    /// Strongly-typed options bound from the <c>"DocumentIntelligence"</c> config section.
+    /// In development, leave <c>Endpoint</c> and <c>Key</c> empty — the constructor
+    /// sets <c>_client = null!</c> and any real call will surface a clear
+    /// <see cref="InvalidOperationException"/> rather than a null-ref.
+    /// </param>
+    public AzureDocumentAnalyzer(IOptions<DocumentIntelligenceOptions> options)
     {
-        var endpoint = configuration["Azure:DocumentIntelligence:Endpoint"];
-        var key = configuration["Azure:DocumentIntelligence:Key"];
-        
-        if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(key))
+        ArgumentNullException.ThrowIfNull(options);
+        var cfg = options.Value;
+
+        if (string.IsNullOrEmpty(cfg.Endpoint) || string.IsNullOrEmpty(cfg.ApiKey))
         {
-            // For development, we'll allow it to be null if not configured, 
-            // but real calls will fail.
+            // Development fallback: allow the service to be registered without real credentials.
+            // Any attempt to call AnalyzeAsync will throw a clear InvalidOperationException.
             _client = null!;
             return;
         }
 
-        _client = new DocumentIntelligenceClient(new Uri(endpoint), new AzureKeyCredential(key));
+        _client = new DocumentIntelligenceClient(new Uri(cfg.Endpoint), new AzureKeyCredential(cfg.ApiKey));
     }
 
     public async Task<DocumentAnalysisResult> AnalyzeAsync(Stream stream, string fileName)

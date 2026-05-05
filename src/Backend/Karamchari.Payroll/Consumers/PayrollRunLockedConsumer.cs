@@ -28,17 +28,28 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
     {
         var message = context.Message;
 
-        // 1. Fetch all ledger entries for this run
+        // 1. Fetch all ledger entries for this run.
         var entries = await _dbContext.PayrollLedger
             .Where(e => e.RunId == message.RunId)
             .ToListAsync(context.CancellationToken);
 
-        // 2. Publish individual completion events to trigger QuestPDF
+        if (entries.Count == 0) return;
+
+        // 2. Bulk-load all profiles in one query — eliminates the N+1 that previously
+        //    issued one SELECT per ledger entry inside the loop.
+        var employeeIds = entries.Select(e => e.EmployeeId).ToHashSet();
+        var profilesById = await _dbContext.PayrollProfiles
+            .Where(p => employeeIds.Contains(p.EmployeeId))
+            .ToDictionaryAsync(p => p.EmployeeId, context.CancellationToken);
+
+        // 3. Publish individual completion events to trigger payslip generation.
+        //    Inside a MassTransit consumer, IPublishEndpoint is wired to the transactional
+        //    outbox when the backing DbContext has AddEntityFrameworkOutbox configured.
+        //    The SaveChangesAsync call below writes the outbox rows atomically — events are
+        //    only delivered if the commit succeeds.
         foreach (var entry in entries)
         {
-            // We need the tax regime, which is stored in the profile
-            var profile = await _dbContext.PayrollProfiles
-                .FirstOrDefaultAsync(p => p.EmployeeId == entry.EmployeeId, context.CancellationToken);
+            profilesById.TryGetValue(entry.EmployeeId, out var profile);
 
             await _publishEndpoint.Publish(new PayrollRunCompletedIntegrationEvent(
                 entry.EmployeeId,
@@ -52,5 +63,9 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
                 profile?.TaxRegime.ToString() ?? "New"
             ), context.CancellationToken);
         }
+
+        // Flush outbox rows atomically. Without this, the Publish calls above are buffered
+        // but never committed and the payslip generation events are silently dropped.
+        await _dbContext.SaveChangesAsync(context.CancellationToken);
     }
 }

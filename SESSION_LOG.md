@@ -13,6 +13,108 @@
 
 ---
 
+## 2026-05-05 — Day 5: EF migrations infrastructure + post-provisioning indexes + OpenTelemetry
+
+### Shipped
+
+**EF migrations infrastructure (all three bounded contexts):**
+- `PayrollDbContextDesignTimeFactory`, `HRDbContextDesignTimeFactory`, `TimeAttendanceDbContextDesignTimeFactory` — one per bounded context under `Migrations/`. Each reads `ConnectionStrings:KaramchariDb` from `Karamchari.Api/appsettings.Development.json`, uses a sentinel `DesignTimeTenantProvider`, and intentionally omits Karamchari's EF interceptors (so migration SQL is clean and targets the real schema without placeholder rewriting).
+- `Microsoft.EntityFrameworkCore.Design` added as `PrivateAssets=all` (design-time only, excluded from publish output) to `Karamchari.Api.csproj`, `Karamchari.HR.csproj`, `Karamchari.Payroll.csproj`, and `Karamchari.TimeAttendance.csproj`.
+- `Microsoft.EntityFrameworkCore.SqlServer` added to `Karamchari.TimeAttendance.csproj` (was missing; needed by the factory).
+- **Known workflow step**: After `dotnet ef migrations add <Name>`, the generated file will contain `[__tenant__]` (the EF model's placeholder schema). Replace every `[__tenant__]` with `[dbo]` before running `dotnet ef database update`. The `dbo` schema is the DDL template from which the provisioning service clones per-tenant schemas.
+
+**Post-provisioning index extension point:**
+- `ITenantPostProvisioningTask` — new interface in `Karamchari.Core.Persistence.Provisioning`. Bounded contexts implement it to apply indexes and constraints after `SELECT * INTO` table cloning (which copies column structure but not indexes).
+- `TenantProvisioningService` — updated to inject and enumerate `IEnumerable<ITenantPostProvisioningTask>`, running them between table cloning (step 2) and RLS policy application (step 4, renumbered from step 3).
+- `PayrollLedgerIndexProvisioningTask` in `Karamchari.Payroll.Persistence` — creates two indexes on every new tenant's `PayrollLedger` table: (1) `UNIQUE (RunId, EmployeeId)` (duplicate-prevention), (2) `(EmployeeId, FinancialYearStart)` (YTD read path). Both wrapped in `IF NOT EXISTS` guards for idempotency.
+- Registered as `services.AddSingleton<ITenantPostProvisioningTask, PayrollLedgerIndexProvisioningTask>()` in `PayrollServiceCollectionExtensions`.
+- `Program.cs` — updated `TenantProvisioningService` manual registration to pass `IEnumerable<ITenantPostProvisioningTask>` to the constructor.
+
+**Bug fix (discovered during factory work):**
+- `DocumentIntelligenceOptions.Key` renamed to `ApiKey` to match `appsettings.Development.json` `"ApiKey": ""`. `AzureDocumentAnalyzer` updated accordingly. Without this, `IOptions<>` binding would silently bind an empty string for the key regardless of what was in config.
+
+**OpenTelemetry:**
+- `OpenTelemetry.Extensions.Hosting`, `OpenTelemetry.Instrumentation.AspNetCore`, `OpenTelemetry.Instrumentation.EntityFrameworkCore` added to `Karamchari.Api.csproj` (already pinned in CPM; just not yet referenced).
+- `AddOpenTelemetry().WithTracing().WithMetrics()` registered in `Program.cs` before `AddKaramchariCore`. Sources: ASP.NET Core (health endpoints filtered), EF Core (SQL text captured for slow-query debugging), MassTransit. Metrics: ASP.NET Core instrumentation. Exporter is OTLP; in dev it's a no-op unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set.
+
+### Decisions
+
+- **`SELECT * INTO` does not copy indexes** — this is the fundamental reason `ITenantPostProvisioningTask` exists. The right long-term fix is a proper per-tenant migration runner, but the task approach is lightweight and keeps the provisioning pipeline explicit.
+- **Design-time factories omit interceptors** — if interceptors ran during migrations, `TenantSchemaCommandInterceptor` would try to rewrite `__tenant__` in migration SQL and `RlsSessionContextInterceptor` would set `SESSION_CONTEXT` on migration connections, both wrong. The factories return a "bare" context intentionally.
+- **`__tenant__` → `dbo` rewrite is manual** — no automated post-processor. The workflow comment in each factory makes the step visible. A future improvement could automate this with a custom `IMigrationsSqlGenerator`.
+
+### Next up
+
+1. **Run the initial migrations**: from `src/Backend/`:
+   ```powershell
+   dotnet ef migrations add InitialCreate --project Karamchari.HR          --startup-project Karamchari.Api
+   # Edit generated file: replace [__tenant__] → [dbo]
+   dotnet ef migrations add InitialCreate --project Karamchari.Payroll      --startup-project Karamchari.Api
+   # Edit generated file: replace [__tenant__] → [dbo]
+   dotnet ef migrations add InitialCreate --project Karamchari.TimeAttendance --startup-project Karamchari.Api
+   # Edit generated file: replace [__tenant__] → [dbo]
+   dotnet ef database update --project Karamchari.HR --startup-project Karamchari.Api
+   dotnet ef database update --project Karamchari.Payroll --startup-project Karamchari.Api
+   dotnet ef database update --project Karamchari.TimeAttendance --startup-project Karamchari.Api
+   ```
+2. Start Docker Desktop and run integration tests (`dotnet test tests/Backend/Karamchari.Core.IntegrationTests`).
+3. Provision a dev tenant via `POST /api/tenants` and smoke-test `POST /api/payroll/runs` end-to-end.
+4. `IExceptionHandler` + RFC 7807 ProblemDetails to replace the inline middleware.
+5. JWT bearer config from `IConfiguration` + tenant-registry validation.
+
+---
+
+## 2026-05-05 — Day 4: production-readiness audit + 12 critical fixes
+
+### Shipped
+
+**22-item production-readiness audit** run across the full codebase. 11 failures and 5 warnings identified and resolved.
+
+**Consumer-layer fixes:**
+- `PayrollBatchConsumer` — (1) Cross-tenant cache key leak: `IMemoryCache` keys now prefixed with `TenantId` (e.g. `salary_components:{tenantId}`) so tenant A's components cannot bleed into tenant B. (2) AnnualCTC fix: `profile.BaseSalary` (0 for draft profiles) replaced with `profile.AnnualCTC` as the CTCBreakdown input — zero-earning payslips for newly onboarded employees were impossible before this. (3) Added `ITenantProvider` constructor injection. (4) Added comment explaining `BulkInsertAsync` bypasses EF interceptors (TenantStampingInterceptor, RlsSessionContextInterceptor) and why that is acceptable here.
+- `PayrollRunLockedConsumer` — (1) N+1 elimination: replaced per-entry `FirstOrDefaultAsync` inside the loop with a single `ToDictionaryAsync` bulk load before the loop. (2) Added `SaveChangesAsync` — outbox rows (`PayrollRunCompletedIntegrationEvent`) were never being committed, so payslip generation events were silently lost on every run.
+- `TimesheetApprovedConsumer` — Added idempotency guard: checks `PayrollTimesheetLedger.AnyAsync(t => t.TimesheetId == ...)` before writing. Prevents duplicate hours on retry.
+- `LeaveRequestApprovedConsumer` — (1) Added idempotency guard using `RequestId` embedded as `"LeaveRequest:{requestId}"` in the `Reason` column. (2) Fixed daily rate: `profile.BaseSalary / 22` → `(profile.AnnualCTC / 12) / 22` — unpaid-leave deductions were computed against the wrong base.
+- `TenantProvisionedConsumer` — Added idempotency guard: `PayrollSchedules.AnyAsync()` short-circuits before seeding duplicate schedules on retry.
+
+**Payslip & storage fixes:**
+- `IPayslipStorage` — Added `ExistsAsync(employeeId, periodName)` method (new interface member for idempotency).
+- `LocalFilePayslipStorage` — (1) Injected `ITenantProvider`; file path now includes tenant segment (`artifacts/payslips/{tenantId}/{employeeId}/{period}.pdf`) — previously different tenants could share the same path if employee UUIDs collided. (2) Implemented `ExistsAsync`.
+- `GeneratePayslipConsumer` — (1) Added idempotency: `_storage.ExistsAsync` short-circuits if payslip already generated. (2) Fixed unbounded YTD query: now scoped to `e.Year == periodYear` instead of fetching all ledger history across all years, which produced wrong YTD figures after the first financial year. (3) Passes `context.CancellationToken` to all async calls.
+
+**Statutory engine fix:**
+- `TdsStatutoryRule` — Fixed `annualHra = 0m` hardcoded bug. Constructor now accepts optional `basicComponentIds` and `hraComponentIds` lists. `ApplyAsync` calls `context.GetBaseWage(ids) * 12` to compute the actual annual Basic and HRA from the salary breakdown, enabling correct HRA exemption calculation.
+- `FY20262027RuleSet` — Updated constructor to pass `tenantBasicComponentIds` and `tenantHraComponentIds` through to `TdsStatutoryRule`.
+
+**AI / config fix:**
+- `DocumentIntelligenceOptions` — New strongly-typed options class bound from the `"DocumentIntelligence"` configuration section. Secrets flow from Azure Key Vault via Managed Identity in production.
+- `AzureDocumentAnalyzer` — Migrated from `IConfiguration["Azure:DocumentIntelligence:Endpoint"]` / `[":Key"]` raw key access to `IOptions<DocumentIntelligenceOptions>`. Aligns with the Zero Trust / no-secrets-in-code charter.
+- `PayrollServiceCollectionExtensions` — Added `services.Configure<DocumentIntelligenceOptions>(...)` registration.
+
+**Data integrity fix:**
+- `PayrollDbContext` — Added `HasIndex(x => new { x.RunId, x.EmployeeId }).IsUnique()` on `PayrollLedgerEntry`. Closes the race window between the idempotency check in `PayrollBatchConsumer` and the `BulkInsertAsync` call — the DB rejects duplicate `(RunId, EmployeeId)` pairs even if two retries land simultaneously.
+
+**Non-bug (documented):**
+- `EmployeeService` outbox ordering: `Publish` before `SaveChangesAsync` is **correct** with MassTransit EF Core outbox — both the `Employee` row and the `OutboxMessage` rows are committed atomically. Added detailed XML doc comment to clarify.
+
+### Decisions
+
+- **`LocalFilePayslipStorage` is `Singleton`** in DI but now takes `ITenantProvider` (scoped). This works because `BuildFilePath` calls `_tenantProvider.GetTenant()` at call time (not at construction), and the `LocalFilePayslipStorage` is already documented as a dev-only implementation. The Azure Blob Storage production implementation should also be Scoped or resolve tenant at call time.
+- **Idempotency key for `LeaveRequestApprovedConsumer`** uses the `Reason` column as a surrogate. This is a pragmatic choice for the current schema; a dedicated `SourceEventId` column would be cleaner but requires a migration. Tracked as tech debt.
+- **`PayrollLedger(RunId, EmployeeId)` unique index** is the correct backstop for concurrent retry safety. The idempotency check in the consumer handles the happy path; the index handles the race.
+
+### Next up
+
+1. Start Docker Desktop and run `dotnet test tests/Backend/Karamchari.Core.IntegrationTests` — proves schema rewrite + `SESSION_CONTEXT` + RLS BLOCK predicates under real SQL Server.
+2. EF Core migration for the new `PayrollLedger(RunId, EmployeeId)` unique index.
+3. Targeted unit tests for `TenantStampingInterceptor`, `RlsScriptGenerator`, `DevelopmentTenantAuthenticationHandler`.
+4. `IExceptionHandler` + RFC 7807 ProblemDetails to replace the inline middleware.
+5. JWT bearer config from `IConfiguration` + tenant-registry validation.
+6. `Karamchari.Provisioning` service (bootstrap + per-tenant DDL apply).
+7. OpenTelemetry registration (`AddOpenTelemetry().WithTracing().WithMetrics()`).
+
+---
+
 ## 2026-05-03 — Day 3: tests + frontend portal + end-to-end loop closed
 
 ### Shipped (combined: user-led + this session)

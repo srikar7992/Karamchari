@@ -1,27 +1,42 @@
 namespace Karamchari.Payroll.Services.Payslip;
 
-using Microsoft.Extensions.Hosting;
+using Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// A local file system implementation of payslip storage.
 /// Useful for development and on-premise deployments.
 /// </summary>
+/// <remarks>
+/// File layout: <c>artifacts/payslips/{tenantId}/{employeeId}/{period}.pdf</c>
+/// The tenant segment ensures payslips from different tenants never share a directory,
+/// preventing cross-tenant file collisions and making per-tenant cleanup straightforward.
+/// The production implementation should use Azure Blob Storage with tenant-scoped containers.
+/// </remarks>
 public sealed class LocalFilePayslipStorage : IPayslipStorage
 {
     private readonly string _basePath;
+    private readonly ITenantProvider _tenantProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalFilePayslipStorage"/> class.
     /// </summary>
-    public LocalFilePayslipStorage()
+    public LocalFilePayslipStorage(ITenantProvider tenantProvider)
     {
-        // For development, we store in the project root's artifacts directory
+        _tenantProvider = tenantProvider ?? throw new ArgumentNullException(nameof(tenantProvider));
         _basePath = Path.Combine(Directory.GetCurrentDirectory(), "artifacts", "payslips");
-        
+
         if (!Directory.Exists(_basePath))
         {
             Directory.CreateDirectory(_basePath);
         }
+    }
+
+    private string BuildFilePath(string employeeId, string periodName)
+    {
+        // Scope the path by tenant to enforce isolation between tenants on the local filesystem.
+        var tenantId = _tenantProvider.GetTenant().TenantId;
+        var safePeriod = periodName.Replace(" ", "_");
+        return Path.Combine(_basePath, tenantId, employeeId, $"{safePeriod}.pdf");
     }
 
     /// <inheritdoc/>
@@ -29,14 +44,13 @@ public sealed class LocalFilePayslipStorage : IPayslipStorage
     {
         ArgumentNullException.ThrowIfNull(periodName);
 
-        string directory = Path.Combine(_basePath, employeeId);
+        var filePath = BuildFilePath(employeeId, periodName);
+        var directory = Path.GetDirectoryName(filePath)!;
+
         if (!Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
-
-        string fileName = $"{periodName.Replace(" ", "_")}.pdf";
-        string filePath = Path.Combine(directory, fileName);
 
         await File.WriteAllBytesAsync(filePath, pdfBytes);
         return filePath;
@@ -47,8 +61,7 @@ public sealed class LocalFilePayslipStorage : IPayslipStorage
     {
         ArgumentNullException.ThrowIfNull(periodName);
 
-        string fileName = $"{periodName.Replace(" ", "_")}.pdf";
-        string filePath = Path.Combine(_basePath, employeeId, fileName);
+        var filePath = BuildFilePath(employeeId, periodName);
 
         if (!File.Exists(filePath))
         {
@@ -56,5 +69,13 @@ public sealed class LocalFilePayslipStorage : IPayslipStorage
         }
 
         return await File.ReadAllBytesAsync(filePath);
+    }
+
+    /// <inheritdoc/>
+    public Task<bool> ExistsAsync(string employeeId, string periodName)
+    {
+        ArgumentNullException.ThrowIfNull(periodName);
+        var filePath = BuildFilePath(employeeId, periodName);
+        return Task.FromResult(File.Exists(filePath));
     }
 }

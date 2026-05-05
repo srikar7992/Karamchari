@@ -159,7 +159,13 @@ public class PayrollDbContext : KaramchariDbContext
         {
             b.ToTable("PayrollLedger");
             b.HasKey(x => x.Id);
+            // Filtered index for YTD queries (most common read path).
             b.HasIndex(x => new { x.EmployeeId, x.FinancialYearStart });
+            // Unique composite index: prevents duplicate ledger entries for the same
+            // employee within a single payroll run. This is the database-level idempotency
+            // guard that closes the race window between the idempotency check in
+            // PayrollBatchConsumer and the BulkInsertAsync call.
+            b.HasIndex(x => new { x.RunId, x.EmployeeId }).IsUnique();
             b.Property(x => x.MonthlyGross).HasPrecision(18, 2);
             b.Property(x => x.TdsDeducted).HasPrecision(18, 2);
             b.Property(x => x.NetPay).HasPrecision(18, 2);

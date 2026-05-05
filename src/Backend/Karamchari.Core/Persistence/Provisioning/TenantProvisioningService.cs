@@ -6,13 +6,14 @@ using Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Service responsible for the physical provisioning of a new tenant's database infrastructure.
-/// Handles schema creation, table cloning, and Row-Level Security policy application.
+/// Handles schema creation, table cloning, index application, and Row-Level Security policy application.
 /// </summary>
 public sealed class TenantProvisioningService
 {
     private readonly DbContext _dbContext;
     private readonly ITenantTableRegistry _tableRegistry;
     private readonly RlsScriptGenerator _rlsGenerator;
+    private readonly IEnumerable<ITenantPostProvisioningTask> _postProvisioningTasks;
     private readonly ILogger<TenantProvisioningService> _logger;
 
     /// <summary>
@@ -21,16 +22,23 @@ public sealed class TenantProvisioningService
     /// <param name="dbContext">The database context used for administrative DDL operations.</param>
     /// <param name="tableRegistry">The registry of all tenant-owned tables across all modules.</param>
     /// <param name="rlsGenerator">The generator for RLS policy scripts.</param>
+    /// <param name="postProvisioningTasks">
+    /// Bounded-context tasks that run after table cloning to apply indexes and constraints.
+    /// <c>SELECT * INTO</c> does not copy indexes, so each bounded context registers its
+    /// critical indexes here via <see cref="ITenantPostProvisioningTask"/>.
+    /// </param>
     /// <param name="logger">The logger.</param>
     public TenantProvisioningService(
         DbContext dbContext,
         ITenantTableRegistry tableRegistry,
         RlsScriptGenerator rlsGenerator,
+        IEnumerable<ITenantPostProvisioningTask> postProvisioningTasks,
         ILogger<TenantProvisioningService> logger)
     {
         _dbContext = dbContext;
         _tableRegistry = tableRegistry;
         _rlsGenerator = rlsGenerator;
+        _postProvisioningTasks = postProvisioningTasks;
         _logger = logger;
     }
 
@@ -68,11 +76,21 @@ public sealed class TenantProvisioningService
 #pragma warning restore EF1002
         }
 
-        // 3. Apply RLS Policies
+        // 3. Apply bounded-context indexes and constraints.
+        // SELECT * INTO copies column structure but NOT indexes or constraints.
+        // Each bounded context registers ITenantPostProvisioningTask implementations
+        // that apply its critical indexes to the new schema. All tasks are idempotent.
+        foreach (var task in _postProvisioningTasks)
+        {
+            await task.ExecuteAsync(schemaName, _dbContext, cancellationToken: default);
+        }
+
+        // 4. Apply RLS Policies.
         // This ensures the new schema is immediately protected by the centralized security function.
+        // RLS is applied last so that FILTER and BLOCK predicates cover fully-indexed tables.
         var tenantContext = new TenantContext(tenantId, TenantSource.Provisioning);
         var rlsScript = _rlsGenerator.BuildTenantPolicyScript(tenantContext);
-        
+
         await _dbContext.Database.ExecuteSqlRawAsync(rlsScript);
 
         if (_logger.IsEnabled(LogLevel.Information))

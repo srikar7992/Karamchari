@@ -12,20 +12,35 @@ public sealed class TdsStatutoryRule : IAsyncStatutoryRule
     private readonly IExemptionCalculator _exemptionCalculator;
     private readonly ITaxSlabProvider _taxSlabProvider;
     private readonly IITDeclarationRepository _declarationRepository;
+    // Component IDs whose monthly values form the Basic + DA base used for HRA exemption.
+    // Mirror the same pattern used by EpfStatutoryRule for its wage base.
+    private readonly IReadOnlyList<Guid> _basicComponentIds;
+    // Component IDs that represent the HRA earnings element in the CTC template.
+    private readonly IReadOnlyList<Guid> _hraComponentIds;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TdsStatutoryRule"/> class.
     /// </summary>
+    /// <param name="projectionService">The income projection service.</param>
+    /// <param name="exemptionCalculator">The HRA/80C exemption calculator.</param>
+    /// <param name="taxSlabProvider">The tax slab provider.</param>
+    /// <param name="declarationRepository">The IT declaration repository.</param>
+    /// <param name="basicComponentIds">Component IDs forming the Basic+DA wage base for HRA exemption.</param>
+    /// <param name="hraComponentIds">Component IDs for the HRA element in the CTC template.</param>
     public TdsStatutoryRule(
         IIncomeProjectionService projectionService,
         IExemptionCalculator exemptionCalculator,
         ITaxSlabProvider taxSlabProvider,
-        IITDeclarationRepository declarationRepository)
+        IITDeclarationRepository declarationRepository,
+        IReadOnlyList<Guid>? basicComponentIds = null,
+        IReadOnlyList<Guid>? hraComponentIds = null)
     {
         _projectionService = projectionService ?? throw new ArgumentNullException(nameof(projectionService));
         _exemptionCalculator = exemptionCalculator ?? throw new ArgumentNullException(nameof(exemptionCalculator));
         _taxSlabProvider = taxSlabProvider ?? throw new ArgumentNullException(nameof(taxSlabProvider));
         _declarationRepository = declarationRepository ?? throw new ArgumentNullException(nameof(declarationRepository));
+        _basicComponentIds = basicComponentIds ?? Array.Empty<Guid>();
+        _hraComponentIds = hraComponentIds ?? Array.Empty<Guid>();
     }
 
     /// <inheritdoc/>
@@ -49,9 +64,11 @@ public sealed class TdsStatutoryRule : IAsyncStatutoryRule
         decimal section80D = approvedDeclarations.Where(d => d.Category == "80D").Sum(d => d.ApprovedAmount ?? 0);
         decimal monthlyRent = approvedDeclarations.Where(d => d.Category == "HRA").Max(d => d.ApprovedAmount ?? 0); // Rent is usually a monthly max
 
-        // 3. Calculate Exemptions (e.g., HRA)
-        decimal annualBasic = context.GetBaseWage(new List<Guid>()) * 12; 
-        decimal annualHra = 0m; 
+        // 3. Calculate HRA exemption using the actual component values from the CTC breakdown.
+        //    Previously annualHra was hardcoded to 0 — this meant HRA exemption was never
+        //    applied even for employees with HRA declarations, causing TDS over-deduction.
+        decimal annualBasic = context.GetBaseWage(_basicComponentIds) * 12;
+        decimal annualHra = context.GetBaseWage(_hraComponentIds) * 12;
         decimal annualRent = monthlyRent * 12;
 
         decimal hraExemption = _exemptionCalculator.CalculateHraExemption(annualBasic, annualHra, annualRent, context.Profile.IsMetro);

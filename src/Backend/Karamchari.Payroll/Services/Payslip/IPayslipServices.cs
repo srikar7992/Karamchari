@@ -25,4 +25,10 @@ public interface IPayslipStorage
     /// Retrieves the payslip PDF from storage.
     /// </summary>
     Task<byte[]> GetAsync(string employeeId, string periodName);
+
+    /// <summary>
+    /// Returns <c>true</c> if a payslip has already been stored for this employee and period.
+    /// Used for idempotency checks in <see cref="GeneratePayslipConsumer"/>.
+    /// </summary>
+    Task<bool> ExistsAsync(string employeeId, string periodName);
 }

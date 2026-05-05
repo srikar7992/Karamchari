@@ -30,35 +30,43 @@ public sealed class LeaveRequestApprovedConsumer : IConsumer<LeaveRequestApprove
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        // Only process unpaid leave for monetary deduction
-        if (context.Message.IsPaid)
-        {
-            return;
-        }
+        // Only process unpaid leave for monetary deduction.
+        if (context.Message.IsPaid) return;
+
+        // Idempotency: use RequestId as the deduplication key. The Reason column stores it
+        // so retries produce no duplicate rows. A more robust approach is a dedicated
+        // SourceEventId column with a unique index; this is a low-cost interim guard.
+        var idempotencyMarker = $"LeaveRequest:{context.Message.RequestId}";
+        var alreadyRecorded = await _dbContext.PayrollDeductions
+            .AnyAsync(d => d.Reason == idempotencyMarker, context.CancellationToken);
+
+        if (alreadyRecorded) return;
 
         var profile = await _dbContext.PayrollProfiles
-            .FirstOrDefaultAsync(p => p.EmployeeId == context.Message.EmployeeId);
+            .FirstOrDefaultAsync(p => p.EmployeeId == context.Message.EmployeeId, context.CancellationToken);
 
         if (profile == null)
         {
-            // If the employee has no payroll profile, we cannot deduct pay.
+            // Employee has no active payroll profile — cannot deduct pay.
             return;
         }
 
-        // Daily rate calculation (standard 22-day working month assumption)
-        decimal dailyRate = profile.BaseSalary / 22m;
+        // Daily rate: derive from the monthly gross implied by AnnualCTC (22 working days/month).
+        // Using AnnualCTC / 12 / 22 is more accurate than BaseSalary for salaried employees.
+        decimal monthlyGross = profile.AnnualCTC / 12m;
+        decimal dailyRate = monthlyGross / 22m;
         decimal deductionAmount = Math.Round(dailyRate * (decimal)context.Message.TotalDays, 2);
 
-        // Determine the target payroll period based on the leave start date
+        // Determine the target payroll period based on the leave start date.
         string periodName = context.Message.StartDate.ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
 
         var deduction = PayrollDeduction.Create(
             context.Message.EmployeeId,
             periodName,
             deductionAmount,
-            $"Unpaid Leave: {context.Message.TotalDays} days ({context.Message.StartDate:MM/dd} - {context.Message.EndDate:MM/dd})");
+            idempotencyMarker);
 
         _dbContext.PayrollDeductions.Add(deduction);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(context.CancellationToken);
     }
 }

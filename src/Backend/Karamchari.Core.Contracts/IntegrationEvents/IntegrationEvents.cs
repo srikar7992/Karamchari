@@ -7,11 +7,25 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
 {
     // ── Common events that have not evolved yet ─────────────────────────────
 
+    /// <summary>
+    /// A single time-entry detail carried inside <see cref="TimesheetApprovedIntegrationEvent"/>.
+    /// Both the Payroll consumer (total hours) and the PSA consumer (billable entries only)
+    /// work from this same event — no cross-context DB reads needed.
+    /// </summary>
+    public record ApprovedTimeEntryDto(
+        DateOnly Date,
+        decimal Hours,
+        Guid? ProjectId,
+        bool IsBillable,
+        string? Description);
+
     public record TimesheetApprovedIntegrationEvent(
         Guid TimesheetId,
         Guid EmployeeId,
         DateOnly WeekStartDate,
-        decimal TotalHours);
+        decimal TotalHours,
+        /// <summary>Full per-day, per-project breakdown published by the TimeAttendance context.</summary>
+        IReadOnlyList<ApprovedTimeEntryDto> Entries);
 
     public record LeaveRequestApprovedIntegrationEvent(
         Guid RequestId,

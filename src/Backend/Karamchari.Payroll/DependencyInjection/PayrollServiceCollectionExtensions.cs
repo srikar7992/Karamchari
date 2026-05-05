@@ -1,6 +1,8 @@
 using Karamchari.Core.DependencyInjection;
+using Karamchari.Core.Persistence.Provisioning;
 using Karamchari.Payroll.Consumers;
 using Karamchari.Payroll.Data;
+using Karamchari.Payroll.Persistence;
 using Karamchari.Payroll.Services;
 using Karamchari.Payroll.Services.Payslip;
 using Karamchari.Payroll.Services.Statutory;
@@ -51,7 +53,16 @@ public static class PayrollServiceCollectionExtensions
         services.AddSingleton<IPayslipGenerator, QuestPdfPayslipGenerator>();
         services.AddSingleton<IPayslipStorage, LocalFilePayslipStorage>();
 
+        // Post-provisioning tasks: run after SELECT * INTO table clone to apply indexes.
+        // SELECT * INTO copies column structure but not indexes — this task recreates
+        // the critical indexes defined in the EF model for every new tenant schema.
+        services.AddSingleton<ITenantPostProvisioningTask, PayrollLedgerIndexProvisioningTask>();
+
         // Declaration & Proof Services
+        // Bind options from the "DocumentIntelligence" section — secrets resolved from
+        // Azure Key Vault via Managed Identity in production, absent in dev (graceful degradation).
+        services.Configure<DocumentIntelligenceOptions>(
+            configuration.GetSection(DocumentIntelligenceOptions.SectionName));
         services.AddScoped<IDocumentAnalyzer, AzureDocumentAnalyzer>();
         services.AddScoped<IProofStorage, LocalProofStorage>();
         services.AddScoped<ITDeclarationService>();

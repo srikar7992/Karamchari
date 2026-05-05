@@ -21,8 +21,13 @@ using Karamchari.TimeAttendance.Contracts;
 using Karamchari.Core.Contracts;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Multitenancy;
+using Karamchari.PSA.Persistence;
+using Karamchari.PSA.Domain;
+using Karamchari.PSA.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using System.Threading.RateLimiting;
 
 // Entry point for the Karamchari API.
@@ -48,13 +53,33 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
+// OpenTelemetry — traces and metrics exported via OTLP (configure exporter via env in ACA).
+// Sources: ASP.NET Core request pipeline, EF Core commands, MassTransit consumers.
+// In development the data goes nowhere unless OTEL_EXPORTER_OTLP_ENDPOINT is set.
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation(o =>
+        {
+            // Exclude health-check endpoints from traces to avoid noise.
+            o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health");
+        })
+        .AddEntityFrameworkCoreInstrumentation(o =>
+        {
+            // Capture the SQL text in spans so slow queries are debuggable.
+            o.SetDbStatementForText = true;
+        })
+        .AddSource("MassTransit"))
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation());
+
 // Add Core Infrastructure (Multitenancy, Interceptors)
 builder.Services.AddKaramchariCore(builder.Configuration);
-builder.Services.AddScoped<Karamchari.Core.Persistence.Provisioning.TenantProvisioningService>(sp => 
+builder.Services.AddScoped<Karamchari.Core.Persistence.Provisioning.TenantProvisioningService>(sp =>
     new Karamchari.Core.Persistence.Provisioning.TenantProvisioningService(
-        sp.GetRequiredService<HRDbContext>(), 
+        sp.GetRequiredService<HRDbContext>(),
         sp.GetRequiredService<Karamchari.Core.Persistence.Provisioning.ITenantTableRegistry>(),
         sp.GetRequiredService<Karamchari.Core.Persistence.Provisioning.RlsScriptGenerator>(),
+        sp.GetRequiredService<IEnumerable<Karamchari.Core.Persistence.Provisioning.ITenantPostProvisioningTask>>(),
         sp.GetRequiredService<ILogger<Karamchari.Core.Persistence.Provisioning.TenantProvisioningService>>()));
 
 // Configure MassTransit with Transactional Outbox and Module Sagas
@@ -64,6 +89,13 @@ builder.Services.AddMassTransit(x =>
     builder.Services.AddKaramchariHR(builder.Configuration, x);
     builder.Services.AddKaramchariTimeAttendance(builder.Configuration, x);
     builder.Services.AddKaramchariPayroll(builder.Configuration, x);
+
+    // PSA context
+    builder.Services.AddDbContext<PSADbContext>(o =>
+        o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    builder.Services.AddScoped<Karamchari.PSA.Persistence.ProjectResourceRepository>();
+    builder.Services.AddScoped<Karamchari.PSA.Services.InvoiceGeneratorService>();
+    x.AddConsumer<Karamchari.PSA.Consumers.BillableRevenueConsumer>();
 
     // Transactional Outbox — one per DbContext that publishes domain/integration events.
     // Outbox tables (InboxState, OutboxMessage, OutboxState) are pinned to dbo (shared infra, not tenant-owned).
@@ -78,6 +110,11 @@ builder.Services.AddMassTransit(x =>
         o.UseBusOutbox();
     });
     x.AddEntityFrameworkOutbox<TimeAttendanceDbContext>(o =>
+    {
+        o.UseSqlServer();
+        o.UseBusOutbox();
+    });
+    x.AddEntityFrameworkOutbox<PSADbContext>(o =>
     {
         o.UseSqlServer();
         o.UseBusOutbox();
@@ -894,6 +931,127 @@ app.MapPut("/api/admin/declarations/{id}/reject", async (Guid id, [FromBody] str
     return Results.NoContent();
 });
 
+// ════════════════════════════════════════════════════════════════════════════
+// PSA — Professional Services Automation API
+// Client → Project → Resource → Revenue → Invoice
+// ════════════════════════════════════════════════════════════════════════════
+
+// Creates a new external client.
+app.MapPost("/api/psa/clients", async ([FromBody] CreateClientRequest req, PSADbContext db) =>
+{
+    var client = Client.Create(req.Name, req.Gstin, req.BillingAddress, req.Currency);
+    db.Clients.Add(client);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/psa/clients/{client.Id}", new { client.Id });
+});
+
+// Lists all active clients.
+app.MapGet("/api/psa/clients", async (PSADbContext db) =>
+{
+    var clients = await db.Clients
+        .Where(c => c.IsActive)
+        .Select(c => new { c.Id, c.Name, c.Gstin, c.Currency })
+        .ToListAsync();
+    return Results.Ok(clients);
+});
+
+// Creates a project under a client.
+app.MapPost("/api/psa/projects", async ([FromBody] CreateProjectRequest req, PSADbContext db) =>
+{
+    var project = ClientProject.Create(
+        req.ClientId, req.Name,
+        Enum.Parse<BillingType>(req.BillingType),
+        DateOnly.Parse(req.StartDate),
+        req.EndDate != null ? DateOnly.Parse(req.EndDate) : null);
+    db.Projects.Add(project);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/psa/projects/{project.Id}", new { project.Id });
+});
+
+// Lists all projects for a client.
+app.MapGet("/api/psa/projects", async (Guid clientId, PSADbContext db) =>
+{
+    var projects = await db.Projects
+        .Where(p => p.ClientId == clientId && p.IsActive)
+        .Select(p => new { p.Id, p.Name, p.BillingType, p.StartDate, p.EndDate })
+        .ToListAsync();
+    return Results.Ok(projects);
+});
+
+// Assigns an employee to a project with a billable rate.
+app.MapPost("/api/psa/projects/{projectId}/resources", async (
+    Guid projectId,
+    [FromBody] AssignResourceRequest req,
+    PSADbContext db) =>
+{
+    var resource = ProjectResource.Assign(
+        req.EmployeeId, projectId,
+        req.BillableRate, req.Currency,
+        DateOnly.Parse(req.EffectiveFrom),
+        req.IsBillable);
+    db.ProjectResources.Add(resource);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/psa/resources/{resource.Id}", new { resource.Id });
+});
+
+// Returns projects the employee is currently assigned to (for timesheet dropdown).
+app.MapGet("/api/psa/employees/{employeeId}/projects", async (
+    Guid employeeId,
+    PSADbContext db,
+    ProjectResourceRepository repo) =>
+{
+    var today = DateOnly.FromDateTime(DateTime.UtcNow);
+    var projects = await repo.GetAssignedProjectsAsync(employeeId, today);
+    return Results.Ok(projects.Select(p => new { p.Id, p.Name, p.BillingType }));
+});
+
+// Generates a draft invoice for all unbilled revenue up to the cutoff date.
+app.MapPost("/api/psa/invoices/generate", async (
+    [FromBody] GenerateInvoiceRequest req,
+    InvoiceGeneratorService svc,
+    PSADbContext db) =>
+{
+    var cutoff = DateOnly.Parse(req.CutoffDate);
+    var invoice = await svc.GenerateAsync(
+        req.ClientId, cutoff, req.InvoiceNumberSeed, req.IsInterState);
+
+    if (invoice == null) return Results.NoContent();
+
+    // Generate and store PDF
+    var client = await db.Clients.FindAsync(req.ClientId);
+    if (client != null)
+    {
+        var pdfDoc = new InvoicePdfDocument(invoice, client);
+        var pdfBytes = pdfDoc.GeneratePdf();
+        var pdfPath = Path.Combine("artifacts", "invoices", $"{invoice.InvoiceNumber}.pdf");
+        Directory.CreateDirectory(Path.GetDirectoryName(pdfPath)!);
+        await File.WriteAllBytesAsync(pdfPath, pdfBytes);
+        invoice.AttachPdf(pdfPath);
+        await db.SaveChangesAsync();
+    }
+
+    return Results.Ok(new
+    {
+        invoice.Id,
+        invoice.InvoiceNumber,
+        invoice.TotalAmount,
+        invoice.Currency,
+        LineCount = invoice.Lines.Count
+    });
+});
+
+// Streams an invoice PDF.
+app.MapGet("/api/psa/invoices/{id}/download", async (Guid id, PSADbContext db) =>
+{
+    var invoice = await db.Invoices.FindAsync(id);
+    if (invoice == null) return Results.NotFound();
+    if (string.IsNullOrEmpty(invoice.PdfPath) || !File.Exists(invoice.PdfPath))
+        return Results.Problem("Invoice PDF not yet generated.");
+
+    var pdfBytes = await File.ReadAllBytesAsync(invoice.PdfPath);
+    return Results.File(pdfBytes, "application/pdf", $"{invoice.InvoiceNumber}.pdf");
+});
+
 app.Run();
 
 /// <summary>
@@ -1011,4 +1169,36 @@ namespace Karamchari.Api
     /// </summary>
     /// <param name="ApprovedBy">The name of the approver.</param>
     public record LockPayrollRunRequest(string ApprovedBy);
+
+    // ── PSA Request DTOs ──────────────────────────────────────────────────────
+
+    /// <summary>Creates a new external billing client.</summary>
+    public record CreateClientRequest(
+        string Name,
+        string Gstin,
+        string BillingAddress,
+        string Currency = "INR");
+
+    /// <summary>Creates a project under a client.</summary>
+    public record CreateProjectRequest(
+        Guid ClientId,
+        string Name,
+        string BillingType,     // "TimeAndMaterial" | "FixedBid" | "NonBillable"
+        string StartDate,       // ISO 8601: "2026-04-01"
+        string? EndDate = null);
+
+    /// <summary>Assigns an employee to a project with a time-bound billable rate.</summary>
+    public record AssignResourceRequest(
+        Guid EmployeeId,
+        decimal BillableRate,
+        string Currency,
+        string EffectiveFrom,   // ISO 8601: "2026-04-01"
+        bool IsBillable = true);
+
+    /// <summary>Triggers invoice generation for a client up to a cutoff date.</summary>
+    public record GenerateInvoiceRequest(
+        Guid ClientId,
+        string CutoffDate,          // ISO 8601: "2026-04-30"
+        string InvoiceNumberSeed,   // e.g. "INV-2026-042"
+        bool IsInterState = false);
 }

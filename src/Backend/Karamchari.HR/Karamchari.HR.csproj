@@ -18,10 +18,17 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Azure.AI.DocumentIntelligence" />
+    <!-- Design-time only: allows `dotnet ef migrations add` to discover HRDbContextDesignTimeFactory. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
+  <ItemGroup>
     <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
-    <PackageReference Include="Azure.AI.DocumentIntelligence" />
   </ItemGroup>
 
 </Project>

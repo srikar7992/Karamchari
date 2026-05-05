@@ -1,16 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!--
-    Karamchari.Payroll — Payroll bounded context.
-    Same isolation rules as HR: no cross-context EF/DbContext references.
-  -->
-
   <PropertyGroup>
-    <RootNamespace>Karamchari.Payroll</RootNamespace>
-    <AssemblyName>Karamchari.Payroll</AssemblyName>
+    <RootNamespace>Karamchari.PSA</RootNamespace>
+    <AssemblyName>Karamchari.PSA</AssemblyName>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <!-- PSA is a standalone bounded context. It reads integration events from
+       Core.Contracts and has a soft reference to TimeAttendance only through
+       those contracts — never a direct project reference. -->
   <ItemGroup>
     <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
@@ -22,14 +23,12 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="EFCore.BulkExtensions" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="QuestPDF" />
-    <PackageReference Include="Azure.AI.DocumentIntelligence" />
-    <PackageReference Include="Azure.Storage.Blobs" />
-    <!-- Design-time only: allows `dotnet ef migrations add` to discover PayrollDbContextDesignTimeFactory. -->
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
 </Project>
