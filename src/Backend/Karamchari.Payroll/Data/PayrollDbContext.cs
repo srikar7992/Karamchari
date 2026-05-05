@@ -3,6 +3,7 @@ using Karamchari.Payroll.Domain;
 using Karamchari.Payroll.Domain.SalaryStructures;
 using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.Payroll.StateMachines;
+using Karamchari.Payroll.Domain.Compliance;
 using Microsoft.EntityFrameworkCore;
 
 using Karamchari.Core.Persistence;
@@ -70,6 +71,16 @@ public class PayrollDbContext : KaramchariDbContext
     /// Gets the payroll ledger entries set.
     /// </summary>
     public DbSet<PayrollLedgerEntry> PayrollLedger => Set<PayrollLedgerEntry>();
+
+    /// <summary>
+    /// Gets the compliance snapshots set.
+    /// </summary>
+    public DbSet<ComplianceSnapshot> ComplianceSnapshots => Set<ComplianceSnapshot>();
+
+    /// <summary>
+    /// Gets the compliance filings set.
+    /// </summary>
+    public DbSet<ComplianceFiling> ComplianceFilings => Set<ComplianceFiling>();
 
     /// <summary>
     /// Configures the domain model for the Payroll context.
@@ -170,6 +181,21 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.TdsDeducted).HasPrecision(18, 2);
             b.Property(x => x.NetPay).HasPrecision(18, 2);
             b.OwnsOne(x => x.Deductions, d => d.ToJson());
+        });
+
+        modelBuilder.Entity<ComplianceSnapshot>(b =>
+        {
+            b.ToTable("ComplianceSnapshots");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.PayrollRunId, x.Type });
+        });
+
+        modelBuilder.Entity<ComplianceFiling>(b =>
+        {
+            b.ToTable("ComplianceFilings");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.PayrollRunId, x.Type });
+            b.Property(x => x.Status).HasConversion<string>();
         });
     }
 }

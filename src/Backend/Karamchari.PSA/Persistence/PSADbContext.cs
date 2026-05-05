@@ -34,6 +34,15 @@ public sealed class PSADbContext : KaramchariDbContext
     /// <summary>Gets the generated invoices.</summary>
     public DbSet<Invoice> Invoices => Set<Invoice>();
 
+    /// <summary>Gets the employee cost snapshots.</summary>
+    public DbSet<EmployeeCostSnapshot> EmployeeCostSnapshots => Set<EmployeeCostSnapshot>();
+
+    /// <summary>Gets the raw project profit ledger.</summary>
+    public DbSet<ProjectProfitLedger> ProfitLedger => Set<ProjectProfitLedger>();
+
+    /// <summary>Gets the pre-aggregated monthly metrics (dashboard read path).</summary>
+    public DbSet<ProjectMonthlyMetrics> MonthlyMetrics => Set<ProjectMonthlyMetrics>();
+
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -109,5 +118,62 @@ public sealed class PSADbContext : KaramchariDbContext
                 l.Property(x => x.Amount).HasPrecision(18, 2);
             });
         });
+
+        // ── Profitability Engine tables ────────────────────────────────────────
+
+        modelBuilder.Entity<EmployeeCostSnapshot>(b =>
+        {
+            b.ToTable("PSA_EmployeeCostSnapshots");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.MonthlyCost).HasPrecision(18, 2);
+            b.Property(x => x.CostPerHour).HasPrecision(18, 4);
+            b.Property(x => x.StandardMonthlyHours).HasPrecision(10, 2);
+
+            // One snapshot per employee per month — upsert-safe.
+            b.HasIndex(x => new { x.EmployeeId, x.Year, x.Month }).IsUnique();
+        });
+
+        modelBuilder.Entity<ProjectProfitLedger>(b =>
+        {
+            b.ToTable("PSA_ProfitLedger");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Hours).HasPrecision(18, 2);
+            b.Property(x => x.Revenue).HasPrecision(18, 2);
+            b.Property(x => x.Cost).HasPrecision(18, 2);
+            b.Property(x => x.BillableRate).HasPrecision(18, 4);
+            b.Property(x => x.CostPerHour).HasPrecision(18, 4);
+            b.Property(x => x.Currency).HasMaxLength(3);
+            // Computed columns ignored by EF (they use expression bodies)
+            b.Ignore(x => x.Profit);
+            b.Ignore(x => x.MarginPercent);
+
+            // DB-level idempotency: one row per timesheet per employee per project per date.
+            b.HasIndex(x => new { x.TimesheetId, x.EmployeeId, x.ProjectId, x.WorkDate }).IsUnique();
+
+            // Fast: all profit rows for a project in a date range.
+            b.HasIndex(x => new { x.ProjectId, x.WorkDate });
+        });
+
+        modelBuilder.Entity<ProjectMonthlyMetrics>(b =>
+        {
+            b.ToTable("PSA_ProjectMonthlyMetrics");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TotalRevenue).HasPrecision(18, 2);
+            b.Property(x => x.TotalCost).HasPrecision(18, 2);
+            b.Property(x => x.BillableHours).HasPrecision(18, 2);
+            b.Property(x => x.TotalHours).HasPrecision(18, 2);
+            // Computed columns ignored by EF.
+            b.Ignore(x => x.TotalProfit);
+            b.Ignore(x => x.MarginPercent);
+            b.Ignore(x => x.UtilizationPercent);
+            b.Ignore(x => x.BurnRate);
+
+            // One row per project per month — upsert target.
+            b.HasIndex(x => new { x.ProjectId, x.Year, x.Month }).IsUnique();
+
+            // Fast: "all projects this year" for the dashboard landing.
+            b.HasIndex(x => new { x.Year, x.Month });
+        });
     }
 }
+

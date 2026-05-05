@@ -40,6 +40,22 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.RegisterTenantTable("LeaveBalances");
         services.RegisterTenantTable("Timesheets");
 
+        // IoT & Edge Tables
+        services.RegisterTenantTable("IoT_Devices");
+        services.RegisterTenantTable("IoT_BiometricMappings");
+        services.RegisterTenantTable("IoT_RawPunches");
+        services.RegisterTenantTable("IoT_GeoFences");
+        services.RegisterTenantTable("IoT_FraudFlags");
+        services.RegisterTenantTable("IoT_LiveAttendance");
+        services.RegisterTenantTable("IoT_AttendanceResults");
+        services.RegisterTenantTable("IoT_AttendanceAudits");
+
+        // Shift Tables
+        services.RegisterTenantTable("Shifts_Templates");
+        services.RegisterTenantTable("Shifts_Assignments");
+        services.RegisterTenantTable("Shifts_Overrides");
+        services.RegisterTenantTable("Shifts_WeeklyOffRules");
+
         services.AddDbContext<TimeAttendanceDbContext>((serviceProvider, options) =>
         {
             var connectionString = configuration.GetConnectionString(ConnectionStringName)
@@ -51,6 +67,19 @@ public static class TimeAttendanceServiceCollectionExtensions
         });
 
         services.AddScoped<LeaveRequestService>();
+        
+        // Edge Services
+        services.AddScoped<Karamchari.TimeAttendance.Edge.DeviceAuthService>();
+        services.AddScoped<Karamchari.TimeAttendance.Edge.IngestionPublisher>();
+
+        // Reconciliation & Replay Services
+        services.AddScoped<Karamchari.TimeAttendance.Services.ShiftRosteringEngine>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.ShiftReconciliationEngine>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.ReprocessingWorker>();
+        
+        // Live Attendance & Fraud Services
+        services.AddScoped<Karamchari.TimeAttendance.Services.LiveAttendanceService>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.AsyncFraudDetectionWorker>();
 
         return services;
     }

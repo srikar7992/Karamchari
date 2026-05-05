@@ -96,6 +96,25 @@ public class PayrollProfile : ITenantOwned
     /// <summary>Gets the assigned Salary Template ID.</summary>
     public Guid SalaryTemplateId { get; private set; }
 
+    /// <summary>Gets the Permanent Account Number (Income Tax).</summary>
+    public string Pan { get; private set; } = string.Empty;
+
+    /// <summary>Gets the Universal Account Number (PF).</summary>
+    public string Uan { get; private set; } = string.Empty;
+
+    /// <summary>Gets the ESIC Insurance Number.</summary>
+    public string EsicNumber { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Updates the statutory identifiers for the profile.
+    /// </summary>
+    public void UpdateStatutoryInfo(string pan, string uan, string esicNumber)
+    {
+        Pan = pan;
+        Uan = uan;
+        EsicNumber = esicNumber;
+    }
+
     /// <summary>
     /// Creates a shallow clone with an overridden tax regime (for simulations).
     /// </summary>

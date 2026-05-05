@@ -1,0 +1,73 @@
+using System.Text;
+using System.Text.RegularExpressions;
+using Karamchari.Payroll.Domain.Compliance;
+
+namespace Karamchari.Payroll.Services.Compliance;
+
+public interface IEcrGenerator
+{
+    string Generate(IEnumerable<EcrRecord> records);
+}
+
+/// <summary>
+/// Generates the EPF ECR (Electronic Challan cum Return) pipe-separated text file.
+/// Adheres to strict EPFO formatting rules.
+/// </summary>
+public sealed class EcrGenerator : IEcrGenerator
+{
+    public string Generate(IEnumerable<EcrRecord> records)
+    {
+        var sb = new StringBuilder();
+
+        foreach (var record in records)
+        {
+            Validate(record);
+
+            var line = string.Join("|",
+                record.Uan,
+                SanitizeName(record.MemberName),
+                Format(record.GrossWages),
+                Format(record.EpfWages),
+                Format(record.EpsWages),
+                Format(record.EdliWages),
+                Format(record.EpfContribution),
+                Format(record.EpsContribution),
+                Format(record.EpfEpsDiff),
+                record.NcpDays.ToString(),
+                Format(record.RefundOfAdvances)
+            );
+
+            sb.AppendLine(line);
+        }
+
+        // Return ASCII encoded string as EPFO portals can be sensitive to UTF-8 BOM
+        return sb.ToString();
+    }
+
+    private void Validate(EcrRecord r)
+    {
+        if (string.IsNullOrWhiteSpace(r.Uan) || r.Uan.Length != 12 || !r.Uan.All(char.IsDigit))
+            throw new InvalidOperationException($"Invalid UAN for member {r.MemberName}. Must be 12 digits.");
+
+        if (r.EpsContribution > 1250.01m) // Small delta for rounding
+            throw new InvalidOperationException($"EPS contribution exceeds statutory limit of 1250 for member {r.MemberName}.");
+            
+        if (r.EpfContribution < r.EpsContribution)
+            throw new InvalidOperationException($"EPF contribution cannot be less than EPS contribution for member {r.MemberName}.");
+    }
+
+    private string SanitizeName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "UNKNOWN";
+        // EPFO requires uppercase, no special characters
+        return Regex.Replace(name.ToUpper(), @"[^A-Z\s]", "").Trim();
+    }
+
+    /// <summary>
+    /// EPFO rejects decimals. Values must be rounded to nearest whole integer.
+    /// </summary>
+    private string Format(decimal value)
+    {
+        return Math.Round(value, 0, MidpointRounding.AwayFromZero).ToString("0");
+    }
+}

@@ -24,6 +24,7 @@
     <PackageReference Include="EFCore.BulkExtensions" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="QuestPDF" />
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="Azure.AI.DocumentIntelligence" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <!-- Design-time only: allows `dotnet ef migrations add` to discover PayrollDbContextDesignTimeFactory. -->

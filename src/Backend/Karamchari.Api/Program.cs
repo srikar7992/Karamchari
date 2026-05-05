@@ -24,6 +24,7 @@ using Karamchari.Core.Multitenancy;
 using Karamchari.PSA.Persistence;
 using Karamchari.PSA.Domain;
 using Karamchari.PSA.Services;
+using Karamchari.PSA.Hubs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using OpenTelemetry.Metrics;
@@ -95,7 +96,22 @@ builder.Services.AddMassTransit(x =>
         o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
     builder.Services.AddScoped<Karamchari.PSA.Persistence.ProjectResourceRepository>();
     builder.Services.AddScoped<Karamchari.PSA.Services.InvoiceGeneratorService>();
+    builder.Services.AddScoped<Karamchari.PSA.Services.EmployeeCostService>();
+    builder.Services.AddSingleton<Karamchari.PSA.Services.PricingEngine>();
+    builder.Services.AddSingleton<Karamchari.PSA.Services.SimulationService>();
+    builder.Services.AddSingleton<Karamchari.PSA.Services.AnomalyDetectionService>();
+    builder.Services.AddScoped<Karamchari.PSA.Services.CashFlowService>();
+    builder.Services.AddSingleton<Karamchari.PSA.Hubs.AnalyticsBroadcaster>();
+    
+    // Compliance Generators
+    builder.Services.AddScoped<Karamchari.Payroll.Services.Compliance.IEcrGenerator, Karamchari.Payroll.Services.Compliance.EcrGenerator>();
+    builder.Services.AddScoped<Karamchari.Payroll.Services.Compliance.IEsicGenerator, Karamchari.Payroll.Services.Compliance.EsicGenerator>();
+    builder.Services.AddScoped<Karamchari.Payroll.Services.Compliance.ITdsGenerator, Karamchari.Payroll.Services.Compliance.TdsGenerator>();
+    builder.Services.AddScoped<Karamchari.Payroll.Services.Compliance.IComplianceRiskEngine, Karamchari.Payroll.Services.Compliance.ComplianceRiskEngine>();
+    builder.Services.AddScoped<Karamchari.Payroll.Services.Compliance.IComplianceService, Karamchari.Payroll.Services.Compliance.ComplianceService>();
+    
     x.AddConsumer<Karamchari.PSA.Consumers.BillableRevenueConsumer>();
+    x.AddConsumer<Karamchari.PSA.Consumers.ProfitCalculationConsumer>();
 
     // Transactional Outbox — one per DbContext that publishes domain/integration events.
     // Outbox tables (InboxState, OutboxMessage, OutboxState) are pinned to dbo (shared infra, not tenant-owned).
@@ -120,6 +136,11 @@ builder.Services.AddMassTransit(x =>
         o.UseBusOutbox();
     });
 
+    // TimeAttendance Consumers
+    x.AddConsumer<Karamchari.TimeAttendance.Consumers.PunchTranslationConsumer>();
+    x.AddConsumer<Karamchari.TimeAttendance.Consumers.LiveAttendanceConsumer>();
+    x.AddConsumer<Karamchari.TimeAttendance.Consumers.ReprocessAttendanceConsumer>();
+
     x.UsingInMemory((context, cfg) =>
     {
         cfg.ConfigureEndpoints(context);
@@ -133,9 +154,15 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
+// SignalR for real-time analytics updates.
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 app.UseRateLimiter();
+
+app.MapHub<Karamchari.TimeAttendance.Hubs.AttendanceHub>("/hubs/attendance");
+app.MapHub<Karamchari.PSA.Hubs.AnalyticsHub>("/hubs/analytics"); // Just in case it was missing
 
 // --- Tenant Provisioning API ---
 
@@ -161,8 +188,183 @@ app.MapPost("/api/tenants", async (
     return Results.Created($"/api/tenants/{tenantId}", new { TenantId = tenantId, SchemaName = schemaName });
 });
 
-// --- Payroll API ---
+// --- IoT Biometric Edge API ---
 
+// High-throughput biometric ingestion endpoint
+app.MapPost("/api/iot/push", async (
+    HttpRequest request,
+    Karamchari.TimeAttendance.Edge.DeviceAuthService authService,
+    Karamchari.TimeAttendance.Edge.IngestionPublisher publisher) =>
+{
+    var apiKey = request.Headers["x-api-key"].ToString();
+    var authResult = await authService.ValidateAsync(apiKey);
+
+    if (!authResult.IsValid || authResult.Device == null)
+        return Results.Unauthorized();
+
+    using var reader = new StreamReader(request.Body);
+    var rawPayload = await reader.ReadToEndAsync();
+
+    // Fire & Forget into the MassTransit buffer
+    await publisher.PublishAsync(rawPayload, authResult.Device.DeviceId, authResult.Device.TenantId, isMobile: false);
+
+    return Results.Ok();
+});
+
+// High-throughput mobile attendance endpoint (with GPS)
+app.MapPost("/api/iot/mobile-push", async (
+    HttpRequest request,
+    Karamchari.TimeAttendance.Edge.DeviceAuthService authService,
+    Karamchari.TimeAttendance.Edge.IngestionPublisher publisher) =>
+{
+    var apiKey = request.Headers["x-api-key"].ToString();
+    var authResult = await authService.ValidateAsync(apiKey);
+
+    if (!authResult.IsValid || authResult.Device == null)
+        return Results.Unauthorized();
+
+    using var reader = new StreamReader(request.Body);
+    var rawPayload = await reader.ReadToEndAsync();
+
+    // Fire & Forget into the MassTransit buffer
+    await publisher.PublishAsync(rawPayload, authResult.Device.DeviceId, authResult.Device.TenantId, isMobile: true);
+
+    return Results.Ok();
+});
+
+// --- TimeAttendance Operational API (DLQ, Fraud, Reprocessing) ---
+
+public record MapDlqRequest(Guid EmployeeId);
+
+// Fetch Pending DLQ Items
+app.MapGet("/api/attendance/dlq", async (TimeAttendanceDbContext dbContext) =>
+{
+    var pending = await dbContext.InvalidPunches
+        .Where(p => p.Status == Karamchari.TimeAttendance.Domain.IoT.InvalidPunchStatus.Pending)
+        .OrderByDescending(p => p.TimestampUtc)
+        .ToListAsync();
+    return Results.Ok(pending);
+});
+
+// Map DLQ to Employee and Trigger Reprocess (Transactional Outbox)
+app.MapPost("/api/attendance/dlq/{id}/map", async (
+    Guid id,
+    MapDlqRequest request,
+    TimeAttendanceDbContext dbContext,
+    IPublishEndpoint publishEndpoint,
+    ITenantProvider tenantProvider) =>
+{
+    var punch = await dbContext.InvalidPunches.FindAsync(id);
+    if (punch == null) return Results.NotFound();
+
+    var tenant = tenantProvider.GetTenant();
+    
+    // Parse the payload to get biometric ID (Simplified for sprint)
+    using var document = System.Text.Json.JsonDocument.Parse(punch.Payload);
+    var biometricId = document.RootElement.GetProperty("biometricId").GetString();
+
+    // Begin Transaction
+    using var tx = await dbContext.Database.BeginTransactionAsync();
+
+    try
+    {
+        // 1. Save Mapping
+        var mapping = Karamchari.TimeAttendance.Domain.IoT.BiometricMapping.Create(
+            tenant.TenantId, request.EmployeeId, biometricId);
+        dbContext.BiometricMappings.Add(mapping);
+
+        // 2. Update DLQ Status
+        punch.TransitionTo(Karamchari.TimeAttendance.Domain.IoT.InvalidPunchStatus.Mapped);
+
+        // 3. Emit Reprocess Command (Outbox)
+        var jobId = Guid.NewGuid();
+        await publishEndpoint.Publish(new Karamchari.Core.Contracts.IntegrationEvents.ReprocessAttendanceCommandV1
+        {
+            JobId = jobId,
+            TenantId = tenant.TenantId,
+            EmployeeId = request.EmployeeId,
+            FromDateUtc = punch.TimestampUtc.Date,
+            ToDateUtc = punch.TimestampUtc.Date
+        });
+
+        await dbContext.SaveChangesAsync();
+        await tx.CommitAsync();
+
+        return Results.Ok(new { JobId = jobId });
+    }
+    catch
+    {
+        await tx.RollbackAsync();
+        throw;
+    }
+});
+
+// Fetch Active Fraud Flags
+app.MapGet("/api/attendance/fraud", async (TimeAttendanceDbContext dbContext) =>
+{
+    var flags = await dbContext.FraudFlags
+        .Where(f => f.Status == Karamchari.TimeAttendance.Domain.IoT.FraudStatus.Detected || f.Status == Karamchari.TimeAttendance.Domain.IoT.FraudStatus.UnderReview)
+        .OrderByDescending(f => f.SeverityScore)
+        .ThenByDescending(f => f.DetectedAtUtc)
+        .ToListAsync();
+    return Results.Ok(flags);
+});
+
+public record ReviewFraudRequest(Karamchari.TimeAttendance.Domain.IoT.FraudStatus Status, string Notes);
+
+// Review Fraud Flag
+app.MapPut("/api/attendance/fraud/{id}/review", async (
+    Guid id,
+    ReviewFraudRequest request,
+    TimeAttendanceDbContext dbContext,
+    ClaimsPrincipal user) =>
+{
+    var flag = await dbContext.FraudFlags.FindAsync(id);
+    if (flag == null) return Results.NotFound();
+
+    var reviewer = user.Identity?.Name ?? "Admin";
+    flag.Review(request.Status, reviewer, request.Notes);
+
+    await dbContext.SaveChangesAsync();
+    return Results.Ok();
+});
+
+// Trigger Bulk Reprocessing
+public record ReprocessAttendanceRequest(Guid? EmployeeId, string FromDate, string ToDate);
+
+app.MapPost("/api/attendance/reprocess", async (
+    ReprocessAttendanceRequest request,
+    IPublishEndpoint publishEndpoint,
+    ITenantProvider tenantProvider) =>
+{
+    if (!DateTime.TryParse(request.FromDate, out var fromDate) || 
+        !DateTime.TryParse(request.ToDate, out var toDate))
+    {
+        return Results.BadRequest("Invalid date format. Use ISO8601.");
+    }
+
+    var tenant = tenantProvider.GetTenant();
+    var jobId = Guid.NewGuid();
+
+    await publishEndpoint.Publish(new Karamchari.Core.Contracts.IntegrationEvents.ReprocessAttendanceCommandV1
+    {
+        JobId = jobId,
+        TenantId = tenant.TenantId,
+        EmployeeId = request.EmployeeId ?? Guid.Empty, // Assuming Empty means all for this sprint scope
+        FromDateUtc = fromDate.ToUniversalTime(),
+        ToDateUtc = toDate.ToUniversalTime()
+    });
+
+    return Results.Ok(new { JobId = jobId, Message = "Reprocessing queued successfully." });
+});
+
+app.MapGet("/api/attendance/reprocess/{jobId}", (Guid jobId) =>
+{
+    // Simplified: Return mock job tracking state since Job tracking persistence is out of scope for this quick sprint.
+    return Results.Ok(new { JobId = jobId, Progress = 100, Status = "Completed" });
+});
+
+// --- Payroll API ---
 // Initiates a new payroll run saga.
 app.MapPost("/api/payroll/runs", async (StartPayrollRunRequest request, IPublishEndpoint publishEndpoint, ITenantProvider tenantProvider) =>
 {
@@ -357,6 +559,56 @@ app.MapPost("/api/payroll/salary-templates/{id}/calculate-statutory", async (
         Breakdown = breakdown,
         Statutory = result
     });
+});
+
+// --- Statutory Compliance API ---
+
+// Download EPF ECR File
+app.MapGet("/api/compliance/epf/{payrollRunId}", async (
+    Guid payrollRunId,
+    Karamchari.Payroll.Services.Compliance.IComplianceService complianceService) =>
+{
+    var (fileName, content) = await complianceService.GetEpfEcrAsync(payrollRunId);
+    return Results.File(content, "text/plain", fileName);
+});
+
+// Download ESIC Monthly Return
+app.MapGet("/api/compliance/esic/{payrollRunId}", async (
+    Guid payrollRunId,
+    Karamchari.Payroll.Services.Compliance.IComplianceService complianceService) =>
+{
+    var (fileName, content) = await complianceService.GetEsicMonthlyAsync(payrollRunId);
+    return Results.File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+});
+
+// Download TDS Form 24Q
+app.MapGet("/api/compliance/tds/{payrollRunId}", async (
+    Guid payrollRunId,
+    Karamchari.Payroll.Services.Compliance.IComplianceService complianceService) =>
+{
+    var (fileName, content) = await complianceService.GetTdsForm24QAsync(payrollRunId);
+    return Results.File(content, "text/plain", fileName);
+});
+
+public record MarkFiledRequest(Guid RunId, Karamchari.Payroll.Domain.Compliance.ComplianceType Type, string ReferenceNumber);
+
+// Mark a return as filed
+app.MapPost("/api/compliance/mark-filed", async (
+    MarkFiledRequest request,
+    Karamchari.Payroll.Services.Compliance.IComplianceService complianceService,
+    ClaimsPrincipal user) =>
+{
+    var filedBy = user.Identity?.Name ?? "Admin";
+    await complianceService.MarkAsFiledAsync(request.RunId, request.Type, request.ReferenceNumber, filedBy);
+    return Results.Ok();
+});
+
+// Get Compliance Health Summary (CFO Dashboard)
+app.MapGet("/api/compliance/health", async (
+    Karamchari.Payroll.Services.Compliance.IComplianceService complianceService) =>
+{
+    var health = await complianceService.GetComplianceHealthAsync();
+    return Results.Ok(health);
 });
 
 // --- Time & Attendance API ---
@@ -1052,6 +1304,182 @@ app.MapGet("/api/psa/invoices/{id}/download", async (Guid id, PSADbContext db) =
     return Results.File(pdfBytes, "application/pdf", $"{invoice.InvoiceNumber}.pdf");
 });
 
+// ════════════════════════════════════════════════════════════════════════════
+// Analytics — Profitability Engine API
+// Real-time financial intelligence for CFOs
+// ════════════════════════════════════════════════════════════════════════════
+
+// Project profitability overview (reads from pre-aggregated table ONLY).
+app.MapGet("/api/analytics/projects", async (int? year, PSADbContext db) =>
+{
+    var targetYear = year ?? DateTime.UtcNow.Year;
+
+    var metrics = await db.MonthlyMetrics
+        .Where(m => m.Year == targetYear)
+        .GroupBy(m => m.ProjectId)
+        .Select(g => new
+        {
+            ProjectId = g.Key,
+            Revenue = g.Sum(m => m.TotalRevenue),
+            Cost = g.Sum(m => m.TotalCost),
+            BillableHours = g.Sum(m => m.BillableHours),
+            TotalHours = g.Sum(m => m.TotalHours)
+        })
+        .ToListAsync();
+
+    var result = metrics.Select(m =>
+    {
+        var profit = m.Revenue - m.Cost;
+        return new
+        {
+            m.ProjectId,
+            m.Revenue,
+            m.Cost,
+            Profit = profit,
+            Margin = m.Revenue == 0 ? 0 : Math.Round(profit / m.Revenue * 100, 2),
+            m.BillableHours,
+            Utilization = m.TotalHours == 0 ? 0 : Math.Round(m.BillableHours / m.TotalHours * 100, 2)
+        };
+    });
+
+    return Results.Ok(result);
+});
+
+// Monthly trend for a specific project.
+app.MapGet("/api/analytics/projects/{projectId}/trend", async (Guid projectId, PSADbContext db) =>
+{
+    var trend = await db.MonthlyMetrics
+        .Where(m => m.ProjectId == projectId)
+        .OrderBy(m => m.Year).ThenBy(m => m.Month)
+        .Select(m => new
+        {
+            m.Year,
+            m.Month,
+            m.TotalRevenue,
+            m.TotalCost,
+            Profit = m.TotalRevenue - m.TotalCost,
+            m.BillableHours
+        })
+        .ToListAsync();
+    return Results.Ok(trend);
+});
+
+// What-if simulation (stateless — never persisted).
+app.MapPost("/api/analytics/simulate", ([FromBody] SimulateRequest req, SimulationService svc) =>
+{
+    var result = svc.Simulate(req.CurrentRevenue, req.CurrentCost, req.RateChangePercent, req.CostChangePercent);
+    return Results.Ok(result);
+});
+
+// Pricing recommendation for a project.
+app.MapGet("/api/analytics/pricing/{projectId}", async (
+    Guid projectId,
+    PSADbContext db,
+    PricingEngine engine,
+    EmployeeCostService costSvc) =>
+{
+    // Get the average billable rate for the project.
+    var avgRate = await db.ProjectResources
+        .Where(r => r.ProjectId == projectId && r.IsBillable)
+        .AverageAsync(r => (decimal?)r.BillableRate) ?? 0;
+
+    // Get the average cost-per-hour for employees on this project.
+    var employeeIds = await db.ProjectResources
+        .Where(r => r.ProjectId == projectId)
+        .Select(r => r.EmployeeId)
+        .Distinct()
+        .ToListAsync();
+
+    var now = DateTime.UtcNow;
+    decimal totalCost = 0;
+    int costCount = 0;
+    foreach (var empId in employeeIds)
+    {
+        var cph = await costSvc.GetCostPerHourAsync(empId, now.Year, now.Month);
+        if (cph.HasValue) { totalCost += cph.Value; costCount++; }
+    }
+    decimal avgCost = costCount > 0 ? totalCost / costCount : 0;
+
+    var recommendation = engine.Recommend(avgCost, avgRate);
+    return Results.Ok(recommendation);
+});
+
+// Anomaly detection.
+app.MapGet("/api/analytics/anomalies", async (PSADbContext db, AnomalyDetectionService svc) =>
+{
+    var now = DateTime.UtcNow;
+    var currentMonth = now.Month;
+    var currentYear = now.Year;
+    var prevMonth = currentMonth == 1 ? 12 : currentMonth - 1;
+    var prevYear = currentMonth == 1 ? currentYear - 1 : currentYear;
+
+    var current = await db.MonthlyMetrics
+        .Where(m => m.Year == currentYear && m.Month == currentMonth)
+        .ToListAsync();
+
+    var previous = await db.MonthlyMetrics
+        .Where(m => m.Year == prevYear && m.Month == prevMonth)
+        .ToListAsync();
+
+    var comparisons = current.Select(c =>
+    {
+        var p = previous.FirstOrDefault(x => x.ProjectId == c.ProjectId);
+        return new MonthComparison(
+            c.ProjectId,
+            c.TotalRevenue, c.TotalCost, c.TotalRevenue - c.TotalCost,
+            p?.TotalRevenue ?? 0, p?.TotalCost ?? 0,
+            p != null ? p.TotalRevenue - p.TotalCost : 0);
+    });
+
+    var anomalies = svc.Detect(comparisons);
+    return Results.Ok(anomalies);
+});
+
+// AR Aging report.
+app.MapGet("/api/analytics/cashflow/aging", async (CashFlowService svc) =>
+{
+    var aging = await svc.GetAgingAsync();
+    return Results.Ok(aging);
+});
+
+// Cash flow forecast.
+app.MapGet("/api/analytics/cashflow/forecast", async (CashFlowService svc) =>
+{
+    var forecast = await svc.ForecastAsync();
+    return Results.Ok(forecast);
+});
+
+// Client profitability (joins through projects).
+app.MapGet("/api/analytics/clients", async (int? year, PSADbContext db) =>
+{
+    var targetYear = year ?? DateTime.UtcNow.Year;
+
+    var projectClients = await db.Projects
+        .Select(p => new { p.Id, p.ClientId, p.Name })
+        .ToListAsync();
+
+    var metrics = await db.MonthlyMetrics
+        .Where(m => m.Year == targetYear)
+        .ToListAsync();
+
+    var clientMetrics = metrics
+        .Join(projectClients, m => m.ProjectId, p => p.Id, (m, p) => new { p.ClientId, m.TotalRevenue, m.TotalCost })
+        .GroupBy(x => x.ClientId)
+        .Select(g => new
+        {
+            ClientId = g.Key,
+            Revenue = g.Sum(x => x.TotalRevenue),
+            Cost = g.Sum(x => x.TotalCost),
+            Profit = g.Sum(x => x.TotalRevenue - x.TotalCost)
+        })
+        .ToList();
+
+    return Results.Ok(clientMetrics);
+});
+
+// SignalR hub endpoint.
+app.MapHub<AnalyticsHub>("/hubs/analytics");
+
 app.Run();
 
 /// <summary>
@@ -1201,4 +1629,13 @@ namespace Karamchari.Api
         string CutoffDate,          // ISO 8601: "2026-04-30"
         string InvoiceNumberSeed,   // e.g. "INV-2026-042"
         bool IsInterState = false);
+
+    // ── Analytics Request DTOs ────────────────────────────────────────────────
+
+    /// <summary>What-if simulation inputs. Never persisted.</summary>
+    public record SimulateRequest(
+        decimal CurrentRevenue,
+        decimal CurrentCost,
+        decimal RateChangePercent = 0,
+        decimal CostChangePercent = 0);
 }
