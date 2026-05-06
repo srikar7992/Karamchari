@@ -33,6 +33,8 @@ using OpenTelemetry.Trace;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Karamchari.Payroll.Services.Payslip;
+using Karamchari.Billing.DependencyInjection;
+using Karamchari.Forecasting.DependencyInjection;
 
 // Entry point for the Karamchari API.
 var builder = WebApplication.CreateBuilder(args);
@@ -138,6 +140,13 @@ builder.Services.AddMassTransit(x =>
         o.UseSqlServer();
         o.UseBusOutbox();
     });
+
+    builder.Services.AddKaramchariBilling(builder.Configuration);
+    builder.Services.AddKaramchariForecasting(builder.Configuration);
+    
+    x.AddConsumer<Karamchari.Billing.Consumers.BillableEntryConsumer>();
+    x.AddConsumer<Karamchari.Billing.Consumers.CollectionCaseConsumer>();
+    x.AddConsumer<Karamchari.Forecasting.Consumers.ForecastUpdateConsumer>();
 
     // TimeAttendance Consumers
     x.AddConsumer<Karamchari.TimeAttendance.Consumers.PunchTranslationConsumer>();
@@ -260,9 +269,14 @@ app.MapPost("/api/attendance/dlq/{id}/map", async (
 
     var tenant = tenantProvider.GetTenant();
     
-    // Parse the payload to get biometric ID (Simplified for sprint)
-    using var document = System.Text.Json.JsonDocument.Parse(punch.Payload);
-    var biometricId = document.RootElement.GetProperty("biometricId").GetString();
+    // Robustly parse the biometric payload
+    string? biometricId = null;
+    try {
+        using var document = System.Text.Json.JsonDocument.Parse(punch.Payload);
+        biometricId = document.RootElement.TryGetProperty("biometricId", out var prop) ? prop.GetString() : null;
+    } catch { }
+
+    if (string.IsNullOrEmpty(biometricId)) return Results.BadRequest("Invalid punch payload: missing biometricId");
 
     // Begin Transaction
     using var tx = await dbContext.Database.BeginTransactionAsync();
@@ -277,11 +291,16 @@ app.MapPost("/api/attendance/dlq/{id}/map", async (
         // 2. Update DLQ Status
         punch.TransitionTo(Karamchari.TimeAttendance.Domain.IoT.InvalidPunchStatus.Mapped);
 
-        // 3. Emit Reprocess Command (Outbox)
-        var jobId = Guid.NewGuid();
+        // 3. Create Background Job & Emit Reprocess Command (Outbox)
+        var job = new Karamchari.TimeAttendance.Domain.IoT.BackgroundJob { 
+            TenantId = tenant.TenantId, 
+            JobType = "ReprocessAttendance" 
+        };
+        dbContext.BackgroundJobs.Add(job);
+
         await publishEndpoint.Publish(new Karamchari.Core.Contracts.IntegrationEvents.ReprocessAttendanceCommandV1
         {
-            JobId = jobId,
+            JobId = job.Id,
             TenantId = tenant.TenantId,
             EmployeeId = request.EmployeeId,
             FromDateUtc = punch.TimestampUtc.Date,
@@ -291,7 +310,7 @@ app.MapPost("/api/attendance/dlq/{id}/map", async (
         await dbContext.SaveChangesAsync();
         await tx.CommitAsync();
 
-        return Results.Ok(new { JobId = jobId });
+        return Results.Ok(new { JobId = job.Id });
     }
     catch
     {
@@ -355,10 +374,10 @@ app.MapPost("/api/attendance/reprocess", async (
     return Results.Ok(new { JobId = jobId, Message = "Reprocessing queued successfully." });
 });
 
-app.MapGet("/api/attendance/reprocess/{jobId}", (Guid jobId) =>
+app.MapGet("/api/attendance/reprocess/{jobId}", async (Guid jobId, TimeAttendanceDbContext db) =>
 {
-    // Simplified: Return mock job tracking state since Job tracking persistence is out of scope for this quick sprint.
-    return Results.Ok(new { JobId = jobId, Progress = 100, Status = "Completed" });
+    var job = await db.BackgroundJobs.FindAsync(jobId);
+    return job != null ? Results.Ok(job) : Results.NotFound();
 });
 
 // --- Payroll API ---
@@ -393,7 +412,11 @@ app.MapGet("/api/payroll/runs/{id}/summary", async (Guid id, PayrollDbContext db
     var run = await dbContext.PayrollRunStates.FirstOrDefaultAsync(r => r.CorrelationId == id);
     if (run == null) return Results.NotFound();
 
-    // In a real app, we might also want to aggregate these from the ledger for double-verification
+    // Calculate actual tax from the ledger for double-verification
+    var ledgerTax = await dbContext.PayrollLedger
+        .Where(e => e.RunId == id)
+        .SumAsync(e => e.TdsDeducted);
+
     return Results.Ok(new 
     {
         run.CorrelationId,
@@ -403,7 +426,7 @@ app.MapGet("/api/payroll/runs/{id}/summary", async (Guid id, PayrollDbContext db
         run.ProcessedEmployees,
         run.TotalGross,
         run.TotalNet,
-        TotalTax = run.TotalGross - run.TotalNet, // Simplified tax aggregation
+        TotalTax = ledgerTax,
         run.StartedAt,
         run.LockedAt,
         run.LockedBy
@@ -423,8 +446,8 @@ app.MapGet("/api/payroll/runs/{id}/details", async (Guid id, PayrollDbContext db
 
     var employeeIds = currentEntries.Select(e => e.EmployeeId).ToList();
 
-    // Fetch previous run entries for variance calculation
-    // Simplified: Look for entries from the same month last year or previous month
+    // Fetch previous run entries for variance calculation. 
+    // Uses the most recent record per employee outside of the current run context.
     // For now, let's just find the most recent entry for these employees that is NOT this run
     var previousEntries = await dbContext.PayrollLedger
         .Where(e => employeeIds.Contains(e.EmployeeId) && e.RunId != id)
@@ -662,7 +685,7 @@ app.MapPost("/api/mobile/punch", async (
         request.Timestamp, // Local timestamp
         "UTC",
         DateTime.UtcNow,
-        Karamchari.TimeAttendance.Domain.IoT.PunchType.In, // Simplified
+        request.Type,
         Karamchari.TimeAttendance.Domain.IoT.PunchSource.Mobile,
         request.Lat,
         request.Lon
@@ -945,31 +968,33 @@ app.MapGet("/api/time/timesheets/current-week", async (
 
 // Submits or updates a weekly timesheet.
 app.MapPost("/api/time/timesheets", async (
-    SubmitTimesheetRequest request, 
+    SubmitTimesheetRequest request,
+    ClaimsPrincipal user,
     TimeAttendanceDbContext dbContext) =>
 {
-    // Mock current user
-    var employeeId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-    
+    var employeeId = Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var uid)
+        ? uid
+        : Guid.Parse("00000000-0000-0000-0000-000000000001"); // dev fallback only
+
     var timesheet = await dbContext.Timesheets
         .FirstOrDefaultAsync(t => t.EmployeeId == employeeId && t.WeekStartDate == request.WeekStartDate);
-        
+
     if (timesheet == null)
     {
         timesheet = Timesheet.Create(employeeId, request.WeekStartDate);
         dbContext.Timesheets.Add(timesheet);
     }
-    
-    var entries = request.Entries.Select(e => new TimeEntry 
-    { 
-        Date = e.Date, 
-        Hours = e.Hours, 
-        Description = e.Description 
+
+    var entries = request.Entries.Select(e => new TimeEntry
+    {
+        Date = e.Date,
+        Hours = e.Hours,
+        Description = e.Description
     });
-    
+
     timesheet.UpdateEntries(entries);
-    timesheet.Submit(Guid.Empty); // Auto-submit for now to trigger manager workflow later
-    
+    timesheet.Submit(employeeId);
+
     await dbContext.SaveChangesAsync();
     
     return Results.Ok(timesheet);
@@ -1556,6 +1581,251 @@ app.MapGet("/api/analytics/clients", async (int? year, PSADbContext db) =>
     return Results.Ok(clientMetrics);
 });
 
+// --- Billing & Invoice API ---
+
+app.MapPost("/api/billing/contracts", async (
+    CreateBillingContractRequest request,
+    Karamchari.Billing.Persistence.BillingDbContext db,
+    ITenantProvider tenantProvider) =>
+{
+    var tenant = tenantProvider.GetTenant();
+    var contract = Karamchari.Billing.Domain.Contracts.BillingContract.Create(
+        tenant.TenantId, request.ClientId, request.ProjectId, request.BillingType);
+    
+    contract.Currency = request.Currency;
+    contract.BillingCycle = request.Cycle;
+    if (!string.IsNullOrEmpty(request.StartDate))
+        contract.StartDate = DateOnly.Parse(request.StartDate);
+
+    db.Contracts.Add(contract);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/billing/contracts/{contract.Id}", contract);
+});
+
+app.MapPost("/api/billing/contracts/{id}/rates", async (
+    Guid id,
+    AddRateCardRequest request,
+    Karamchari.Billing.Persistence.BillingDbContext db) =>
+{
+    var contract = await db.Contracts.Include(c => c.RateCards).FirstOrDefaultAsync(c => c.Id == id);
+    if (contract == null) return Results.NotFound();
+
+    contract.AddRate(
+        request.RoleId, 
+        request.Rate, 
+        request.Unit, 
+        DateOnly.Parse(request.EffectiveFrom), 
+        request.EffectiveTo != null ? DateOnly.Parse(request.EffectiveTo) : null);
+
+    await db.SaveChangesAsync();
+    return Results.Ok();
+});
+
+app.MapPost("/api/billing/roles", async (
+    MapEmployeeRoleRequest request,
+    Karamchari.Billing.Persistence.BillingDbContext db,
+    ITenantProvider tenantProvider) =>
+{
+    var tenant = tenantProvider.GetTenant();
+    var roleMapping = new Karamchari.Billing.Domain.Contracts.EmployeeRole
+    {
+        TenantId = tenant.TenantId,
+        EmployeeId = request.EmployeeId,
+        RoleId = request.RoleId,
+        ProjectId = request.ProjectId,
+        EffectiveFrom = DateOnly.Parse(request.EffectiveFrom),
+        EffectiveTo = request.EffectiveTo != null ? DateOnly.Parse(request.EffectiveTo) : null
+    };
+
+    db.EmployeeRoles.Add(roleMapping);
+    await db.SaveChangesAsync();
+    return Results.Ok();
+});
+
+app.MapPost("/api/billing/invoices/generate", async (
+    GenerateInvoiceRunRequest request,
+    Karamchari.Billing.Services.InvoiceGeneratorService generator) =>
+{
+    var invoice = await generator.GenerateDraftAsync(
+        request.ContractId, 
+        DateOnly.Parse(request.StartDate), 
+        DateOnly.Parse(request.EndDate));
+
+    return invoice != null ? Results.Ok(invoice) : Results.NoContent();
+});
+
+app.MapPost("/api/billing/invoices/{id}/finalize", async (
+    Guid id,
+    FinalizeInvoiceRequest request,
+    Karamchari.Billing.Persistence.BillingDbContext db,
+    IPublishEndpoint publishEndpoint) =>
+{
+    var invoice = await db.Invoices.Include(i => i.Lines).FirstOrDefaultAsync(i => i.Id == id);
+    if (invoice == null) return Results.NotFound();
+
+    // Generate snapshot for legal freeze
+    var snapshot = System.Text.Json.JsonSerializer.Serialize(new {
+        invoice.InvoiceNumber,
+        invoice.PeriodStart,
+        invoice.PeriodEnd,
+        Lines = invoice.Lines.Select(l => new { l.Description, l.Quantity, l.Rate, l.Amount }),
+        invoice.TotalAmount,
+        invoice.TaxAmount,
+        invoice.GrandTotal
+    });
+
+    invoice.Finalize(request.InvoiceNumber, "Admin", snapshot);
+    
+    await db.SaveChangesAsync();
+
+    // Emit event to update analytics loop
+    await publishEndpoint.Publish(new Karamchari.Billing.Contracts.InvoiceIssuedIntegrationEvent(
+        Guid.NewGuid(),
+        invoice.Id,
+        invoice.ContractId,
+        invoice.TenantId,
+        invoice.TotalAmount,
+        invoice.TaxAmount,
+        DateTimeOffset.UtcNow));
+
+    return Results.Ok(new { invoice.InvoiceNumber, Status = "Finalized" });
+});
+
+app.MapGet("/api/billing/ar/summary", async (
+    Karamchari.Billing.Services.ARAnalyticsService arService,
+    ITenantProvider tenantProvider) =>
+{
+    var tenant = tenantProvider.GetTenant();
+    var summary = await arService.GetSummaryAsync(tenant.TenantId);
+    return Results.Ok(summary);
+});
+
+app.MapPost("/api/billing/invoices/{id}/payment", async (
+    Guid id,
+    RecordPaymentRequest request,
+    Karamchari.Billing.Persistence.BillingDbContext db,
+    IPublishEndpoint publishEndpoint) =>
+{
+    var invoice = await db.Invoices.Include(i => i.Payments).FirstOrDefaultAsync(i => i.Id == id);
+    if (invoice == null) return Results.NotFound();
+
+    invoice.RecordPayment(request.Amount, request.PaidAt);
+    await db.SaveChangesAsync();
+
+    // Emit payment event
+    await publishEndpoint.Publish(new Karamchari.Billing.Contracts.PaymentReceivedIntegrationEvent(
+        Guid.NewGuid(),
+        Guid.NewGuid(),
+        invoice.Id,
+        invoice.ContractId,
+        invoice.TenantId,
+        request.Amount,
+        DateTimeOffset.UtcNow));
+
+    return Results.Ok();
+});
+
+// --- Collections API ---
+
+app.MapGet("/api/collections", async (
+    [FromQuery] Karamchari.Billing.Domain.Collections.CollectionStatus? status,
+    Karamchari.Billing.Persistence.BillingDbContext db,
+    ITenantProvider tenantProvider) =>
+{
+    var tenant = tenantProvider.GetTenant();
+    var query = db.CollectionCases
+        .Where(c => c.TenantId == tenant.TenantId);
+
+    if (status.HasValue)
+        query = query.Where(c => c.Status == status.Value);
+
+    var cases = await query
+        .OrderByDescending(c => c.DaysOutstanding)
+        .ToListAsync();
+
+    return Results.Ok(cases);
+});
+
+app.MapPut("/api/collections/{id}/dispute", async (
+    Guid id,
+    Karamchari.Billing.Persistence.BillingDbContext db) =>
+{
+    var @case = await db.CollectionCases.FindAsync(id);
+    if (@case == null) return Results.NotFound();
+
+    @case.MarkDisputed();
+    await db.SaveChangesAsync();
+    return Results.Ok();
+});
+
+app.MapPost("/api/collections/{id}/remind", async (
+    Guid id,
+    Karamchari.Billing.Persistence.BillingDbContext db,
+    ILoggerFactory loggerFactory) =>
+{
+    var @case = await db.CollectionCases.FindAsync(id);
+    if (@case == null) return Results.NotFound();
+
+    // Trigger manual reminder
+    @case.RecordReminder("manual");
+    await db.SaveChangesAsync();
+    
+    return Results.Ok(new { LastActionAt = @case.LastActionAt });
+});
+
+// --- Forecasting API ---
+
+app.MapGet("/api/forecast/summary", async (
+    Karamchari.Forecasting.Services.ForecastingEngine engine,
+    ITenantProvider tenantProvider) =>
+{
+    var tenant = tenantProvider.GetTenant();
+    var summary = await engine.GetSummaryAsync(tenant.TenantId);
+    return Results.Ok(summary);
+});
+
+// --- CFO / Project Analytics (Pre-aggregated Columnstore) ---
+
+// High-performance daily project metrics for CFO dashboards.
+// Queries against Analytics_ProjectMetrics (clustered columnstore indexed).
+app.MapGet("/api/analytics/projects/daily", async (
+    [FromQuery] Guid? projectId,
+    [FromQuery] string? startDate,
+    [FromQuery] string? endDate,
+    TimeAttendanceDbContext db) =>
+{
+    // Default to last 30 days if no range provided
+    var start = string.IsNullOrEmpty(startDate) 
+        ? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30)) 
+        : DateOnly.Parse(startDate);
+        
+    var end = string.IsNullOrEmpty(endDate) 
+        ? DateOnly.FromDateTime(DateTime.UtcNow) 
+        : DateOnly.Parse(endDate);
+
+    var query = db.ProjectMetrics
+        .Where(m => m.Date >= start && m.Date <= end);
+
+    if (projectId.HasValue)
+    {
+        query = query.Where(m => m.ProjectId == projectId.Value);
+    }
+
+    var metrics = await query
+        .OrderByDescending(m => m.Date)
+        .ToListAsync();
+
+    // metadata for "Updated X seconds ago" UI trust
+    var lastUpdated = metrics.Max(m => (DateTimeOffset?)m.LastUpdatedAt) ?? DateTimeOffset.UtcNow;
+
+    return Results.Ok(new 
+    { 
+        Data = metrics, 
+        LastUpdatedAt = lastUpdated 
+    });
+});
+
+
 // SignalR hub endpoint.
 app.MapHub<AnalyticsHub>("/hubs/analytics");
 
@@ -1592,7 +1862,8 @@ namespace Karamchari.Api
         double Lon,
         double Accuracy,
         bool IsOfflineCaptured,
-        string ClientId);
+        string ClientId,
+        Karamchari.TimeAttendance.Domain.IoT.PunchType Type);
 
     /// <summary>Ephemeral repository for stateless tax simulations.</summary>
     public class StaticDeclarationRepository : IITDeclarationRepository
@@ -1740,7 +2011,38 @@ namespace Karamchari.Api
         string InvoiceNumberSeed,   // e.g. "INV-2026-042"
         bool IsInterState = false);
 
-    // ── Analytics Request DTOs ────────────────────────────────────────────────
+    // ── Billing Request DTOs ──────────────────────────────────────────────────
+
+    public record CreateBillingContractRequest(
+        Guid ClientId,
+        Guid ProjectId,
+        Karamchari.Billing.Domain.Contracts.BillingType BillingType,
+        string Currency = "INR",
+        string? StartDate = null,
+        Karamchari.Billing.Domain.Contracts.BillingCycle Cycle = Karamchari.Billing.Domain.Contracts.BillingCycle.Monthly);
+
+    public record AddRateCardRequest(
+        Guid RoleId,
+        decimal Rate,
+        Karamchari.Billing.Domain.Contracts.RateUnit Unit,
+        string EffectiveFrom,
+        string? EffectiveTo = null);
+
+    public record MapEmployeeRoleRequest(
+        Guid EmployeeId,
+        Guid RoleId,
+        Guid? ProjectId,
+        string EffectiveFrom,
+        string? EffectiveTo = null);
+
+    public record GenerateInvoiceRunRequest(
+        Guid ContractId,
+        string StartDate,
+        string EndDate);
+
+    public record FinalizeInvoiceRequest(string InvoiceNumber);
+
+    public record RecordPaymentRequest(decimal Amount, DateTimeOffset PaidAt);
 
     /// <summary>What-if simulation inputs. Never persisted.</summary>
     public record SimulateRequest(

@@ -63,6 +63,14 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public bool IsRetroactive { get; private set; }
 
+    /// <summary>
+    /// SQL Server rowversion — EF Core concurrency token.
+    /// Prevents silent overwrites when two users edit the same timesheet concurrently.
+    /// EF Core throws DbUpdateConcurrencyException on conflict; the API maps this to HTTP 409.
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.Timestamp]
+    public byte[]? RowVersion { get; private set; }
+
     // ── Collections ─────────────────────────────────────────────────────────
 
     public IReadOnlyCollection<TimeEntry> Entries => _entries.AsReadOnly();
@@ -104,8 +112,15 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
 
         TimesheetValidator.ValidateEntries(list);
 
+        var existingVersions = _entries.ToDictionary(e => e.EntryId, e => e.Version);
+
         _entries.Clear();
-        _entries.AddRange(list);
+        foreach (var entry in list)
+        {
+            // Increment version if this EntryId already existed (i.e., it was edited)
+            var newVersion = existingVersions.TryGetValue(entry.EntryId, out var prev) ? prev + 1 : 1;
+            _entries.Add(entry with { Version = newVersion, ApprovedAtVersion = null });
+        }
     }
 
     /// <summary>
@@ -140,7 +155,18 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
         if (idx < 0)
             throw new ArgumentException($"Entry {entryId} not found in timesheet {Id}.", nameof(entryId));
 
-        _entries[idx] = _entries[idx] with { Status = TimeEntryStatus.Approved };
+        var current = _entries[idx];
+
+        // Guard: if entry was edited after approval (version mismatch), require re-submission
+        if (current.ApprovedAtVersion.HasValue && current.ApprovedAtVersion != current.Version)
+            throw new InvalidOperationException(
+                $"Entry {entryId} was modified after approval. The timesheet must be resubmitted.");
+
+        _entries[idx] = current with
+        {
+            Status = TimeEntryStatus.Approved,
+            ApprovedAtVersion = current.Version,
+        };
         Audit("EntryApproved", approverId);
 
         if (_entries.All(e => e.Status == TimeEntryStatus.Approved))
@@ -159,7 +185,12 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
 
         Status = TimesheetStatus.Approved;
         ApprovedAt = DateTimeOffset.UtcNow;
-        _entries.ReplaceAll(e => e with { Status = TimeEntryStatus.Approved });
+        // Stamp ApprovedAtVersion on all entries for future retroactive change detection
+        _entries.ReplaceAll(e => e with
+        {
+            Status = TimeEntryStatus.Approved,
+            ApprovedAtVersion = e.Version,
+        });
         Audit("Approved", approverId);
 
         RaiseDomainEvent(new TimesheetApproved(

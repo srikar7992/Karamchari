@@ -62,20 +62,31 @@ public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
     public EmploymentStatus Status { get; private set; }
 
     /// <summary>
+    /// Gets the identifier for the regional holiday calendar.
+    /// </summary>
+    public Guid? HolidayCalendarId { get; private set; }
+
+    /// <summary>
+    /// Gets the employee's primary work time zone (IANA format).
+    /// </summary>
+    public string TimeZoneId { get; private set; } = "UTC";
+
+    /// <summary>
     /// Hires a new employee.
     /// </summary>
-    /// <param name="employeeNumber">The employee number.</param>
-    /// <param name="legalName">The legal name.</param>
-    /// <param name="workEmail">The work email.</param>
-    /// <param name="hiredOn">The hire date.</param>
-    /// <returns>A new <see cref="Employee"/> instance.</returns>
     public static Employee Hire(
         string employeeNumber,
         string legalName,
         string? workEmail,
-        DateOnly hiredOn)
+        DateOnly hiredOn,
+        Guid? holidayCalendarId = null,
+        string timeZoneId = "UTC")
     {
-        var employee = new Employee(Guid.NewGuid(), employeeNumber, legalName, workEmail, hiredOn);
+        var employee = new Employee(Guid.NewGuid(), employeeNumber, legalName, workEmail, hiredOn)
+        {
+            HolidayCalendarId = holidayCalendarId,
+            TimeZoneId = timeZoneId
+        };
         employee.RaiseDomainEvent(new EmployeeHired(
             employee.Id,
             employee.EmployeeNumber,

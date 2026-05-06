@@ -18,7 +18,7 @@ public sealed class ReprocessingWorker
         _engine = engine;
     }
 
-    public async Task ReprocessAsync(Guid employeeId, DateTime fromDateUtc, DateTime toDateUtc, CancellationToken ct = default)
+    public async Task ReprocessAsync(string tenantId, Guid employeeId, DateTime fromDateUtc, DateTime toDateUtc, CancellationToken ct = default)
     {
         var dates = new List<DateTime>();
         for (var dt = fromDateUtc.Date; dt <= toDateUtc.Date; dt = dt.AddDays(1))
@@ -26,11 +26,9 @@ public sealed class ReprocessingWorker
             dates.Add(dt);
         }
 
-        // Processing chronologically guarantees dependencies like continuous shifts are handled properly
         foreach (var date in dates)
         {
-            // The engine itself handles idempotent UPSERTs and Audit trailing
-            await _engine.ProcessDayAsync(employeeId, date, ct);
+            await _engine.ProcessDayAsync(tenantId, employeeId, date, Guid.NewGuid(), ct);
         }
     }
 }

@@ -32,6 +32,8 @@ public static class TimeAttendanceServiceCollectionExtensions
 
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TenantProvisionedConsumer>();
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedConsumer>();
+        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedAnalyticsConsumer>();
+        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.BillingAnalyticsConsumer>();
 
         // RLS: Register tables for multi-tenancy enforcement
         services.RegisterTenantTable("HolidayCalendars");
@@ -59,6 +61,11 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.RegisterTenantTable("Shifts_Assignments");
         services.RegisterTenantTable("Shifts_Overrides");
         services.RegisterTenantTable("Shifts_WeeklyOffRules");
+
+        // Analytics Tables
+        services.RegisterTenantTable("Analytics_ProjectMetrics");
+        services.RegisterTenantTable("Analytics_EmployeeMetrics");
+        services.RegisterTenantTable("Analytics_ProcessedEventLog");
 
         services.AddDbContext<TimeAttendanceDbContext>((serviceProvider, options) =>
         {
@@ -89,6 +96,9 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.AddScoped<Karamchari.TimeAttendance.Services.Geofencing.IGeofenceService, Karamchari.TimeAttendance.Services.Geofencing.GeofenceService>();
         services.AddScoped<Karamchari.TimeAttendance.Services.Fraud.IFraudRiskEngine, Karamchari.TimeAttendance.Services.Fraud.FraudRiskEngine>();
         services.AddScoped<Karamchari.TimeAttendance.Services.AsyncFraudDetectionWorker>();
+
+        // Background Workers
+        services.AddHostedService<Karamchari.TimeAttendance.Services.ProcessedEventLogCleanupWorker>();
 
         return services;
     }

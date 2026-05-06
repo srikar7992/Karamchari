@@ -23,6 +23,6 @@ public sealed class ReprocessAttendanceConsumer : IConsumer<ReprocessAttendanceC
         var msg = context.Message;
         
         // This process is idempotent. If it fails, MassTransit will retry.
-        await _worker.ReprocessAsync(msg.EmployeeId, msg.FromDateUtc, msg.ToDateUtc, context.CancellationToken);
+        await _worker.ReprocessAsync(msg.TenantId, msg.EmployeeId, msg.FromDateUtc, msg.ToDateUtc, context.CancellationToken);
     }
 }

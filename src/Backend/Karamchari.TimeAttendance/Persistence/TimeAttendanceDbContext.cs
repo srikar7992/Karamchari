@@ -3,6 +3,8 @@ using Karamchari.Core.Persistence;
 using Karamchari.TimeAttendance.Domain.Holidays;
 using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Domain.Timesheets;
+using Karamchari.TimeAttendance.Domain.IoT;
+using Karamchari.TimeAttendance.Domain.Analytics;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.TimeAttendance.Persistence;
@@ -63,6 +65,13 @@ public class TimeAttendanceDbContext : KaramchariDbContext
     public DbSet<Karamchari.TimeAttendance.Domain.IoT.AttendanceResult> AttendanceResults => Set<Karamchari.TimeAttendance.Domain.IoT.AttendanceResult>();
     public DbSet<Karamchari.TimeAttendance.Domain.IoT.AttendanceAudit> AttendanceAudits => Set<Karamchari.TimeAttendance.Domain.IoT.AttendanceAudit>();
 
+    // ── Analytics ───────────────────────────────────────────────────────────
+
+    public DbSet<ProjectMetrics> ProjectMetrics => Set<ProjectMetrics>();
+    public DbSet<EmployeeMetrics> EmployeeMetrics => Set<EmployeeMetrics>();
+    public DbSet<BackgroundJob> BackgroundJobs => Set<BackgroundJob>();
+    public DbSet<ProcessedEventLog> ProcessedEventLogs => Set<ProcessedEventLog>();
+
     // ── Shifts DbSets ────────────────────────────────────────────────────────
 
     public DbSet<Karamchari.TimeAttendance.Domain.Shifts.ShiftTemplate> ShiftTemplates => Set<Karamchari.TimeAttendance.Domain.Shifts.ShiftTemplate>();
@@ -110,6 +119,21 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             b.HasKey(x => x.Id);
         });
 
+        modelBuilder.Entity<BackgroundJob>(b =>
+        {
+            b.ToTable("IoT_BackgroundJobs");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Status });
+        });
+
+        modelBuilder.Entity<ProcessedEventLog>(b =>
+        {
+            b.ToTable("Analytics_ProcessedEventLog");
+            b.HasKey(x => new { x.EventId, x.ConsumerName });
+            b.HasIndex(x => new { x.EventId, x.ConsumerName }).IsUnique();
+            b.HasIndex(x => x.ProcessedAt);
+        });
+
         modelBuilder.Entity<Timesheet>(b =>
         {
             b.ToTable("Timesheets");
@@ -126,6 +150,14 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             // week-bounded access without a separate join table.
             b.OwnsMany(x => x.Entries, e => e.ToJson());
             b.OwnsMany(x => x.AuditLog, a => a.ToJson());
+        });
+
+        modelBuilder.Entity<AttendanceResult>(b =>
+        {
+            b.ToTable("IoT_AttendanceResults");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.RowVersion).IsRowVersion();
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.Date }).IsUnique();
         });
 
         // ── IoT & Edge Ingestion ────────────────────────────────────────────────
@@ -253,6 +285,32 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             b.ToTable("Shifts_WeeklyOffRules");
             b.HasKey(x => x.Id);
             b.HasIndex(x => x.EmployeeId);
+        });
+
+        // ── Analytics ────────────────────────────────────────────────────────
+        // Columnstore indexes are added via raw migration SQL (see Migrations).
+
+        modelBuilder.Entity<Karamchari.TimeAttendance.Domain.Analytics.ProjectMetrics>(b =>
+        {
+            b.ToTable("Analytics_ProjectMetrics");
+            b.HasKey(x => new { x.TenantId, x.ProjectId, x.Date });
+            b.HasIndex(x => new { x.TenantId, x.Date }); // for tenant-wide date range queries
+        });
+
+        modelBuilder.Entity<Karamchari.TimeAttendance.Domain.Analytics.EmployeeMetrics>(b =>
+        {
+            b.ToTable("Analytics_EmployeeMetrics");
+            b.HasKey(x => new { x.TenantId, x.EmployeeId, x.Date });
+            b.HasIndex(x => new { x.TenantId, x.Date });
+        });
+
+        modelBuilder.Entity<Karamchari.TimeAttendance.Domain.Analytics.ProcessedEventLog>(b =>
+        {
+            b.ToTable("Analytics_ProcessedEventLog");
+            b.HasKey(x => new { x.EventId, x.ConsumerName });
+            // Unique DB constraint enforces idempotency even under concurrent retries
+            b.HasIndex(x => new { x.EventId, x.ConsumerName }).IsUnique();
+            b.HasIndex(x => x.ProcessedAt); // for cleanup jobs
         });
     }
 }

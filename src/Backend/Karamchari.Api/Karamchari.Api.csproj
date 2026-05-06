@@ -39,6 +39,9 @@
     <ProjectReference Include="..\Karamchari.Payroll\Karamchari.Payroll.csproj" />
     <ProjectReference Include="..\Karamchari.TimeAttendance\Karamchari.TimeAttendance.csproj" />
     <ProjectReference Include="..\Karamchari.PSA\Karamchari.PSA.csproj" />
+    <ProjectReference Include="..\Karamchari.Billing\Karamchari.Billing.csproj" />
+    <ProjectReference Include="..\Karamchari.Forecasting\Karamchari.Forecasting.csproj" />
+    <ProjectReference Include="..\Karamchari.Workflow\Karamchari.Workflow.csproj" />
   </ItemGroup>
 
 </Project>

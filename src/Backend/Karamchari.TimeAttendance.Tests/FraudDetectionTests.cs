@@ -4,6 +4,7 @@ using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Persistence;
 using Karamchari.TimeAttendance.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -40,7 +41,7 @@ public class FraudDetectionTests
     {
         var dbContext = BuildDbContext();
         var rosteringMock = new Mock<ShiftRosteringEngine>(dbContext);
-        var engine = new ShiftReconciliationEngine(dbContext, rosteringMock.Object);
+        var engine = new ShiftReconciliationEngine(dbContext, rosteringMock.Object, NullLogger<ShiftReconciliationEngine>.Instance);
 
         var employeeId = Guid.NewGuid();
         var date = new DateTime(2026, 5, 5, 0, 0, 0, DateTimeKind.Utc);
@@ -58,7 +59,7 @@ public class FraudDetectionTests
         dbContext.RawPunches.AddRange(p1, p2, p3, pOut);
         await dbContext.SaveChangesAsync();
 
-        await engine.ProcessDayAsync(employeeId, date);
+        await engine.ProcessDayAsync(TestTenant, employeeId, date, Guid.NewGuid());
 
         var result = await dbContext.AttendanceResults
             .FirstOrDefaultAsync(r => r.EmployeeId == employeeId && r.Date == date.Date);

@@ -196,11 +196,13 @@ public sealed class ComplianceService : IComplianceService
             .ToListAsync();
 
         var summaries = filings.Select(f => {
-            // In a real app, we'd sum the liabilities from the ledger
+            // Calculate actual liability from the ledger for this filing
+            var ledgerEntries = _dbContext.PayrollLedger.Where(e => e.RunId == f.PayrollRunId).ToList();
+            
             decimal amount = f.Type switch {
-                ComplianceType.EpfEcr => 50000,
-                ComplianceType.EsicMonthly => 12000,
-                ComplianceType.TdsForm24Q => 85000,
+                ComplianceType.EpfEcr => ledgerEntries.Sum(e => e.Deductions.GetValueOrDefault("EPF", 0) + e.Earnings.GetValueOrDefault("EmployerPF", 0)),
+                ComplianceType.EsicMonthly => ledgerEntries.Sum(e => e.Deductions.GetValueOrDefault("ESIC", 0) + e.Earnings.GetValueOrDefault("EmployerESIC", 0)),
+                ComplianceType.TdsForm24Q => ledgerEntries.Sum(e => e.TdsDeducted),
                 _ => 0
             };
             

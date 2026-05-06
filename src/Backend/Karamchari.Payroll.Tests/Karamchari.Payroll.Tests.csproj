@@ -5,7 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <NoWarn>$(NoWarn);1591;1707</NoWarn>
+    <!-- CA1707: underscore test names are xUnit convention. CA1859: interface fields in tests are intentional (NSubstitute). -->
+    <NoWarn>$(NoWarn);CS1591;CA1707;CA1859</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

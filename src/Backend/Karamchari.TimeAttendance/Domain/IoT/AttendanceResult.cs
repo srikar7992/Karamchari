@@ -9,6 +9,7 @@ using Karamchari.Core.Multitenancy;
 public sealed class AttendanceResult : ITenantOwned
 {
     public string TenantId { get; private set; } = string.Empty;
+    public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
 
     public Guid Id { get; private set; }
 

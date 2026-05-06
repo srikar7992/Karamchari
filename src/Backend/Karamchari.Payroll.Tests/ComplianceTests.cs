@@ -102,7 +102,7 @@ public class ComplianceTests
     public void RiskEngine_ShouldCalculateCorrectEpfPenalty(decimal amount, int daysLate, decimal expectedPenaltyMin)
     {
         // Arrange
-        var filing = ComplianceFiling.CreatePending(Guid.Empty, Guid.NewGuid(), ComplianceType.EpfEcr, DateTime.UtcNow.AddDays(-daysLate));
+        var filing = ComplianceFiling.CreatePending(string.Empty, Guid.NewGuid(), ComplianceType.EpfEcr, DateTime.UtcNow.AddDays(-daysLate));
 
         // Act
         var result = _riskEngine.Evaluate(filing, amount);
@@ -116,7 +116,7 @@ public class ComplianceTests
     public void TdsPenalty_ShouldBeLinearPerDay()
     {
         // Arrange
-        var filing = ComplianceFiling.CreatePending(Guid.Empty, Guid.NewGuid(), ComplianceType.TdsForm24Q, DateTime.UtcNow.AddDays(-5));
+        var filing = ComplianceFiling.CreatePending(string.Empty, Guid.NewGuid(), ComplianceType.TdsForm24Q, DateTime.UtcNow.AddDays(-5));
 
         // Act
         var result = _riskEngine.Evaluate(filing, 0);

@@ -48,6 +48,15 @@ public sealed record TimeEntry
     public TimeEntryStatus Status { get; init; } = TimeEntryStatus.Draft;
 
     /// <summary>
+    /// Monotonically incremented on every edit. Used to detect when an approved entry
+    /// has been modified retroactively (ApprovedAtVersion != Version → approval invalidated).
+    /// </summary>
+    public int Version { get; init; } = 1;
+
+    /// <summary>The Version value at the time of approval. Null if not yet approved.</summary>
+    public int? ApprovedAtVersion { get; init; }
+
+    /// <summary>
     /// Validates invariants on a single entry.
     /// Called before cross-entry validation in <see cref="TimesheetValidator"/>.
     /// </summary>

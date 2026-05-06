@@ -4,6 +4,7 @@ using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Persistence;
 using Karamchari.TimeAttendance.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -35,12 +36,15 @@ public class ShiftReconciliationTests
     private static ShiftTemplate MakeShift(string name, TimeSpan start, TimeSpan end, bool isNight = false) =>
         ShiftTemplate.Create(TestTenant, name, start, end, graceMinutes: 15, halfDayThreshold: 240, otThreshold: 480, isNightShift: isNight);
 
+    private static ShiftReconciliationEngine BuildEngine(TimeAttendanceDbContext dbContext, Mock<ShiftRosteringEngine> rosteringMock) =>
+        new(dbContext, rosteringMock.Object, NullLogger<ShiftReconciliationEngine>.Instance);
+
     [Fact]
     public async Task ProcessDay_ShouldPairPunchesIntoSessions()
     {
         var dbContext = BuildDbContext();
         var rosteringMock = new Mock<ShiftRosteringEngine>(dbContext);
-        var engine = new ShiftReconciliationEngine(dbContext, rosteringMock.Object);
+        var engine = BuildEngine(dbContext, rosteringMock);
 
         var employeeId = Guid.NewGuid();
         var date = new DateTime(2026, 5, 5, 0, 0, 0, DateTimeKind.Utc);
@@ -55,7 +59,7 @@ public class ShiftReconciliationTests
         dbContext.RawPunches.AddRange(inPunch, outPunch);
         await dbContext.SaveChangesAsync();
 
-        await engine.ProcessDayAsync(employeeId, date);
+        await engine.ProcessDayAsync(TestTenant, employeeId, date, Guid.NewGuid());
 
         var result = await dbContext.AttendanceResults
             .FirstOrDefaultAsync(r => r.EmployeeId == employeeId && r.Date == date.Date);
@@ -71,7 +75,7 @@ public class ShiftReconciliationTests
     {
         var dbContext = BuildDbContext();
         var rosteringMock = new Mock<ShiftRosteringEngine>(dbContext);
-        var engine = new ShiftReconciliationEngine(dbContext, rosteringMock.Object);
+        var engine = BuildEngine(dbContext, rosteringMock);
 
         var employeeId = Guid.NewGuid();
         var date = new DateTime(2026, 5, 5, 0, 0, 0, DateTimeKind.Utc);
@@ -86,7 +90,7 @@ public class ShiftReconciliationTests
         dbContext.RawPunches.AddRange(inPunch, outPunch);
         await dbContext.SaveChangesAsync();
 
-        await engine.ProcessDayAsync(employeeId, date);
+        await engine.ProcessDayAsync(TestTenant, employeeId, date, Guid.NewGuid());
 
         var result = await dbContext.AttendanceResults
             .FirstOrDefaultAsync(r => r.EmployeeId == employeeId && r.Date == date.Date);
@@ -100,7 +104,7 @@ public class ShiftReconciliationTests
     {
         var dbContext = BuildDbContext();
         var rosteringMock = new Mock<ShiftRosteringEngine>(dbContext);
-        var engine = new ShiftReconciliationEngine(dbContext, rosteringMock.Object);
+        var engine = BuildEngine(dbContext, rosteringMock);
 
         var employeeId = Guid.NewGuid();
         var date = new DateTime(2026, 5, 5, 0, 0, 0, DateTimeKind.Utc);
@@ -115,7 +119,7 @@ public class ShiftReconciliationTests
         dbContext.RawPunches.AddRange(inPunch, outPunch);
         await dbContext.SaveChangesAsync();
 
-        await engine.ProcessDayAsync(employeeId, date);
+        await engine.ProcessDayAsync(TestTenant, employeeId, date, Guid.NewGuid());
 
         var result = await dbContext.AttendanceResults
             .FirstOrDefaultAsync(r => r.EmployeeId == employeeId && r.Date == date.Date);
