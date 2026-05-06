@@ -17,8 +17,12 @@ using Microsoft.Extensions.Logging;
 ///   THIS consumer   → revenue ledger
 ///
 /// Both consumers are fed from the exact same event — no cross-context reads.
+///
+/// Retroactive corrections: when <see cref="TimesheetApprovedIntegrationEvent.IsRetroactive"/>
+/// is true, existing revenue rows for the timesheet are deleted before new rows are inserted,
+/// ensuring the revenue ledger reflects the latest approved figures.
 /// </summary>
-public sealed class BillableRevenueConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
+public sealed partial class BillableRevenueConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
 {
     private readonly PSADbContext _db;
     private readonly ProjectResourceRepository _resourceRepo;
@@ -40,28 +44,35 @@ public sealed class BillableRevenueConsumer : IConsumer<TimesheetApprovedIntegra
         ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;
 
-        // Idempotency: if we already have revenue rows for this timesheet, skip.
-        var alreadyProcessed = await _db.UnbilledRevenue
-            .AnyAsync(r => r.TimesheetId == message.TimesheetId, context.CancellationToken);
+        var existingRows = await _db.UnbilledRevenue
+            .Where(r => r.TimesheetId == message.TimesheetId)
+            .ToListAsync(context.CancellationToken);
 
-        if (alreadyProcessed)
+        if (existingRows.Count > 0)
         {
-            _logger.LogInformation(
-                "Revenue already recorded for Timesheet {TimesheetId}. Skipping.",
-                message.TimesheetId);
-            return;
+            if (!message.IsRetroactive)
+            {
+                // Already recorded and not a correction — idempotent skip.
+                LogRevenueAlreadyRecorded(_logger, message.TimesheetId);
+                return;
+            }
+
+            // Retroactive correction: reverse previous revenue entries.
+            _db.UnbilledRevenue.RemoveRange(existingRows);
+            LogRetroactiveCorrection(_logger, message.TimesheetId, existingRows.Count);
         }
 
-        // Filter to billable entries that have a project reference.
         var billableEntries = message.Entries
             .Where(e => e.IsBillable && e.ProjectId.HasValue)
             .ToList();
 
-        if (!billableEntries.Any())
+        if (billableEntries.Count == 0)
         {
-            _logger.LogInformation(
-                "Timesheet {TimesheetId} has no billable entries. No revenue recorded.",
-                message.TimesheetId);
+            LogNoBillableEntries(_logger, message.TimesheetId);
+
+            if (existingRows.Count > 0)
+                await _db.SaveChangesAsync(context.CancellationToken); // persist deletion
+
             return;
         }
 
@@ -78,7 +89,7 @@ public sealed class BillableRevenueConsumer : IConsumer<TimesheetApprovedIntegra
                 entry.Date,
                 context.CancellationToken);
 
-            if (assignment == null)
+            if (assignment is null)
             {
                 // Log and skip rather than fail the whole batch — a single missing assignment
                 // should not block other valid entries from being recorded.
@@ -92,7 +103,7 @@ public sealed class BillableRevenueConsumer : IConsumer<TimesheetApprovedIntegra
             revenueRows.Add(UnbilledRevenue.Record(
                 message.TimesheetId,
                 message.EmployeeId,
-                entry.ProjectId.Value,
+                entry.ProjectId!.Value,
                 entry.Hours,
                 assignment.BillableRate,
                 assignment.Currency,
@@ -101,12 +112,20 @@ public sealed class BillableRevenueConsumer : IConsumer<TimesheetApprovedIntegra
 
         if (revenueRows.Count > 0)
         {
-            // Bulk insert for performance — avoids N individual round-trips.
             await _db.BulkInsertAsync(revenueRows, cancellationToken: context.CancellationToken);
-
-            _logger.LogInformation(
-                "Recorded {Count} billable revenue entries for Timesheet {TimesheetId}, Employee {EmployeeId}.",
-                revenueRows.Count, message.TimesheetId, message.EmployeeId);
+            LogRevenueRecorded(_logger, revenueRows.Count, message.TimesheetId, message.EmployeeId);
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Revenue already recorded for Timesheet {TimesheetId}. Skipping.")]
+    private static partial void LogRevenueAlreadyRecorded(ILogger logger, Guid timesheetId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Retroactive correction for Timesheet {TimesheetId}: removed {Count} prior revenue rows.")]
+    private static partial void LogRetroactiveCorrection(ILogger logger, Guid timesheetId, int count);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Timesheet {TimesheetId} has no billable entries. No revenue recorded.")]
+    private static partial void LogNoBillableEntries(ILogger logger, Guid timesheetId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Recorded {Count} billable revenue entries for Timesheet {TimesheetId}, Employee {EmployeeId}.")]
+    private static partial void LogRevenueRecorded(ILogger logger, int count, Guid timesheetId, Guid employeeId);
 }

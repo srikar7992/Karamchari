@@ -28,10 +28,7 @@ public sealed class PayrollLedgerIndexProvisioningTask : ITenantPostProvisioning
 
         // Index 1: Unique composite index on (RunId, EmployeeId).
         // Prevents duplicate ledger entries for the same employee in the same payroll run.
-        // This is the database-level idempotency guard that closes the race window
-        // between the application-level check in PayrollBatchConsumer and BulkInsertAsync.
         // EF model: HasIndex(x => new { x.RunId, x.EmployeeId }).IsUnique()
-        //           → conventional name: IX_PayrollLedger_RunId_EmployeeId
 #pragma warning disable EF1002 // schemaName is validated by TenantProvisioningService before this task runs
         await dbContext.Database.ExecuteSqlRawAsync($"""
             IF NOT EXISTS (
@@ -45,12 +42,10 @@ public sealed class PayrollLedgerIndexProvisioningTask : ITenantPostProvisioning
             )
             CREATE UNIQUE INDEX [IX_PayrollLedger_RunId_EmployeeId]
                 ON [{schemaName}].[PayrollLedger] ([RunId], [EmployeeId]);
-            """);
+            """, cancellationToken);
 
         // Index 2: Non-unique index on (EmployeeId, FinancialYearStart).
-        // The primary YTD read path — also defined in the EF model.
         // EF model: HasIndex(x => new { x.EmployeeId, x.FinancialYearStart })
-        //           → conventional name: IX_PayrollLedger_EmployeeId_FinancialYearStart
         await dbContext.Database.ExecuteSqlRawAsync($"""
             IF NOT EXISTS (
                 SELECT 1
@@ -63,7 +58,7 @@ public sealed class PayrollLedgerIndexProvisioningTask : ITenantPostProvisioning
             )
             CREATE INDEX [IX_PayrollLedger_EmployeeId_FinancialYearStart]
                 ON [{schemaName}].[PayrollLedger] ([EmployeeId], [FinancialYearStart]);
-            """);
+            """, cancellationToken);
 #pragma warning restore EF1002
     }
 }

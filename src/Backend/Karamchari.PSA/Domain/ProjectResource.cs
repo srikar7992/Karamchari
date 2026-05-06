@@ -57,6 +57,7 @@ public sealed class ProjectResource : ITenantOwned
         if (employeeId == Guid.Empty) throw new ArgumentException("EmployeeId must not be empty.", nameof(employeeId));
         if (projectId == Guid.Empty) throw new ArgumentException("ProjectId must not be empty.", nameof(projectId));
         if (billableRate < 0) throw new ArgumentOutOfRangeException(nameof(billableRate), "Billable rate cannot be negative.");
+        ArgumentNullException.ThrowIfNull(currency);
 
         return new ProjectResource
         {

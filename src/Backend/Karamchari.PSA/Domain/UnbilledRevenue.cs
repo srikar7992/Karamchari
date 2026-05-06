@@ -59,8 +59,9 @@ public sealed class UnbilledRevenue : ITenantOwned
         string currency,
         DateOnly workDate)
     {
-        if (billableHours <= 0) throw new ArgumentOutOfRangeException(nameof(billableHours));
-        if (billableRate < 0) throw new ArgumentOutOfRangeException(nameof(billableRate));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(billableHours);
+        ArgumentOutOfRangeException.ThrowIfNegative(billableRate);
+        ArgumentNullException.ThrowIfNull(currency);
 
         return new UnbilledRevenue
         {

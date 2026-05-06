@@ -54,7 +54,11 @@ public class TimeAttendanceDbContext : KaramchariDbContext
     public DbSet<Karamchari.TimeAttendance.Domain.IoT.RawPunch> RawPunches => Set<Karamchari.TimeAttendance.Domain.IoT.RawPunch>();
     public DbSet<Karamchari.TimeAttendance.Domain.IoT.InvalidPunch> InvalidPunches => Set<Karamchari.TimeAttendance.Domain.IoT.InvalidPunch>();
     public DbSet<Karamchari.TimeAttendance.Domain.IoT.GeoFence> GeoFences => Set<Karamchari.TimeAttendance.Domain.IoT.GeoFence>();
+    public DbSet<Karamchari.TimeAttendance.Domain.Geofencing.LocationBoundary> LocationBoundaries => Set<Karamchari.TimeAttendance.Domain.Geofencing.LocationBoundary>();
+    public DbSet<Karamchari.TimeAttendance.Domain.Geofencing.EmployeeLocationAssignment> EmployeeLocationAssignments => Set<Karamchari.TimeAttendance.Domain.Geofencing.EmployeeLocationAssignment>();
     public DbSet<Karamchari.TimeAttendance.Domain.IoT.FraudFlag> FraudFlags => Set<Karamchari.TimeAttendance.Domain.IoT.FraudFlag>();
+    public DbSet<Karamchari.TimeAttendance.Domain.Fraud.FraudSignal> FraudSignals => Set<Karamchari.TimeAttendance.Domain.Fraud.FraudSignal>();
+    public DbSet<Karamchari.TimeAttendance.Domain.Fraud.FraudFlag> DetailedFraudFlags => Set<Karamchari.TimeAttendance.Domain.Fraud.FraudFlag>();
     public DbSet<Karamchari.TimeAttendance.Domain.IoT.LiveAttendance> LiveAttendance => Set<Karamchari.TimeAttendance.Domain.IoT.LiveAttendance>();
     public DbSet<Karamchari.TimeAttendance.Domain.IoT.AttendanceResult> AttendanceResults => Set<Karamchari.TimeAttendance.Domain.IoT.AttendanceResult>();
     public DbSet<Karamchari.TimeAttendance.Domain.IoT.AttendanceAudit> AttendanceAudits => Set<Karamchari.TimeAttendance.Domain.IoT.AttendanceAudit>();
@@ -110,11 +114,18 @@ public class TimeAttendanceDbContext : KaramchariDbContext
         {
             b.ToTable("Timesheets");
             b.HasKey(x => x.Id);
-            
-            // Mapped to a JSON column for flexible, week-bounded entries.
+
+            b.Property(x => x.EmployeeTimeZoneId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.ApprovedAt);
+            b.Property(x => x.IsRetroactive);
+
+            // TotalHours is computed in-memory from the JSON entries — no DB column needed.
+            b.Ignore(x => x.TotalHours);
+
+            // Entries and audit log are stored as JSON columns for flexible,
+            // week-bounded access without a separate join table.
             b.OwnsMany(x => x.Entries, e => e.ToJson());
-            
-            b.Property(x => x.TotalHours).HasPrecision(18, 2);
+            b.OwnsMany(x => x.AuditLog, a => a.ToJson());
         });
 
         // ── IoT & Edge Ingestion ────────────────────────────────────────────────
@@ -157,11 +168,39 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             b.HasKey(x => x.Id);
         });
 
+        modelBuilder.Entity<Karamchari.TimeAttendance.Domain.Geofencing.LocationBoundary>(b =>
+        {
+            b.ToTable("IoT_LocationBoundaries");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Location).HasColumnType("geography");
+            b.HasIndex(x => x.Location);
+        });
+
+        modelBuilder.Entity<Karamchari.TimeAttendance.Domain.Geofencing.EmployeeLocationAssignment>(b =>
+        {
+            b.ToTable("IoT_EmployeeLocationAssignments");
+            b.HasKey(x => new { x.EmployeeId, x.LocationBoundaryId });
+        });
+
         modelBuilder.Entity<Karamchari.TimeAttendance.Domain.IoT.FraudFlag>(b =>
         {
             b.ToTable("IoT_FraudFlags");
             b.HasKey(x => x.Id);
             b.HasIndex(x => x.EmployeeId);
+        });
+
+        modelBuilder.Entity<Karamchari.TimeAttendance.Domain.Fraud.FraudSignal>(b =>
+        {
+            b.ToTable("IoT_FraudSignals");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.EmployeeId);
+        });
+
+        modelBuilder.Entity<Karamchari.TimeAttendance.Domain.Fraud.FraudFlag>(b =>
+        {
+            b.ToTable("IoT_DetailedFraudFlags");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.RawPunchId);
         });
 
         modelBuilder.Entity<Karamchari.TimeAttendance.Domain.IoT.LiveAttendance>(b =>

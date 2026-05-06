@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Karamchari.Payroll.Domain.Compliance;
@@ -17,6 +18,7 @@ public sealed class EcrGenerator : IEcrGenerator
 {
     public string Generate(IEnumerable<EcrRecord> records)
     {
+        ArgumentNullException.ThrowIfNull(records);
         var sb = new StringBuilder();
 
         foreach (var record in records)
@@ -33,41 +35,39 @@ public sealed class EcrGenerator : IEcrGenerator
                 Format(record.EpfContribution),
                 Format(record.EpsContribution),
                 Format(record.EpfEpsDiff),
-                record.NcpDays.ToString(),
+                record.NcpDays.ToString(CultureInfo.InvariantCulture),
                 Format(record.RefundOfAdvances)
             );
 
             sb.AppendLine(line);
         }
 
-        // Return ASCII encoded string as EPFO portals can be sensitive to UTF-8 BOM
         return sb.ToString();
     }
 
-    private void Validate(EcrRecord r)
+    private static void Validate(EcrRecord r)
     {
         if (string.IsNullOrWhiteSpace(r.Uan) || r.Uan.Length != 12 || !r.Uan.All(char.IsDigit))
             throw new InvalidOperationException($"Invalid UAN for member {r.MemberName}. Must be 12 digits.");
 
-        if (r.EpsContribution > 1250.01m) // Small delta for rounding
+        if (r.EpsContribution > 1250.01m)
             throw new InvalidOperationException($"EPS contribution exceeds statutory limit of 1250 for member {r.MemberName}.");
-            
+
         if (r.EpfContribution < r.EpsContribution)
             throw new InvalidOperationException($"EPF contribution cannot be less than EPS contribution for member {r.MemberName}.");
     }
 
-    private string SanitizeName(string name)
+    private static string SanitizeName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "UNKNOWN";
-        // EPFO requires uppercase, no special characters
-        return Regex.Replace(name.ToUpper(), @"[^A-Z\s]", "").Trim();
+        return Regex.Replace(name.ToUpperInvariant(), @"[^A-Z\s]", "").Trim();
     }
 
     /// <summary>
     /// EPFO rejects decimals. Values must be rounded to nearest whole integer.
     /// </summary>
-    private string Format(decimal value)
+    private static string Format(decimal value)
     {
-        return Math.Round(value, 0, MidpointRounding.AwayFromZero).ToString("0");
+        return Math.Round(value, 0, MidpointRounding.AwayFromZero).ToString("0", CultureInfo.InvariantCulture);
     }
 }

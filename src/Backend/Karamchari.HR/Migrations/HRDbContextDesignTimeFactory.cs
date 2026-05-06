@@ -56,5 +56,11 @@ public sealed class HRDbContextDesignTimeFactory : IDesignTimeDbContextFactory<H
             new("design_time", TenantSource.Provisioning);
 
         public TenantContext GetTenant() => DesignTimeTenant;
+
+        public bool TryGetTenant(out TenantContext? tenant)
+        {
+            tenant = DesignTimeTenant;
+            return true;
+        }
     }
 }

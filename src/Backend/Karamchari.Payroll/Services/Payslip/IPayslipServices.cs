@@ -28,7 +28,7 @@ public interface IPayslipStorage
 
     /// <summary>
     /// Returns <c>true</c> if a payslip has already been stored for this employee and period.
-    /// Used for idempotency checks in <see cref="GeneratePayslipConsumer"/>.
+    /// Used for idempotency checks in the payslip generation consumer.
     /// </summary>
     Task<bool> ExistsAsync(string employeeId, string periodName);
 }

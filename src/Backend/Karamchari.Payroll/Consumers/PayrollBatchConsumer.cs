@@ -9,6 +9,7 @@ using Karamchari.Core.Contracts;
 using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
 using Karamchari.Payroll.Domain;
+using Karamchari.Payroll.Domain.SalaryStructures;
 using EFCore.BulkExtensions;
 using Microsoft.Extensions.Caching.Memory;
 using Karamchari.Core.Multitenancy;
@@ -55,6 +56,7 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
 
     public async Task Consume(ConsumeContext<ProcessPayrollBatchCommand> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;
         var employeeIds = message.EmployeeIds;
 
@@ -77,10 +79,10 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
 
         var pendingEmployeeIds = employeeIds.Except(processedEmployeeIds).ToList();
 
-        if (!pendingEmployeeIds.Any())
+        if (pendingEmployeeIds.Count == 0)
         {
-            _logger.LogInformation(
-                "All employees in batch for Run {RunId} already processed. Skipping.", message.RunId);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("All employees in batch for Run {RunId} already processed. Skipping.", message.RunId);
             return;
         }
 
@@ -95,17 +97,17 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
         var componentsCacheKey = $"salary_components:{tenantId}";
         var templatesCacheKey = $"salary_templates:{tenantId}";
 
-        var masterComponents = await _cache.GetOrCreateAsync(componentsCacheKey, async entry =>
+        var masterComponents = (await _cache.GetOrCreateAsync(componentsCacheKey, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
             return await _dbContext.SalaryComponents.ToListAsync(context.CancellationToken);
-        }) ?? new List<SalaryComponent>();
+        }))!;
 
-        var allTemplates = await _cache.GetOrCreateAsync(templatesCacheKey, async entry =>
+        var allTemplates = (await _cache.GetOrCreateAsync(templatesCacheKey, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
             return await _dbContext.SalaryTemplates.ToListAsync(context.CancellationToken);
-        }) ?? new List<SalaryTemplate>();
+        }))!;
 
         var results = new List<PayrollLedgerEntry>();
         var completionEvents = new List<EmployeePayCalculatedEvent>();
@@ -146,7 +148,7 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
             var statutoryResult = await StatutoryPipelineEngine.ExecuteAsync(statutoryContext, ruleSet);
 
             var earningsMap = breakdown.MonthlyBreakdown
-                .ToDictionary(k => masterComponents.First(c => c.Id == k.Key).Name, v => v.Value);
+                .ToDictionary(k => masterComponents.First(c => c.Id == k.Key).Name ?? string.Empty, v => v.Value);
 
             var ledgerEntry = PayrollLedgerEntry.Create(
                 message.RunId, message.PeriodName, profile.EmployeeId, 

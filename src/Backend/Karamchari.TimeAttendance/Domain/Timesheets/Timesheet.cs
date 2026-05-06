@@ -1,136 +1,236 @@
-namespace Karamchari.TimeAttendance.Domain.Timesheets;
-
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;
+using Karamchari.TimeAttendance.Domain.Timesheets.Events;
+
+namespace Karamchari.TimeAttendance.Domain.Timesheets;
 
 /// <summary>
-/// Aggregate root representing a weekly collection of time entries for an employee.
+/// Aggregate root for a weekly collection of time entries for one employee.
+///
+/// Lifecycle:  Draft → Submitted → Approved
+///                ↑                    │ (Reopen for retroactive edit)
+///                └────────────────────┘
+///
+/// Row-level approval: individual entries move to Approved via <see cref="ApproveEntry"/>.
+/// When every entry is approved the timesheet auto-approves and publishes
+/// <see cref="TimesheetApproved"/> through the MassTransit outbox.
 /// </summary>
 public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
 {
-    private readonly List<TimeEntry> _entries = new();
+    private readonly List<TimeEntry> _entries = [];
+    private readonly List<TimesheetAuditEntry> _auditLog = [];
 
-    private Timesheet(Guid id, Guid employeeId, DateOnly weekStartDate)
+    private Timesheet(Guid id, Guid employeeId, DateOnly weekStartDate, string employeeTimeZoneId)
         : base(id)
     {
         EmployeeId = employeeId;
         WeekStartDate = weekStartDate;
+        EmployeeTimeZoneId = employeeTimeZoneId;
         Status = TimesheetStatus.Draft;
     }
 
-    private Timesheet()
-    {
-        TenantId = string.Empty;
-    }
+    // EF Core materialisation constructor
+    private Timesheet() { TenantId = string.Empty; }
 
-    /// <summary>
-    /// Gets the tenant identifier.
-    /// </summary>
+    // ── Identity & ownership ────────────────────────────────────────────────
+
     public string TenantId { get; private set; } = string.Empty;
-
-    /// <summary>
-    /// Gets the employee identifier.
-    /// </summary>
     public Guid EmployeeId { get; private set; }
 
-    /// <summary>
-    /// Gets the start date of the week (usually a Monday).
-    /// </summary>
+    // ── Period ──────────────────────────────────────────────────────────────
+
+    /// <summary>Monday of the work week (ISO 8601).</summary>
     public DateOnly WeekStartDate { get; private set; }
 
     /// <summary>
-    /// Gets the current status of the timesheet.
+    /// IANA timezone id for the employee (e.g. "Asia/Kolkata", "America/New_York").
+    /// Stored so the UI can convert UTC timestamps to the employee's local display time
+    /// without losing the authoritative UTC values.
     /// </summary>
+    public string EmployeeTimeZoneId { get; private set; } = "UTC";
+
+    // ── State ───────────────────────────────────────────────────────────────
+
     public TimesheetStatus Status { get; private set; }
 
-    /// <summary>
-    /// Gets the list of time entries for the week.
-    /// </summary>
-    public IReadOnlyCollection<TimeEntry> Entries => _entries.AsReadOnly();
+    /// <summary>UTC timestamp of the most recent approval (null while Draft/Submitted/Rejected).</summary>
+    public DateTimeOffset? ApprovedAt { get; private set; }
 
     /// <summary>
-    /// Gets the total hours billable in this timesheet.
+    /// True after <see cref="Reopen"/> has been called at least once.
+    /// Propagated to <see cref="TimesheetApproved"/> so downstream systems know to
+    /// reverse previously posted amounts before applying the new figures.
     /// </summary>
+    public bool IsRetroactive { get; private set; }
+
+    // ── Collections ─────────────────────────────────────────────────────────
+
+    public IReadOnlyCollection<TimeEntry> Entries => _entries.AsReadOnly();
+    public IReadOnlyCollection<TimesheetAuditEntry> AuditLog => _auditLog.AsReadOnly();
+
+    /// <summary>Sum of all entry hours. Computed in-memory from the JSON entries column.</summary>
     public decimal TotalHours => _entries.Sum(x => x.Hours);
 
-    /// <summary>
-    /// Creates a new timesheet for an employee.
-    /// </summary>
-    /// <param name="employeeId">The employee identifier.</param>
-    /// <param name="weekStartDate">The start of the work week.</param>
-    /// <returns>A new <see cref="Timesheet"/> instance.</returns>
-    public static Timesheet Create(Guid employeeId, DateOnly weekStartDate)
+    // ── Factory ─────────────────────────────────────────────────────────────
+
+    /// <param name="employeeId">Employee owner of this timesheet.</param>
+    /// <param name="weekStartDate">ISO week start (Monday).</param>
+    /// <param name="employeeTimeZoneId">IANA tz id (default "UTC").</param>
+    public static Timesheet Create(Guid employeeId, DateOnly weekStartDate, string employeeTimeZoneId = "UTC")
     {
-        return new Timesheet(Guid.NewGuid(), employeeId, weekStartDate);
+        ArgumentException.ThrowIfNullOrWhiteSpace(employeeTimeZoneId);
+        return new Timesheet(Guid.NewGuid(), employeeId, weekStartDate, employeeTimeZoneId);
     }
 
+    // ── Commands ─────────────────────────────────────────────────────────────
+
     /// <summary>
-    /// Updates the entries for the timesheet. Only allowed in Draft or Rejected status.
+    /// Replaces the full entry set. Only permitted while <see cref="Status"/> is Draft or Rejected.
+    /// Cross-midnight splitting and capacity checks must be applied by the caller
+    /// (<see cref="Services.TimesheetService"/>) before invoking this method.
     /// </summary>
-    /// <param name="entries">The new set of entries.</param>
     public void UpdateEntries(IEnumerable<TimeEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
 
-        if (Status != TimesheetStatus.Draft && Status != TimesheetStatus.Rejected)
-        {
-            throw new InvalidOperationException($"Cannot update entries when timesheet is in {Status} status.");
-        }
+        if (Status is not (TimesheetStatus.Draft or TimesheetStatus.Rejected))
+            throw new InvalidOperationException(
+                $"Entries cannot be updated when timesheet is {Status}. Call Reopen first.");
+
+        var list = entries.ToList();
+
+        foreach (var entry in list)
+            entry.Validate();
+
+        TimesheetValidator.ValidateEntries(list);
 
         _entries.Clear();
-        foreach (var entry in entries)
-        {
-            entry.Validate();
-            _entries.Add(entry);
-        }
+        _entries.AddRange(list);
     }
 
     /// <summary>
     /// Submits the timesheet for manager approval.
     /// </summary>
-    public void Submit()
+    /// <param name="actorId">The employee or delegate submitting.</param>
+    public void Submit(Guid actorId)
     {
-        if (Status != TimesheetStatus.Draft && Status != TimesheetStatus.Rejected)
-        {
+        if (Status is not (TimesheetStatus.Draft or TimesheetStatus.Rejected))
             throw new InvalidOperationException("Only Draft or Rejected timesheets can be submitted.");
-        }
 
         if (TotalHours <= 0)
-        {
             throw new InvalidOperationException("Cannot submit a timesheet with zero total hours.");
-        }
 
         Status = TimesheetStatus.Submitted;
+        _entries.ReplaceAll(e => e with { Status = TimeEntryStatus.Submitted });
+        Audit("Submitted", actorId);
     }
 
     /// <summary>
-    /// Approves the timesheet.
+    /// Approves a single entry by its stable <see cref="TimeEntry.EntryId"/>.
+    /// When every entry is approved the timesheet auto-approves.
     /// </summary>
-    public void Approve()
+    /// <param name="entryId">Stable entry identifier.</param>
+    /// <param name="approverId">Manager or delegate performing the approval.</param>
+    public void ApproveEntry(Guid entryId, Guid approverId)
     {
         if (Status != TimesheetStatus.Submitted)
-        {
-            throw new InvalidOperationException("Only Submitted timesheets can be approved.");
-        }
+            throw new InvalidOperationException("Row-level approval requires the timesheet to be Submitted.");
 
-        Status = TimesheetStatus.Approved;
-        
-        // This will emit an integration event to Payroll later.
+        var idx = _entries.FindIndex(e => e.EntryId == entryId);
+        if (idx < 0)
+            throw new ArgumentException($"Entry {entryId} not found in timesheet {Id}.", nameof(entryId));
+
+        _entries[idx] = _entries[idx] with { Status = TimeEntryStatus.Approved };
+        Audit("EntryApproved", approverId);
+
+        if (_entries.All(e => e.Status == TimeEntryStatus.Approved))
+            Approve(approverId);
     }
 
     /// <summary>
-    /// Rejects the timesheet.
+    /// Approves the entire timesheet (all entries) in one operation.
+    /// Raises <see cref="TimesheetApproved"/> through the domain-event pipeline.
     /// </summary>
-    /// <param name="reason">The reason for rejection.</param>
-    public void Reject(string reason)
+    /// <param name="approverId">Manager or delegate performing the approval.</param>
+    public void Approve(Guid approverId)
+    {
+        if (Status != TimesheetStatus.Submitted)
+            throw new InvalidOperationException("Only Submitted timesheets can be approved.");
+
+        Status = TimesheetStatus.Approved;
+        ApprovedAt = DateTimeOffset.UtcNow;
+        _entries.ReplaceAll(e => e with { Status = TimeEntryStatus.Approved });
+        Audit("Approved", approverId);
+
+        RaiseDomainEvent(new TimesheetApproved(
+            Id,
+            EmployeeId,
+            TenantId,
+            WeekStartDate,
+            EmployeeTimeZoneId,
+            _entries.AsReadOnly(),
+            IsRetroactive));
+    }
+
+    /// <summary>
+    /// Rejects the timesheet and returns it to the employee.
+    /// </summary>
+    /// <param name="reason">Mandatory rejection reason shown to the employee.</param>
+    /// <param name="actorId">Manager or delegate performing the rejection.</param>
+    public void Reject(string reason, Guid actorId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
 
         if (Status != TimesheetStatus.Submitted)
-        {
             throw new InvalidOperationException("Only Submitted timesheets can be rejected.");
-        }
 
         Status = TimesheetStatus.Rejected;
+        _entries.ReplaceAll(e => e with { Status = TimeEntryStatus.Rejected });
+        Audit("Rejected", actorId, reason);
+    }
+
+    /// <summary>
+    /// Reopens an approved timesheet for retroactive correction.
+    /// Sets <see cref="IsRetroactive"/> = true permanently so subsequent approvals
+    /// are flagged as corrections to downstream systems.
+    /// </summary>
+    /// <param name="reason">Mandatory justification recorded in the audit log.</param>
+    /// <param name="adminId">Administrator authorising the reopen.</param>
+    public void Reopen(string reason, Guid adminId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+
+        if (Status != TimesheetStatus.Approved)
+            throw new InvalidOperationException("Only Approved timesheets can be reopened for retroactive editing.");
+
+        Status = TimesheetStatus.Draft;
+        ApprovedAt = null;
+        IsRetroactive = true;
+        _entries.ReplaceAll(e => e with { Status = TimeEntryStatus.Draft });
+        Audit("Reopened", adminId, reason);
+
+        RaiseDomainEvent(new TimesheetReopened(
+            Id, EmployeeId, TenantId, WeekStartDate, adminId, reason));
+    }
+
+    // ── Private helpers ─────────────────────────────────────────────────────
+
+    private void Audit(string action, Guid actorId, string? reason = null) =>
+        _auditLog.Add(new TimesheetAuditEntry
+        {
+            Action = action,
+            ActorId = actorId,
+            Reason = reason,
+            OccurredAt = DateTimeOffset.UtcNow,
+        });
+}
+
+// Local extension to keep the aggregate methods readable.
+file static class ListExtensions
+{
+    internal static void ReplaceAll<T>(this List<T> list, Func<T, T> transform)
+    {
+        for (var i = 0; i < list.Count; i++)
+            list[i] = transform(list[i]);
     }
 }

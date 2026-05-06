@@ -16,9 +16,10 @@ public sealed class AnomalyDetectionService
     /// <summary>
     /// Detects anomalies by comparing current month metrics to the previous month.
     /// </summary>
-    public IReadOnlyList<Anomaly> Detect(
+    public static IReadOnlyList<Anomaly> Detect(
         IEnumerable<MonthComparison> comparisons)
     {
+        ArgumentNullException.ThrowIfNull(comparisons);
         var anomalies = new List<Anomaly>();
 
         foreach (var c in comparisons)

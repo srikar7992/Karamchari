@@ -1,5 +1,6 @@
 namespace Karamchari.PSA.Services;
 
+using System.Globalization;
 using Karamchari.PSA.Domain;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -62,8 +63,8 @@ public sealed class InvoicePdfDocument : IDocument
                         c.RelativeColumn();
                     });
                     AddMetaRow(t, "Invoice No:", _invoice.InvoiceNumber);
-                    AddMetaRow(t, "Date:", _invoice.InvoiceDate.ToString("dd MMM yyyy"));
-                    AddMetaRow(t, "Due Date:", _invoice.InvoiceDate.AddDays(30).ToString("dd MMM yyyy"));
+                    AddMetaRow(t, "Date:", _invoice.InvoiceDate.ToString("dd MMM yyyy", CultureInfo.InvariantCulture));
+                    AddMetaRow(t, "Due Date:", _invoice.InvoiceDate.AddDays(30).ToString("dd MMM yyyy", CultureInfo.InvariantCulture));
                 });
             });
         });
@@ -113,7 +114,7 @@ public sealed class InvoicePdfDocument : IDocument
                 foreach (var line in _invoice.Lines)
                 {
                     table.Cell().PaddingVertical(4).Text(line.Description);
-                    table.Cell().PaddingVertical(4).AlignRight().Text(line.Hours.ToString("N2"));
+                    table.Cell().PaddingVertical(4).AlignRight().Text(line.Hours.ToString("N2", CultureInfo.InvariantCulture));
                     table.Cell().PaddingVertical(4).AlignRight().Text(FormatCurrency(line.Rate, line.Currency));
                     table.Cell().PaddingVertical(4).AlignRight().Text(FormatCurrency(line.Amount, line.Currency));
                 }
@@ -176,7 +177,7 @@ public sealed class InvoicePdfDocument : IDocument
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 
-    private static void HeaderCell(ITableCellContainer cell, string text)
+    private static void HeaderCell(IContainer cell, string text)
     {
         cell.Background(Colors.Indigo.Darken3)
             .Padding(6)
@@ -203,6 +204,8 @@ public sealed class InvoicePdfDocument : IDocument
             ? $"${amount:N2}"
             : $"₹{amount:N2}";
 
+    public DocumentSettings GetSettings() => new() { CompressDocument = true };
+
     /// <summary>Generates the PDF bytes for the invoice.</summary>
-    public byte[] GeneratePdf() => this.GeneratePdf(new DocumentSettings { CompressDocument = true });
+    public byte[] ToPdfBytes() => this.GeneratePdf();
 }

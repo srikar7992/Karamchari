@@ -16,7 +16,8 @@ public sealed class ProjectResourceRepository
     /// </summary>
     public ProjectResourceRepository(PSADbContext db)
     {
-        _db = db ?? throw new ArgumentNullException(nameof(db));
+        ArgumentNullException.ThrowIfNull(db);
+        _db = db;
     }
 
     /// <summary>
@@ -78,12 +79,9 @@ public sealed class ProjectResourceRepository
         DateOnly workDate,
         CancellationToken ct = default)
     {
-        var assignment = await GetActiveAssignmentAsync(employeeId, projectId, workDate, ct);
-        if (assignment == null)
-        {
-            throw new InvalidOperationException(
+        _ = await GetActiveAssignmentAsync(employeeId, projectId, workDate, ct)
+            ?? throw new InvalidOperationException(
                 $"Employee {employeeId} is not assigned to project {projectId} on {workDate:yyyy-MM-dd}. " +
                 "Timesheet entry rejected.");
-        }
     }
 }

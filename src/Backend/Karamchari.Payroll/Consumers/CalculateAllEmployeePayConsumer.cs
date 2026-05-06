@@ -20,7 +20,7 @@ public class CalculateAllEmployeePayCommandConsumer : IConsumer<CalculateAllEmpl
 {
     private readonly PayrollDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly ILogger<CalculateAllEmployeePayConsumer> _logger;
+    private readonly ILogger<CalculateAllEmployeePayCommandConsumer> _logger;
     private readonly StatutoryPipelineEngine _statutoryEngine;
     private readonly IProfessionalTaxProvider _ptProvider;
     private readonly IIncomeProjectionService _projectionService;
@@ -29,12 +29,12 @@ public class CalculateAllEmployeePayCommandConsumer : IConsumer<CalculateAllEmpl
     private readonly IITDeclarationRepository _declarationRepository;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CalculateAllEmployeePayConsumer"/> class.
+    /// Initializes a new instance of the <see cref="CalculateAllEmployeePayCommandConsumer"/> class.
     /// </summary>
-    public CalculateAllEmployeePayConsumer(
+    public CalculateAllEmployeePayCommandConsumer(
         PayrollDbContext dbContext, 
         IPublishEndpoint publishEndpoint,
-        ILogger<CalculateAllEmployeePayConsumer> logger,
+        ILogger<CalculateAllEmployeePayCommandConsumer> logger,
         StatutoryPipelineEngine statutoryEngine,
         IProfessionalTaxProvider ptProvider,
         IIncomeProjectionService projectionService,

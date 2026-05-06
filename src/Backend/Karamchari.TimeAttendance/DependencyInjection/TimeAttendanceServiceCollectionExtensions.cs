@@ -31,6 +31,7 @@ public static class TimeAttendanceServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(busConfigurator);
 
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TenantProvisionedConsumer>();
+        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedConsumer>();
 
         // RLS: Register tables for multi-tenancy enforcement
         services.RegisterTenantTable("HolidayCalendars");
@@ -45,7 +46,10 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.RegisterTenantTable("IoT_BiometricMappings");
         services.RegisterTenantTable("IoT_RawPunches");
         services.RegisterTenantTable("IoT_GeoFences");
+        services.RegisterTenantTable("IoT_LocationBoundaries");
+        services.RegisterTenantTable("IoT_EmployeeLocationAssignments");
         services.RegisterTenantTable("IoT_FraudFlags");
+        services.RegisterTenantTable("IoT_FraudSignals");
         services.RegisterTenantTable("IoT_LiveAttendance");
         services.RegisterTenantTable("IoT_AttendanceResults");
         services.RegisterTenantTable("IoT_AttendanceAudits");
@@ -62,11 +66,14 @@ public static class TimeAttendanceServiceCollectionExtensions
                 ?? throw new InvalidOperationException(
                     $"ConnectionStrings:{ConnectionStringName} must be configured before TimeAttendanceDbContext can be resolved.");
 
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, x => x.UseNetTopologySuite());
             options.AddKaramchariInterceptors(serviceProvider);
         });
 
         services.AddScoped<LeaveRequestService>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.TimesheetService>();
+        services.AddSingleton<Karamchari.TimeAttendance.Services.ICapacityProvider,
+                              Karamchari.TimeAttendance.Services.NullCapacityProvider>();
         
         // Edge Services
         services.AddScoped<Karamchari.TimeAttendance.Edge.DeviceAuthService>();
@@ -79,6 +86,8 @@ public static class TimeAttendanceServiceCollectionExtensions
         
         // Live Attendance & Fraud Services
         services.AddScoped<Karamchari.TimeAttendance.Services.LiveAttendanceService>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.Geofencing.IGeofenceService, Karamchari.TimeAttendance.Services.Geofencing.GeofenceService>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.Fraud.IFraudRiskEngine, Karamchari.TimeAttendance.Services.Fraud.FraudRiskEngine>();
         services.AddScoped<Karamchari.TimeAttendance.Services.AsyncFraudDetectionWorker>();
 
         return services;

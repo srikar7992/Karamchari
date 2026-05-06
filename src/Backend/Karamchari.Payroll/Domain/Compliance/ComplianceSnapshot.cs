@@ -1,4 +1,5 @@
-using Karamchari.Core.Domain;
+using Karamchari.Core.Domain.Primitives;
+using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Payroll.Domain.Compliance;
 
@@ -12,9 +13,9 @@ public enum ComplianceType
 /// <summary>
 /// Persisted snapshot of a generated compliance file for audit and repeatability.
 /// </summary>
-public sealed class ComplianceSnapshot : Entity, ITenantOwned
+public sealed class ComplianceSnapshot : Entity<Guid>, ITenantOwned
 {
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid PayrollRunId { get; private set; }
     public ComplianceType Type { get; private set; }
     public string FileName { get; private set; } = string.Empty;
@@ -25,7 +26,7 @@ public sealed class ComplianceSnapshot : Entity, ITenantOwned
     private ComplianceSnapshot() { }
 
     public static ComplianceSnapshot Create(
-        Guid tenantId,
+        string tenantId,
         Guid payrollRunId,
         ComplianceType type,
         string fileName,

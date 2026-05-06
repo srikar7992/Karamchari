@@ -139,7 +139,7 @@ public sealed class SqlServerRlsFixture : IAsyncLifetime
     {
         var generator = CreateRlsScriptGenerator();
 
-        foreach (var script in generator.BuildBootstrapScripts())
+        foreach (var script in RlsScriptGenerator.BuildBootstrapScripts())
         {
             await ExecuteScriptAsync(script);
         }
@@ -254,6 +254,7 @@ public sealed class RlsTestDbContext(DbContextOptions<RlsTestDbContext> options,
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
+        ArgumentNullException.ThrowIfNull(modelBuilder);
         modelBuilder.Entity<RlsTestEmployee>(builder =>
         {
             builder.ToTable("Employees");

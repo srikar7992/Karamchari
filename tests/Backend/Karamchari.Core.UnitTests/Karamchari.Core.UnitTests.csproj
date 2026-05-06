@@ -4,6 +4,9 @@
     <RootNamespace>Karamchari.Core.UnitTests</RootNamespace>
     <AssemblyName>Karamchari.Core.UnitTests</AssemblyName>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- CA1707: underscores in test names are convention. CS1591: no XML docs in tests. CA2201: test deliberately throws reserved exception types to verify interception behaviour. -->
+    <NoWarn>$(NoWarn);CA1707;CS1591;CA2201</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,9 +1,7 @@
 namespace Karamchari.PSA.DependencyInjection;
 
-using Karamchari.PSA.Consumers;
 using Karamchari.PSA.Persistence;
 using Karamchari.PSA.Services;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,8 +16,7 @@ public static class PSAServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddPSA(
         this IServiceCollection services,
-        IConfiguration configuration,
-        Action<IBusRegistrationConfigurator> busConfigurator)
+        IConfiguration configuration)
     {
         // DbContext — same connection string as other contexts; RLS scopes by tenant.
         services.AddDbContext<PSADbContext>(options =>
@@ -28,9 +25,6 @@ public static class PSAServiceCollectionExtensions
         // Domain services
         services.AddScoped<ProjectResourceRepository>();
         services.AddScoped<InvoiceGeneratorService>();
-
-        // MassTransit consumer registration (called from the API's MassTransit setup)
-        busConfigurator(cfg => cfg.AddConsumer<BillableRevenueConsumer>());
 
         return services;
     }

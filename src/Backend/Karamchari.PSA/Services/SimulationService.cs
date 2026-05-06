@@ -15,7 +15,7 @@ public sealed class SimulationService
     /// <param name="currentCost">Current total cost.</param>
     /// <param name="rateChangePercent">Percentage change in billing rate (e.g., 10 for +10%).</param>
     /// <param name="costChangePercent">Percentage change in employee cost (e.g., 5 for +5%).</param>
-    public SimulationResult Simulate(
+    public static SimulationResult Simulate(
         decimal currentRevenue,
         decimal currentCost,
         decimal rateChangePercent = 0,

@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 /// If no snapshot exists for the requested month, we fall back to the latest available
 /// snapshot (employees don't always get a payroll run immediately in month 1).
 /// </summary>
-public sealed class EmployeeCostService
+public sealed partial class EmployeeCostService
 {
     private readonly PSADbContext _db;
     private readonly ILogger<EmployeeCostService> _logger;
@@ -54,9 +54,7 @@ public sealed class EmployeeCostService
 
         if (snapshot != null)
         {
-            _logger.LogInformation(
-                "Using fallback cost snapshot {Year}/{Month} for Employee {EmployeeId} (requested {ReqYear}/{ReqMonth}).",
-                snapshot.Year, snapshot.Month, employeeId, year, month);
+            LogFallbackSnapshot(_logger, snapshot.Year, snapshot.Month, employeeId, year, month);
             return snapshot.CostPerHour;
         }
 
@@ -95,8 +93,12 @@ public sealed class EmployeeCostService
         _db.EmployeeCostSnapshots.Add(snapshot);
         await _db.SaveChangesAsync(ct);
 
-        _logger.LogInformation(
-            "Created cost snapshot for Employee {EmployeeId}: ₹{MonthlyCost}/mo → ₹{CostPerHour}/hr.",
-            employeeId, monthlyCost, snapshot.CostPerHour);
+        LogSnapshotCreated(_logger, employeeId, monthlyCost, snapshot.CostPerHour);
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Using fallback cost snapshot {Year}/{Month} for Employee {EmployeeId} (requested {ReqYear}/{ReqMonth}).")]
+    private static partial void LogFallbackSnapshot(ILogger logger, int year, int month, Guid employeeId, int reqYear, int reqMonth);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Created cost snapshot for Employee {EmployeeId}: {MonthlyCost}/mo, {CostPerHour}/hr.")]
+    private static partial void LogSnapshotCreated(ILogger logger, Guid employeeId, decimal monthlyCost, decimal costPerHour);
 }

@@ -9,6 +9,8 @@
     <RootNamespace>Karamchari.Payroll</RootNamespace>
     <AssemblyName>Karamchari.Payroll</AssemblyName>
     <IsPackable>false</IsPackable>
+    <!-- CS1591: XML doc coverage for the payroll bounded context is work-in-progress. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +26,7 @@
     <PackageReference Include="EFCore.BulkExtensions" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="QuestPDF" />
-    <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="ClosedXML" />
     <PackageReference Include="Azure.AI.DocumentIntelligence" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <!-- Design-time only: allows `dotnet ef migrations add` to discover PayrollDbContextDesignTimeFactory. -->

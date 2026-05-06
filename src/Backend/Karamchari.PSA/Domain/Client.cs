@@ -40,6 +40,9 @@ public sealed class Client : ITenantOwned
         string currency = "INR")
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(gstin);
+        ArgumentNullException.ThrowIfNull(billingAddress);
+        ArgumentNullException.ThrowIfNull(currency);
 
         return new Client
         {
@@ -56,6 +59,7 @@ public sealed class Client : ITenantOwned
     public void UpdateDetails(string name, string billingAddress)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(billingAddress);
         Name = name.Trim();
         BillingAddress = billingAddress.Trim();
     }

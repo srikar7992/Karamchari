@@ -102,7 +102,9 @@ public sealed class Invoice : ITenantOwned
     {
         if (clientId == Guid.Empty) throw new ArgumentException("ClientId must not be empty.", nameof(clientId));
         ArgumentException.ThrowIfNullOrWhiteSpace(invoiceNumber);
-        if (!lines.Any()) throw new ArgumentException("Invoice must have at least one line item.", nameof(lines));
+        ArgumentNullException.ThrowIfNull(lines);
+        ArgumentNullException.ThrowIfNull(currency);
+        if (lines.Count == 0) throw new ArgumentException("Invoice must have at least one line item.", nameof(lines));
 
         decimal subtotal = lines.Sum(l => l.Amount);
 

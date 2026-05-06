@@ -41,32 +41,28 @@ public sealed class AzureDocumentAnalyzer : IDocumentAnalyzer
 
     public async Task<DocumentAnalysisResult> AnalyzeAsync(Stream stream, string fileName)
     {
+        ArgumentNullException.ThrowIfNull(stream);
+        ArgumentNullException.ThrowIfNull(fileName);
         if (_client == null) throw new InvalidOperationException("Azure Document Intelligence is not configured.");
 
-        // We use the "prebuilt-receipt" model for common investment proofs 
-        // or "prebuilt-layout" for general extraction. "prebuilt-document" is also a good general choice.
+        // Use the typed AnalyzeDocumentContent overload so the SDK returns Operation<AnalyzeResult>
+        // directly — avoids the raw-protocol BinaryData path and ModelReaderWriter deserialization.
+        var content = new AnalyzeDocumentContent { Base64Source = BinaryData.FromStream(stream) };
         var operation = await _client.AnalyzeDocumentAsync(
             WaitUntil.Completed,
             "prebuilt-document",
-            BinaryData.FromStream(stream));
+            content);
 
         var result = operation.Value;
-        
-        // Simple heuristic-based category detection
+
         string text = string.Join(" ", result.Pages.SelectMany(p => p.Lines.Select(l => l.Content))).ToUpperInvariant();
         string category = InferCategory(text, fileName);
 
-        // Extracting fields from prebuilt-document
-        // Note: Real-world extraction would look for specific fields like 'TotalAmount' or 'Date'
         decimal? amount = ExtractAmount(result);
         DateTime? date = ExtractDate(result);
         string? vendor = ExtractVendor(result);
 
-        // 4. Return: Return normalized DTO with Storage URI for audit linkage
-        // Real confidence would be an average of field confidences
         float confidence = result.Pages.Count > 0 ? 0.95f : 0.0f;
-        
-        // Low confidence heuristic (simulated)
         if (amount == null || date == null) confidence = 0.5f;
 
         return new DocumentAnalysisResult
@@ -86,17 +82,10 @@ public sealed class AzureDocumentAnalyzer : IDocumentAnalyzer
         if (text.Contains("RENT") || text.Contains("HRA") || name.Contains("RENT")) return "HRA";
         if (text.Contains("HEALTH") || text.Contains("MEDICAL") || text.Contains("80D")) return "80D";
         if (text.Contains("PPF") || text.Contains("PROVIDENT FUND")) return "80C";
-        
         return "Unknown";
     }
 
-    private static decimal? ExtractAmount(AnalyzeResult result)
-    {
-        // In prebuilt-document, we might look for key-value pairs or patterns
-        // This is a simplified version.
-        return null; // Implementation would involve iterating result.Fields or result.KeyValuePairs
-    }
-
+    private static decimal? ExtractAmount(AnalyzeResult result) => null;
     private static DateTime? ExtractDate(AnalyzeResult result) => null;
     private static string? ExtractVendor(AnalyzeResult result) => null;
 }

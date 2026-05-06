@@ -26,6 +26,7 @@ public sealed class PunchTranslationConsumer : IConsumer<RawPunchReceivedEvent>
 
     public async Task Consume(ConsumeContext<RawPunchReceivedEvent> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
         using var transaction = await _db.Database.BeginTransactionAsync(context.CancellationToken);
 
@@ -151,10 +152,9 @@ public sealed class PunchTranslationConsumer : IConsumer<RawPunchReceivedEvent>
         await _db.SaveChangesAsync();
     }
 
-    private string GenerateHash(string deviceId, string payload)
+    private static string GenerateHash(string deviceId, string payload)
     {
-        using var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(deviceId + payload));
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(deviceId + payload));
         return Convert.ToBase64String(hash);
     }
 

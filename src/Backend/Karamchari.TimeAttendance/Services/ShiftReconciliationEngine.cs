@@ -54,12 +54,13 @@ public sealed class ShiftReconciliationEngine
         bool isAbsent = false;
         bool isPresent = false;
 
-        if (shift != null && sessions.Any())
+        if (shift != null && sessions.Count > 0)
         {
-            var shiftStartUtc = localDate.ToDateTime(new TimeOnly(shift.StartTime.Hours, shift.StartTime.Minutes)).ToUniversalTime();
-            var shiftEndUtc = shift.IsNightShift 
-                ? localDate.AddDays(1).ToDateTime(new TimeOnly(shift.EndTime.Hours, shift.EndTime.Minutes)).ToUniversalTime()
-                : localDate.ToDateTime(new TimeOnly(shift.EndTime.Hours, shift.EndTime.Minutes)).ToUniversalTime();
+            var localDateOnly = DateOnly.FromDateTime(localDate);
+            var shiftStartUtc = localDateOnly.ToDateTime(new TimeOnly(shift.StartTime.Hours, shift.StartTime.Minutes)).ToUniversalTime();
+            var shiftEndUtc = shift.IsNightShift
+                ? localDateOnly.AddDays(1).ToDateTime(new TimeOnly(shift.EndTime.Hours, shift.EndTime.Minutes)).ToUniversalTime()
+                : localDateOnly.ToDateTime(new TimeOnly(shift.EndTime.Hours, shift.EndTime.Minutes)).ToUniversalTime();
 
             // Late Mark
             var firstPunch = sessions.First().In;
@@ -93,7 +94,7 @@ public sealed class ShiftReconciliationEngine
             isHalfDay = workedMinutes < shift.HalfDayThresholdMinutes;
             isPresent = workedMinutes >= shift.HalfDayThresholdMinutes;
         }
-        else if (sessions.Any())
+        else if (sessions.Count > 0)
         {
             // Worked on a non-shift day (weekend/holiday)
             workedMinutes = sessions.Where(s => s.Out != null).Sum(s => (int)(s.Out!.Value - s.In).TotalMinutes);
@@ -142,7 +143,7 @@ public sealed class ShiftReconciliationEngine
         await _db.SaveChangesAsync(ct);
     }
 
-    private List<(DateTime In, DateTime? Out)> BuildSessions(List<RawPunch> punches)
+    private static List<(DateTime In, DateTime? Out)> BuildSessions(List<RawPunch> punches)
     {
         var sessions = new List<(DateTime In, DateTime? Out)>();
         for (int i = 0; i < punches.Count; i += 2)
@@ -154,12 +155,12 @@ public sealed class ShiftReconciliationEngine
         return sessions;
     }
 
-    private DateTime RoundToMinute(DateTime dt)
+    private static DateTime RoundToMinute(DateTime dt)
     {
         return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, dt.Kind);
     }
 
-    private async Task UpsertTimeEntryAsync(Guid employeeId, DateTime localDate, decimal hours, CancellationToken ct)
+    private static async Task UpsertTimeEntryAsync(Guid employeeId, DateTime localDate, decimal hours, CancellationToken ct)
     {
         // For simplicity, just finding existing timesheet or skipping (since TimeAttendance owns Timesheets).
         // Ideally we resolve the Monday of the week and fetch.

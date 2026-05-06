@@ -1,7 +1,7 @@
 namespace Karamchari.HR.Consumers;
 
 using MassTransit;
-using Karamchari.Core.Contracts;
+using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.HR.Persistence;
 using Karamchari.HR.Domain.Departments;
 using Karamchari.HR.Domain.Employees;

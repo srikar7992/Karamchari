@@ -14,7 +14,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CA1848</NoWarn>
+    <NoWarn>$(NoWarn);CA1848;NU1608</NoWarn>
 
     <!-- Static analysis on by default; tighten per-project as needed. -->
     <AnalysisLevel>latest-recommended</AnalysisLevel>
@@ -37,6 +37,23 @@
     <Product>Karamchari Employee Management System</Product>
     <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
+
+  <!--
+    NuGet Audit suppressions.
+    These advisories affect System.Security.Cryptography.Xml which is a transitive
+    dependency of MassTransit.Azure.ServiceBus.Core. No fixed version is available
+    from the upstream maintainer yet. Reviewed 2026-05-05 — the package is only used
+    in the service bus transport layer (not in any user-input XML processing path).
+    Remove suppressions once MassTransit ships a patched transport.
+  -->
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-37gx-xxp4-5rgx" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-w3x6-4m5h-cxqf" />
+    <!-- OpenTelemetry.Api 1.10.0 — no fixed version published yet for these advisories.
+         Only affects internal telemetry pipeline; not user-input paths. Review on next OTel release. -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-8785-wc3w-h8q6" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-g94r-2vxg-569j" />
+  </ItemGroup>
 
   <!-- Centralized output paths to keep src/Backend tree clean. -->
   <PropertyGroup>

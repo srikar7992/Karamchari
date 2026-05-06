@@ -1,4 +1,5 @@
-using Karamchari.Core.Domain;
+using Karamchari.Core.Domain.Primitives;
+using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Payroll.Domain.Compliance;
 
@@ -12,9 +13,9 @@ public enum FilingStatus
 /// <summary>
 /// Tracks the actual filing state of a compliance return on government portals.
 /// </summary>
-public sealed class ComplianceFiling : Entity, ITenantOwned
+public sealed class ComplianceFiling : Entity<Guid>, ITenantOwned
 {
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid PayrollRunId { get; private set; }
     public ComplianceType Type { get; private set; }
     public FilingStatus Status { get; private set; }
@@ -27,7 +28,7 @@ public sealed class ComplianceFiling : Entity, ITenantOwned
     private ComplianceFiling() { }
 
     public static ComplianceFiling CreatePending(
-        Guid tenantId,
+        string tenantId,
         Guid payrollRunId,
         ComplianceType type,
         DateTime dueDate)

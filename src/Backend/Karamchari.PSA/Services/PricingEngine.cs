@@ -18,7 +18,7 @@ public sealed class PricingEngine
     /// <param name="costPerHour">Fully-loaded cost per hour from EmployeeCostSnapshot.</param>
     /// <param name="currentRate">The rate currently charged to the client.</param>
     /// <param name="targetMargin">Target profit margin (0.30 = 30%).</param>
-    public PricingRecommendation Recommend(
+    public static PricingRecommendation Recommend(
         decimal costPerHour,
         decimal currentRate,
         decimal targetMargin = 0.30m)

@@ -12,21 +12,63 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// Both the Payroll consumer (total hours) and the PSA consumer (billable entries only)
     /// work from this same event — no cross-context DB reads needed.
     /// </summary>
+    /// <param name="EntryId">Stable identifier matching <c>TimeEntry.EntryId</c> in the TimeAttendance context.</param>
+    /// <param name="Date">Calendar date of the work (employee's local date).</param>
+    /// <param name="Hours">Duration in decimal hours.</param>
+    /// <param name="ProjectId">Project the time is logged against. Null = internal/overhead.</param>
+    /// <param name="TaskId">Task within the project. Requires ProjectId.</param>
+    /// <param name="IsBillable">Whether these hours are billable to the client.</param>
+    /// <param name="CostCenter">Cost center for financial allocation (e.g. "ENG-PLATFORM").</param>
+    /// <param name="Tag">Custom tag for granular reporting (e.g. "R&amp;D", "Maintenance").</param>
+    /// <param name="Description">Brief description of work performed.</param>
     public record ApprovedTimeEntryDto(
+        Guid EntryId,
         DateOnly Date,
         decimal Hours,
         Guid? ProjectId,
+        Guid? TaskId,
         bool IsBillable,
+        string? CostCenter,
+        string? Tag,
         string? Description);
 
+    /// <summary>
+    /// Published when a timesheet transitions to Approved status.
+    /// Consumed by Payroll (salary ledger), Revenue Ledger, and Utilization Metrics.
+    /// <para>
+    /// <see cref="IsRetroactive"/> is true when this event corrects a previously approved
+    /// timesheet. Consumers must reverse previously posted amounts before applying the
+    /// new figures — typically by deleting existing rows for <see cref="TimesheetId"/>
+    /// and re-inserting from the new <see cref="Entries"/>.
+    /// </para>
+    /// </summary>
+    /// <param name="TimesheetId">Stable timesheet identifier — also the idempotency key.</param>
+    /// <param name="EmployeeId">Employee who submitted the timesheet.</param>
+    /// <param name="TenantId">Tenant this timesheet belongs to.</param>
+    /// <param name="WeekStartDate">Monday of the work week (ISO 8601).</param>
+    /// <param name="TotalHours">Sum of all entry hours (billable + non-billable).</param>
+    /// <param name="BillableHours">Sum of billable entry hours only. Pre-computed for Payroll convenience.</param>
+    /// <param name="IsRetroactive">True when this approval corrects a previously approved timesheet. Downstream systems must reverse prior postings before applying new figures.</param>
+    /// <param name="Entries">Full per-day, per-project breakdown.</param>
     public record TimesheetApprovedIntegrationEvent(
         Guid TimesheetId,
         Guid EmployeeId,
+        string TenantId,
         DateOnly WeekStartDate,
         decimal TotalHours,
-        /// <summary>Full per-day, per-project breakdown published by the TimeAttendance context.</summary>
+        decimal BillableHours,
+        bool IsRetroactive,
         IReadOnlyList<ApprovedTimeEntryDto> Entries);
 
+    /// <summary>
+    /// Published when a leave request is approved by HR.
+    /// </summary>
+    /// <param name="RequestId">The leave request identifier.</param>
+    /// <param name="EmployeeId">The employee who requested leave.</param>
+    /// <param name="StartDate">Inclusive start date of the leave.</param>
+    /// <param name="EndDate">Inclusive end date of the leave.</param>
+    /// <param name="TotalDays">Total calendar days of leave.</param>
+    /// <param name="IsPaid">Whether the leave is paid.</param>
     public record LeaveRequestApprovedIntegrationEvent(
         Guid RequestId,
         Guid EmployeeId,
@@ -35,11 +77,23 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         double TotalDays,
         bool IsPaid);
 
+    /// <summary>
+    /// Published when a payroll run is locked and no further adjustments are accepted.
+    /// </summary>
+    /// <param name="RunId">The payroll run identifier.</param>
+    /// <param name="TenantId">The tenant owning this payroll run.</param>
+    /// <param name="PeriodName">Human-readable period name (e.g. "April 2026").</param>
     public record PayrollRunLockedIntegrationEvent(
         Guid RunId,
         string TenantId,
         string PeriodName);
 
+    /// <summary>
+    /// Published when a new tenant is provisioned and its schema is ready.
+    /// </summary>
+    /// <param name="TenantId">The tenant identifier.</param>
+    /// <param name="CompanyName">The company display name.</param>
+    /// <param name="AdminEmail">Email address of the primary administrator.</param>
     public record TenantProvisionedIntegrationEvent(
         string TenantId,
         string CompanyName,
@@ -49,6 +103,10 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// Event published when a tax declaration is rejected by HR.
     /// Triggers a notification to the employee.
     /// </summary>
+    /// <param name="DeclarationId">The IT declaration identifier.</param>
+    /// <param name="EmployeeId">The employee whose declaration was rejected.</param>
+    /// <param name="Category">The IT declaration category (e.g. "80C", "HRA").</param>
+    /// <param name="Reason">Mandatory rejection reason shown to the employee.</param>
     public record ITDeclarationRejectedIntegrationEvent(
         Guid DeclarationId,
         Guid EmployeeId,
@@ -61,6 +119,12 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
     // V1 Contracts — original baseline.
     // Pin consumers to V1 if they don't yet need the V2 additions.
 
+    /// <summary>Published when a new employee completes onboarding.</summary>
+    /// <param name="EmployeeId">The employee identifier.</param>
+    /// <param name="EmployeeNumber">The employee number assigned by HR.</param>
+    /// <param name="LegalName">The employee's legal full name.</param>
+    /// <param name="WorkEmail">The employee's work email address. Null until provisioned.</param>
+    /// <param name="HiredOn">The date the employee was hired.</param>
     public record EmployeeOnboardedIntegrationEvent(
         Guid EmployeeId,
         string EmployeeNumber,
@@ -72,6 +136,14 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
     /// V1: does NOT include EmployeeName — consumers must look it up separately.
     /// Prefer <see cref="V2.PayrollRunCompletedIntegrationEvent"/> for new consumers.
     /// </summary>
+    /// <param name="EmployeeId">The employee identifier.</param>
+    /// <param name="TenantId">The tenant owning this payroll run.</param>
+    /// <param name="PeriodName">Human-readable period name (e.g. "April 2026").</param>
+    /// <param name="Gross">Gross pay before deductions.</param>
+    /// <param name="NetPay">Net pay after all deductions.</param>
+    /// <param name="Earnings">Itemised earnings by component name.</param>
+    /// <param name="Deductions">Itemised deductions by component name.</param>
+    /// <param name="TaxRegime">Tax regime applied (e.g. "OldRegime", "NewRegime").</param>
     public record PayrollRunCompletedIntegrationEvent(
         Guid EmployeeId,
         string TenantId,
@@ -91,6 +163,15 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V2
     /// Evolved version of PayrollRunCompleted that includes <see cref="EmployeeName"/>
     /// to avoid cross-context lookups during payslip generation.
     /// </summary>
+    /// <param name="EmployeeId">The employee identifier.</param>
+    /// <param name="EmployeeName">The employee's legal full name at time of payroll processing.</param>
+    /// <param name="TenantId">The tenant owning this payroll run.</param>
+    /// <param name="PeriodName">Human-readable period name (e.g. "April 2026").</param>
+    /// <param name="Gross">Gross pay before deductions.</param>
+    /// <param name="NetPay">Net pay after all deductions.</param>
+    /// <param name="Earnings">Itemised earnings by component name.</param>
+    /// <param name="Deductions">Itemised deductions by component name.</param>
+    /// <param name="TaxRegime">Tax regime applied (e.g. "OldRegime", "NewRegime").</param>
     public record PayrollRunCompletedIntegrationEvent(
         Guid EmployeeId,
         string EmployeeName,

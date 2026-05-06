@@ -19,7 +19,7 @@ public sealed class LiveAttendanceService
 
     public async Task BroadcastUpdateAsync(LiveAttendance state, CancellationToken ct = default)
     {
-        // Broadcasts to the specific tenant group to prevent cross-tenant data leakage
+        ArgumentNullException.ThrowIfNull(state);
         await _hubContext.Clients.Group($"tenant:{state.TenantId}")
             .SendAsync("attendanceUpdated", new
             {
@@ -32,9 +32,11 @@ public sealed class LiveAttendanceService
             }, ct);
     }
 
-    public async Task BroadcastRawAsync(dynamic payload, CancellationToken ct = default)
+    public async Task BroadcastRawAsync(object payload, CancellationToken ct = default)
     {
-        await _hubContext.Clients.Group($"tenant:{payload.TenantId}")
+        ArgumentNullException.ThrowIfNull(payload);
+        string tenantId = ((dynamic)payload).TenantId;
+        await _hubContext.Clients.Group($"tenant:{tenantId}")
             .SendAsync("attendanceUpdated", payload, ct);
     }
 }

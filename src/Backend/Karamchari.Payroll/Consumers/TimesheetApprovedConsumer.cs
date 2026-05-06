@@ -7,7 +7,10 @@ using Karamchari.Payroll.Domain;
 using Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Records approved timesheet hours in the localized payroll ledger.
+/// Records approved timesheet hours in the localised payroll ledger.
+/// Handles retroactive corrections: when <see cref="TimesheetApprovedIntegrationEvent.IsRetroactive"/>
+/// is true the existing ledger entry is deleted before the corrected one is inserted,
+/// ensuring the ledger always reflects the latest approved figures.
 /// </summary>
 public sealed class TimesheetApprovedConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
 {
@@ -29,19 +32,28 @@ public sealed class TimesheetApprovedConsumer : IConsumer<TimesheetApprovedInteg
     public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);
+        var msg = context.Message;
 
-        // Idempotency: the TimesheetId is the natural deduplication key.
-        // On retry the same event arrives with the same TimesheetId — skip silently.
-        var alreadyRecorded = await _dbContext.TimesheetLedger
-            .AnyAsync(t => t.TimesheetId == context.Message.TimesheetId, context.CancellationToken);
+        var existing = await _dbContext.TimesheetLedger
+            .FirstOrDefaultAsync(t => t.TimesheetId == msg.TimesheetId, context.CancellationToken);
 
-        if (alreadyRecorded) return;
+        if (existing != null)
+        {
+            if (!msg.IsRetroactive)
+            {
+                // Already recorded and not a correction — skip (idempotency).
+                return;
+            }
+
+            // Retroactive correction: remove the previous entry so it can be replaced.
+            _dbContext.TimesheetLedger.Remove(existing);
+        }
 
         var entry = PayrollTimesheetLedger.Record(
-            context.Message.TimesheetId,
-            context.Message.EmployeeId,
-            context.Message.WeekStartDate,
-            context.Message.TotalHours);
+            msg.TimesheetId,
+            msg.EmployeeId,
+            msg.WeekStartDate,
+            msg.TotalHours);
 
         _dbContext.TimesheetLedger.Add(entry);
 

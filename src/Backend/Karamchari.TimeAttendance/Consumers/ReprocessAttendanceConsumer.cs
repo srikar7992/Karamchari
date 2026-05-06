@@ -19,6 +19,7 @@ public sealed class ReprocessAttendanceConsumer : IConsumer<ReprocessAttendanceC
 
     public async Task Consume(ConsumeContext<ReprocessAttendanceCommandV1> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
         
         // This process is idempotent. If it fails, MassTransit will retry.

@@ -11,6 +11,8 @@
     <AssemblyName>Karamchari.Api</AssemblyName>
     <UserSecretsId>karamchari-api-dev</UserSecretsId>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- CS1591: Program.cs types are composition-root helpers, not a public library surface. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

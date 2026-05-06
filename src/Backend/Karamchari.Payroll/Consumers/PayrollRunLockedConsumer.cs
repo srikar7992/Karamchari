@@ -26,6 +26,7 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
     /// <inheritdoc/>
     public async Task Consume(ConsumeContext<PayrollRunLockedIntegrationEvent> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;
 
         // 1. Fetch all ledger entries for this run.

@@ -63,8 +63,8 @@ public sealed class EmployeeCostSnapshot : ITenantOwned
         int month,
         decimal standardMonthlyHours = 160m)
     {
-        if (monthlyCost < 0) throw new ArgumentOutOfRangeException(nameof(monthlyCost));
-        if (standardMonthlyHours <= 0) throw new ArgumentOutOfRangeException(nameof(standardMonthlyHours));
+        ArgumentOutOfRangeException.ThrowIfNegative(monthlyCost);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(standardMonthlyHours);
 
         return new EmployeeCostSnapshot
         {

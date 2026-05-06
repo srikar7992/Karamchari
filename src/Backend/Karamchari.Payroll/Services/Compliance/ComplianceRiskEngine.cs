@@ -2,10 +2,20 @@ using Karamchari.Payroll.Domain.Compliance;
 
 namespace Karamchari.Payroll.Services.Compliance;
 
+/// <summary>
+/// Represents the result of a compliance risk evaluation.
+/// </summary>
+/// <param name="EstimatedPenalty">The estimated financial penalty in INR.</param>
+/// <param name="RiskLevel">The risk level (Safe, Low, Medium, High, Critical).</param>
+/// <param name="Reason">The human-readable reason for the risk assessment.</param>
 public record RiskResult(decimal EstimatedPenalty, string RiskLevel, string Reason);
 
+/// <summary>
+/// Defines a risk engine for calculating statutory penalties and risk levels.
+/// </summary>
 public interface IComplianceRiskEngine
 {
+    /// <summary>Evaluates the risk and estimated penalty for a filing.</summary>
     RiskResult Evaluate(ComplianceFiling filing, decimal amount);
 }
 
@@ -14,8 +24,10 @@ public interface IComplianceRiskEngine
 /// </summary>
 public sealed class ComplianceRiskEngine : IComplianceRiskEngine
 {
+    /// <inheritdoc/>
     public RiskResult Evaluate(ComplianceFiling filing, decimal amount)
     {
+        ArgumentNullException.ThrowIfNull(filing);
         if (filing.Status == FilingStatus.Filed)
             return new RiskResult(0, "Safe", "Filing completed on time.");
 
@@ -42,7 +54,7 @@ public sealed class ComplianceRiskEngine : IComplianceRiskEngine
         return new RiskResult(penalty, level, $"{daysLate} days overdue.");
     }
 
-    private decimal CalculateEpfPenalty(decimal amount, int daysLate)
+    private static decimal CalculateEpfPenalty(decimal amount, int daysLate)
     {
         // Interest: 12% p.a.
         var interest = amount * 0.12m * daysLate / 365;
@@ -61,14 +73,14 @@ public sealed class ComplianceRiskEngine : IComplianceRiskEngine
         return Math.Round(interest + damages, 0, MidpointRounding.AwayFromZero);
     }
 
-    private decimal CalculateEsicPenalty(decimal amount, int daysLate)
+    private static decimal CalculateEsicPenalty(decimal amount, int daysLate)
     {
         // Interest: 12% p.a.
         var interest = amount * 0.12m * daysLate / 365;
         return Math.Round(interest, 0, MidpointRounding.AwayFromZero);
     }
 
-    private decimal CalculateTdsPenalty(int daysLate)
+    private static decimal CalculateTdsPenalty(int daysLate)
     {
         // ₹200 per day of delay
         return daysLate * 200;

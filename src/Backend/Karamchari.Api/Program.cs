@@ -17,7 +17,7 @@ using Karamchari.Payroll.Services;
 using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
 using Karamchari.Payroll.Services.Declarations;
-using Karamchari.TimeAttendance.Contracts;
+using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.Core.Contracts;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Multitenancy;
@@ -27,9 +27,12 @@ using Karamchari.PSA.Services;
 using Karamchari.PSA.Hubs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Mvc;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System.Security.Claims;
 using System.Threading.RateLimiting;
+using Karamchari.Payroll.Services.Payslip;
 
 // Entry point for the Karamchari API.
 var builder = WebApplication.CreateBuilder(args);
@@ -234,8 +237,6 @@ app.MapPost("/api/iot/mobile-push", async (
 
 // --- TimeAttendance Operational API (DLQ, Fraud, Reprocessing) ---
 
-public record MapDlqRequest(Guid EmployeeId);
-
 // Fetch Pending DLQ Items
 app.MapGet("/api/attendance/dlq", async (TimeAttendanceDbContext dbContext) =>
 {
@@ -270,7 +271,7 @@ app.MapPost("/api/attendance/dlq/{id}/map", async (
     {
         // 1. Save Mapping
         var mapping = Karamchari.TimeAttendance.Domain.IoT.BiometricMapping.Create(
-            tenant.TenantId, request.EmployeeId, biometricId);
+            tenant.TenantId, biometricId ?? string.Empty, request.EmployeeId);
         dbContext.BiometricMappings.Add(mapping);
 
         // 2. Update DLQ Status
@@ -310,8 +311,6 @@ app.MapGet("/api/attendance/fraud", async (TimeAttendanceDbContext dbContext) =>
     return Results.Ok(flags);
 });
 
-public record ReviewFraudRequest(Karamchari.TimeAttendance.Domain.IoT.FraudStatus Status, string Notes);
-
 // Review Fraud Flag
 app.MapPut("/api/attendance/fraud/{id}/review", async (
     Guid id,
@@ -330,8 +329,6 @@ app.MapPut("/api/attendance/fraud/{id}/review", async (
 });
 
 // Trigger Bulk Reprocessing
-public record ReprocessAttendanceRequest(Guid? EmployeeId, string FromDate, string ToDate);
-
 app.MapPost("/api/attendance/reprocess", async (
     ReprocessAttendanceRequest request,
     IPublishEndpoint publishEndpoint,
@@ -590,8 +587,6 @@ app.MapGet("/api/compliance/tds/{payrollRunId}", async (
     return Results.File(content, "text/plain", fileName);
 });
 
-public record MarkFiledRequest(Guid RunId, Karamchari.Payroll.Domain.Compliance.ComplianceType Type, string ReferenceNumber);
-
 // Mark a return as filed
 app.MapPost("/api/compliance/mark-filed", async (
     MarkFiledRequest request,
@@ -612,6 +607,84 @@ app.MapGet("/api/compliance/health", async (
 });
 
 // --- Time & Attendance API ---
+
+// Field Agent Mobile Punch
+app.MapPost("/api/mobile/punch", async (
+    MobilePunchRequest request,
+    TimeAttendanceDbContext dbContext,
+    Karamchari.TimeAttendance.Services.Geofencing.IGeofenceService geofenceService,
+    Karamchari.TimeAttendance.Services.Fraud.IFraudRiskEngine fraudEngine,
+    ILogger<Program> logger) =>
+{
+    // 1. Idempotency Check (Essential for offline sync retries)
+    var existing = await dbContext.RawPunches
+        .AnyAsync(p => p.ExternalId == request.ClientId);
+    
+    if (existing)
+    {
+        return Results.Ok(new { message = "Punch already processed (idempotent)" });
+    }
+
+    // 2. Resolve employee
+    if (!Guid.TryParse(request.EmployeeId, out var employeeId))
+    {
+        return Results.BadRequest("Invalid Employee ID format");
+    }
+
+    // 3. Time Skew Validation (Detect if device clock is manipulated)
+    var timeSkew = Math.Abs((DateTime.UtcNow - request.Timestamp.ToUniversalTime()).TotalMinutes);
+    if (timeSkew > 1440) // > 24 hours (allowing for long offline periods, but flagging)
+    {
+        logger.LogWarning("Significant time skew detected for {EmployeeId}: {Skew} minutes", employeeId, timeSkew);
+    }
+
+    // 4. Spatial Geofence Validation
+    var (isInside, boundary, distance) = await geofenceService.CheckGeofenceAsync(employeeId, request.Lat, request.Lon);
+    
+    if (!isInside)
+    {
+        logger.LogWarning("Punch rejected: Outside geofence for {EmployeeId} (Distance: {Distance:F0}m)", 
+            request.EmployeeId, distance);
+        return Results.BadRequest(new { 
+            message = "Outside geofence boundary", 
+            distanceMeters = Math.Round(distance),
+            requiredBoundary = boundary?.Name ?? "Assigned Site"
+        });
+    }
+
+    // 5. Create RawPunch record
+    var punch = Karamchari.TimeAttendance.Domain.IoT.RawPunch.Create(
+        "system", // Tenant ID fallback
+        employeeId,
+        "MOBILE_APP",
+        request.ClientId, // Use ClientId as ExternalId for idempotency
+        request.Timestamp.ToUniversalTime(),
+        request.Timestamp, // Local timestamp
+        "UTC",
+        DateTime.UtcNow,
+        Karamchari.TimeAttendance.Domain.IoT.PunchType.In, // Simplified
+        Karamchari.TimeAttendance.Domain.IoT.PunchSource.Mobile,
+        request.Lat,
+        request.Lon
+    );
+
+    dbContext.RawPunches.Add(punch);
+    await dbContext.SaveChangesAsync();
+
+    // 6. Fraud Detection (Asynchronous risk assessment)
+    var fraudFlag = await fraudEngine.EvaluatePunchAsync(punch, request.Accuracy);
+
+    if (logger.IsEnabled(LogLevel.Information))
+        logger.LogInformation("Mobile punch accepted for {EmployeeId} (Accuracy: {Accuracy}m, Risk: {Risk})",
+            request.EmployeeId, request.Accuracy, fraudFlag.Severity);
+
+    return Results.Ok(new { 
+        message = "Punch recorded successfully", 
+        id = punch.Id,
+        riskLevel = fraudFlag.Severity,
+        explanation = fraudFlag.Explanation
+    });
+});
 
 // Returns all holidays for the current tenant.
 app.MapGet("/api/time/holidays", async (TimeAttendanceDbContext dbContext) =>
@@ -895,7 +968,7 @@ app.MapPost("/api/time/timesheets", async (
     });
     
     timesheet.UpdateEntries(entries);
-    timesheet.Submit(); // Auto-submit for now to trigger manager workflow later
+    timesheet.Submit(Guid.Empty); // Auto-submit for now to trigger manager workflow later
     
     await dbContext.SaveChangesAsync();
     
@@ -914,25 +987,27 @@ app.MapGet("/api/time/timesheets/pending", async (TimeAttendanceDbContext dbCont
 });
 
 // Approves a weekly timesheet.
+// Domain events are captured by the MassTransit outbox inside SaveChangesAsync —
+// no direct IPublishEndpoint call here; TimesheetService owns the full flow.
 app.MapPut("/api/time/timesheets/{id}/approve", async (
-    Guid id, 
-    TimeAttendanceDbContext dbContext,
-    IPublishEndpoint publishEndpoint) =>
+    Guid id,
+    ClaimsPrincipal user,
+    Karamchari.TimeAttendance.Services.TimesheetService timesheetService) =>
 {
-    var timesheet = await dbContext.Timesheets.FindAsync(id);
-    if (timesheet == null) return Results.NotFound();
+    // In dev the JWT sub is absent; use Guid.Empty as the system approver.
+    var approverId = Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var uid)
+        ? uid
+        : Guid.Empty;
 
-    timesheet.Approve();
-    
-    // Publish integration event for Payroll context to record hours in the ledger
-    await publishEndpoint.Publish(new TimesheetApprovedIntegrationEvent(
-        timesheet.Id,
-        timesheet.EmployeeId,
-        timesheet.WeekStartDate,
-        timesheet.TotalHours));
-
-    await dbContext.SaveChangesAsync();
-    return Results.NoContent();
+    try
+    {
+        await timesheetService.ApproveAsync(id, approverId);
+        return Results.NoContent();
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+    {
+        return Results.NotFound();
+    }
 });
 
 // Rejects a weekly timesheet.
@@ -944,7 +1019,7 @@ app.MapPut("/api/time/timesheets/{id}/reject", async (
     var timesheet = await dbContext.Timesheets.FindAsync(id);
     if (timesheet == null) return Results.NotFound();
 
-    timesheet.Reject(request.Reason);
+    timesheet.Reject(request.Reason, Guid.Empty);
     await dbContext.SaveChangesAsync();
     return Results.NoContent();
 });
@@ -1031,7 +1106,7 @@ app.MapGet("/api/ess/payslips/ytd", async (PayrollDbContext dbContext) =>
         })
         .FirstOrDefaultAsync();
 
-    return Results.Ok(ytd ?? new { GrossYtd = 0, NetYtd = 0, TaxYtd = 0, Count = 0 });
+    return Results.Ok(ytd ?? new { GrossYtd = 0m, NetYtd = 0m, TaxYtd = 0m, Count = 0 });
 });
 
 // --- Tax Simulator API ---
@@ -1058,19 +1133,24 @@ app.MapPost("/api/ess/tax-simulator/dry-run", async (
     var plan = CTCTemplateCompiler.Compile(template, masterComponents);
     var breakdown = CTCBreakdownService.Calculate(profile.AnnualCTC, plan);
 
-    // 3. Build Ephemeral Declaration
+    // 3. Build Ephemeral Declarations per category for the simulator
     var fy = new FinancialYear(2026, 2027); // Standard for simulator
-    var ephemeralDeclaration = ITDeclaration.Create(employeeId, fy);
-    ephemeralDeclaration.Update(request.Section80C, request.Section80D, 0, request.MonthlyRent);
+    var ephemeralDeclarations = new List<ITDeclaration>();
+    if (request.Section80C > 0)
+        ephemeralDeclarations.Add(ITDeclaration.Create(employeeId, fy.StartYear, "80C", request.Section80C, "simulator", "simulator"));
+    if (request.Section80D > 0)
+        ephemeralDeclarations.Add(ITDeclaration.Create(employeeId, fy.StartYear, "80D", request.Section80D, "simulator", "simulator"));
+    if (request.MonthlyRent > 0)
+        ephemeralDeclarations.Add(ITDeclaration.Create(employeeId, fy.StartYear, "HRA", request.MonthlyRent * 12, "simulator", "simulator"));
 
     // 4. Run Projections (Old vs New Regime)
     var ptProvider = sp.GetRequiredService<IProfessionalTaxProvider>();
     var projectionService = sp.GetRequiredService<IIncomeProjectionService>();
     var exemptionCalculator = sp.GetRequiredService<IExemptionCalculator>();
     var taxSlabProvider = sp.GetRequiredService<ITaxSlabProvider>();
-    
-    // Inject the ephemeral declaration via a static repository
-    var staticRepo = new StaticDeclarationRepository(ephemeralDeclaration);
+
+    // Inject the ephemeral declarations via a static repository
+    var staticRepo = new StaticDeclarationRepository(ephemeralDeclarations);
     
     // RuleSet with the static repo
     var ruleSet = new FY20262027RuleSet(
@@ -1110,9 +1190,8 @@ app.MapPost("/api/ess/declarations/analyze", async (
     if (file == null || file.Length == 0) return Results.BadRequest("No file uploaded.");
     if (file.Length > 5 * 1024 * 1024) return Results.BadRequest("File size exceeds 5MB limit.");
     
-    var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
     var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-    if (!allowedExtensions.Contains(extension)) return Results.BadRequest("Invalid file type. Only PDF, JPG, and PNG are supported.");
+    if (!ProofAllowedExtensions.Contains(extension)) return Results.BadRequest("Invalid file type. Only PDF, JPG, and PNG are supported.");
 
     // Context (Mocked for now)
     var employeeId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -1274,7 +1353,7 @@ app.MapPost("/api/psa/invoices/generate", async (
     if (client != null)
     {
         var pdfDoc = new InvoicePdfDocument(invoice, client);
-        var pdfBytes = pdfDoc.GeneratePdf();
+        var pdfBytes = pdfDoc.ToPdfBytes();
         var pdfPath = Path.Combine("artifacts", "invoices", $"{invoice.InvoiceNumber}.pdf");
         Directory.CreateDirectory(Path.GetDirectoryName(pdfPath)!);
         await File.WriteAllBytesAsync(pdfPath, pdfBytes);
@@ -1365,9 +1444,9 @@ app.MapGet("/api/analytics/projects/{projectId}/trend", async (Guid projectId, P
 });
 
 // What-if simulation (stateless — never persisted).
-app.MapPost("/api/analytics/simulate", ([FromBody] SimulateRequest req, SimulationService svc) =>
+app.MapPost("/api/analytics/simulate", ([FromBody] SimulateRequest req) =>
 {
-    var result = svc.Simulate(req.CurrentRevenue, req.CurrentCost, req.RateChangePercent, req.CostChangePercent);
+    var result = SimulationService.Simulate(req.CurrentRevenue, req.CurrentCost, req.RateChangePercent, req.CostChangePercent);
     return Results.Ok(result);
 });
 
@@ -1400,12 +1479,12 @@ app.MapGet("/api/analytics/pricing/{projectId}", async (
     }
     decimal avgCost = costCount > 0 ? totalCost / costCount : 0;
 
-    var recommendation = engine.Recommend(avgCost, avgRate);
+    var recommendation = PricingEngine.Recommend(avgCost, avgRate);
     return Results.Ok(recommendation);
 });
 
 // Anomaly detection.
-app.MapGet("/api/analytics/anomalies", async (PSADbContext db, AnomalyDetectionService svc) =>
+app.MapGet("/api/analytics/anomalies", async (PSADbContext db) =>
 {
     var now = DateTime.UtcNow;
     var currentMonth = now.Month;
@@ -1431,7 +1510,7 @@ app.MapGet("/api/analytics/anomalies", async (PSADbContext db, AnomalyDetectionS
             p != null ? p.TotalRevenue - p.TotalCost : 0);
     });
 
-    var anomalies = svc.Detect(comparisons);
+    var anomalies = AnomalyDetectionService.Detect(comparisons);
     return Results.Ok(anomalies);
 });
 
@@ -1482,28 +1561,59 @@ app.MapHub<AnalyticsHub>("/hubs/analytics");
 
 app.Run();
 
-/// <summary>
-/// Ephemeral repository for stateless tax simulations.
-/// </summary>
-public class StaticDeclarationRepository : IITDeclarationRepository
-{
-    private readonly ITDeclaration _declaration;
-    public StaticDeclarationRepository(ITDeclaration declaration) => _declaration = declaration;
-    
-    public Task<IReadOnlyList<ITDeclaration>> GetApprovedDeclarationsAsync(Guid employeeId, int financialYear) 
-        => Task.FromResult<IReadOnlyList<ITDeclaration>>(new List<ITDeclaration> { _declaration });
-
-    public Task<ITDeclaration?> GetLatestAsync(Guid employeeId, int financialYear, string category) 
-        => Task.FromResult<ITDeclaration?>(_declaration);
-
-    public Task<List<ITDeclaration>> GetPendingReviewAsync() => Task.FromResult(new List<ITDeclaration>());
-    public Task<ITDeclaration?> GetByIdAsync(Guid id) => Task.FromResult<ITDeclaration?>(null);
-    public Task UpsertAsync(ITDeclaration declaration) => Task.CompletedTask;
-    public Task SaveChangesAsync() => Task.CompletedTask;
-}
-
 namespace Karamchari.Api
 {
+    internal static class ProofAllowedExtensions
+    {
+        private static readonly string[] Values = [".pdf", ".jpg", ".jpeg", ".png"];
+        public static bool Contains(string ext) => Array.IndexOf(Values, ext) >= 0;
+    }
+
+    /// <summary>Request body for mapping a DLQ punch to an employee.</summary>
+    public record MapDlqRequest(Guid EmployeeId);
+
+    /// <summary>Request body for reviewing a fraud flag.</summary>
+    public record ReviewFraudRequest(Karamchari.TimeAttendance.Domain.IoT.FraudStatus Status, string Notes);
+
+    /// <summary>Request body for triggering bulk attendance reprocessing.</summary>
+    public record ReprocessAttendanceRequest(Guid? EmployeeId, string FromDate, string ToDate);
+
+    /// <summary>Request body for marking a compliance return as filed.</summary>
+    /// <param name="RunId">The unique identifier of the payroll run.</param>
+    /// <param name="Type">The type of compliance return (EPF, ESIC, TDS).</param>
+    /// <param name="ReferenceNumber">The government-issued reference or challan number.</param>
+    public record MarkFiledRequest(Guid RunId, Karamchari.Payroll.Domain.Compliance.ComplianceType Type, string ReferenceNumber);
+
+    /// <summary>Represents a punch request from the mobile application.</summary>
+    public record MobilePunchRequest(
+        string EmployeeId,
+        DateTime Timestamp,
+        double Lat,
+        double Lon,
+        double Accuracy,
+        bool IsOfflineCaptured,
+        string ClientId);
+
+    /// <summary>Ephemeral repository for stateless tax simulations.</summary>
+    public class StaticDeclarationRepository : IITDeclarationRepository
+    {
+        private readonly IReadOnlyList<ITDeclaration> _declarations;
+
+        public StaticDeclarationRepository(IEnumerable<ITDeclaration> declarations) =>
+            _declarations = declarations.ToList();
+
+        public Task<IReadOnlyList<ITDeclaration>> GetApprovedDeclarationsAsync(Guid employeeId, int financialYear)
+            => Task.FromResult<IReadOnlyList<ITDeclaration>>(_declarations);
+
+        public Task<ITDeclaration?> GetLatestAsync(Guid employeeId, int financialYear, string category)
+            => Task.FromResult(_declarations.FirstOrDefault(d => d.Category == category));
+
+        public Task<List<ITDeclaration>> GetPendingReviewAsync() => Task.FromResult(new List<ITDeclaration>());
+        public Task<ITDeclaration?> GetByIdAsync(Guid id) => Task.FromResult<ITDeclaration?>(null);
+        public Task UpsertAsync(ITDeclaration declaration) => Task.CompletedTask;
+        public Task SaveChangesAsync() => Task.CompletedTask;
+    }
+
     public record TaxSimulationRequest(decimal Section80C, decimal Section80D, decimal MonthlyRent, bool IsMetro, int FinancialYear);
     public record TaxSimulationResult(decimal OldRegimeTax, decimal NewRegimeTax, decimal Difference, string RecommendedRegime, string Reason);
     /// <summary>

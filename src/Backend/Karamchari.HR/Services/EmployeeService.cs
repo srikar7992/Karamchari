@@ -1,5 +1,6 @@
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Contracts.IntegrationEvents.V1;
+using Karamchari.HR.Contracts.Employees;
 using Karamchari.HR.Domain.Employees;
 using Karamchari.HR.Persistence;
 using MassTransit;
@@ -20,7 +21,7 @@ internal sealed class EmployeeService(
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The new employee identifier.</returns>
     /// <remarks>
-    /// Outbox ordering: <see cref="IPublishEndpoint.Publish"/> is called BEFORE
+    /// Outbox ordering: <c>IPublishEndpoint.Publish</c> is called BEFORE
     /// <see cref="Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(CancellationToken)"/>
     /// intentionally. With <c>AddEntityFrameworkOutbox&lt;HRDbContext&gt;</c> configured,
     /// MassTransit writes <c>OutboxMessage</c> rows inside the same EF Core transaction as

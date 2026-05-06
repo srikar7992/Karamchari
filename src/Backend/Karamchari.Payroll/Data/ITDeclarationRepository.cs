@@ -62,6 +62,7 @@ public sealed class ITDeclarationRepository : IITDeclarationRepository
     /// <inheritdoc/>
     public async Task UpsertAsync(ITDeclaration declaration)
     {
+        ArgumentNullException.ThrowIfNull(declaration);
         var existing = await _dbContext.ITDeclarations.FindAsync(declaration.Id);
         if (existing == null)
         {

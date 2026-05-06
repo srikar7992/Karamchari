@@ -4,6 +4,9 @@
     <RootNamespace>Karamchari.Core.IntegrationTests</RootNamespace>
     <AssemblyName>Karamchari.Core.IntegrationTests</AssemblyName>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- CA1707: underscores in test names are convention. CS1591: no XML docs in tests. CA1711: xUnit Collection type intentionally named with 'Collection' suffix (xUnit requirement). -->
+    <NoWarn>$(NoWarn);CA1707;CS1591;CA1711</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

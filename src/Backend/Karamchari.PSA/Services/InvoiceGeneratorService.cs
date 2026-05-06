@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 ///   4. Mark source rows IsInvoiced = true (atomic with invoice creation)
 ///   5. Generate PDF via <see cref="InvoicePdfDocument"/>
 /// </summary>
-public sealed class InvoiceGeneratorService
+public sealed partial class InvoiceGeneratorService
 {
     private readonly PSADbContext _db;
     private readonly ILogger<InvoiceGeneratorService> _logger;
@@ -49,9 +49,9 @@ public sealed class InvoiceGeneratorService
                 (revenue, _) => revenue)
             .ToListAsync(ct);
 
-        if (!unbilledItems.Any())
+        if (unbilledItems.Count == 0)
         {
-            _logger.LogInformation("No unbilled revenue for Client {ClientId} up to {Cutoff}.", clientId, cutoffDate);
+            LogNoUnbilledRevenue(_logger, clientId, cutoffDate);
             return null;
         }
 
@@ -102,10 +102,15 @@ public sealed class InvoiceGeneratorService
 
         await _db.SaveChangesAsync(ct);
 
-        _logger.LogInformation(
-            "Generated Invoice {InvoiceNumber} for Client {ClientId} with {Count} line items. Total: {Total}.",
-            invoice.InvoiceNumber, clientId, grouped.Count, invoice.TotalAmount);
+        decimal totalAmount = invoice.TotalAmount;
+        LogInvoiceGenerated(_logger, invoice.InvoiceNumber, clientId, grouped.Count, totalAmount);
 
         return invoice;
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "No unbilled revenue for Client {ClientId} up to {Cutoff}.")]
+    private static partial void LogNoUnbilledRevenue(ILogger logger, Guid clientId, DateOnly cutoff);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Generated Invoice {InvoiceNumber} for Client {ClientId} with {Count} line items. Total: {Total}.")]
+    private static partial void LogInvoiceGenerated(ILogger logger, string invoiceNumber, Guid clientId, int count, decimal total);
 }

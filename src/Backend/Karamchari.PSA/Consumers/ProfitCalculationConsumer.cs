@@ -24,7 +24,7 @@ using Microsoft.Extensions.Logging;
 ///
 /// Then atomically upserts into <see cref="ProjectMonthlyMetrics"/>.
 /// </summary>
-public sealed class ProfitCalculationConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
+public sealed partial class ProfitCalculationConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
 {
     private readonly PSADbContext _db;
     private readonly ProjectResourceRepository _resourceRepo;
@@ -49,16 +49,23 @@ public sealed class ProfitCalculationConsumer : IConsumer<TimesheetApprovedInteg
         ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
 
-        // Idempotency: if profit rows already exist for this timesheet, skip.
-        var alreadyProcessed = await _db.ProfitLedger
-            .AnyAsync(p => p.TimesheetId == msg.TimesheetId, context.CancellationToken);
+        var existingProfitRows = await _db.ProfitLedger
+            .Where(p => p.TimesheetId == msg.TimesheetId)
+            .ToListAsync(context.CancellationToken);
 
-        if (alreadyProcessed)
+        if (existingProfitRows.Count > 0)
         {
-            _logger.LogInformation(
-                "Profit already calculated for Timesheet {TimesheetId}. Skipping.",
-                msg.TimesheetId);
-            return;
+            if (!msg.IsRetroactive)
+            {
+                LogProfitAlreadyCalculated(_logger, msg.TimesheetId);
+                return;
+            }
+
+            // Retroactive correction: remove prior profit rows and reverse monthly aggregations.
+            _db.ProfitLedger.RemoveRange(existingProfitRows);
+            await ReverseMonthlyMetricsAsync(existingProfitRows, context.CancellationToken);
+
+            LogRetroactiveCorrection(_logger, msg.TimesheetId, existingProfitRows.Count);
         }
 
         // Filter to billable entries with a project reference.
@@ -66,7 +73,7 @@ public sealed class ProfitCalculationConsumer : IConsumer<TimesheetApprovedInteg
             .Where(e => e.IsBillable && e.ProjectId.HasValue)
             .ToList();
 
-        if (!billableEntries.Any())
+        if (billableEntries.Count == 0)
         {
             // Still track total hours for utilization even if nothing is billable.
             await UpdateMonthlyMetricsAsync(msg, Array.Empty<ProjectProfitLedger>(), context.CancellationToken);
@@ -115,14 +122,44 @@ public sealed class ProfitCalculationConsumer : IConsumer<TimesheetApprovedInteg
         {
             // Bulk insert raw profit entries.
             await _db.BulkInsertAsync(profitRows, cancellationToken: context.CancellationToken);
-
-            _logger.LogInformation(
-                "Recorded {Count} profit ledger entries for Timesheet {TimesheetId}.",
-                profitRows.Count, msg.TimesheetId);
+            LogProfitRecorded(_logger, profitRows.Count, msg.TimesheetId);
         }
 
         // Upsert monthly aggregations.
         await UpdateMonthlyMetricsAsync(msg, profitRows, context.CancellationToken);
+    }
+
+    /// <summary>
+    /// Subtracts previously posted figures from <see cref="ProjectMonthlyMetrics"/> rows
+    /// when a retroactive correction removes existing profit-ledger entries.
+    /// </summary>
+    private async Task ReverseMonthlyMetricsAsync(
+        IReadOnlyList<ProjectProfitLedger> priorRows,
+        CancellationToken ct)
+    {
+        var groups = priorRows
+            .GroupBy(r => new { r.ProjectId, Year = r.WorkDate.Year, Month = r.WorkDate.Month });
+
+        foreach (var group in groups)
+        {
+            var existing = await _db.MonthlyMetrics
+                .FirstOrDefaultAsync(m =>
+                    m.ProjectId == group.Key.ProjectId &&
+                    m.Year == group.Key.Year &&
+                    m.Month == group.Key.Month, ct);
+
+            if (existing is null) continue;
+
+            decimal groupRevenue = group.Sum(r => r.Revenue);
+            decimal groupCost = group.Sum(r => r.Cost);
+            decimal groupBillableHours = group.Sum(r => r.Hours);
+            decimal totalHours = priorRows.Sum(r => r.Hours);
+
+            // Reverse by passing negated deltas.
+            existing.Accumulate(-groupRevenue, -groupCost, -groupBillableHours, -totalHours);
+        }
+
+        await _db.SaveChangesAsync(ct);
     }
 
     /// <summary>
@@ -177,4 +214,13 @@ public sealed class ProfitCalculationConsumer : IConsumer<TimesheetApprovedInteg
 
         await _db.SaveChangesAsync(ct);
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Profit already calculated for Timesheet {TimesheetId}. Skipping.")]
+    private static partial void LogProfitAlreadyCalculated(ILogger logger, Guid timesheetId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Retroactive correction for Timesheet {TimesheetId}: reversed {Count} prior profit rows.")]
+    private static partial void LogRetroactiveCorrection(ILogger logger, Guid timesheetId, int count);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Recorded {Count} profit ledger entries for Timesheet {TimesheetId}.")]
+    private static partial void LogProfitRecorded(ILogger logger, int count, Guid timesheetId);
 }

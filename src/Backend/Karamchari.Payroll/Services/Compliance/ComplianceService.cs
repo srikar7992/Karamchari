@@ -1,18 +1,35 @@
 using Karamchari.Payroll.Data;
+using Karamchari.Payroll.Domain;
 using Karamchari.Payroll.Domain.Compliance;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Payroll.Services.Compliance;
 
+/// <summary>
+/// Service for managing statutory compliance orchestration, including file generation, 
+/// snapshotting, and filing status tracking.
+/// </summary>
 public interface IComplianceService
 {
+    /// <summary>Generates the EPF ECR file for a specific payroll run.</summary>
     Task<(string fileName, byte[] content)> GetEpfEcrAsync(Guid runId);
+    
+    /// <summary>Generates the ESIC Monthly Return file for a specific payroll run.</summary>
     Task<(string fileName, byte[] content)> GetEsicMonthlyAsync(Guid runId);
+    
+    /// <summary>Generates the TDS Form 24Q file for a specific payroll run.</summary>
     Task<(string fileName, byte[] content)> GetTdsForm24QAsync(Guid runId);
+    
+    /// <summary>Marks a compliance return as filed with a government reference number.</summary>
     Task MarkAsFiledAsync(Guid runId, ComplianceType type, string referenceNumber, string filedBy);
+    
+    /// <summary>Retrieves a summary of compliance health and risk for the dashboard.</summary>
     Task<object> GetComplianceHealthAsync();
 }
 
+/// <summary>
+/// Implementation of <see cref="IComplianceService"/>.
+/// </summary>
 public sealed class ComplianceService : IComplianceService
 {
     private readonly PayrollDbContext _dbContext;
@@ -21,6 +38,9 @@ public sealed class ComplianceService : IComplianceService
     private readonly ITdsGenerator _tdsGenerator;
     private readonly IComplianceRiskEngine _riskEngine;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ComplianceService"/> class.
+    /// </summary>
     public ComplianceService(
         PayrollDbContext dbContext,
         IEcrGenerator ecrGenerator,
@@ -35,6 +55,7 @@ public sealed class ComplianceService : IComplianceService
         _riskEngine = riskEngine;
     }
 
+    /// <inheritdoc/>
     public async Task<(string fileName, byte[] content)> GetEpfEcrAsync(Guid runId)
     {
         var snapshot = await _dbContext.ComplianceSnapshots
@@ -79,6 +100,7 @@ public sealed class ComplianceService : IComplianceService
         return (fileName, content);
     }
 
+    /// <inheritdoc/>
     public async Task<(string fileName, byte[] content)> GetEsicMonthlyAsync(Guid runId)
     {
         var snapshot = await _dbContext.ComplianceSnapshots
@@ -114,6 +136,7 @@ public sealed class ComplianceService : IComplianceService
         return (fileName, content);
     }
 
+    /// <inheritdoc/>
     public async Task<(string fileName, byte[] content)> GetTdsForm24QAsync(Guid runId)
     {
         var snapshot = await _dbContext.ComplianceSnapshots
@@ -147,6 +170,7 @@ public sealed class ComplianceService : IComplianceService
         return (fileName, content);
     }
 
+    /// <inheritdoc/>
     public async Task MarkAsFiledAsync(Guid runId, ComplianceType type, string referenceNumber, string filedBy)
     {
         var filing = await _dbContext.ComplianceFilings
@@ -155,7 +179,7 @@ public sealed class ComplianceService : IComplianceService
         if (filing == null)
         {
             // Auto-create if missing (e.g., if filing is done without explicit download through the UI)
-            filing = ComplianceFiling.CreatePending(Guid.Empty, runId, type, DateTime.UtcNow.AddDays(15));
+            filing = ComplianceFiling.CreatePending(string.Empty, runId, type, DateTime.UtcNow.AddDays(15));
             _dbContext.ComplianceFilings.Add(filing);
         }
 
@@ -163,6 +187,7 @@ public sealed class ComplianceService : IComplianceService
         await _dbContext.SaveChangesAsync();
     }
 
+    /// <inheritdoc/>
     public async Task<object> GetComplianceHealthAsync()
     {
         var filings = await _dbContext.ComplianceFilings
@@ -212,11 +237,7 @@ public sealed class ComplianceService : IComplianceService
 
     private async Task SaveSnapshotAsync(Guid runId, ComplianceType type, string fileName, byte[] content)
     {
-        var tenantId = _dbContext.ComplianceSnapshots.Context.Model.FindEntityType(typeof(ComplianceSnapshot))?
-            .GetProperty("TenantId") != null ? Guid.Empty : Guid.Empty; // Placeholder for tenant resolution
-
-        // In a real app, resolve tenant from context
-        var snapshot = ComplianceSnapshot.Create(Guid.Empty, runId, type, fileName, content, "System");
+        var snapshot = ComplianceSnapshot.Create(string.Empty, runId, type, fileName, content, "System");
         _dbContext.ComplianceSnapshots.Add(snapshot);
         await _dbContext.SaveChangesAsync();
     }
@@ -233,7 +254,7 @@ public sealed class ComplianceService : IComplianceService
         var nextYear = month == 12 ? year + 1 : year;
         var dueDate = new DateTime(nextYear, nextMonth, 15, 0, 0, 0, DateTimeKind.Utc);
 
-        var filing = ComplianceFiling.CreatePending(Guid.Empty, runId, type, dueDate);
+        var filing = ComplianceFiling.CreatePending(string.Empty, runId, type, dueDate);
         _dbContext.ComplianceFilings.Add(filing);
         await _dbContext.SaveChangesAsync();
     }

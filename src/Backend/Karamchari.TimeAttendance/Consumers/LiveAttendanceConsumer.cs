@@ -19,6 +19,7 @@ public sealed class LiveAttendanceConsumer : IConsumer<LiveAttendanceUpdatedEven
 
     public async Task Consume(ConsumeContext<LiveAttendanceUpdatedEventV1> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
         
         // Pass a mapped DTO equivalent if necessary, or just broadcast the raw event payload.

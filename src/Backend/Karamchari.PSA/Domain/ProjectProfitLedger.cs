@@ -72,7 +72,8 @@ public sealed class ProjectProfitLedger : ITenantOwned
         decimal costPerHour,
         string currency)
     {
-        if (hours <= 0) throw new ArgumentOutOfRangeException(nameof(hours));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(hours);
+        ArgumentNullException.ThrowIfNull(currency);
 
         decimal revenue = Math.Round(hours * billableRate, 2);
         decimal cost = Math.Round(hours * costPerHour, 2);

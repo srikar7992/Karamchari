@@ -10,12 +10,13 @@ public interface IEsicGenerator
 
 /// <summary>
 /// Generates the ESIC Monthly Contribution Excel file.
-/// Only employees with Gross <= 21000 are eligible.
+/// Only employees with Gross &lt;= 21000 are eligible.
 /// </summary>
 public sealed class EsicGenerator : IEsicGenerator
 {
     public byte[] Generate(IEnumerable<EsicRecord> records)
     {
+        ArgumentNullException.ThrowIfNull(records);
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("ESIC_Monthly_Contribution");
 
@@ -54,7 +55,7 @@ public sealed class EsicGenerator : IEsicGenerator
         return stream.ToArray();
     }
 
-    private void Validate(EsicRecord r)
+    private static void Validate(EsicRecord r)
     {
         if (string.IsNullOrWhiteSpace(r.InsuranceNumber))
             throw new InvalidOperationException($"Missing ESIC Insurance Number for {r.EmployeeName}.");
