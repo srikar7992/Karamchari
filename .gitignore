@@ -65,3 +65,8 @@ appsettings.*.Local.json
 build_results*.txt
 test_results*.txt
 *.log
+
+# Claude Code / session artifacts — bash output fragments accidentally written
+# to files when a pipe or redirect is malformed (e.g. grep output landing in
+# a file named after a code token).
+.claude/
