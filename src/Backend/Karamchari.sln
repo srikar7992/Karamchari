@@ -39,6 +39,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Billing", "Karam
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Forecasting", "Karamchari.Forecasting\Karamchari.Forecasting.csproj", "{A100000F-0000-0000-0000-00000000000F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Performance.Contracts", "Karamchari.Performance.Contracts\Karamchari.Performance.Contracts.csproj", "{A1000010-0000-0000-0000-000000000010}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Compensation.Contracts", "Karamchari.Compensation.Contracts\Karamchari.Compensation.Contracts.csproj", "{A1000011-0000-0000-0000-000000000011}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Performance", "Karamchari.Performance\Karamchari.Performance.csproj", "{A1000012-0000-0000-0000-000000000012}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -189,6 +195,18 @@ Global
 		{A100000F-0000-0000-0000-00000000000F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A100000F-0000-0000-0000-00000000000F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A100000F-0000-0000-0000-00000000000F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1000010-0000-0000-0000-000000000010}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1000010-0000-0000-0000-000000000010}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1000010-0000-0000-0000-000000000010}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1000010-0000-0000-0000-000000000010}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1000011-0000-0000-0000-000000000011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1000011-0000-0000-0000-000000000011}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1000011-0000-0000-0000-000000000011}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1000011-0000-0000-0000-000000000011}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1000012-0000-0000-0000-000000000012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1000012-0000-0000-0000-000000000012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1000012-0000-0000-0000-000000000012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1000012-0000-0000-0000-000000000012}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -210,5 +228,8 @@ Global
 		{A100000D-0000-0000-0000-00000000000D} = {B0000001-0000-0000-0000-000000000001}
 		{A100000E-0000-0000-0000-00000000000E} = {B0000001-0000-0000-0000-000000000001}
 		{A100000F-0000-0000-0000-00000000000F} = {B0000001-0000-0000-0000-000000000001}
+		{A1000010-0000-0000-0000-000000000010} = {B0000001-0000-0000-0000-000000000001}
+		{A1000011-0000-0000-0000-000000000011} = {B0000001-0000-0000-0000-000000000001}
+		{A1000012-0000-0000-0000-000000000012} = {B0000001-0000-0000-0000-000000000001}
 	EndGlobalSection
 EndGlobal

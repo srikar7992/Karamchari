@@ -36,6 +36,8 @@ using System.Threading.RateLimiting;
 using Karamchari.Payroll.Services.Payslip;
 using Karamchari.Billing.DependencyInjection;
 using Karamchari.Forecasting.DependencyInjection;
+using Karamchari.Performance.DependencyInjection;
+using Karamchari.Performance.Persistence;
 
 // Entry point for the Karamchari API.
 var builder = WebApplication.CreateBuilder(args);
@@ -96,6 +98,7 @@ builder.Services.AddMassTransit(x =>
     builder.Services.AddKaramchariHR(builder.Configuration, x);
     builder.Services.AddKaramchariTimeAttendance(builder.Configuration, x);
     builder.Services.AddKaramchariPayroll(builder.Configuration, x);
+    builder.Services.AddKaramchariPerformance(builder.Configuration, x);
 
     // PSA context
     builder.Services.AddDbContext<PSADbContext>(o =>
@@ -144,6 +147,11 @@ builder.Services.AddMassTransit(x =>
         if (isDev) o.UseBusOutbox();
     });
     x.AddEntityFrameworkOutbox<PSADbContext>(o =>
+    {
+        o.UseSqlServer();
+        if (isDev) o.UseBusOutbox();
+    });
+    x.AddEntityFrameworkOutbox<PerformanceDbContext>(o =>
     {
         o.UseSqlServer();
         if (isDev) o.UseBusOutbox();

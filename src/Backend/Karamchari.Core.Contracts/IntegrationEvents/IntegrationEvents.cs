@@ -121,12 +121,14 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
 
     /// <summary>Published when a new employee completes onboarding.</summary>
     /// <param name="EmployeeId">The employee identifier.</param>
+    /// <param name="TenantId">The tenant the employee belongs to.</param>
     /// <param name="EmployeeNumber">The employee number assigned by HR.</param>
     /// <param name="LegalName">The employee's legal full name.</param>
     /// <param name="WorkEmail">The employee's work email address. Null until provisioned.</param>
     /// <param name="HiredOn">The date the employee was hired.</param>
     public record EmployeeOnboardedIntegrationEvent(
         Guid EmployeeId,
+        string TenantId,
         string EmployeeNumber,
         string LegalName,
         string? WorkEmail,

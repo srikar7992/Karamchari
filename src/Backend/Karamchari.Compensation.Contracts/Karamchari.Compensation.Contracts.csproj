@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Karamchari.Compensation.Contracts — integration event contracts for the
+    Compensation Planning bounded context (PLACEHOLDER — BC not yet implemented).
+
+    Future scope: compensation bands, merit matrices, increment budgets,
+    hike simulation, compa-ratio analysis, manager allocation pools.
+    See ADR-0008 (to be written) for the full compensation BC roadmap.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Compensation.Contracts</RootNamespace>
+    <AssemblyName>Karamchari.Compensation.Contracts</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>

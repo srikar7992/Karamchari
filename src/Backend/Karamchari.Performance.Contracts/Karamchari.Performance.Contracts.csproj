@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Karamchari.Performance.Contracts — pure integration event contracts for the
+    Performance Management bounded context.
+    No domain logic, no EF entities, no framework dependencies.
+    Referenced by any BC that consumes or produces performance events.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Performance.Contracts</RootNamespace>
+    <AssemblyName>Karamchari.Performance.Contracts</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>
