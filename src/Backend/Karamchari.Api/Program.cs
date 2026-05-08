@@ -40,6 +40,7 @@ using Karamchari.Performance.DependencyInjection;
 using Karamchari.Performance.Persistence;
 using Karamchari.Notifications.DependencyInjection;
 using Karamchari.Notifications.Persistence;
+using Karamchari.Notifications.RealTime;
 using Karamchari.Compensation.DependencyInjection;
 using Karamchari.Compensation.Persistence;
 using Karamchari.Api.BFF.Manager;
@@ -220,8 +221,11 @@ if (!builder.Environment.IsDevelopment())
     builder.Services.AddOutboxRelay(builder.Configuration);
 }
 
-// SignalR for real-time analytics updates.
+// SignalR for real-time analytics and notification updates.
 builder.Services.AddSignalR();
+
+// Register NotificationPushService after SignalR so IHubContext<NotificationHub> is available.
+builder.Services.AddScoped<INotificationPushService, HubNotificationPushService>();
 
 var app = builder.Build();
 
@@ -1882,6 +1886,9 @@ app.MapGet("/api/analytics/projects/daily", async (
 
 // SignalR hub endpoint.
 app.MapHub<AnalyticsHub>("/hubs/analytics");
+
+// ── SignalR Hubs ──────────────────────────────────────────────────────────────
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 // ── BFF Workspace APIs (ADR-0011) ─────────────────────────────────────────────
 app.MapManagerWorkspace();

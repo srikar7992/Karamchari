@@ -96,3 +96,64 @@ namespace Karamchari.Performance.Contracts.IntegrationEvents;
         bool IsHighPerformer,
         bool IsAtRetentionRisk,
         DateTimeOffset OccurredOnUtc);
+
+    /// <summary>
+    /// Published when a review is assigned to a reviewer.
+    /// Consumed by: Notification BC (sends assignment notification to reviewer).
+    /// </summary>
+    public record ReviewAssignedIntegrationEvent(
+        Guid AssignmentId,
+        string TenantId,
+        Guid ReviewerEmployeeId,
+        string ReviewerEmail,
+        string ReviewerDisplayName,
+        Guid RevieweeEmployeeId,
+        string RevieweeDisplayName,
+        Guid ReviewCycleId,
+        string CycleName,
+        DateTimeOffset Deadline,
+        DateTimeOffset OccurredOnUtc);
+
+    /// <summary>
+    /// Published when a reviewer submits a completed review.
+    /// Consumed by: Notification BC (notifies reviewee's manager, HR).
+    /// </summary>
+    public record ReviewSubmittedIntegrationEvent(
+        Guid AssignmentId,
+        string TenantId,
+        Guid ReviewerEmployeeId,
+        Guid RevieweeEmployeeId,
+        string RevieweeDisplayName,
+        Guid ReviewCycleId,
+        string CycleName,
+        DateTimeOffset OccurredOnUtc);
+
+    /// <summary>
+    /// Published when a feedback request is created for an employee.
+    /// Consumed by: Notification BC (notifies the requested feedback provider).
+    /// </summary>
+    public record FeedbackRequestCreatedIntegrationEvent(
+        Guid RequestId,
+        string TenantId,
+        Guid RequestedFromEmployeeId,
+        string RequestedFromEmail,
+        string RequestedFromDisplayName,
+        Guid RequestedByEmployeeId,
+        string RequestedByDisplayName,
+        string FeedbackContext,
+        DateTimeOffset DueDate,
+        DateTimeOffset OccurredOnUtc);
+
+    /// <summary>
+    /// Published when a goal requires manager approval before activation.
+    /// Consumed by: Notification BC (notifies the approving manager).
+    /// </summary>
+    public record GoalApprovalRequiredIntegrationEvent(
+        Guid GoalId,
+        string TenantId,
+        Guid OwnerEmployeeId,
+        string OwnerDisplayName,
+        Guid ApproverManagerId,
+        string ApproverManagerEmail,
+        string GoalTitle,
+        DateTimeOffset OccurredOnUtc);
