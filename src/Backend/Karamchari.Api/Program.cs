@@ -42,6 +42,11 @@ using Karamchari.Notifications.DependencyInjection;
 using Karamchari.Notifications.Persistence;
 using Karamchari.Compensation.DependencyInjection;
 using Karamchari.Compensation.Persistence;
+using Karamchari.Api.BFF.Manager;
+using Karamchari.Api.BFF.Employee;
+using Karamchari.Api.BFF.HR;
+using Karamchari.Api.BFF.Executive;
+using Karamchari.Api.BFF.Notifications;
 
 // Entry point for the Karamchari API.
 var builder = WebApplication.CreateBuilder(args);
@@ -1877,6 +1882,13 @@ app.MapGet("/api/analytics/projects/daily", async (
 
 // SignalR hub endpoint.
 app.MapHub<AnalyticsHub>("/hubs/analytics");
+
+// ── BFF Workspace APIs (ADR-0011) ─────────────────────────────────────────────
+app.MapManagerWorkspace();
+app.MapEmployeeWorkspace();
+app.MapHRWorkspace();
+app.MapExecutiveWorkspace();
+app.MapNotificationCenter();
 
 app.Run();
 
