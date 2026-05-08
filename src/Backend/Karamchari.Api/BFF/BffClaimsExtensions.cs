@@ -22,4 +22,23 @@ internal static class BffClaimsExtensions
 
         return Guid.Empty;
     }
+
+    /// <summary>
+    /// Extracts the tenant ID from the JWT 'tenant_id' claim.
+    /// Returns null if absent — callers must return 401.
+    /// </summary>
+    internal static string? GetTenantId(this ClaimsPrincipal user) =>
+        user.FindFirstValue("tenant_id");
+
+    /// <summary>
+    /// Extracts both tenant ID and employee ID (from 'sub' claim) in one call.
+    /// Either value may be null/empty — callers must return 401 when that happens.
+    /// </summary>
+    internal static (string? TenantId, Guid? EmployeeId) GetTenantAndEmployee(this ClaimsPrincipal user)
+    {
+        var tenantId = user.FindFirstValue("tenant_id");
+        var sub = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        Guid? employeeId = Guid.TryParse(sub, out var parsed) ? parsed : null;
+        return (tenantId, employeeId);
+    }
 }

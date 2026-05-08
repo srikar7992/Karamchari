@@ -1,35 +1,57 @@
 using Karamchari.Notifications.Domain;
+using Karamchari.Notifications.Email;
 using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Notifications.Channels;
 
 /// <summary>
-/// Email delivery adapter — Phase 1 stub.
-/// Logs the send intent and marks delivery as successful for development / testing.
-/// Phase 2: wire to Azure Communication Services email sender.
+/// Email delivery adapter. Delegates sending to IEmailProvider so the provider
+/// (NullEmailProvider → SendGrid → SES) can be swapped without touching this class.
 /// </summary>
 public sealed class EmailChannelAdapter : INotificationChannelAdapter
 {
+    private readonly IEmailProvider _emailProvider;
     private readonly ILogger<EmailChannelAdapter> _logger;
 
-    public EmailChannelAdapter(ILogger<EmailChannelAdapter> logger) => _logger = logger;
+    public EmailChannelAdapter(IEmailProvider emailProvider, ILogger<EmailChannelAdapter> logger)
+    {
+        _emailProvider = emailProvider;
+        _logger = logger;
+    }
 
     public NotificationChannel Channel => NotificationChannel.Email;
 
-    public Task DeliverAsync(NotificationMessage message, CancellationToken cancellationToken = default)
+    public async Task DeliverAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
-        // Phase 1 — log only; no real send.
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation(
-                "[EMAIL-STUB] Would send to {RecipientEmail} | Subject: {Subject} | MessageId: {MessageId}",
-                message.RecipientEmail, message.RenderedSubject, message.Id);
+        if (string.IsNullOrWhiteSpace(message.RecipientEmail))
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+                _logger.LogWarning(
+                    "Email delivery skipped for message {MessageId}: RecipientEmail is empty",
+                    message.Id);
+
+            message.RecordDeliveryAttempt(
+                NotificationChannel.Email,
+                DeliveryResult.Skipped,
+                providerMessageId: null,
+                failureReason: "RecipientEmail not available");
+            return;
+        }
+
+        var emailMessage = new EmailMessage(
+            ToAddress: message.RecipientEmail,
+            ToDisplayName: string.Empty,
+            Subject: message.RenderedSubject,
+            BodyHtml: message.RenderedBodyHtml,
+            BodyText: message.RenderedBodyText,
+            IdempotencyKey: message.IdempotencyKey);
+
+        var result = await _emailProvider.SendAsync(emailMessage, cancellationToken);
 
         message.RecordDeliveryAttempt(
-            channel: NotificationChannel.Email,
-            result: DeliveryResult.Success,
-            providerMessageId: $"stub-{message.Id}",
-            failureReason: null);
-
-        return Task.CompletedTask;
+            NotificationChannel.Email,
+            result.Success ? DeliveryResult.Success : DeliveryResult.PermanentFailure,
+            providerMessageId: result.ProviderMessageId,
+            failureReason: result.FailureReason);
     }
 }

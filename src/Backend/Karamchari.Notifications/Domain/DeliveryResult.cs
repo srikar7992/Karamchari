@@ -19,4 +19,7 @@ public enum DeliveryResult
 
     /// <summary>Delivery deferred due to rate limit.</summary>
     DeferredRateLimit = 6,
+
+    /// <summary>Delivery skipped — required data missing (e.g., no recipient email address).</summary>
+    Skipped = 7,
 }

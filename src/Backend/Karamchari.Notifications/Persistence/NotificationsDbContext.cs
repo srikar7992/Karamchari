@@ -20,6 +20,7 @@ public sealed class NotificationsDbContext : KaramchariDbContext
     public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
     public DbSet<UserNotificationPreference> UserNotificationPreferences => Set<UserNotificationPreference>();
     public DbSet<NotificationMessage> NotificationMessages => Set<NotificationMessage>();
+    public DbSet<DigestBatch> DigestBatches => Set<DigestBatch>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,6 +29,7 @@ public sealed class NotificationsDbContext : KaramchariDbContext
         modelBuilder.ApplyConfiguration(new NotificationTemplateConfiguration());
         modelBuilder.ApplyConfiguration(new UserNotificationPreferenceConfiguration());
         modelBuilder.ApplyConfiguration(new NotificationMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new DigestBatchConfiguration());
 
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();

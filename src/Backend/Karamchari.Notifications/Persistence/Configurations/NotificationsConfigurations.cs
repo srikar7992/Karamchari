@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Karamchari.Notifications.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -93,5 +94,43 @@ internal sealed class NotificationMessageConfiguration : IEntityTypeConfiguratio
             a.HasIndex(x => new { x.NotificationMessageId, x.AttemptNumber })
                 .HasDatabaseName("IX_NotificationDeliveryAttempts_Message_Attempt");
         });
+    }
+}
+
+internal sealed class DigestBatchConfiguration : IEntityTypeConfiguration<DigestBatch>
+{
+    public void Configure(EntityTypeBuilder<DigestBatch> b)
+    {
+        b.ToTable("DigestBatches");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.TenantId).IsRequired().HasMaxLength(50);
+        b.Property(x => x.RecipientEmployeeId).IsRequired();
+        b.Property(x => x.RecipientEmail).IsRequired().HasMaxLength(320);
+        b.Property(x => x.DigestType).IsRequired().HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.WindowKey).IsRequired().HasMaxLength(20);
+        b.Property(x => x.IdempotencyKey).IsRequired().HasMaxLength(300);
+        b.Property(x => x.RenderedSubject).IsRequired().HasMaxLength(500);
+        b.Property(x => x.RenderedBodyHtml).IsRequired();
+        b.Property(x => x.RenderedBodyText).IsRequired();
+        b.Property(x => x.MessageCount).IsRequired();
+        b.Property(x => x.Status).IsRequired().HasConversion<string>().HasMaxLength(30);
+        b.Property(x => x.CreatedOnUtc).IsRequired();
+
+        // SourceMessageIds stored as JSON column (list of GUIDs, read-only after creation).
+        b.Property(x => x.SourceMessageIds)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => (IReadOnlyList<Guid>)(JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null)
+                         ?? new List<Guid>()))
+            .HasColumnType("nvarchar(max)");
+
+        // One batch per recipient per digest type per window per tenant.
+        b.HasIndex(x => new { x.TenantId, x.IdempotencyKey })
+            .IsUnique()
+            .HasDatabaseName("UIX_DigestBatches_IdempotencyKey");
+
+        // Delivery worker query: pending batches ready to send.
+        b.HasIndex(x => new { x.TenantId, x.Status, x.ScheduleDeliverAfter })
+            .HasDatabaseName("IX_DigestBatches_Status_ScheduledAt");
     }
 }

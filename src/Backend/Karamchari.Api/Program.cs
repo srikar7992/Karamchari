@@ -48,6 +48,7 @@ using Karamchari.Api.BFF.Employee;
 using Karamchari.Api.BFF.HR;
 using Karamchari.Api.BFF.Executive;
 using Karamchari.Api.BFF.Notifications;
+using Karamchari.Api.BFF.Search;
 
 // Entry point for the Karamchari API.
 var builder = WebApplication.CreateBuilder(args);
@@ -1896,6 +1897,8 @@ app.MapEmployeeWorkspace();
 app.MapHRWorkspace();
 app.MapExecutiveWorkspace();
 app.MapNotificationCenter();
+app.MapExportJobs();
+app.MapSearch();
 
 app.Run();
 

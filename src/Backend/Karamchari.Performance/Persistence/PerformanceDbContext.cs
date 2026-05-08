@@ -8,6 +8,7 @@ using Karamchari.Performance.Domain.KPIs;
 using Karamchari.Performance.Domain.OKRs;
 using Karamchari.Performance.Domain.Promotions;
 using Karamchari.Performance.Domain.ReadModels;
+using Karamchari.Performance.Domain.Reporting;
 using Karamchari.Performance.Domain.Reviews;
 using Karamchari.Performance.Domain.Skills;
 using Karamchari.Performance.Persistence.Configurations;
@@ -72,6 +73,9 @@ public sealed class PerformanceDbContext : KaramchariDbContext
     public DbSet<CareerFramework> CareerFrameworks => Set<CareerFramework>();
     public DbSet<EmployeeGrowthPlan> EmployeeGrowthPlans => Set<EmployeeGrowthPlan>();
 
+    // Reporting (ADR-0013)
+    public DbSet<ExportJob> ExportJobs => Set<ExportJob>();
+
     // Analytics read models + CQRS projections (ADR-0009)
     public DbSet<PerformanceSnapshot> PerformanceSnapshots => Set<PerformanceSnapshot>();
     public DbSet<ManagerDashboardProjection> ManagerDashboardProjections => Set<ManagerDashboardProjection>();
@@ -125,6 +129,9 @@ public sealed class PerformanceDbContext : KaramchariDbContext
 
         // Read models
         modelBuilder.ApplyConfiguration(new PerformanceSnapshotConfiguration());
+
+        // Reporting (ADR-0013)
+        modelBuilder.ApplyConfiguration(new ExportJobConfiguration());
 
         // CQRS projections (ADR-0009)
         modelBuilder.ApplyConfiguration(new ManagerDashboardProjectionConfiguration());

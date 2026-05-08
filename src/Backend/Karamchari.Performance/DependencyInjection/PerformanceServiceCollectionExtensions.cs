@@ -84,6 +84,9 @@ public static class PerformanceServiceCollectionExtensions
         services.RegisterTenantTable("TeamGoalSummaries");
         services.RegisterTenantTable("EmployeeSkillInventoryItems");
 
+        // Reporting (ADR-0013)
+        services.RegisterTenantTable("ExportJobs");
+
         // Scoring strategies — pluggable per tenant in a future iteration
         services.AddScoped<IOKRScoringStrategy, DefaultOKRScoringStrategy>();
 

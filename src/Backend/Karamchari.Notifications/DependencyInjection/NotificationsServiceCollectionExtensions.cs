@@ -1,10 +1,13 @@
 using Karamchari.Core.DependencyInjection;
+using Karamchari.Notifications.BackgroundServices;
 using Karamchari.Notifications.Channels;
 using Karamchari.Notifications.Consumers;
+using Karamchari.Notifications.Email;
 using Karamchari.Notifications.Orchestration;
 using Karamchari.Notifications.Persistence;
 using Karamchari.Notifications.RealTime;
 using Karamchari.Notifications.Rendering;
+using Karamchari.Notifications.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +33,7 @@ public static class NotificationsServiceCollectionExtensions
         services.RegisterTenantTable("UserNotificationPreferences");
         services.RegisterTenantTable("NotificationMessages");
         services.RegisterTenantTable("NotificationDeliveryAttempts");
+        services.RegisterTenantTable("DigestBatches");
 
         services.AddDbContext<NotificationsDbContext>((serviceProvider, options) =>
         {
@@ -49,6 +53,13 @@ public static class NotificationsServiceCollectionExtensions
         // gets IEnumerable<INotificationChannelAdapter> and iterates them.
         services.AddScoped<INotificationChannelAdapter, InAppChannelAdapter>();
         services.AddScoped<INotificationChannelAdapter, EmailChannelAdapter>();
+
+        // Email provider — NullEmailProvider for Phase 1; swap to SendGrid/SES in Phase 2.
+        services.AddScoped<IEmailProvider, NullEmailProvider>();
+
+        // Digest engine.
+        services.AddScoped<DigestAggregatorService>();
+        services.AddHostedService<DigestGenerationWorker>();
 
         // Real-time push service — HubNotificationPushService is registered in
         // Karamchari.Api (needs IHubContext<NotificationHub> from SignalR).
