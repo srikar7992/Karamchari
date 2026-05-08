@@ -151,10 +151,15 @@ public static class CoreServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        // DbContext for the dead-letter table only; no tenant interceptors.
+        // DbContext for outbox infra tables only; no tenant interceptors.
         services.AddDbContext<OutboxRelayDbContext>((sp, opts) =>
             opts.UseSqlServer(configuration.GetConnectionString("KaramchariDb")));
 
+        // Type registry is built once at construction from loaded assemblies.
+        // Must be registered AFTER the DI container has loaded all bounded-context assemblies
+        // (i.e., call AddOutboxRelay after AddKaramchariHR, AddKaramchariPayroll, etc.).
+        services.AddSingleton<OutboxMessageTypeRegistry>();
+        services.AddSingleton<OutboxRelayCircuitBreaker>();
         services.AddSingleton<OutboxRelayMetrics>();
         services.AddHostedService<OutboxRelayService>();
 

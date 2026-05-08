@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using System.Text.Json;
@@ -13,22 +12,25 @@ using Microsoft.Extensions.Options;
 namespace Karamchari.Core.Messaging.Outbox;
 
 /// <summary>
-/// Production outbox relay: polls dbo.OutboxMessage in batches, publishes
+/// Production outbox relay: polls <c>dbo.OutboxMessage</c> in batches, publishes
 /// each message to the configured MassTransit transport (Azure Service Bus),
-/// and marks delivery only after a successful publish.
+/// and marks delivery only after a successful atomic commit.
 ///
-/// Architecture notes:
-/// - Claims OutboxState rows using UPDLOCK + READPAST (SQL Server row-skip-lock
-///   equivalent), safe for multiple concurrent relay instances.
-/// - Per-process GUID ensures one relay never steals another's claimed batch.
-/// - Retry state is in-memory; resets on restart (acceptable — MaxRetries
-///   prevents infinite loops, and messages remain in the outbox across restarts).
-/// - Dead letters land in dbo.OutboxDeadLetter after MaxRetries exhaustion.
-/// - Does NOT depend on any domain service; pure infrastructure.
+/// Correctness guarantees:
+/// <list type="bullet">
+///   <item>At-least-once delivery with idempotent consumer requirement.</item>
+///   <item>Crash safety: retry state persisted in <c>dbo.OutboxProcessingState</c>; restarts resume progress.</item>
+///   <item>Multi-instance safety: SQL Server UPDLOCK + READPAST + ROWLOCK prevents double-claiming.</item>
+///   <item>Stale lock recovery: uses <c>LockAcquiredUtc</c> for time-based cleanup, not row creation time.</item>
+///   <item>Atomic delivery completion: DELETE + UPDATE + DELETE in a single SQL transaction.</item>
+///   <item>Poison isolation: structural defects dead-letter immediately; transient failures retry with backoff.</item>
+///   <item>Circuit breaker: sustained Service Bus failures open the circuit to prevent DB hammering.</item>
+///   <item>Each concurrent task uses an isolated SQL connection from the pool.</item>
+/// </list>
 /// </summary>
 public sealed partial class OutboxRelayService : BackgroundService
 {
-    // ── internal representation of a claimed OutboxMessage row ──────────────
+    // ── row representation ────────────────────────────────────────────────────
 
     private sealed record OutboxMessageRow(
         long SequenceNumber,
@@ -46,62 +48,75 @@ public sealed partial class OutboxRelayService : BackgroundService
         Guid? InitiatorId,
         Guid? RequestId);
 
-    // ── pipe impl: preserve original envelope identifiers on re-publish ──────
+    // ── poison isolation: throw this to dead-letter without retry ─────────────
 
-    private sealed class ContextHeaderPipe : IPipe<PublishContext>
+    private sealed class PoisonMessageException : Exception
+    {
+        internal PoisonMessageException(string reason) : base(reason) { }
+    }
+
+    // ── full-envelope publish pipe ─────────────────────────────────────────────
+
+    private sealed class PublishEnvelopePipe : IPipe<PublishContext>
     {
         private readonly OutboxMessageRow _row;
-        internal ContextHeaderPipe(OutboxMessageRow row) => _row = row;
+        private readonly string _envelopeJson;
 
+        internal PublishEnvelopePipe(OutboxMessageRow row, string envelopeJson)
+        {
+            _row = row;
+            _envelopeJson = envelopeJson;
+        }
+
+        /// <inheritdoc />
         public Task Send(PublishContext context)
         {
-            context.MessageId = _row.MessageId;
-            if (_row.CorrelationId.HasValue) context.CorrelationId = _row.CorrelationId;
-            if (_row.ConversationId.HasValue) context.ConversationId = _row.ConversationId;
-            if (_row.InitiatorId.HasValue) context.InitiatorId = _row.InitiatorId;
-            if (_row.RequestId.HasValue) context.RequestId = _row.RequestId;
+            ApplyCommonContext(context, _row);
+            ApplyEnvelopeExtras(context.Headers, context, _envelopeJson);
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
         public void Probe(ProbeContext context) { }
     }
 
-    private sealed class SendContextHeaderPipe : IPipe<SendContext>
+    private sealed class SendEnvelopePipe : IPipe<SendContext>
     {
         private readonly OutboxMessageRow _row;
-        internal SendContextHeaderPipe(OutboxMessageRow row) => _row = row;
+        private readonly string _envelopeJson;
 
+        internal SendEnvelopePipe(OutboxMessageRow row, string envelopeJson)
+        {
+            _row = row;
+            _envelopeJson = envelopeJson;
+        }
+
+        /// <inheritdoc />
         public Task Send(SendContext context)
         {
-            context.MessageId = _row.MessageId;
-            if (_row.CorrelationId.HasValue) context.CorrelationId = _row.CorrelationId;
-            if (_row.ConversationId.HasValue) context.ConversationId = _row.ConversationId;
-            if (_row.InitiatorId.HasValue) context.InitiatorId = _row.InitiatorId;
-            if (_row.RequestId.HasValue) context.RequestId = _row.RequestId;
+            ApplyCommonContext(context, _row);
+            ApplyEnvelopeExtras(context.Headers, context, _envelopeJson);
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
         public void Probe(ProbeContext context) { }
     }
 
-    // ── retry tracking ───────────────────────────────────────────────────────
-
-    private sealed record RetryState(int Attempts, DateTimeOffset NextRetry);
-
-    // ── fields ───────────────────────────────────────────────────────────────
+    // ── fields ────────────────────────────────────────────────────────────────
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IBus _bus;
     private readonly OutboxRelayMetrics _metrics;
     private readonly IOptions<OutboxRelayOptions> _options;
     private readonly ILogger<OutboxRelayService> _logger;
+    private readonly OutboxMessageTypeRegistry _typeRegistry;
+    private readonly OutboxRelayCircuitBreaker _circuitBreaker;
 
-    // Stable per-process GUID used as the claim token in dbo.OutboxState.LockId.
+    /// <summary>Stable per-process GUID used as the claim token in <c>dbo.OutboxState.LockId</c>.</summary>
     private readonly Guid _instanceId = Guid.NewGuid();
 
-    // In-memory retry registry: OutboxId → (attempt count, next eligible time).
-    // Resets on restart — acceptable because MaxRetries still bounds total attempts.
-    private readonly ConcurrentDictionary<Guid, RetryState> _retryRegistry = new();
+    private int _gaugeUpdateTick;
 
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -113,27 +128,40 @@ public sealed partial class OutboxRelayService : BackgroundService
         IBus bus,
         OutboxRelayMetrics metrics,
         IOptions<OutboxRelayOptions> options,
-        ILogger<OutboxRelayService> logger)
+        ILogger<OutboxRelayService> logger,
+        OutboxMessageTypeRegistry typeRegistry,
+        OutboxRelayCircuitBreaker circuitBreaker)
     {
         _scopeFactory = scopeFactory;
         _bus = bus;
         _metrics = metrics;
         _options = options;
         _logger = logger;
+        _typeRegistry = typeRegistry;
+        _circuitBreaker = circuitBreaker;
     }
 
-    // ── main loop ────────────────────────────────────────────────────────────
+    // ── main loop ─────────────────────────────────────────────────────────────
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        LogStarted(_logger, _instanceId, _options.Value.BatchSize, _options.Value.PollingInterval);
+        var opts = _options.Value;
+        LogStarted(_logger, _instanceId, opts.BatchSize, opts.PollingInterval);
 
-        // On startup: release any stale lock rows from prior crashed instances.
+        // Release stale locks from prior crashed instances before claiming anything.
         await TryReleaseStaleLockAsync(CancellationToken.None);
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            if (_circuitBreaker.ShouldSkip)
+            {
+                LogCircuitOpen(_logger, _instanceId, _circuitBreaker.ConsecutiveFailures);
+                try { await Task.Delay(opts.CircuitBreakerCooldownInterval, stoppingToken); }
+                catch (OperationCanceledException) { break; }
+                continue;
+            }
+
             var sw = Stopwatch.StartNew();
             try
             {
@@ -142,7 +170,7 @@ public sealed partial class OutboxRelayService : BackgroundService
                 _metrics.BatchDurationMs.Record(sw.Elapsed.TotalMilliseconds);
 
                 if (processed == 0)
-                    await Task.Delay(_options.Value.PollingInterval, stoppingToken);
+                    await Task.Delay(opts.PollingInterval, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -152,7 +180,8 @@ public sealed partial class OutboxRelayService : BackgroundService
             {
                 LogBatchLoopError(_logger, ex, _instanceId);
                 _metrics.BatchDurationMs.Record(sw.Elapsed.TotalMilliseconds);
-                await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken).ConfigureAwait(false);
+                try { await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken); }
+                catch (OperationCanceledException) { break; }
             }
         }
 
@@ -160,7 +189,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         LogStopped(_logger, _instanceId);
     }
 
-    // ── batch processing ─────────────────────────────────────────────────────
+    // ── batch orchestration ───────────────────────────────────────────────────
 
     private async Task<int> ProcessBatchAsync(CancellationToken ct)
     {
@@ -170,21 +199,26 @@ public sealed partial class OutboxRelayService : BackgroundService
         await using var connection = (SqlConnection)db.Database.GetDbConnection();
         await connection.OpenAsync(ct);
 
+        // 1. Claim OutboxState rows atomically.
         var claimed = await ClaimBatchAsync(connection, ct);
-        if (claimed.Count == 0)
-            return 0;
+        if (claimed.Count == 0) return 0;
+
+        // 2. Persist lock metadata (LockAcquiredUtc, LockedByInstanceId) for stale detection.
+        await UpsertProcessingStateLockAsync(connection, claimed, ct);
 
         LogClaimed(_logger, claimed.Count, _instanceId);
 
+        // 3. Load associated OutboxMessage rows for claimed IDs.
         var messages = await LoadMessagesAsync(connection, claimed, ct);
 
+        // 4. Release claim for IDs with no messages (already delivered by another instance).
         var toRelease = claimed.Except(messages.Keys).ToList();
         if (toRelease.Count > 0)
             await ReleaseLocksAsync(connection, toRelease, ct);
 
-        if (messages.Count == 0)
-            return 0;
+        if (messages.Count == 0) return 0;
 
+        // 5. Process each OutboxId concurrently; each task uses its own isolated connection.
         var opts = _options.Value;
         var semaphore = new SemaphoreSlim(opts.MaxConcurrency);
         var tasks = messages.Select(async kv =>
@@ -192,7 +226,11 @@ public sealed partial class OutboxRelayService : BackgroundService
             await semaphore.WaitAsync(ct);
             try
             {
-                await ProcessOutboxIdAsync(db, connection, kv.Key, kv.Value, ct);
+                await using var taskScope = _scopeFactory.CreateAsyncScope();
+                var taskDb = taskScope.ServiceProvider.GetRequiredService<OutboxRelayDbContext>();
+                await using var taskConn = (SqlConnection)taskDb.Database.GetDbConnection();
+                await taskConn.OpenAsync(ct);
+                await ProcessOutboxIdAsync(taskConn, kv.Key, kv.Value, ct);
             }
             finally
             {
@@ -201,16 +239,211 @@ public sealed partial class OutboxRelayService : BackgroundService
         });
 
         await Task.WhenAll(tasks);
+
+        // 6. Periodically update observable gauges.
+        _gaugeUpdateTick++;
+        if (_gaugeUpdateTick % opts.GaugeUpdateCycleInterval == 0)
+            await TryUpdateQueueGaugesAsync(connection, ct);
+
         return messages.Count;
     }
 
-    // ── SQL helpers ───────────────────────────────────────────────────────────
+    // ── per-outbox-id processing ──────────────────────────────────────────────
 
-    /// <summary>
-    /// Atomically claims up to BatchSize OutboxState rows by setting
-    /// LockId = _instanceId. UPDLOCK + READPAST lets concurrent relay
-    /// instances skip rows already claimed instead of blocking.
-    /// </summary>
+    private async Task ProcessOutboxIdAsync(
+        SqlConnection connection,
+        Guid outboxId,
+        List<OutboxMessageRow> messages,
+        CancellationToken ct)
+    {
+        var opts = _options.Value;
+
+        // Load persisted retry state — null means first attempt.
+        var state = await LoadProcessingStateAsync(connection, outboxId, ct);
+
+        // Honour backoff window — another instance or the same instance on restart set NextRetryUtc.
+        if (state?.NextRetryUtc.HasValue == true && DateTime.UtcNow < state.NextRetryUtc.Value)
+        {
+            await ReleaseLocksAsync(connection, [outboxId], ct);
+            return;
+        }
+
+        // Defensive: should have been dead-lettered already, but guard against state divergence.
+        if (state != null && state.RetryCount >= opts.MaxRetries)
+        {
+            LogDeadLettering(_logger, outboxId, opts.MaxRetries);
+            await DeadLetterBatchAsync(connection, outboxId, messages,
+                state.RetryCount, state.LastError ?? "Exceeded MaxRetries", CancellationToken.None);
+            return;
+        }
+
+        var publishSw = Stopwatch.StartNew();
+        try
+        {
+            foreach (var msg in messages)
+            {
+                if (msg.ExpirationTime.HasValue && msg.ExpirationTime.Value < DateTime.UtcNow)
+                {
+                    LogSkippedExpired(_logger, msg.MessageId, outboxId, msg.ExpirationTime.Value);
+                    continue;
+                }
+
+                await PublishMessageAsync(msg, ct);
+
+                _metrics.MessagesProcessed.Add(1);
+                _metrics.PublishLatencyMs.Record(publishSw.Elapsed.TotalMilliseconds);
+                publishSw.Restart();
+
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    var shortType = FirstTypeShortName(msg.MessageType);
+                    LogRelayed(_logger, msg.MessageId, shortType, outboxId);
+                }
+            }
+
+            // Atomic: delete messages + mark delivered + delete processing state.
+            await MarkDeliveredAtomicAsync(connection, outboxId, ct);
+            _circuitBreaker.RecordSuccess();
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // Graceful shutdown: release the lock so another instance can pick up.
+            await ReleaseLocksAsync(connection, [outboxId], CancellationToken.None);
+            throw;
+        }
+        catch (PoisonMessageException pmEx)
+        {
+            // Structural defect: dead-letter immediately without retrying.
+            _metrics.PoisonMessages.Add(1);
+            LogPoisonDeadLettering(_logger, outboxId, pmEx.Message);
+            await DeadLetterBatchAsync(connection, outboxId, messages,
+                state?.RetryCount ?? 0, pmEx.Message, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            var attempts = (state?.RetryCount ?? 0) + 1;
+            var delay = ComputeRetryDelay(attempts, opts);
+
+            _metrics.MessagesFailed.Add(1);
+            _circuitBreaker.RecordFailure();
+            LogPublishFailed(_logger, ex, outboxId, attempts, opts.MaxRetries, delay);
+
+            var nextRetry = DateTime.UtcNow + delay;
+            await PersistRetryStateAsync(
+                connection, outboxId, attempts, nextRetry, TruncateError(ex.Message), CancellationToken.None);
+            // PersistRetryStateAsync also nulls LockedByInstanceId + LockAcquiredUtc in ProcessingState.
+            // Still need to release the OutboxState.LockId.
+            await ReleaseLocksAsync(connection, [outboxId], CancellationToken.None);
+
+            if (attempts >= opts.MaxRetries)
+            {
+                LogDeadLetteringOnExhaustion(_logger, outboxId);
+                await DeadLetterBatchAsync(connection, outboxId, messages,
+                    attempts, ex.Message, CancellationToken.None);
+            }
+        }
+    }
+
+    // ── publish ───────────────────────────────────────────────────────────────
+
+    private async Task PublishMessageAsync(OutboxMessageRow msg, CancellationToken ct)
+    {
+        // Validate content type — reject anything that is neither MassTransit JSON nor plain JSON.
+        if (msg.ContentType != null
+            && !msg.ContentType.StartsWith("application/vnd.masstransit+json", StringComparison.OrdinalIgnoreCase)
+            && !msg.ContentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new PoisonMessageException($"Unsupported ContentType='{msg.ContentType}' MessageId={msg.MessageId}");
+        }
+
+        // Parse the MassTransit JSON envelope that was stored verbatim in OutboxMessage.Body.
+        using var doc = JsonDocument.Parse(msg.Body);
+        var root = doc.RootElement;
+
+        if (!root.TryGetProperty("message", out var payloadElement))
+            throw new PoisonMessageException($"Body missing 'message' property. MessageId={msg.MessageId}");
+
+        var resolvedType = _typeRegistry.Resolve(msg.MessageType);
+        if (resolvedType is null)
+        {
+            var primaryUrn = msg.MessageType.Split(';', StringSplitOptions.TrimEntries)[0];
+            throw new PoisonMessageException($"Cannot resolve CLR type for URN='{primaryUrn}' MessageId={msg.MessageId}");
+        }
+
+        var payload = payloadElement.Deserialize(resolvedType, _jsonOptions)
+            ?? throw new PoisonMessageException(
+                $"Deserialised null for type '{resolvedType.FullName}' MessageId={msg.MessageId}");
+
+        // Capture the raw envelope JSON before doc is disposed — pipes need it for header restoration.
+        var envelopeJson = msg.Body;
+
+        if (!string.IsNullOrEmpty(msg.DestinationAddress)
+            && Uri.TryCreate(msg.DestinationAddress, UriKind.Absolute, out var destUri))
+        {
+            var endpoint = await _bus.GetSendEndpoint(destUri);
+            await endpoint.Send(payload, resolvedType, new SendEnvelopePipe(msg, envelopeJson), ct);
+        }
+        else
+        {
+            await _bus.Publish(payload, resolvedType, new PublishEnvelopePipe(msg, envelopeJson), ct);
+        }
+    }
+
+    // ── context helpers ───────────────────────────────────────────────────────
+
+    // SendContext is the base for both PublishContext and standalone send — all writable ID fields live here.
+    private static void ApplyCommonContext(SendContext ctx, OutboxMessageRow row)
+    {
+        ctx.MessageId = row.MessageId;
+        if (row.CorrelationId.HasValue) ctx.CorrelationId = row.CorrelationId;
+        if (row.ConversationId.HasValue) ctx.ConversationId = row.ConversationId;
+        if (row.InitiatorId.HasValue) ctx.InitiatorId = row.InitiatorId;
+        if (row.RequestId.HasValue) ctx.RequestId = row.RequestId;
+
+        // Preserve TTL only if the message has not yet expired.
+        if (row.ExpirationTime.HasValue && row.ExpirationTime.Value > DateTime.UtcNow)
+            ctx.TimeToLive = row.ExpirationTime.Value - DateTime.UtcNow;
+    }
+
+    private static void ApplyEnvelopeExtras(SendHeaders headers, SendContext ctx, string envelopeJson)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(envelopeJson);
+            var root = doc.RootElement;
+
+            // Restore custom application headers stored in the "headers" object.
+            if (root.TryGetProperty("headers", out var headersEl)
+                && headersEl.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var prop in headersEl.EnumerateObject())
+                {
+                    var value = prop.Value.ValueKind == JsonValueKind.String
+                        ? prop.Value.GetString()
+                        : prop.Value.GetRawText();
+                    headers.Set(prop.Name, value);
+                }
+            }
+
+            // Restore response/fault address overrides if present.
+            if (ctx is PublishContext pctx)
+            {
+                if (root.TryGetProperty("responseAddress", out var respEl)
+                    && respEl.ValueKind == JsonValueKind.String
+                    && Uri.TryCreate(respEl.GetString(), UriKind.Absolute, out var respUri))
+                    pctx.ResponseAddress = respUri;
+
+                if (root.TryGetProperty("faultAddress", out var faultEl)
+                    && faultEl.ValueKind == JsonValueKind.String
+                    && Uri.TryCreate(faultEl.GetString(), UriKind.Absolute, out var faultUri))
+                    pctx.FaultAddress = faultUri;
+            }
+        }
+        catch (JsonException) { /* best-effort header restoration; envelope may be non-standard */ }
+    }
+
+    // ── claiming ──────────────────────────────────────────────────────────────
+
     private async Task<List<Guid>> ClaimBatchAsync(SqlConnection connection, CancellationToken ct)
     {
         const string sql = """
@@ -220,7 +453,7 @@ public sealed partial class OutboxRelayService : BackgroundService
             WHERE  OutboxId IN (
                 SELECT TOP (@batchSize) OutboxId
                 FROM   dbo.OutboxState WITH (UPDLOCK, READPAST, ROWLOCK)
-                WHERE  LockId   IS NULL
+                WHERE  LockId    IS NULL
                   AND  Delivered IS NULL
                 ORDER BY Created ASC
             )
@@ -235,14 +468,95 @@ public sealed partial class OutboxRelayService : BackgroundService
         await using var reader = await cmd.ExecuteReaderAsync(ct);
         while (await reader.ReadAsync(ct))
             ids.Add(reader.GetGuid(0));
-
         return ids;
     }
 
-    private static async Task<Dictionary<Guid, List<OutboxMessageRow>>> LoadMessagesAsync(
+    // ── processing state persistence ──────────────────────────────────────────
+
+    private async Task UpsertProcessingStateLockAsync(
+        SqlConnection connection, List<Guid> outboxIds, CancellationToken ct)
+    {
+        const string sql = """
+            MERGE dbo.OutboxProcessingState AS target
+            USING (SELECT @outboxId AS OutboxId) AS source ON target.OutboxId = source.OutboxId
+            WHEN MATCHED THEN
+                UPDATE SET LockedByInstanceId = @instanceId,
+                           LockAcquiredUtc    = SYSUTCDATETIME()
+            WHEN NOT MATCHED THEN
+                INSERT (OutboxId, RetryCount, LockedByInstanceId, LockAcquiredUtc)
+                VALUES (@outboxId, 0, @instanceId, SYSUTCDATETIME());
+            """;
+
+        foreach (var outboxId in outboxIds)
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.Parameters.Add(new SqlParameter("@outboxId", SqlDbType.UniqueIdentifier) { Value = outboxId });
+            cmd.Parameters.Add(new SqlParameter("@instanceId", SqlDbType.UniqueIdentifier) { Value = _instanceId });
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+    }
+
+    private static async Task<OutboxProcessingState?> LoadProcessingStateAsync(
+        SqlConnection connection, Guid outboxId, CancellationToken ct)
+    {
+        const string sql = """
+            SELECT RetryCount, LastAttemptUtc, NextRetryUtc, LastError, LockedByInstanceId, LockAcquiredUtc
+            FROM   dbo.OutboxProcessingState
+            WHERE  OutboxId = @outboxId
+            """;
+
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.Parameters.Add(new SqlParameter("@outboxId", SqlDbType.UniqueIdentifier) { Value = outboxId });
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return null;
+
+        return new OutboxProcessingState
+        {
+            OutboxId           = outboxId,
+            RetryCount         = reader.GetInt32(0),
+            LastAttemptUtc     = reader.IsDBNull(1) ? null : reader.GetDateTime(1),
+            NextRetryUtc       = reader.IsDBNull(2) ? null : reader.GetDateTime(2),
+            LastError          = reader.IsDBNull(3) ? null : reader.GetString(3),
+            LockedByInstanceId = reader.IsDBNull(4) ? null : reader.GetGuid(4),
+            LockAcquiredUtc    = reader.IsDBNull(5) ? null : reader.GetDateTime(5),
+        };
+    }
+
+    private static async Task PersistRetryStateAsync(
         SqlConnection connection,
-        List<Guid> outboxIds,
+        Guid outboxId,
+        int retryCount,
+        DateTime nextRetryUtc,
+        string? lastError,
         CancellationToken ct)
+    {
+        const string sql = """
+            UPDATE dbo.OutboxProcessingState
+            SET    RetryCount         = @retryCount,
+                   LastAttemptUtc     = SYSUTCDATETIME(),
+                   NextRetryUtc       = @nextRetry,
+                   LastError          = @lastError,
+                   LockedByInstanceId = NULL,
+                   LockAcquiredUtc    = NULL
+            WHERE  OutboxId = @outboxId
+            """;
+
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.Parameters.Add(new SqlParameter("@outboxId", SqlDbType.UniqueIdentifier) { Value = outboxId });
+        cmd.Parameters.Add(new SqlParameter("@retryCount", SqlDbType.Int) { Value = retryCount });
+        cmd.Parameters.Add(new SqlParameter("@nextRetry", SqlDbType.DateTime2) { Value = nextRetryUtc });
+        cmd.Parameters.Add(new SqlParameter("@lastError", SqlDbType.NVarChar) { Size = 2000, Value = (object?)lastError ?? DBNull.Value });
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    // ── message loading ───────────────────────────────────────────────────────
+
+    private static async Task<Dictionary<Guid, List<OutboxMessageRow>>> LoadMessagesAsync(
+        SqlConnection connection, List<Guid> outboxIds, CancellationToken ct)
     {
         var paramNames = outboxIds.Select((_, i) => $"@id{i}").ToArray();
         var sql = $"""
@@ -272,24 +586,23 @@ public sealed partial class OutboxRelayService : BackgroundService
 
         var result = new Dictionary<Guid, List<OutboxMessageRow>>();
         await using var reader = await cmd.ExecuteReaderAsync(ct);
-
         while (await reader.ReadAsync(ct))
         {
             var row = new OutboxMessageRow(
-                SequenceNumber:    reader.GetInt64(0),
-                MessageId:         reader.GetGuid(1),
-                OutboxId:          reader.GetGuid(2),
-                Body:              reader.GetString(3),
-                MessageType:       reader.GetString(4),
+                SequenceNumber:     reader.GetInt64(0),
+                MessageId:          reader.GetGuid(1),
+                OutboxId:           reader.GetGuid(2),
+                Body:               reader.GetString(3),
+                MessageType:        reader.GetString(4),
                 DestinationAddress: reader.IsDBNull(5) ? null : reader.GetString(5),
-                Headers:           reader.IsDBNull(6) ? null : reader.GetString(6),
-                SentTime:          reader.GetDateTime(7),
-                ExpirationTime:    reader.IsDBNull(8) ? null : reader.GetDateTime(8),
-                ContentType:       reader.IsDBNull(9) ? null : reader.GetString(9),
-                CorrelationId:     reader.IsDBNull(10) ? null : reader.GetGuid(10),
-                ConversationId:    reader.IsDBNull(11) ? null : reader.GetGuid(11),
-                InitiatorId:       reader.IsDBNull(12) ? null : reader.GetGuid(12),
-                RequestId:         reader.IsDBNull(13) ? null : reader.GetGuid(13));
+                Headers:            reader.IsDBNull(6) ? null : reader.GetString(6),
+                SentTime:           reader.GetDateTime(7),
+                ExpirationTime:     reader.IsDBNull(8) ? null : reader.GetDateTime(8),
+                ContentType:        reader.IsDBNull(9) ? null : reader.GetString(9),
+                CorrelationId:      reader.IsDBNull(10) ? null : reader.GetGuid(10),
+                ConversationId:     reader.IsDBNull(11) ? null : reader.GetGuid(11),
+                InitiatorId:        reader.IsDBNull(12) ? null : reader.GetGuid(12),
+                RequestId:          reader.IsDBNull(13) ? null : reader.GetGuid(13));
 
             if (!result.TryGetValue(row.OutboxId, out var list))
             {
@@ -302,157 +615,141 @@ public sealed partial class OutboxRelayService : BackgroundService
         return result;
     }
 
-    // ── per-outbox-id processing ──────────────────────────────────────────────
+    // ── atomic delivery completion ────────────────────────────────────────────
 
-    private async Task ProcessOutboxIdAsync(
-        OutboxRelayDbContext db,
+    private static async Task MarkDeliveredAtomicAsync(
+        SqlConnection connection, Guid outboxId, CancellationToken ct)
+    {
+        await using var tx = await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct) as SqlTransaction
+            ?? throw new InvalidOperationException("Expected SqlTransaction from BeginTransactionAsync.");
+        try
+        {
+            await using var del = connection.CreateCommand();
+            del.Transaction = tx;
+            del.CommandText = "DELETE FROM dbo.OutboxMessage WHERE OutboxId = @id";
+            del.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = outboxId });
+            await del.ExecuteNonQueryAsync(ct);
+
+            await using var upd = connection.CreateCommand();
+            upd.Transaction = tx;
+            upd.CommandText = """
+                UPDATE dbo.OutboxState
+                SET    Delivered = SYSUTCDATETIME(),
+                       LockId    = NULL
+                WHERE  OutboxId = @id
+                """;
+            upd.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = outboxId });
+            await upd.ExecuteNonQueryAsync(ct);
+
+            await using var delState = connection.CreateCommand();
+            delState.Transaction = tx;
+            delState.CommandText = "DELETE FROM dbo.OutboxProcessingState WHERE OutboxId = @id";
+            delState.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = outboxId });
+            await delState.ExecuteNonQueryAsync(ct);
+
+            await tx.CommitAsync(ct);
+        }
+        catch
+        {
+            await tx.RollbackAsync(CancellationToken.None);
+            throw;
+        }
+    }
+
+    // ── dead-lettering ────────────────────────────────────────────────────────
+
+    private async Task DeadLetterBatchAsync(
         SqlConnection connection,
         Guid outboxId,
         List<OutboxMessageRow> messages,
+        int retryCount,
+        string failureReason,
         CancellationToken ct)
     {
-        var opts = _options.Value;
-
-        if (_retryRegistry.TryGetValue(outboxId, out var state))
-        {
-            if (DateTimeOffset.UtcNow < state.NextRetry)
-            {
-                await ReleaseLocksAsync(connection, [outboxId], ct);
-                return;
-            }
-
-            if (state.Attempts >= opts.MaxRetries)
-            {
-                LogDeadLettering(_logger, outboxId, opts.MaxRetries);
-                await DeadLetterBatchAsync(db, connection, outboxId, messages, state.Attempts, ct);
-                _retryRegistry.TryRemove(outboxId, out _);
-                return;
-            }
-        }
-
+        await using var tx = await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct) as SqlTransaction
+            ?? throw new InvalidOperationException("Expected SqlTransaction from BeginTransactionAsync.");
         try
         {
             foreach (var msg in messages)
             {
-                if (msg.ExpirationTime.HasValue && msg.ExpirationTime.Value < DateTime.UtcNow)
-                {
-                    LogSkippedExpired(_logger, msg.MessageId, outboxId, msg.ExpirationTime.Value);
-                    continue;
-                }
+                await InsertDeadLetterAsync(connection, tx, msg, outboxId, retryCount,
+                    TruncateError(failureReason), ct);
 
-                await PublishMessageAsync(msg, ct);
-
-                _metrics.MessagesProcessed.Add(1);
-                if (_logger.IsEnabled(LogLevel.Information))
+                _metrics.MessagesDeadLettered.Add(1);
+                if (_logger.IsEnabled(LogLevel.Error))
                 {
                     var shortType = FirstTypeShortName(msg.MessageType);
-                    LogRelayed(_logger, msg.MessageId, shortType, outboxId);
+                    LogDeadLettered(_logger, msg.MessageId, shortType, outboxId, retryCount);
                 }
             }
 
-            await MarkDeliveredAsync(connection, outboxId, ct);
-            _retryRegistry.TryRemove(outboxId, out _);
+            // Same atomic operation as successful delivery: clean up outbox tables.
+            await using var del = connection.CreateCommand();
+            del.Transaction = tx;
+            del.CommandText = "DELETE FROM dbo.OutboxMessage WHERE OutboxId = @id";
+            del.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = outboxId });
+            await del.ExecuteNonQueryAsync(ct);
+
+            await using var upd = connection.CreateCommand();
+            upd.Transaction = tx;
+            upd.CommandText = """
+                UPDATE dbo.OutboxState
+                SET    Delivered = SYSUTCDATETIME(),
+                       LockId    = NULL
+                WHERE  OutboxId = @id
+                """;
+            upd.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = outboxId });
+            await upd.ExecuteNonQueryAsync(ct);
+
+            await using var delState = connection.CreateCommand();
+            delState.Transaction = tx;
+            delState.CommandText = "DELETE FROM dbo.OutboxProcessingState WHERE OutboxId = @id";
+            delState.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = outboxId });
+            await delState.ExecuteNonQueryAsync(ct);
+
+            await tx.CommitAsync(ct);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        catch
         {
-            await ReleaseLocksAsync(connection, [outboxId], ct: CancellationToken.None);
+            await tx.RollbackAsync(CancellationToken.None);
             throw;
         }
-        catch (Exception ex)
-        {
-            var attempts = (state?.Attempts ?? 0) + 1;
-            var delay = ComputeRetryDelay(attempts, opts);
-
-            _metrics.MessagesFailed.Add(1);
-            LogPublishFailed(_logger, ex, outboxId, attempts, opts.MaxRetries, delay);
-
-            _retryRegistry[outboxId] = new RetryState(attempts, DateTimeOffset.UtcNow + delay);
-            await ReleaseLocksAsync(connection, [outboxId], ct: CancellationToken.None);
-
-            if (attempts >= opts.MaxRetries)
-            {
-                LogDeadLetteringOnExhaustion(_logger, outboxId);
-                await DeadLetterBatchAsync(db, connection, outboxId, messages, attempts, ct: CancellationToken.None);
-                _retryRegistry.TryRemove(outboxId, out _);
-            }
-        }
     }
 
-    // ── publish ───────────────────────────────────────────────────────────────
-
-    private async Task PublishMessageAsync(OutboxMessageRow msg, CancellationToken ct)
-    {
-        if (msg.ContentType != null
-            && !msg.ContentType.StartsWith("application/vnd.masstransit+json", StringComparison.OrdinalIgnoreCase)
-            && !msg.ContentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
-        {
-            LogPoisonContentType(_logger, msg.ContentType, msg.MessageId);
-            return;
-        }
-
-        using var doc = JsonDocument.Parse(msg.Body);
-        var root = doc.RootElement;
-
-        if (!root.TryGetProperty("message", out var payloadElement))
-        {
-            LogPoisonMissingMessage(_logger, msg.MessageId);
-            return;
-        }
-
-        var primaryUrn = msg.MessageType.Split(';', StringSplitOptions.TrimEntries)[0];
-        var resolvedType = ResolveMessageType(primaryUrn);
-
-        if (resolvedType is null)
-        {
-            LogPoisonUnresolvableType(_logger, primaryUrn, msg.MessageId);
-            return;
-        }
-
-        var payload = payloadElement.Deserialize(resolvedType, _jsonOptions)
-            ?? throw new InvalidOperationException(
-                $"Deserialised null for {resolvedType.FullName}. MessageId={msg.MessageId}");
-
-        if (!string.IsNullOrEmpty(msg.DestinationAddress)
-            && Uri.TryCreate(msg.DestinationAddress, UriKind.Absolute, out var destUri))
-        {
-            var endpoint = await _bus.GetSendEndpoint(destUri);
-            await endpoint.Send(payload, resolvedType, new SendContextHeaderPipe(msg), ct);
-        }
-        else
-        {
-            await _bus.Publish(payload, resolvedType, new ContextHeaderPipe(msg), ct);
-        }
-    }
-
-    // ── mark delivered ────────────────────────────────────────────────────────
-
-    private static async Task MarkDeliveredAsync(
+    private static async Task InsertDeadLetterAsync(
         SqlConnection connection,
+        SqlTransaction tx,
+        OutboxMessageRow msg,
         Guid outboxId,
+        int retryCount,
+        string failureReason,
         CancellationToken ct)
     {
-        await using var del = connection.CreateCommand();
-        del.CommandText = "DELETE FROM dbo.OutboxMessage WHERE OutboxId = @id";
-        del.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = outboxId });
-        await del.ExecuteNonQueryAsync(ct);
-
-        await using var upd = connection.CreateCommand();
-        upd.CommandText = """
-            UPDATE dbo.OutboxState
-            SET    Delivered = SYSUTCDATETIME(),
-                   LockId    = NULL
-            WHERE  OutboxId = @id
+        const string sql = """
+            INSERT INTO dbo.OutboxDeadLetter
+                (MessageId, OutboxId, MessageType, Body, Headers, DestinationAddress, FailureReason, RetryCount, FailedAt)
+            VALUES
+                (@messageId, @outboxId, @messageType, @body, @headers, @destinationAddress, @failureReason, @retryCount, SYSUTCDATETIME())
             """;
-        upd.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = outboxId });
-        await upd.ExecuteNonQueryAsync(ct);
+
+        await using var cmd = connection.CreateCommand();
+        cmd.Transaction = tx;
+        cmd.CommandText = sql;
+        cmd.Parameters.Add(new SqlParameter("@messageId",          SqlDbType.UniqueIdentifier) { Value = msg.MessageId });
+        cmd.Parameters.Add(new SqlParameter("@outboxId",           SqlDbType.UniqueIdentifier) { Value = outboxId });
+        cmd.Parameters.Add(new SqlParameter("@messageType",        SqlDbType.NVarChar) { Size = 500,  Value = msg.MessageType });
+        cmd.Parameters.Add(new SqlParameter("@body",               SqlDbType.NVarChar) { Size = -1,   Value = msg.Body });
+        cmd.Parameters.Add(new SqlParameter("@headers",            SqlDbType.NVarChar) { Size = -1,   Value = (object?)msg.Headers ?? DBNull.Value });
+        cmd.Parameters.Add(new SqlParameter("@destinationAddress", SqlDbType.NVarChar) { Size = 500,  Value = (object?)msg.DestinationAddress ?? DBNull.Value });
+        cmd.Parameters.Add(new SqlParameter("@failureReason",      SqlDbType.NVarChar) { Size = 2000, Value = failureReason });
+        cmd.Parameters.Add(new SqlParameter("@retryCount",         SqlDbType.Int)      { Value = retryCount });
+        await cmd.ExecuteNonQueryAsync(ct);
     }
 
-    // ── lock release ──────────────────────────────────────────────────────────
+    // ── lock management ───────────────────────────────────────────────────────
 
     private async Task ReleaseLocksAsync(
-        SqlConnection connection,
-        List<Guid> outboxIds,
-        CancellationToken ct)
+        SqlConnection connection, List<Guid> outboxIds, CancellationToken ct)
     {
         if (outboxIds.Count == 0) return;
 
@@ -460,7 +757,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         var sql = $"""
             UPDATE dbo.OutboxState
             SET    LockId = NULL
-            WHERE  LockId = @lockId
+            WHERE  LockId   = @lockId
               AND  OutboxId IN ({string.Join(",", paramNames)})
             """;
 
@@ -491,6 +788,16 @@ public sealed partial class OutboxRelayService : BackgroundService
                 """;
             cmd.Parameters.Add(new SqlParameter("@lockId", SqlDbType.UniqueIdentifier) { Value = _instanceId });
             await cmd.ExecuteNonQueryAsync(ct);
+
+            await using var cmdState = connection.CreateCommand();
+            cmdState.CommandText = """
+                UPDATE dbo.OutboxProcessingState
+                SET    LockedByInstanceId = NULL,
+                       LockAcquiredUtc    = NULL
+                WHERE  LockedByInstanceId = @instanceId
+                """;
+            cmdState.Parameters.Add(new SqlParameter("@instanceId", SqlDbType.UniqueIdentifier) { Value = _instanceId });
+            await cmdState.ExecuteNonQueryAsync(ct);
         }
         catch (Exception ex)
         {
@@ -507,24 +814,44 @@ public sealed partial class OutboxRelayService : BackgroundService
             await using var connection = (SqlConnection)db.Database.GetDbConnection();
             await connection.OpenAsync(ct);
 
-            await using var cmd = connection.CreateCommand();
-            // Rows with a non-null LockId whose OutboxState was created more than
-            // StaleLockTimeout ago are assumed abandoned by a dead instance.
-            cmd.CommandText = """
-                UPDATE dbo.OutboxState
-                SET    LockId = NULL
-                WHERE  LockId   IS NOT NULL
-                  AND  Delivered IS NULL
-                  AND  Created  < DATEADD(SECOND, @staleSecs, SYSUTCDATETIME())
+            // Release OutboxState locks for rows whose processing state shows a stale LockAcquiredUtc.
+            // Uses LockAcquiredUtc (accurate lock timestamp) — NOT OutboxState.Created (wrong for stale detection).
+            await using var releaseLocks = connection.CreateCommand();
+            releaseLocks.CommandText = """
+                UPDATE os
+                SET    os.LockId = NULL
+                FROM   dbo.OutboxState os
+                JOIN   dbo.OutboxProcessingState ps ON ps.OutboxId = os.OutboxId
+                WHERE  ps.LockedByInstanceId IS NOT NULL
+                  AND  ps.LockAcquiredUtc    < DATEADD(SECOND, @negStaleSecs, SYSUTCDATETIME())
+                  AND  os.Delivered          IS NULL
                 """;
-            cmd.Parameters.Add(new SqlParameter("@staleSecs", SqlDbType.Int)
+            releaseLocks.Parameters.Add(new SqlParameter("@negStaleSecs", SqlDbType.Int)
             {
                 Value = -(int)_options.Value.StaleLockTimeout.TotalSeconds
             });
+            var releasedLocks = await releaseLocks.ExecuteNonQueryAsync(ct);
 
-            var released = await cmd.ExecuteNonQueryAsync(ct);
-            if (released > 0)
-                LogStaleLockReleased(_logger, released, _instanceId);
+            // Clear the corresponding processing state lock metadata.
+            await using var clearState = connection.CreateCommand();
+            clearState.CommandText = """
+                UPDATE dbo.OutboxProcessingState
+                SET    LockedByInstanceId = NULL,
+                       LockAcquiredUtc    = NULL
+                WHERE  LockedByInstanceId IS NOT NULL
+                  AND  LockAcquiredUtc    < DATEADD(SECOND, @negStaleSecs, SYSUTCDATETIME())
+                """;
+            clearState.Parameters.Add(new SqlParameter("@negStaleSecs", SqlDbType.Int)
+            {
+                Value = -(int)_options.Value.StaleLockTimeout.TotalSeconds
+            });
+            await clearState.ExecuteNonQueryAsync(ct);
+
+            if (releasedLocks > 0)
+            {
+                _metrics.StaleLockRecoveries.Add(releasedLocks);
+                LogStaleLockReleased(_logger, releasedLocks, _instanceId);
+            }
         }
         catch (Exception ex)
         {
@@ -532,62 +859,38 @@ public sealed partial class OutboxRelayService : BackgroundService
         }
     }
 
-    // ── dead-letter ───────────────────────────────────────────────────────────
+    // ── observable gauge updates ──────────────────────────────────────────────
 
-    private async Task DeadLetterBatchAsync(
-        OutboxRelayDbContext db,
-        SqlConnection connection,
-        Guid outboxId,
-        List<OutboxMessageRow> messages,
-        int retryCount,
-        CancellationToken ct)
+    private async Task TryUpdateQueueGaugesAsync(SqlConnection connection, CancellationToken ct)
     {
-        foreach (var msg in messages)
+        try
         {
-            db.DeadLetterMessages.Add(new OutboxDeadLetterMessage
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                SELECT
+                    (SELECT COUNT(*)  FROM dbo.OutboxState          WHERE Delivered IS NULL)          AS QueueDepth,
+                    (SELECT DATEDIFF(SECOND, MIN(Created), SYSUTCDATETIME())
+                             FROM dbo.OutboxState WHERE Delivered IS NULL)                            AS OldestAgeSeconds,
+                    (SELECT COUNT(*)  FROM dbo.OutboxProcessingState WHERE RetryCount > 0)            AS RetryBacklog,
+                    (SELECT COUNT(*)  FROM dbo.OutboxDeadLetter)                                      AS DlqSize
+                """;
+
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            if (await reader.ReadAsync(ct))
             {
-                MessageId          = msg.MessageId,
-                OutboxId           = outboxId,
-                MessageType        = msg.MessageType,
-                Body               = msg.Body,
-                Headers            = msg.Headers,
-                DestinationAddress = msg.DestinationAddress,
-                FailureReason      = "Exhausted MaxRetries",
-                RetryCount         = retryCount,
-                FailedAt           = DateTime.UtcNow,
-            });
-
-            _metrics.MessagesDeadLettered.Add(1);
-            LogDeadLettered(_logger, msg.MessageId, FirstTypeShortName(msg.MessageType), outboxId, retryCount);
+                _metrics.SetQueueDepth(reader.IsDBNull(0) ? 0 : reader.GetInt32(0));
+                _metrics.SetOldestPendingAgeSeconds(reader.IsDBNull(1) ? 0 : reader.GetInt32(1));
+                _metrics.SetRetryBacklog(reader.IsDBNull(2) ? 0 : reader.GetInt32(2));
+                _metrics.SetDlqSize(reader.IsDBNull(3) ? 0 : reader.GetInt32(3));
+            }
         }
-
-        await db.SaveChangesAsync(ct);
-        await MarkDeliveredAsync(connection, outboxId, ct);
+        catch (Exception ex)
+        {
+            LogGaugeUpdateFailed(_logger, ex, _instanceId);
+        }
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Converts a MassTransit URN to a fully-qualified .NET type name and searches
-    /// all assemblies loaded into the current AppDomain.
-    ///
-    /// Assumption: all event types are in scope at relay startup because the Api
-    /// host references every bounded context. Not cached — background poll only.
-    /// </summary>
-    private static Type? ResolveMessageType(string urn)
-    {
-        const string prefix = "urn:message:";
-        if (!urn.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            return null;
-
-        // "urn:message:Karamchari.HR.Integration:EmployeeHired" → "Karamchari.HR.Integration.EmployeeHired"
-        var dotName = urn[prefix.Length..].Replace(":", ".", StringComparison.Ordinal);
-
-        return AppDomain.CurrentDomain
-            .GetAssemblies()
-            .Select(a => a.GetType(dotName))
-            .FirstOrDefault(t => t is not null);
-    }
 
     private static string FirstTypeShortName(string messageType)
     {
@@ -602,16 +905,24 @@ public sealed partial class OutboxRelayService : BackgroundService
         return TimeSpan.FromSeconds(Math.Min(seconds, 300));
     }
 
-    // ── source-generated log methods (CA1848 / CA1873) ───────────────────────
+    private static string TruncateError(string? error) =>
+        error is null ? string.Empty
+        : error.Length > 2000 ? error[..2000]
+        : error;
+
+    // ── source-generated log methods (CA1848 / CA1873) ────────────────────────
 
     [LoggerMessage(Level = LogLevel.Information,
         Message = "OutboxRelayService started. Instance={InstanceId} BatchSize={BatchSize} Interval={Interval}")]
-    private static partial void LogStarted(
-        ILogger logger, Guid instanceId, int batchSize, TimeSpan interval);
+    private static partial void LogStarted(ILogger logger, Guid instanceId, int batchSize, TimeSpan interval);
 
     [LoggerMessage(Level = LogLevel.Information,
         Message = "OutboxRelayService stopped. Instance={InstanceId}")]
     private static partial void LogStopped(ILogger logger, Guid instanceId);
+
+    [LoggerMessage(Level = LogLevel.Warning,
+        Message = "Circuit breaker open. Skipping batch cycle. Instance={InstanceId} ConsecutiveFailures={Failures}")]
+    private static partial void LogCircuitOpen(ILogger logger, Guid instanceId, int failures);
 
     [LoggerMessage(Level = LogLevel.Error,
         Message = "OutboxRelayService batch loop threw unexpectedly. Sleeping before retry. Instance={InstanceId}")]
@@ -637,6 +948,10 @@ public sealed partial class OutboxRelayService : BackgroundService
         Message = "OutboxId={OutboxId} reached MaxRetries on this cycle. Moving to dead-letter immediately.")]
     private static partial void LogDeadLetteringOnExhaustion(ILogger logger, Guid outboxId);
 
+    [LoggerMessage(Level = LogLevel.Warning,
+        Message = "Poison message dead-lettered immediately. OutboxId={OutboxId} Reason={Reason}")]
+    private static partial void LogPoisonDeadLettering(ILogger logger, Guid outboxId, string reason);
+
     [LoggerMessage(Level = LogLevel.Error,
         Message = "Publish failed for OutboxId={OutboxId} Attempt={Attempts}/{Max}. Next retry in {Delay}.")]
     private static partial void LogPublishFailed(
@@ -646,18 +961,6 @@ public sealed partial class OutboxRelayService : BackgroundService
         Message = "Dead-lettered message. MessageId={MessageId} Type={Type} OutboxId={OutboxId} RetryCount={Retries}")]
     private static partial void LogDeadLettered(
         ILogger logger, Guid messageId, string type, Guid outboxId, int retries);
-
-    [LoggerMessage(Level = LogLevel.Error,
-        Message = "Unsupported ContentType={ContentType} for MessageId={MessageId}. Skipping (poison message).")]
-    private static partial void LogPoisonContentType(ILogger logger, string contentType, Guid messageId);
-
-    [LoggerMessage(Level = LogLevel.Error,
-        Message = "Outbox Body missing 'message' property. MessageId={MessageId}. Skipping.")]
-    private static partial void LogPoisonMissingMessage(ILogger logger, Guid messageId);
-
-    [LoggerMessage(Level = LogLevel.Error,
-        Message = "Cannot resolve .NET type for URN={Urn} MessageId={MessageId}. Skipping (poison message).")]
-    private static partial void LogPoisonUnresolvableType(ILogger logger, string urn, Guid messageId);
 
     [LoggerMessage(Level = LogLevel.Warning,
         Message = "Failed to release own locks on shutdown. Instance={InstanceId}")]
@@ -670,4 +973,8 @@ public sealed partial class OutboxRelayService : BackgroundService
     [LoggerMessage(Level = LogLevel.Warning,
         Message = "Stale lock cleanup on startup failed. Instance={InstanceId}")]
     private static partial void LogStaleLockReleaseFailed(ILogger logger, Exception ex, Guid instanceId);
+
+    [LoggerMessage(Level = LogLevel.Warning,
+        Message = "Queue gauge update failed. Instance={InstanceId}")]
+    private static partial void LogGaugeUpdateFailed(ILogger logger, Exception ex, Guid instanceId);
 }
