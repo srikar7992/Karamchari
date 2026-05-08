@@ -1,4 +1,5 @@
 using Karamchari.Core.Messaging;
+using Karamchari.Core.Messaging.Outbox;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence.Interceptors;
 using Karamchari.Core.Persistence.Provisioning;
@@ -129,6 +130,35 @@ public static class CoreServiceCollectionExtensions
             serviceProvider.GetRequiredService<DomainEventDispatchInterceptor>());
 
         return builder;
+    }
+
+    /// <summary>
+    /// Registers the outbox relay BackgroundService and its dependencies.
+    /// Call this ONLY in non-development environments where Azure Service Bus is
+    /// configured. In development, <c>UseBusOutbox()</c> + in-memory transport
+    /// delivers messages immediately without a relay.
+    /// </summary>
+    public static IServiceCollection AddOutboxRelay(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        services
+            .AddOptions<OutboxRelayOptions>()
+            .Bind(configuration.GetSection(OutboxRelayOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        // DbContext for the dead-letter table only; no tenant interceptors.
+        services.AddDbContext<OutboxRelayDbContext>((sp, opts) =>
+            opts.UseSqlServer(configuration.GetConnectionString("KaramchariDb")));
+
+        services.AddSingleton<OutboxRelayMetrics>();
+        services.AddHostedService<OutboxRelayService>();
+
+        return services;
     }
 
     private static IServiceCollection TryAddSingletonTimeProvider(this IServiceCollection services)

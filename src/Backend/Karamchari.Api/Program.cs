@@ -1,5 +1,6 @@
 using Karamchari.Api;
 using Karamchari.Core.DependencyInjection;
+using Karamchari.Core.Messaging.Outbox;
 using Karamchari.HR.DependencyInjection;
 using Karamchari.Payroll.DependencyInjection;
 using Karamchari.TimeAttendance.DependencyInjection;
@@ -120,25 +121,32 @@ builder.Services.AddMassTransit(x =>
 
     // Transactional Outbox — one per DbContext that publishes domain/integration events.
     // Outbox tables (InboxState, OutboxMessage, OutboxState) are pinned to dbo (shared infra, not tenant-owned).
+    //
+    // Dev: UseBusOutbox() lets MassTransit drain the outbox inline so developers see
+    //      immediate delivery without running the relay.
+    // Prod: relay service (OutboxRelayService) is the sole drain mechanism; UseBusOutbox()
+    //       is intentionally absent to prevent double-delivery.
+    var isDev = builder.Environment.IsDevelopment();
+
     x.AddEntityFrameworkOutbox<HRDbContext>(o =>
     {
         o.UseSqlServer();
-        o.UseBusOutbox();
+        if (isDev) o.UseBusOutbox();
     });
     x.AddEntityFrameworkOutbox<PayrollDbContext>(o =>
     {
         o.UseSqlServer();
-        o.UseBusOutbox();
+        if (isDev) o.UseBusOutbox();
     });
     x.AddEntityFrameworkOutbox<TimeAttendanceDbContext>(o =>
     {
         o.UseSqlServer();
-        o.UseBusOutbox();
+        if (isDev) o.UseBusOutbox();
     });
     x.AddEntityFrameworkOutbox<PSADbContext>(o =>
     {
         o.UseSqlServer();
-        o.UseBusOutbox();
+        if (isDev) o.UseBusOutbox();
     });
 
     builder.Services.AddKaramchariBilling(builder.Configuration);
@@ -153,18 +161,35 @@ builder.Services.AddMassTransit(x =>
     x.AddConsumer<Karamchari.TimeAttendance.Consumers.LiveAttendanceConsumer>();
     x.AddConsumer<Karamchari.TimeAttendance.Consumers.ReprocessAttendanceConsumer>();
 
-    x.UsingInMemory((context, cfg) =>
+    if (isDev)
     {
-        cfg.ConfigureEndpoints(context);
-
-        // Global Concurrency and Retry Policy
-        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
-        
-        // Bounded Concurrency: Limits simultaneous processing to protect the DB
-        // In production, this would be tuned based on CPU cores and DB capacity
-        cfg.ConcurrentMessageLimit = 8; 
-    });
+        x.UsingInMemory((context, cfg) =>
+        {
+            cfg.ConfigureEndpoints(context);
+            cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+            cfg.ConcurrentMessageLimit = 8;
+        });
+    }
+    else
+    {
+        // Production: Azure Service Bus transport.
+        // OutboxRelayService (registered below) is the sole outbox drain mechanism.
+        x.UsingAzureServiceBus((context, cfg) =>
+        {
+            cfg.Host(builder.Configuration.GetConnectionString("AzureServiceBus"));
+            cfg.ConfigureEndpoints(context);
+            cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+            cfg.ConcurrentMessageLimit = 8;
+        });
+    }
 });
+
+// Production outbox relay — drains dbo.OutboxMessage to Azure Service Bus.
+// Not registered in Development: in-memory bus + UseBusOutbox() handles delivery there.
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddOutboxRelay(builder.Configuration);
+}
 
 // SignalR for real-time analytics updates.
 builder.Services.AddSignalR();
