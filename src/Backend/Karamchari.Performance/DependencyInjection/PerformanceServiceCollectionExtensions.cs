@@ -75,6 +75,15 @@ public static class PerformanceServiceCollectionExtensions
 
         services.RegisterTenantTable("PerformanceSnapshots");
 
+        // CQRS projection tables (ADR-0009)
+        services.RegisterTenantTable("ManagerDashboardProjections");
+        services.RegisterTenantTable("ReviewTaskInboxItems");
+        services.RegisterTenantTable("CalibrationBoardProjections");
+        services.RegisterTenantTable("PromotionPipelineItems");
+        services.RegisterTenantTable("TalentHeatmapEntries");
+        services.RegisterTenantTable("TeamGoalSummaries");
+        services.RegisterTenantTable("EmployeeSkillInventoryItems");
+
         // Scoring strategies — pluggable per tenant in a future iteration
         services.AddScoped<IOKRScoringStrategy, DefaultOKRScoringStrategy>();
 

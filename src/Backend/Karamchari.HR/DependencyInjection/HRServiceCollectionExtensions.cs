@@ -41,6 +41,7 @@ public static class HRServiceCollectionExtensions
         // per-tenant security policy. Forgetting this line is a security regression.
         services.RegisterTenantTable("Departments");
         services.RegisterTenantTable("Employees");
+        services.RegisterTenantTable("EmployeeRelationships");
 
         // Replace the Core-shipped fail-closed null dispatcher with the
         // MassTransit-backed publisher. Replace (not Add) ensures we win even

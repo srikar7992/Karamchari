@@ -2,6 +2,7 @@ using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.HR.Domain.Departments;
 using Karamchari.HR.Domain.Employees;
+using Karamchari.HR.Domain.Relationships;
 using Karamchari.HR.Persistence.Configurations;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
@@ -43,6 +44,9 @@ public sealed class HRDbContext : KaramchariDbContext
     /// </summary>
     public DbSet<Employee> Employees => Set<Employee>();
 
+    /// <summary>Gets the employee relationships set (org graph: dotted-line, project, mentor, etc.).</summary>
+    public DbSet<EmployeeRelationship> EmployeeRelationships => Set<EmployeeRelationship>();
+
     /// <summary>
     /// Configures the domain model for the HR context.
     /// </summary>
@@ -52,6 +56,7 @@ public sealed class HRDbContext : KaramchariDbContext
         ArgumentNullException.ThrowIfNull(modelBuilder);
         modelBuilder.ApplyConfiguration(new DepartmentConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
+        modelBuilder.ApplyConfiguration(new EmployeeRelationshipConfiguration());
 
         // MassTransit's transactional outbox entities. Adding them registers the
         // EF model types; pinning them to dbo keeps them out of the tenant

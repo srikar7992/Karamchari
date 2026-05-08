@@ -72,8 +72,15 @@ public sealed class PerformanceDbContext : KaramchariDbContext
     public DbSet<CareerFramework> CareerFrameworks => Set<CareerFramework>();
     public DbSet<EmployeeGrowthPlan> EmployeeGrowthPlans => Set<EmployeeGrowthPlan>();
 
-    // Analytics read models
+    // Analytics read models + CQRS projections (ADR-0009)
     public DbSet<PerformanceSnapshot> PerformanceSnapshots => Set<PerformanceSnapshot>();
+    public DbSet<ManagerDashboardProjection> ManagerDashboardProjections => Set<ManagerDashboardProjection>();
+    public DbSet<ReviewTaskInboxItem> ReviewTaskInboxItems => Set<ReviewTaskInboxItem>();
+    public DbSet<CalibrationBoardProjection> CalibrationBoardProjections => Set<CalibrationBoardProjection>();
+    public DbSet<PromotionPipelineItem> PromotionPipelineItems => Set<PromotionPipelineItem>();
+    public DbSet<TalentHeatmapEntry> TalentHeatmapEntries => Set<TalentHeatmapEntry>();
+    public DbSet<TeamGoalSummary> TeamGoalSummaries => Set<TeamGoalSummary>();
+    public DbSet<EmployeeSkillInventoryItem> EmployeeSkillInventoryItems => Set<EmployeeSkillInventoryItem>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -118,6 +125,15 @@ public sealed class PerformanceDbContext : KaramchariDbContext
 
         // Read models
         modelBuilder.ApplyConfiguration(new PerformanceSnapshotConfiguration());
+
+        // CQRS projections (ADR-0009)
+        modelBuilder.ApplyConfiguration(new ManagerDashboardProjectionConfiguration());
+        modelBuilder.ApplyConfiguration(new ReviewTaskInboxItemConfiguration());
+        modelBuilder.ApplyConfiguration(new CalibrationBoardProjectionConfiguration());
+        modelBuilder.ApplyConfiguration(new PromotionPipelineItemConfiguration());
+        modelBuilder.ApplyConfiguration(new TalentHeatmapEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new TeamGoalSummaryConfiguration());
+        modelBuilder.ApplyConfiguration(new EmployeeSkillInventoryItemConfiguration());
 
         // MassTransit transactional outbox — shared infrastructure, pinned to dbo
         modelBuilder.AddInboxStateEntity();

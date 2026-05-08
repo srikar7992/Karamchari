@@ -38,6 +38,10 @@ using Karamchari.Billing.DependencyInjection;
 using Karamchari.Forecasting.DependencyInjection;
 using Karamchari.Performance.DependencyInjection;
 using Karamchari.Performance.Persistence;
+using Karamchari.Notifications.DependencyInjection;
+using Karamchari.Notifications.Persistence;
+using Karamchari.Compensation.DependencyInjection;
+using Karamchari.Compensation.Persistence;
 
 // Entry point for the Karamchari API.
 var builder = WebApplication.CreateBuilder(args);
@@ -99,6 +103,8 @@ builder.Services.AddMassTransit(x =>
     builder.Services.AddKaramchariTimeAttendance(builder.Configuration, x);
     builder.Services.AddKaramchariPayroll(builder.Configuration, x);
     builder.Services.AddKaramchariPerformance(builder.Configuration, x);
+    builder.Services.AddKaramchariNotifications(builder.Configuration, x);
+    builder.Services.AddKaramchariCompensation(builder.Configuration, x);
 
     // PSA context
     builder.Services.AddDbContext<PSADbContext>(o =>
@@ -152,6 +158,16 @@ builder.Services.AddMassTransit(x =>
         if (isDev) o.UseBusOutbox();
     });
     x.AddEntityFrameworkOutbox<PerformanceDbContext>(o =>
+    {
+        o.UseSqlServer();
+        if (isDev) o.UseBusOutbox();
+    });
+    x.AddEntityFrameworkOutbox<NotificationsDbContext>(o =>
+    {
+        o.UseSqlServer();
+        if (isDev) o.UseBusOutbox();
+    });
+    x.AddEntityFrameworkOutbox<CompensationDbContext>(o =>
     {
         o.UseSqlServer();
         if (isDev) o.UseBusOutbox();

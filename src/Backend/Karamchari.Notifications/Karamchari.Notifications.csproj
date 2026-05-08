@@ -1,15 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Karamchari.HR — HR bounded context (employees, positions, leave, ...).
-    Owns its DbContext and EF entities. Other bounded contexts MUST NOT
-    reference HR's DbContext or EF types directly; cross-context
-    communication goes via integration events on the bus.
+    Karamchari.Notifications — Notification Orchestration bounded context.
+    Owns: NotificationTemplate, UserNotificationPreference, NotificationMessage,
+          NotificationDeliveryAttempt, DigestScheduler, RateLimitPolicy.
+
+    Cross-context contract: all source BCs publish integration events to the bus.
+    Notifications BC consumes them and owns all delivery orchestration.
+    See ADR-0008 for the full notification platform design.
+
+    IMPORTANT: Do NOT add delivery infrastructure (email SDK, push SDK) in this project.
+    Channel adapters live in Karamchari.Api or dedicated adapter libraries.
+    This BC owns the domain model and delivery scheduling only.
   -->
 
   <PropertyGroup>
-    <RootNamespace>Karamchari.HR</RootNamespace>
-    <AssemblyName>Karamchari.HR</AssemblyName>
+    <RootNamespace>Karamchari.Notifications</RootNamespace>
+    <AssemblyName>Karamchari.Notifications</AssemblyName>
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);CS1591;CA1062</NoWarn>
   </PropertyGroup>
@@ -19,8 +26,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="Azure.AI.DocumentIntelligence" />
-    <!-- Design-time only: allows `dotnet ef migrations add` to discover HRDbContextDesignTimeFactory. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -30,6 +35,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
+    <ProjectReference Include="..\Karamchari.Performance.Contracts\Karamchari.Performance.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
