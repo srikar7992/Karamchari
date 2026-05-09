@@ -4,7 +4,7 @@ namespace Karamchari.Payroll.Domain.Arrears.Events;
 
 public sealed record ArrearCalculationCreatedEvent(
     Guid ArrearId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     ArrearTriggerType TriggerType,
     DateOnly EffectiveFrom,
@@ -16,7 +16,7 @@ public sealed record ArrearCalculationCreatedEvent(
 
 public sealed record ArrearApprovalRequestedEvent(
     Guid ArrearId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal TotalNetDelta) : IDomainEvent
 {
@@ -26,7 +26,7 @@ public sealed record ArrearApprovalRequestedEvent(
 
 public sealed record ArrearProcessedEvent(
     Guid ArrearId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal TotalNetDelta,
     string PayoutPeriodName) : IDomainEvent
@@ -37,7 +37,7 @@ public sealed record ArrearProcessedEvent(
 
 public sealed record ArrearReversedEvent(
     Guid ArrearId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     string Reason) : IDomainEvent
 {

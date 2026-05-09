@@ -4,7 +4,7 @@ namespace Karamchari.Payroll.Domain.SalaryRevisions.Events;
 
 public sealed record SalaryRevisionApprovalRequestedEvent(
     Guid RevisionId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal NewCTC,
     DateOnly EffectiveFrom) : IDomainEvent
@@ -15,7 +15,7 @@ public sealed record SalaryRevisionApprovalRequestedEvent(
 
 public sealed record SalaryRevisionApprovedEvent(
     Guid RevisionId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal PreviousCTC,
     decimal NewCTC,

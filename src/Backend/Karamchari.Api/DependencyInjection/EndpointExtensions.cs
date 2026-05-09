@@ -12,6 +12,7 @@ using Karamchari.Api.BFF.Payroll;
 using Karamchari.Api.BFF.PSA;
 using Karamchari.Api.BFF.Search;
 using Karamchari.Api.BFF.Tenants;
+using Karamchari.Identity;
 using Karamchari.PSA.Hubs;
 using Karamchari.TimeAttendance.Hubs;
 using Karamchari.Notifications.RealTime;
@@ -25,6 +26,9 @@ public static class EndpointExtensions
 {
     public static WebApplication MapKaramchariEndpoints(this WebApplication app)
     {
+        // Infrastructure
+        app.MapIdentityEndpoints();
+
         // Hubs
         app.MapHub<AttendanceHub>("/hubs/attendance");
         app.MapHub<AnalyticsHub>("/hubs/analytics");

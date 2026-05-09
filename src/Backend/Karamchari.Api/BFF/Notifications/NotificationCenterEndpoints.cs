@@ -33,7 +33,8 @@ public static class NotificationCenterEndpoints
         [FromQuery] bool? unreadOnly,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         page = Math.Max(1, page);
@@ -82,7 +83,8 @@ public static class NotificationCenterEndpoints
         NotificationsDbContext db,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         var count = await db.NotificationMessages
@@ -99,7 +101,8 @@ public static class NotificationCenterEndpoints
         NotificationsDbContext db,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         var message = await db.NotificationMessages

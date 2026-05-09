@@ -4,7 +4,7 @@ namespace Karamchari.Payroll.Domain.Corrections.Events;
 
 public sealed record CorrectionCreatedEvent(
     Guid CorrectionId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     CorrectionType Type,
     string AffectedPeriodName) : IDomainEvent
@@ -15,7 +15,7 @@ public sealed record CorrectionCreatedEvent(
 
 public sealed record CorrectionApprovalRequestedEvent(
     Guid CorrectionId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     CorrectionType Type,
     string AffectedPeriodName) : IDomainEvent
@@ -26,7 +26,7 @@ public sealed record CorrectionApprovalRequestedEvent(
 
 public sealed record CorrectionApprovedEvent(
     Guid CorrectionId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     CorrectionType Type,
     string AffectedPeriodName,
@@ -38,7 +38,7 @@ public sealed record CorrectionApprovedEvent(
 
 public sealed record CorrectionProcessedEvent(
     Guid CorrectionId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal DifferentialAmount) : IDomainEvent
 {

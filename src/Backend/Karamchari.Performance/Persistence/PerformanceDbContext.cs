@@ -29,8 +29,6 @@ namespace Karamchari.Performance.Persistence;
 /// </summary>
 public sealed class PerformanceDbContext : KaramchariDbContext
 {
-    private const string MessagingSchema = "dbo";
-
     public PerformanceDbContext(DbContextOptions<PerformanceDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
@@ -89,6 +87,7 @@ public sealed class PerformanceDbContext : KaramchariDbContext
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
+        base.OnDomainModelCreating(modelBuilder);
 
         // Goals
         modelBuilder.ApplyConfiguration(new GoalCycleConfiguration());
@@ -142,7 +141,7 @@ public sealed class PerformanceDbContext : KaramchariDbContext
         modelBuilder.ApplyConfiguration(new TeamGoalSummaryConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeSkillInventoryItemConfiguration());
 
-        // MassTransit transactional outbox — shared infrastructure, pinned to dbo
+        const string MessagingSchema = "dbo";
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();

@@ -6,6 +6,8 @@ using Karamchari.TimeAttendance.Domain.Timesheets;
 using Karamchari.TimeAttendance.Domain.IoT;
 using Karamchari.TimeAttendance.Domain.Analytics;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 
 namespace Karamchari.TimeAttendance.Persistence;
 
@@ -87,6 +89,14 @@ public class TimeAttendanceDbContext : KaramchariDbContext
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
+
+        const string MessagingSchema = "dbo";
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
 
         modelBuilder.Entity<HolidayCalendar>(b =>
         {

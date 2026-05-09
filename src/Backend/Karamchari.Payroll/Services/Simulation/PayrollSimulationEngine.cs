@@ -29,7 +29,7 @@ public sealed class PayrollSimulationEngine
     }
 
     public async Task<PayrollSimulation> RunAsync(
-        Guid tenantId,
+        string tenantId,
         SimulationParameters parameters,
         string requestedBy,
         CancellationToken ct)

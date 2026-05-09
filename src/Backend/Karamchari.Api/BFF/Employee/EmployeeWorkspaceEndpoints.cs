@@ -34,7 +34,8 @@ public static class EmployeeWorkspaceEndpoints
         [FromQuery] string? status,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         page = Math.Max(1, page);
@@ -79,7 +80,8 @@ public static class EmployeeWorkspaceEndpoints
         PerformanceDbContext perf,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         var items = await perf.ReviewTaskInboxItems
@@ -107,7 +109,8 @@ public static class EmployeeWorkspaceEndpoints
         PerformanceDbContext perf,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         var items = await perf.EmployeeSkillInventoryItems

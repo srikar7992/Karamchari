@@ -4,7 +4,7 @@ namespace Karamchari.Payroll.Domain.Reimbursements.Events;
 
 public sealed record ReimbursementSubmittedEvent(
     Guid ClaimId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     ReimbursementCategory Category,
     decimal ClaimedAmount) : IDomainEvent
@@ -15,7 +15,7 @@ public sealed record ReimbursementSubmittedEvent(
 
 public sealed record ReimbursementApprovedEvent(
     Guid ClaimId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal ApprovedAmount,
     string ApprovedBy) : IDomainEvent
@@ -26,7 +26,7 @@ public sealed record ReimbursementApprovedEvent(
 
 public sealed record ReimbursementClawedBackEvent(
     Guid ClaimId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal Amount,
     string Reason) : IDomainEvent

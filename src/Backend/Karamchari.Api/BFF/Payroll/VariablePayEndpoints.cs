@@ -15,7 +15,7 @@ public static class VariablePayEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/variable-pay").RequireAuthorization();
 
-        group.MapPost("/", SubmitVariablePay).WithName("VariablePay.Submit");
+        group.MapPost("/", AllocateVariablePay).WithName("VariablePay.Allocate");
         group.MapGet("/{id:guid}", GetVariablePay).WithName("VariablePay.Get");
         group.MapGet("/", ListVariablePay).WithName("VariablePay.List");
         group.MapPost("/{id:guid}/approve", ApproveVariablePay).WithName("VariablePay.Approve");
@@ -23,16 +23,14 @@ public static class VariablePayEndpoints
         return app;
     }
 
-    private static async Task<IResult> SubmitVariablePay(
+    private static async Task<IResult> AllocateVariablePay(
         [FromBody] SubmitVariablePayRequest request,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         CancellationToken ct)
     {
-        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
-        var submittedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
-        var tenantId = Guid.Parse(tenantIdStr);
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
         if (!Enum.TryParse<VariablePayType>(request.Type, out var type))
             return Results.BadRequest($"Invalid variable pay type: {request.Type}");
@@ -40,7 +38,7 @@ public static class VariablePayEndpoints
         var pay = VariablePayAllocation.Allocate(
             tenantId, request.EmployeeId, request.EmployeeName,
             type, request.Amount, TaxTreatment.LumpSum,
-            request.PeriodName, null, 0, submittedBy);
+            request.PeriodName, null, 0, employeeId.ToString()!);
 
         db.Set<VariablePayAllocation>().Add(pay);
         await db.SaveChangesAsync(ct);
@@ -84,7 +82,6 @@ public static class VariablePayEndpoints
     private static async Task<IResult> ApproveVariablePay(
         Guid id,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         IPublishEndpoint bus,
         CancellationToken ct)
@@ -92,7 +89,9 @@ public static class VariablePayEndpoints
         var pay = await db.Set<VariablePayAllocation>().FirstOrDefaultAsync(p => p.Id == id, ct);
         if (pay is null) return Results.NotFound();
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var approvedBy = user.GetEmployeeIdString();
+        if (approvedBy is null) return Results.Unauthorized();
+
         pay.Approve(approvedBy);
 
         await db.SaveChangesAsync(ct);

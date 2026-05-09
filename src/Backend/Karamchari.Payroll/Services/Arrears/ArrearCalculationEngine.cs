@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Karamchari.Payroll.Services.Arrears;
 
 public record ArrearCalculationRequest(
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     string EmployeeName,
     ArrearTriggerType TriggerType,

@@ -39,7 +39,8 @@ public static class ManagerEndpoints
         PerformanceDbContext perf,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         var now = DateTimeOffset.UtcNow;
@@ -70,7 +71,8 @@ public static class ManagerEndpoints
         [FromQuery] int pageSize,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         page = Math.Max(1, page);
@@ -108,7 +110,8 @@ public static class ManagerEndpoints
         IVisibilityResolver visibility,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         var now = DateTimeOffset.UtcNow;
@@ -145,14 +148,15 @@ public static class ManagerEndpoints
         [FromQuery] int pageSize,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize == 0 ? 20 : pageSize, 1, 100);
 
         var visibleIds = await visibility.ResolveVisibleEmployeeIdsAsync(
-            employeeId, VisibilityScope.DirectAndFunctional, ct);
+            employeeId.Value, VisibilityScope.DirectAndFunctional, ct);
 
         var query = perf.PromotionPipelineItems
             .AsNoTracking()
@@ -188,11 +192,12 @@ public static class ManagerEndpoints
         IVisibilityResolver visibility,
         CancellationToken ct)
     {
-        var employeeId = user.GetEmployeeId(request);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
         if (employeeId == Guid.Empty) return Results.Unauthorized();
 
         var visibleIds = await visibility.ResolveVisibleEmployeeIdsAsync(
-            employeeId, VisibilityScope.DirectAndFunctional, ct);
+            employeeId.Value, VisibilityScope.DirectAndFunctional, ct);
 
         var entries = await perf.TalentHeatmapEntries
             .AsNoTracking()

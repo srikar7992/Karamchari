@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
+using Karamchari.Api.Middleware;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.FnF;
@@ -15,11 +16,11 @@ public static class FnFEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/fnf").RequireAuthorization();
 
-        group.MapPost("/", InitiateSettlement).WithName("FnF.Initiate");
+        group.MapPost("/initiate", InitiateSettlement).WithName("FnF.Initiate").WithIdempotency();
         group.MapGet("/{id:guid}", GetSettlement).WithName("FnF.Get");
         group.MapGet("/", ListSettlements).WithName("FnF.List");
-        group.MapPost("/{id:guid}/approve", ApproveSettlement).WithName("FnF.Approve");
-        group.MapPost("/{id:guid}/disburse", DisburseSettlement).WithName("FnF.Disburse");
+        group.MapPost("/{id:guid}/approve", ApproveSettlement).WithName("FnF.Approve").WithIdempotency();
+        group.MapPost("/{id:guid}/reject", RejectSettlement).WithName("FnF.Reject").WithIdempotency();
 
         return app;
     }
@@ -27,21 +28,19 @@ public static class FnFEndpoints
     private static async Task<IResult> InitiateSettlement(
         [FromBody] InitiateFnFRequest request,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
-        var initiatedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
-        var tenantId = Guid.Parse(tenantIdStr);
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
         if (!Enum.TryParse<FnFExitType>(request.ExitType, out var exitType))
             return Results.BadRequest($"Invalid exit type: {request.ExitType}");
 
         var settlement = FnFSettlement.Initiate(
             tenantId, request.EmployeeId, request.EmployeeName,
-            exitType, request.LastWorkingDay, initiatedBy);
+            exitType, request.LastWorkingDay, employeeId.ToString()!);
 
         db.Set<FnFSettlement>().Add(settlement);
         await db.SaveChangesAsync(ct);
@@ -99,7 +98,6 @@ public static class FnFEndpoints
     private static async Task<IResult> ApproveSettlement(
         Guid id,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         IPublishEndpoint bus,
         CancellationToken ct)
@@ -107,7 +105,9 @@ public static class FnFEndpoints
         var settlement = await db.Set<FnFSettlement>().FirstOrDefaultAsync(s => s.Id == id, ct);
         if (settlement is null) return Results.NotFound();
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var approvedBy = user.GetEmployeeIdString();
+        if (approvedBy is null) return Results.Unauthorized();
+        
         settlement.Approve(approvedBy);
 
         await db.SaveChangesAsync(ct);
@@ -122,6 +122,24 @@ public static class FnFEndpoints
             OccurredOnUtc = DateTimeOffset.UtcNow
         }, ct);
 
+        return Results.Ok(MapToDto(settlement));
+    }
+
+    private static async Task<IResult> RejectSettlement(
+        Guid id,
+        [FromBody] string reason,
+        ClaimsPrincipal user,
+        PayrollDbContext db,
+        CancellationToken ct)
+    {
+        var settlement = await db.Set<FnFSettlement>().FirstOrDefaultAsync(s => s.Id == id, ct);
+        if (settlement is null) return Results.NotFound();
+
+        var rejectedBy = user.GetEmployeeIdString();
+        if (rejectedBy is null) return Results.Unauthorized();
+
+        settlement.Cancel(reason);
+        await db.SaveChangesAsync(ct);
         return Results.Ok(MapToDto(settlement));
     }
 

@@ -9,7 +9,7 @@ namespace Karamchari.Forecasting.DependencyInjection;
 
 public static class ForecastingServiceCollectionExtensions
 {
-    private const string ConnectionStringName = "DefaultConnection";
+    private const string ConnectionStringName = "KaramchariDb";
 
     public static IServiceCollection AddKaramchariForecasting(
         this IServiceCollection services, 
@@ -18,10 +18,14 @@ public static class ForecastingServiceCollectionExtensions
         services.RegisterTenantTable("Forecast_Metrics");
         services.RegisterTenantTable("Forecast_ClientPaymentProfiles");
 
-        services.AddDbContext<ForecastingDbContext>(options =>
+        services.AddDbContext<ForecastingDbContext>((serviceProvider, options) =>
         {
-            var connectionString = configuration.GetConnectionString(ConnectionStringName);
+            var connectionString = configuration.GetConnectionString(ConnectionStringName)
+                ?? throw new InvalidOperationException(
+                    $"ConnectionStrings:{ConnectionStringName} must be configured before ForecastingDbContext can be resolved.");
+
             options.UseSqlServer(connectionString);
+            options.AddKaramchariInterceptors(serviceProvider);
         });
 
         services.AddScoped<ForecastingEngine>();

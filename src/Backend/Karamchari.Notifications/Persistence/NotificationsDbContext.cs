@@ -25,6 +25,7 @@ public sealed class NotificationsDbContext : KaramchariDbContext
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
+        base.OnDomainModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfiguration(new NotificationTemplateConfiguration());
         modelBuilder.ApplyConfiguration(new UserNotificationPreferenceConfiguration());

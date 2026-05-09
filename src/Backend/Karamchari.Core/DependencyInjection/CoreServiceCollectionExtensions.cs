@@ -1,6 +1,7 @@
 using Karamchari.Core.Messaging;
 using Karamchari.Core.Messaging.Outbox;
 using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Persistence;
 using Karamchari.Core.Persistence.Interceptors;
 using Karamchari.Core.Persistence.Provisioning;
 using Microsoft.AspNetCore.Http;
@@ -30,7 +31,13 @@ public static class CoreServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        // Tenancy options â€” strongly typed, validated on first resolution.
+        // Core Infrastructure DbContext (Shared tables)
+        services.AddDbContext<CoreDbContext>((sp, opts) =>
+        {
+            opts.UseSqlServer(configuration.GetConnectionString("KaramchariDb"));
+        });
+
+        // Tenancy options — strongly typed, validated on first resolution.
         services
             .AddOptions<TenantOptions>()
             .Bind(configuration.GetSection(TenantOptions.SectionName))

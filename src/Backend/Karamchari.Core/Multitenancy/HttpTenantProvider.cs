@@ -109,7 +109,7 @@ internal sealed class HttpTenantProvider : ITenantProvider
             return null;
         }
 
-        var raw = user.FindFirst(_options.JwtClaimType)?.Value;
+        var raw = user.FindFirst(TenantConstants.JwtClaimType)?.Value;
         if (string.IsNullOrWhiteSpace(raw))
         {
             return null;
@@ -123,7 +123,7 @@ internal sealed class HttpTenantProvider : ITenantProvider
 
     private string? ReadTrustedHeaderTenant(HttpContext httpContext)
     {
-        if (!httpContext.Request.Headers.TryGetValue(_options.TenantHeaderName, out var raw)
+        if (!httpContext.Request.Headers.TryGetValue(TenantConstants.HeaderName, out var raw)
             || string.IsNullOrWhiteSpace(raw))
         {
             return null;

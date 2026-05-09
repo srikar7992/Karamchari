@@ -9,7 +9,7 @@ namespace Karamchari.Payroll.Domain.Reimbursements;
 /// </summary>
 public sealed class ReimbursementClaim : AggregateRoot<Guid>
 {
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid EmployeeId { get; private set; }
     public string EmployeeName { get; private set; } = string.Empty;
     public ReimbursementCategory Category { get; private set; }
@@ -52,7 +52,7 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
     private ReimbursementClaim() { }
 
     public static ReimbursementClaim Submit(
-        Guid tenantId,
+        string tenantId,
         Guid employeeId,
         string employeeName,
         ReimbursementCategory category,

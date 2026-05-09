@@ -8,7 +8,7 @@ namespace Karamchari.Billing.DependencyInjection;
 
 public static class BillingServiceCollectionExtensions
 {
-    private const string ConnectionStringName = "DefaultConnection";
+    private const string ConnectionStringName = "KaramchariDb";
 
     public static IServiceCollection AddKaramchariBilling(
         this IServiceCollection services, 
@@ -26,9 +26,7 @@ public static class BillingServiceCollectionExtensions
                     $"ConnectionStrings:{ConnectionStringName} must be configured before BillingDbContext can be resolved.");
 
             options.UseSqlServer(connectionString);
-            // Assuming the core module provides interceptors for RLS and Tenancy
-            // Use the same pattern as other modules
-            // options.AddKaramchariInterceptors(serviceProvider);
+            options.AddKaramchariInterceptors(serviceProvider);
         });
 
         services.AddScoped<Karamchari.Billing.Services.InvoiceGeneratorService>();

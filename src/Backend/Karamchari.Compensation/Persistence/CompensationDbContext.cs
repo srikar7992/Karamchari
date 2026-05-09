@@ -25,6 +25,7 @@ public sealed class CompensationDbContext : KaramchariDbContext
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
+        base.OnDomainModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfiguration(new CompensationBandConfiguration());
         modelBuilder.ApplyConfiguration(new MeritMatrixConfiguration());

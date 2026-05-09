@@ -10,7 +10,7 @@ public sealed class ReconciliationJob : AggregateRoot<Guid>
 {
     private readonly List<PayrollAnomaly> _anomalies = [];
 
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public string PeriodName { get; private set; } = string.Empty;
     public ReconciliationJobStatus Status { get; private set; }
 
@@ -28,7 +28,7 @@ public sealed class ReconciliationJob : AggregateRoot<Guid>
 
     private ReconciliationJob() { }
 
-    public static ReconciliationJob Start(Guid tenantId, string periodName)
+    public static ReconciliationJob Start(string tenantId, string periodName)
     {
         return new ReconciliationJob
         {

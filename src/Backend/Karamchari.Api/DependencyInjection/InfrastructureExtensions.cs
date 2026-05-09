@@ -50,18 +50,27 @@ public static class InfrastructureExtensions
                 .AddAspNetCoreInstrumentation(o =>
                 {
                     o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health");
+                    o.EnrichWithHttpRequest = (activity, request) =>
+                    {
+                        var tenantId = request.HttpContext.User.FindFirst("tenant_id")?.Value;
+                        if (!string.IsNullOrEmpty(tenantId))
+                        {
+                            activity.SetTag("tenant.id", tenantId);
+                        }
+                    };
                 })
                 .AddEntityFrameworkCoreInstrumentation(o =>
                 {
                     o.SetDbStatementForText = true;
                 })
-                .AddSource("MassTransit"))
+                .AddSource("MassTransit")
+                .AddSource("Karamchari.*"))
             .WithMetrics(metrics => metrics
                 .AddAspNetCoreInstrumentation());
 
         // PSA context services (moved from Program.cs)
         services.AddDbContext<PSADbContext>(o =>
-            o.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            o.UseSqlServer(configuration.GetConnectionString("KaramchariDb")));
         services.AddScoped<ProjectResourceRepository>();
         services.AddScoped<InvoiceGeneratorService>();
         services.AddScoped<EmployeeCostService>();
@@ -90,6 +99,9 @@ public static class InfrastructureExtensions
                 sp.GetRequiredService<Karamchari.Core.Persistence.Provisioning.RlsScriptGenerator>(),
                 sp.GetRequiredService<IEnumerable<Karamchari.Core.Persistence.Provisioning.ITenantPostProvisioningTask>>(),
                 sp.GetRequiredService<ILogger<Karamchari.Core.Persistence.Provisioning.TenantProvisioningService>>()));
+
+        // Idempotency Cleanup
+        services.AddHostedService<Karamchari.Api.Middleware.BackgroundServices.IdempotencyCleanupWorker>();
 
         return services;
     }

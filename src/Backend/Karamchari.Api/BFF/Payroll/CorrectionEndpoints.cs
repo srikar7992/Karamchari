@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
+using Karamchari.Api.Middleware;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Corrections;
@@ -15,25 +16,23 @@ public static class CorrectionEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/corrections").RequireAuthorization();
 
-        group.MapPost("/", CreateCorrection).WithName("Correction.Create");
+        group.MapPost("/trigger", TriggerCorrection).WithName("Correction.Trigger").WithIdempotency();
         group.MapGet("/{id:guid}", GetCorrection).WithName("Correction.Get");
         group.MapGet("/", ListCorrections).WithName("Correction.List");
-        group.MapPost("/{id:guid}/approve", ApproveCorrection).WithName("Correction.Approve");
-        group.MapPost("/{id:guid}/reject", RejectCorrection).WithName("Correction.Reject");
+        group.MapPost("/{id:guid}/approve", ApproveCorrection).WithName("Correction.Approve").WithIdempotency();
+        group.MapPost("/{id:guid}/reject", RejectCorrection).WithName("Correction.Reject").WithIdempotency();
 
         return app;
     }
 
-    private static async Task<IResult> CreateCorrection(
+    private static async Task<IResult> TriggerCorrection(
         [FromBody] CreateCorrectionRequest request,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         CancellationToken ct)
     {
-        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
-        var initiatedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
-        var tenantId = Guid.Parse(tenantIdStr);
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
         if (!Enum.TryParse<CorrectionType>(request.Type, out var type))
             return Results.BadRequest($"Invalid correction type: {request.Type}");
@@ -48,7 +47,7 @@ public static class CorrectionEndpoints
             now.Year, now.Month,
             request.Reason, request.ChangeDetailsJson,
             afterBankDisbursement: false, afterTaxFiling: false, afterEmployeeExit: false,
-            requestedBy: initiatedBy);
+            requestedBy: employeeId.ToString()!);
 
         db.Set<PayrollCorrection>().Add(correction);
         await db.SaveChangesAsync(ct);
@@ -96,7 +95,6 @@ public static class CorrectionEndpoints
         Guid id,
         [FromBody] string note,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         IPublishEndpoint bus,
         CancellationToken ct)
@@ -104,7 +102,9 @@ public static class CorrectionEndpoints
         var correction = await db.Set<PayrollCorrection>().FirstOrDefaultAsync(c => c.Id == id, ct);
         if (correction is null) return Results.NotFound();
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var approvedBy = user.GetEmployeeIdString();
+        if (approvedBy is null) return Results.Unauthorized();
+
         correction.Approve(approvedBy);
 
         await db.SaveChangesAsync(ct);
@@ -127,20 +127,22 @@ public static class CorrectionEndpoints
         Guid id,
         [FromBody] string reason,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
+        IPublishEndpoint bus,
         CancellationToken ct)
     {
         var correction = await db.Set<PayrollCorrection>().FirstOrDefaultAsync(c => c.Id == id, ct);
         if (correction is null) return Results.NotFound();
 
-        var rejectedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var rejectedBy = user.GetEmployeeIdString();
+        if (rejectedBy is null) return Results.Unauthorized();
+
         correction.Reject(rejectedBy, reason);
 
         await db.SaveChangesAsync(ct);
+
         return Results.Ok(MapToDto(correction));
     }
-
     private static CorrectionDto MapToDto(PayrollCorrection c) =>
         new(c.Id, c.EmployeeId, c.EmployeeName, c.Type.ToString(),
             c.Scope.ToString(), c.AffectedPeriodName, c.Status.ToString(),

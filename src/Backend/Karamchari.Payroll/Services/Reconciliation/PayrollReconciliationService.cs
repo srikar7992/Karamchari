@@ -22,7 +22,7 @@ public sealed class PayrollReconciliationService
     }
 
     public async Task<ReconciliationJob> RunAsync(
-        Guid tenantId,
+        string tenantId,
         string periodName,
         int year,
         int month,

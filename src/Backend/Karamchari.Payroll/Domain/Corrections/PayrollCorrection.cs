@@ -9,7 +9,7 @@ namespace Karamchari.Payroll.Domain.Corrections;
 /// </summary>
 public sealed class PayrollCorrection : AggregateRoot<Guid>
 {
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid EmployeeId { get; private set; }
     public string EmployeeName { get; private set; } = string.Empty;
     public CorrectionType Type { get; private set; }
@@ -49,7 +49,7 @@ public sealed class PayrollCorrection : AggregateRoot<Guid>
     private PayrollCorrection() { }
 
     public static PayrollCorrection Create(
-        Guid tenantId,
+        string tenantId,
         Guid employeeId,
         string employeeName,
         CorrectionType type,

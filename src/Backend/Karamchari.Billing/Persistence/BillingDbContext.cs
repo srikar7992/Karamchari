@@ -1,13 +1,18 @@
 using Karamchari.Billing.Domain.BillableEntries;
 using Karamchari.Billing.Domain.Contracts;
 using Karamchari.Billing.Domain.Invoices;
+using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Persistence;
+using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Billing.Persistence;
 
-public sealed class BillingDbContext : DbContext
+public sealed class BillingDbContext : KaramchariDbContext
 {
-    public BillingDbContext(DbContextOptions<BillingDbContext> options) : base(options) { }
+    public BillingDbContext(DbContextOptions<BillingDbContext> options, ITenantProvider tenantProvider) 
+        : base(options, tenantProvider) { }
 
     public DbSet<BillingContract> Contracts => Set<BillingContract>();
     public DbSet<RateCard> RateCards => Set<RateCard>();
@@ -19,9 +24,19 @@ public sealed class BillingDbContext : DbContext
     public DbSet<Karamchari.Billing.Domain.Collections.CollectionPolicy> CollectionPolicies => Set<Karamchari.Billing.Domain.Collections.CollectionPolicy>();
     public DbSet<Karamchari.Billing.Domain.Analytics.ProcessedEventLog> ProcessedEventLogs => Set<Karamchari.Billing.Domain.Analytics.ProcessedEventLog>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
+        ArgumentNullException.ThrowIfNull(modelBuilder);
+        base.OnDomainModelCreating(modelBuilder);
+
+        const string MessagingSchema = "dbo";
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
 
         modelBuilder.Entity<BillingContract>(b =>
         {

@@ -7,7 +7,7 @@ public sealed class DisbursementBatchState : SagaStateMachineInstance
     public Guid CorrelationId { get; set; }
     public string CurrentState { get; set; } = string.Empty;
 
-    public Guid TenantId { get; set; }
+    public string TenantId { get; set; } = string.Empty;
     public Guid RunId { get; set; }
     public string PeriodName { get; set; } = string.Empty;
     public string BankProvider { get; set; } = string.Empty;

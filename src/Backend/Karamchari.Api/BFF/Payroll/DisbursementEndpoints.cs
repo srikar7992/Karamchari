@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
+using Karamchari.Api.Middleware;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Disbursement;
@@ -16,10 +17,10 @@ public static class DisbursementEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/disbursements").RequireAuthorization();
 
-        group.MapPost("/initiate", InitiateDisbursement).WithName("Disbursement.Initiate");
+        group.MapPost("/initiate", InitiateDisbursement).WithName("Disbursement.Initiate").WithIdempotency();
         group.MapGet("/{id:guid}", GetBatch).WithName("Disbursement.Get");
         group.MapGet("/", ListBatches).WithName("Disbursement.List");
-        group.MapPost("/{id:guid}/retry", RetryBatch).WithName("Disbursement.Retry");
+        group.MapPost("/{id:guid}/retry", RetryBatch).WithName("Disbursement.Retry").WithIdempotency();
 
         return app;
     }
@@ -27,20 +28,18 @@ public static class DisbursementEndpoints
     private static async Task<IResult> InitiateDisbursement(
         [FromBody] InitiateDisbursementRequest request,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         BankDisbursementOrchestrator orchestrator,
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
-        var initiatedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
-        var tenantId = Guid.Parse(tenantIdStr);
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
         var disbursementRequest = new DisbursementRequest(
             tenantId, request.RunId, request.PeriodName,
             Enum.Parse<BankProvider>(request.BankProvider),
             request.DebitAccountNumber,
-            initiatedBy);
+            employeeId.ToString()!);
 
         var batch = await orchestrator.InitiateAsync(disbursementRequest, ct);
 
@@ -51,7 +50,7 @@ public static class DisbursementEndpoints
             TenantId = tenantId,
             PeriodName = request.PeriodName,
             BankProvider = request.BankProvider,
-            InitiatedBy = initiatedBy
+            InitiatedBy = employeeId.ToString()!
         }, ct);
 
         return Results.Accepted($"/api/v1/payroll/disbursements/{batch.Id}", MapToDto(batch));

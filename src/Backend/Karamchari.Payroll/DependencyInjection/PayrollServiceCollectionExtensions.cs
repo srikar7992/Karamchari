@@ -54,8 +54,6 @@ public static class PayrollServiceCollectionExtensions
         // Phase 1A services
         services.AddScoped<FnFCalculationService>();
         services.AddScoped<ArrearCalculationEngine>();
-        services.AddSingleton<LoanAmortizationEngine>();
-        services.AddSingleton<ReimbursementPolicyEngine>();
         services.AddScoped<PayrollSimulationEngine>();
         services.AddScoped<BankDisbursementOrchestrator>();
         services.AddScoped<PayrollReconciliationService>();
@@ -72,7 +70,7 @@ public static class PayrollServiceCollectionExtensions
         services.AddScoped<IITDeclarationRepository, ITDeclarationRepository>();
         
         services.AddSingleton<IPayslipGenerator, QuestPdfPayslipGenerator>();
-        services.AddSingleton<IPayslipStorage, LocalFilePayslipStorage>();
+        services.AddScoped<IPayslipStorage, LocalFilePayslipStorage>();
 
         // Post-provisioning tasks: run after SELECT * INTO table clone to apply indexes.
         // SELECT * INTO copies column structure but not indexes — this task recreates

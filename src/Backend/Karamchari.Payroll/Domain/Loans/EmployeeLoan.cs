@@ -12,7 +12,7 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
 {
     private readonly List<LoanInstallment> _installments = [];
 
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid EmployeeId { get; private set; }
     public string EmployeeName { get; private set; } = string.Empty;
     public LoanType Type { get; private set; }
@@ -38,7 +38,7 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
     private EmployeeLoan() { }
 
     public static EmployeeLoan Create(
-        Guid tenantId,
+        string tenantId,
         Guid employeeId,
         string employeeName,
         LoanType type,

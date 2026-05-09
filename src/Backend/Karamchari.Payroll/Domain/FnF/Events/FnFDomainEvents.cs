@@ -4,7 +4,7 @@ namespace Karamchari.Payroll.Domain.FnF.Events;
 
 public sealed record FnFSettlementInitiatedEvent(
     Guid SettlementId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     FnFExitType ExitType,
     DateOnly LastWorkingDay) : IDomainEvent
@@ -15,7 +15,7 @@ public sealed record FnFSettlementInitiatedEvent(
 
 public sealed record FnFApprovalRequestedEvent(
     Guid SettlementId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal NetAmount) : IDomainEvent
 {
@@ -25,7 +25,7 @@ public sealed record FnFApprovalRequestedEvent(
 
 public sealed record FnFApprovedEvent(
     Guid SettlementId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal NetAmount,
     string ApprovedBy) : IDomainEvent
@@ -36,7 +36,7 @@ public sealed record FnFApprovedEvent(
 
 public sealed record FnFDisbursedEvent(
     Guid SettlementId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     decimal Amount) : IDomainEvent
 {
@@ -46,7 +46,7 @@ public sealed record FnFDisbursedEvent(
 
 public sealed record FnFReopenedEvent(
     Guid SettlementId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     string Reason) : IDomainEvent
 {

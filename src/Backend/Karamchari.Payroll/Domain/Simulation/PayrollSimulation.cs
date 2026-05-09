@@ -29,7 +29,7 @@ public sealed class PayrollSimulation : AggregateRoot<Guid>
 {
     private readonly List<SimulationEmployeeResult> _results = [];
 
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public SimulationType Type { get; private set; }
     public SimulationStatus Status { get; private set; }
     public string Parameters { get; private set; } = string.Empty;  // JSON input params
@@ -53,7 +53,7 @@ public sealed class PayrollSimulation : AggregateRoot<Guid>
     private PayrollSimulation() { }
 
     public static PayrollSimulation Start(
-        Guid tenantId,
+        string tenantId,
         SimulationType type,
         string parametersJson,
         string requestedBy)

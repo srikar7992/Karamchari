@@ -4,7 +4,7 @@ namespace Karamchari.Payroll.Domain.Disbursement.Events;
 
 public sealed record DisbursementBatchSubmittedEvent(
     Guid BatchId,
-    Guid TenantId,
+    string TenantId,
     Guid RunId,
     string PeriodName,
     decimal TotalAmount) : IDomainEvent
@@ -15,7 +15,7 @@ public sealed record DisbursementBatchSubmittedEvent(
 
 public sealed record DisbursementBatchCompletedEvent(
     Guid BatchId,
-    Guid TenantId,
+    string TenantId,
     Guid RunId,
     int SuccessCount,
     int FailedCount) : IDomainEvent
@@ -26,7 +26,7 @@ public sealed record DisbursementBatchCompletedEvent(
 
 public sealed record DisbursementBatchFailedEvent(
     Guid BatchId,
-    Guid TenantId,
+    string TenantId,
     Guid RunId,
     string Reason) : IDomainEvent
 {

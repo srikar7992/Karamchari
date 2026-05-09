@@ -12,7 +12,7 @@ public enum RevisionStatus { Draft, PendingApproval, Approved, Applied, Cancelle
 /// </summary>
 public sealed class SalaryRevision : AggregateRoot<Guid>
 {
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid EmployeeId { get; private set; }
     public string EmployeeName { get; private set; } = string.Empty;
     public RevisionType Type { get; private set; }
@@ -38,7 +38,7 @@ public sealed class SalaryRevision : AggregateRoot<Guid>
     private SalaryRevision() { }
 
     public static SalaryRevision Create(
-        Guid tenantId,
+        string tenantId,
         Guid employeeId,
         string employeeName,
         RevisionType type,

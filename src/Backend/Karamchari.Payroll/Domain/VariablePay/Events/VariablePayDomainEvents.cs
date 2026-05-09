@@ -4,7 +4,7 @@ namespace Karamchari.Payroll.Domain.VariablePay.Events;
 
 public sealed record VariablePayApprovedEvent(
     Guid AllocationId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     VariablePayType Type,
     decimal Amount,
@@ -16,7 +16,7 @@ public sealed record VariablePayApprovedEvent(
 
 public sealed record VariablePayPaidOutEvent(
     Guid AllocationId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     VariablePayType Type,
     decimal PaidAmount) : IDomainEvent

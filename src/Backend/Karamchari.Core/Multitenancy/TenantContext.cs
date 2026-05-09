@@ -15,12 +15,10 @@ public sealed partial record TenantContext
     /// concatenates this against the fixed <see cref="SchemaPrefix"/>; no other character
     /// classes are accepted, so the schema name itself stays inside <c>[A-Za-z0-9_]</c>.
     /// </summary>
-    public const string TenantIdPattern = "^[a-z0-9][a-z0-9_-]{0,49}$";
-
     /// <summary>Schema prefix used in storage. Combined with <see cref="TenantId"/> -> <c>tenant_acme</c>.</summary>
     public const string SchemaPrefix = "tenant_";
 
-    [GeneratedRegex(TenantIdPattern, RegexOptions.CultureInvariant | RegexOptions.Singleline)]
+    [GeneratedRegex(TenantConstants.TenantIdPattern, RegexOptions.CultureInvariant | RegexOptions.Singleline)]
     private static partial Regex TenantIdRegex();
 
     /// <summary>
@@ -34,7 +32,7 @@ public sealed partial record TenantContext
         if (!TenantIdRegex().IsMatch(tenantId))
         {
             throw new ArgumentException(
-                $"Tenant id '{tenantId}' is invalid. Must match {TenantIdPattern}.",
+                $"Tenant id '{tenantId}' is invalid. Must match {TenantConstants.TenantIdPattern}.",
                 nameof(tenantId));
         }
 

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
+using Karamchari.Api.Middleware;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Reimbursements;
@@ -17,13 +18,13 @@ public static class ReimbursementEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/reimbursements").RequireAuthorization();
 
-        group.MapPost("/", SubmitClaim).WithName("Reimbursement.Submit");
+        group.MapPost("/", SubmitClaim).WithName("Reimbursement.Submit").WithIdempotency();
         group.MapGet("/{id:guid}", GetClaim).WithName("Reimbursement.Get");
         group.MapGet("/", ListClaims).WithName("Reimbursement.List");
         group.MapGet("/my", GetMyClaims).WithName("Reimbursement.My");
-        group.MapPost("/{id:guid}/approve", ApproveClaim).WithName("Reimbursement.Approve");
-        group.MapPost("/{id:guid}/reject", RejectClaim).WithName("Reimbursement.Reject");
-        group.MapPost("/{id:guid}/clawback", ClawbackClaim).WithName("Reimbursement.Clawback");
+        group.MapPost("/{id:guid}/approve", ApproveClaim).WithName("Reimbursement.Approve").WithIdempotency();
+        group.MapPost("/{id:guid}/reject", RejectClaim).WithName("Reimbursement.Reject").WithIdempotency();
+        group.MapPost("/{id:guid}/clawback", ClawbackClaim).WithName("Reimbursement.Clawback").WithIdempotency();
 
         return app;
     }
@@ -31,14 +32,11 @@ public static class ReimbursementEndpoints
     private static async Task<IResult> SubmitClaim(
         [FromBody] SubmitReimbursementRequest request,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         CancellationToken ct)
     {
-        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
-        var tenantId = Guid.Parse(tenantIdStr);
-        var employeeId = user.GetEmployeeId(httpRequest);
-        var submittedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
         if (!Enum.TryParse<ReimbursementCategory>(request.Category, out var category))
             return Results.BadRequest($"Invalid category: {request.Category}");
@@ -57,11 +55,11 @@ public static class ReimbursementEndpoints
             return Results.UnprocessableEntity(new { reason = policyCheck.ViolationReason });
 
         var claim = ReimbursementClaim.Submit(
-            tenantId, employeeId, user.Identity?.Name ?? "system",
+            tenantId, employeeId.Value, user.Identity?.Name ?? employeeId.ToString()!,
             category, request.Description,
             request.ClaimedAmount, policyCheck.PolicyLimit,
             request.ExpenseDate, policyCheck.Taxability,
-            submittedBy, request.AttachmentBlobPath,
+            employeeId.ToString()!, request.AttachmentBlobPath,
             request.AttachmentFileName, request.AttachmentHash);
 
         if (policyCheck.FraudIndicator != FraudIndicatorLevel.None)
@@ -108,12 +106,13 @@ public static class ReimbursementEndpoints
 
     private static async Task<IResult> GetMyClaims(
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         [FromQuery] string? status,
         CancellationToken ct = default)
     {
-        var employeeId = user.GetEmployeeId(httpRequest);
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
+
         var query = db.Set<ReimbursementClaim>().AsNoTracking()
             .Where(c => c.EmployeeId == employeeId);
 
@@ -126,9 +125,8 @@ public static class ReimbursementEndpoints
 
     private static async Task<IResult> ApproveClaim(
         Guid id,
-        [FromBody] decimal? approvedAmount,
+        [FromBody] decimal approvedAmount,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         IPublishEndpoint bus,
         CancellationToken ct)
@@ -136,7 +134,9 @@ public static class ReimbursementEndpoints
         var claim = await db.Set<ReimbursementClaim>().FirstOrDefaultAsync(c => c.Id == id, ct);
         if (claim is null) return Results.NotFound();
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var approvedBy = user.GetEmployeeIdString();
+        if (approvedBy is null) return Results.Unauthorized();
+
         claim.Approve(approvedBy, approvedAmount);
 
         await db.SaveChangesAsync(ct);
@@ -158,14 +158,15 @@ public static class ReimbursementEndpoints
         Guid id,
         [FromBody] string reason,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         CancellationToken ct)
     {
         var claim = await db.Set<ReimbursementClaim>().FirstOrDefaultAsync(c => c.Id == id, ct);
         if (claim is null) return Results.NotFound();
 
-        var rejectedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var rejectedBy = user.GetEmployeeIdString();
+        if (rejectedBy is null) return Results.Unauthorized();
+        
         claim.Reject(rejectedBy, reason);
 
         await db.SaveChangesAsync(ct);

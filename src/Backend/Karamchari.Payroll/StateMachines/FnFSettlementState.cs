@@ -7,7 +7,7 @@ public sealed class FnFSettlementState : SagaStateMachineInstance
     public Guid CorrelationId { get; set; }
     public string CurrentState { get; set; } = string.Empty;
 
-    public Guid TenantId { get; set; }
+    public string TenantId { get; set; } = string.Empty;
     public Guid EmployeeId { get; set; }
     public string ExitType { get; set; } = string.Empty;
     public DateOnly LastWorkingDay { get; set; }

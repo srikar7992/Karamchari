@@ -4,7 +4,7 @@ namespace Karamchari.Payroll.Domain.Loans.Events;
 
 public sealed record LoanCreatedEvent(
     Guid LoanId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     LoanType Type,
     decimal PrincipalAmount) : IDomainEvent
@@ -15,7 +15,7 @@ public sealed record LoanCreatedEvent(
 
 public sealed record LoanClosedEvent(
     Guid LoanId,
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     LoanStatus ClosureType) : IDomainEvent
 {

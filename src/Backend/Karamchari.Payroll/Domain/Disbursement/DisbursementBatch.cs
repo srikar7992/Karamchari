@@ -12,7 +12,7 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
 {
     private readonly List<DisbursementEntry> _entries = [];
 
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid RunId { get; private set; }
     public string PeriodName { get; private set; } = string.Empty;
     public BankProvider BankProvider { get; private set; }
@@ -44,7 +44,7 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
     private DisbursementBatch() { }
 
     public static DisbursementBatch Create(
-        Guid tenantId,
+        string tenantId,
         Guid runId,
         string periodName,
         BankProvider provider,
@@ -58,7 +58,7 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
             RunId = runId,
             PeriodName = periodName,
             BankProvider = provider,
-            BatchReference = $"{tenantId:N}-{periodName}-{Guid.NewGuid():N}",
+            BatchReference = $"{tenantId}-{periodName}-{Guid.NewGuid():N}",
             Status = DisbursementBatchStatus.Pending,
             InitiatedBy = initiatedBy,
             CreatedAtUtc = DateTimeOffset.UtcNow

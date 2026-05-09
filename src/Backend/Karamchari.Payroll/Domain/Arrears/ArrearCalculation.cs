@@ -11,7 +11,7 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
 {
     private readonly List<ArrearPeriodDiff> _periodDiffs = [];
 
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid EmployeeId { get; private set; }
     public string EmployeeName { get; private set; } = string.Empty;
     public ArrearTriggerType TriggerType { get; private set; }
@@ -43,7 +43,7 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
     private ArrearCalculation() { }
 
     public static ArrearCalculation Create(
-        Guid tenantId,
+        string tenantId,
         Guid employeeId,
         string employeeName,
         ArrearTriggerType triggerType,

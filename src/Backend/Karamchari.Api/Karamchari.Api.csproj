@@ -55,6 +55,7 @@
     <ProjectReference Include="..\Karamchari.Performance\Karamchari.Performance.csproj" />
     <ProjectReference Include="..\Karamchari.Notifications\Karamchari.Notifications.csproj" />
     <ProjectReference Include="..\Karamchari.Compensation\Karamchari.Compensation.csproj" />
+    <ProjectReference Include="..\Karamchari.Identity.Infrastructure\Karamchari.Identity.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

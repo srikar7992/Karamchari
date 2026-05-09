@@ -188,7 +188,6 @@ public static class PayrollCockpitEndpoints
         Guid id,
         [FromBody] AnomalyResolutionRequest request,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         CancellationToken ct)
     {
@@ -198,7 +197,10 @@ public static class PayrollCockpitEndpoints
 
         if (anomaly is null) return Results.NotFound();
 
-        anomaly.Resolve(user.GetEmployeeIdString(httpRequest) ?? "system", request.Note);
+        var resolvedBy = user.GetEmployeeIdString();
+        if (resolvedBy is null) return Results.Unauthorized();
+
+        anomaly.Resolve(resolvedBy, request.Note);
         await db.SaveChangesAsync(ct);
         return Results.Ok();
     }
@@ -207,7 +209,6 @@ public static class PayrollCockpitEndpoints
         Guid id,
         [FromBody] AnomalyResolutionRequest request,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         CancellationToken ct)
     {
@@ -217,11 +218,14 @@ public static class PayrollCockpitEndpoints
 
         if (anomaly is null) return Results.NotFound();
 
-        anomaly.Dismiss(user.GetEmployeeIdString(httpRequest) ?? "system", request.Note);
+        var dismissedBy = user.GetEmployeeIdString();
+        if (dismissedBy is null) return Results.Unauthorized();
+
+        anomaly.Dismiss(dismissedBy, request.Note);
         await db.SaveChangesAsync(ct);
         return Results.Ok();
     }
 }
 
-public record RunReconciliationRequest(Guid TenantId, string PeriodName, int Year, int Month);
+public record RunReconciliationRequest(string TenantId, string PeriodName, int Year, int Month);
 public record AnomalyResolutionRequest(string Note);

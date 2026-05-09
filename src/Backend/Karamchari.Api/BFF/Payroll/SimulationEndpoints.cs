@@ -25,15 +25,13 @@ public static class SimulationEndpoints
     private static async Task<IResult> RunSimulation(
         [FromBody] SimulationParameters parameters,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollSimulationEngine engine,
         CancellationToken ct)
     {
-        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
-        var requestedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
-        var tenantId = Guid.Parse(tenantIdStr);
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
-        var simulation = await engine.RunAsync(tenantId, parameters, requestedBy, ct);
+        var simulation = await engine.RunAsync(tenantId, parameters, employeeId.ToString()!, ct);
 
         return Results.Accepted($"/api/v1/payroll/simulations/{simulation.Id}", MapToDto(simulation));
     }

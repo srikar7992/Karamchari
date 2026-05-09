@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
+using Karamchari.Api.Middleware;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Arrears;
@@ -16,10 +17,10 @@ public static class ArrearEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/arrears").RequireAuthorization();
 
-        group.MapPost("/trigger", TriggerArrearCalculation).WithName("Arrear.Trigger");
+        group.MapPost("/trigger", TriggerArrearCalculation).WithName("Arrear.Trigger").WithIdempotency();
         group.MapGet("/{id:guid}", GetArrear).WithName("Arrear.Get");
         group.MapGet("/", ListArrears).WithName("Arrear.List");
-        group.MapPost("/{id:guid}/approve", ApproveArrear).WithName("Arrear.Approve");
+        group.MapPost("/{id:guid}/approve", ApproveArrear).WithName("Arrear.Approve").WithIdempotency();
 
         return app;
     }
@@ -33,8 +34,11 @@ public static class ArrearEndpoints
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
-        var tenantId = Guid.Parse(tenantIdStr);
+        var tenantId = user.GetTenantId();
+        if (string.IsNullOrEmpty(tenantId))
+        {
+            return Results.Unauthorized();
+        }
 
         var request = new ArrearCalculationRequest(
             tenantId, command.EmployeeId, "",
@@ -94,7 +98,6 @@ public static class ArrearEndpoints
     private static async Task<IResult> ApproveArrear(
         Guid id,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         IPublishEndpoint bus,
         CancellationToken ct)
@@ -102,7 +105,9 @@ public static class ArrearEndpoints
         var arrear = await db.Set<ArrearCalculation>().FirstOrDefaultAsync(a => a.Id == id, ct);
         if (arrear is null) return Results.NotFound();
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var approvedBy = user.GetEmployeeIdString();
+        if (approvedBy is null) return Results.Unauthorized();
+        
         arrear.Approve(approvedBy);
 
         await db.SaveChangesAsync(ct);

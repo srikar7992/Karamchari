@@ -12,7 +12,7 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
 {
     private readonly List<FnFLineItem> _lineItems = [];
 
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid EmployeeId { get; private set; }
     public string EmployeeName { get; private set; } = string.Empty;
     public FnFExitType ExitType { get; private set; }
@@ -43,7 +43,7 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
     private FnFSettlement() { }
 
     public static FnFSettlement Initiate(
-        Guid tenantId,
+        string tenantId,
         Guid employeeId,
         string employeeName,
         FnFExitType exitType,

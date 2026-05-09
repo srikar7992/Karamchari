@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Karamchari.Payroll.Services.FnF;
 
 public record FnFCalculationInput(
-    Guid TenantId,
+    string TenantId,
     Guid EmployeeId,
     DateOnly LastWorkingDay,
     FnFExitType ExitType,

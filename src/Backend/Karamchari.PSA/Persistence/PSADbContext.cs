@@ -1,9 +1,11 @@
-namespace Karamchari.PSA.Persistence;
-
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.PSA.Domain;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
+
+namespace Karamchari.PSA.Persistence;
 
 /// <summary>
 /// Database context for the PSA bounded context.
@@ -48,6 +50,14 @@ public sealed class PSADbContext : KaramchariDbContext
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
+
+        const string MessagingSchema = "dbo";
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
 
         modelBuilder.Entity<Client>(b =>
         {

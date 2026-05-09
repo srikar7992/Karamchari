@@ -9,7 +9,7 @@ namespace Karamchari.Payroll.Domain.VariablePay;
 /// </summary>
 public sealed class VariablePayAllocation : AggregateRoot<Guid>
 {
-    public Guid TenantId { get; private set; }
+    public string TenantId { get; private set; } = string.Empty;
     public Guid EmployeeId { get; private set; }
     public string EmployeeName { get; private set; } = string.Empty;
     public VariablePayType Type { get; private set; }
@@ -47,7 +47,7 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
     private VariablePayAllocation() { }
 
     public static VariablePayAllocation Allocate(
-        Guid tenantId,
+        string tenantId,
         Guid employeeId,
         string employeeName,
         VariablePayType type,

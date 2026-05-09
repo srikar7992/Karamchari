@@ -14,6 +14,8 @@ using Karamchari.Payroll.Domain.SalaryRevisions;
 using Karamchari.Payroll.Domain.Disbursement;
 using Karamchari.Payroll.Domain.Simulation;
 using Karamchari.Payroll.Domain.Reconciliation;
+using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 using Karamchari.Core.Persistence;
@@ -114,7 +116,17 @@ public class PayrollDbContext : KaramchariDbContext
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
-        base.OnDomainModelCreating(modelBuilder);
+        base.OnModelCreating(modelBuilder);
+
+        const string MessagingSchema = "dbo";
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
 
         modelBuilder.Entity<PayrollProfile>(b =>
         {

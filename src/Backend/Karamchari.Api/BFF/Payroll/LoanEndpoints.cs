@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
+using Karamchari.Api.Middleware;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Loans;
@@ -16,11 +17,11 @@ public static class LoanEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/loans").RequireAuthorization();
 
-        group.MapPost("/", CreateLoan).WithName("Loan.Create");
+        group.MapPost("/", CreateLoan).WithName("Loan.Create").WithIdempotency();
         group.MapGet("/{id:guid}", GetLoan).WithName("Loan.Get");
         group.MapGet("/", ListLoans).WithName("Loan.List");
         group.MapGet("/{id:guid}/schedule", GetSchedule).WithName("Loan.Schedule");
-        group.MapPost("/{id:guid}/pre-close", PreCloseLoan).WithName("Loan.PreClose");
+        group.MapPost("/{id:guid}/pre-close", PreCloseLoan).WithName("Loan.PreClose").WithIdempotency();
 
         return app;
     }
@@ -28,14 +29,12 @@ public static class LoanEndpoints
     private static async Task<IResult> CreateLoan(
         [FromBody] CreateLoanRequest request,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
-        LoanAmortizationEngine amortization,
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var tenantId = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
-        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
         if (!Enum.TryParse<LoanType>(request.LoanType, out var loanType))
             return Results.BadRequest($"Invalid loan type: {request.LoanType}");
@@ -44,10 +43,10 @@ public static class LoanEndpoints
             return Results.BadRequest($"Invalid interest type: {request.InterestType}");
 
         var loan = EmployeeLoan.Create(
-            Guid.Parse(tenantId), request.EmployeeId, request.EmployeeName,
+            tenantId, request.EmployeeId, request.EmployeeName,
             loanType, interestType,
             request.PrincipalAmount, request.InterestRatePercent,
-            request.TenureMonths, request.DisbursedOn, approvedBy);
+            request.TenureMonths, request.DisbursedOn, employeeId.ToString()!);
 
         var schedule = LoanAmortizationEngine.GenerateSchedule(loan, request.DisbursedOn);
         loan.SetSchedule(schedule.Installments, schedule.MonthlyEmi);
@@ -58,7 +57,7 @@ public static class LoanEndpoints
         await bus.Publish(new LoanCreatedIntegrationEvent
         {
             LoanId = loan.Id,
-            TenantId = Guid.Parse(tenantId),
+            TenantId = tenantId,
             EmployeeId = request.EmployeeId,
             LoanType = request.LoanType,
             PrincipalAmount = request.PrincipalAmount,

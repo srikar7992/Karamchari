@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Karamchari.Api.BFF;
 using Karamchari.Api.BFF.Common;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
@@ -28,11 +30,13 @@ public static class ESSEndpoints
         return app;
     }
 
-    private static async Task<IResult> GetPayslips(PayrollDbContext dbContext)
+    private static async Task<IResult> GetPayslips(ClaimsPrincipal user, PayrollDbContext dbContext)
     {
-        var employeeId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
+
         var payslips = await dbContext.PayrollLedger
-            .Where(e => e.EmployeeId == employeeId)
+            .Where(e => e.TenantId == tenantId && e.EmployeeId == employeeId)
             .OrderByDescending(e => e.Year)
             .ThenByDescending(e => e.Month)
             .Select(e => new
@@ -52,18 +56,21 @@ public static class ESSEndpoints
     private static async Task<IResult> DownloadPayslip(
         int year, 
         int month, 
+        ClaimsPrincipal user,
         PayrollDbContext dbContext,
         IPayslipStorage storage)
     {
-        var employeeId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
+
         var ledger = await dbContext.PayrollLedger
-            .FirstOrDefaultAsync(e => e.EmployeeId == employeeId && e.Year == year && e.Month == month);
+            .FirstOrDefaultAsync(e => e.TenantId == tenantId && e.EmployeeId == employeeId && e.Year == year && e.Month == month);
 
         if (ledger == null) return Results.NotFound("Payslip not found or access denied.");
 
         try
         {
-            var pdfBytes = await storage.GetAsync(employeeId.ToString(), ledger.PeriodName);
+            var pdfBytes = await storage.GetAsync(employeeId.ToString()!, ledger.PeriodName);
             var fileName = $"Payslip_{ledger.PeriodName.Replace(" ", "_")}.pdf";
             return Results.File(pdfBytes, "application/pdf", fileName);
         }
@@ -73,14 +80,16 @@ public static class ESSEndpoints
         }
     }
 
-    private static async Task<IResult> GetYtdSummary(PayrollDbContext dbContext)
+    private static async Task<IResult> GetYtdSummary(ClaimsPrincipal user, PayrollDbContext dbContext)
     {
-        var employeeId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
+
         var now = DateTime.UtcNow;
         var fyStartYear = now.Month >= 4 ? now.Year : now.Year - 1;
 
         var ytd = await dbContext.PayrollLedger
-            .Where(e => e.EmployeeId == employeeId && e.FinancialYearStart == fyStartYear)
+            .Where(e => e.TenantId == tenantId && e.EmployeeId == employeeId && e.FinancialYearStart == fyStartYear)
             .GroupBy(e => e.EmployeeId)
             .Select(g => new
             {
@@ -96,14 +105,17 @@ public static class ESSEndpoints
 
     private static async Task<IResult> SimulateTax(
         TaxSimulationRequest request,
+        ClaimsPrincipal user,
         PayrollDbContext dbContext,
         IServiceProvider sp)
     {
-        var employeeId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
+
         if (request.Section80C > 150000) return Results.BadRequest("Section 80C declaration cannot exceed ₹1,50,000.");
         if (request.MonthlyRent < 0) return Results.BadRequest("Monthly rent cannot be negative.");
 
-        var profile = await dbContext.PayrollProfiles.FirstOrDefaultAsync(p => p.EmployeeId == employeeId);
+        var profile = await dbContext.PayrollProfiles.FirstOrDefaultAsync(p => p.TenantId == tenantId && p.EmployeeId == employeeId);
         if (profile == null) return Results.NotFound("Employee payroll profile not found.");
 
         var template = await dbContext.SalaryTemplates.FindAsync(profile.SalaryTemplateId);
@@ -116,11 +128,11 @@ public static class ESSEndpoints
         var fy = new FinancialYear(2026, 2027);
         var ephemeralDeclarations = new List<ITDeclaration>();
         if (request.Section80C > 0)
-            ephemeralDeclarations.Add(ITDeclaration.Create(employeeId, fy.StartYear, "80C", request.Section80C, "simulator", "simulator"));
+            ephemeralDeclarations.Add(ITDeclaration.Create(employeeId.Value, fy.StartYear, "80C", request.Section80C, "simulator", "simulator"));
         if (request.Section80D > 0)
-            ephemeralDeclarations.Add(ITDeclaration.Create(employeeId, fy.StartYear, "80D", request.Section80D, "simulator", "simulator"));
+            ephemeralDeclarations.Add(ITDeclaration.Create(employeeId.Value, fy.StartYear, "80D", request.Section80D, "simulator", "simulator"));
         if (request.MonthlyRent > 0)
-            ephemeralDeclarations.Add(ITDeclaration.Create(employeeId, fy.StartYear, "HRA", request.MonthlyRent * 12, "simulator", "simulator"));
+            ephemeralDeclarations.Add(ITDeclaration.Create(employeeId.Value, fy.StartYear, "HRA", request.MonthlyRent * 12, "simulator", "simulator"));
 
         var ptProvider = sp.GetRequiredService<IProfessionalTaxProvider>();
         var projectionService = sp.GetRequiredService<IIncomeProjectionService>();
@@ -129,7 +141,7 @@ public static class ESSEndpoints
 
         var staticRepo = new StaticDeclarationRepository(ephemeralDeclarations);
         var ruleSet = new FY20262027RuleSet(
-            new List<Guid> { Guid.Parse("00000000-0000-0000-0000-000000000001") }, 
+            new List<Guid> { employeeId.Value }, 
             ptProvider, projectionService, exemptionCalculator, taxSlabProvider, staticRepo);
 
         var oldProfile = profile.CloneWithRegime(TaxRegime.Old);
@@ -154,6 +166,7 @@ public static class ESSEndpoints
 
     private static async Task<IResult> AnalyzeDeclaration(
         IFormFile file,
+        ClaimsPrincipal user,
         IDocumentAnalyzer analyzer,
         IProofStorage storage)
     {
@@ -163,12 +176,13 @@ public static class ESSEndpoints
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!ProofAllowedExtensions.Contains(extension)) return Results.BadRequest("Invalid file type. Only PDF, JPG, and PNG are supported.");
 
-        var employeeId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-        var tenantId = "tenant_oakridge";
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
+
         var financialYear = 2026;
 
         using var stream = file.OpenReadStream();
-        var storageUri = await storage.SaveAsync(stream, file.FileName, tenantId, employeeId, financialYear);
+        var storageUri = await storage.SaveAsync(stream, file.FileName, tenantId, employeeId.Value, financialYear);
 
         stream.Position = 0;
         var result = await analyzer.AnalyzeAsync(stream, file.FileName);

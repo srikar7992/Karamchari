@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Karamchari.Payroll.Services.Disbursement;
 
 public record DisbursementRequest(
-    Guid TenantId,
+    string TenantId,
     Guid RunId,
     string PeriodName,
     BankProvider BankProvider,

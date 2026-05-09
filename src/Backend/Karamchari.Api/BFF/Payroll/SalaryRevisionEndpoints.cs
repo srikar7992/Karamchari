@@ -15,30 +15,28 @@ public static class SalaryRevisionEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/revisions").RequireAuthorization();
 
-        group.MapPost("/", CreateRevision).WithName("Revision.Create");
+        group.MapPost("/", ProposeRevision).WithName("Revision.Propose");
         group.MapGet("/{id:guid}", GetRevision).WithName("Revision.Get");
         group.MapGet("/", ListRevisions).WithName("Revision.List");
         group.MapPost("/{id:guid}/approve", ApproveRevision).WithName("Revision.Approve");
 
         return app;
     }
-
-    private static async Task<IResult> CreateRevision(
-        [FromBody] CreateSalaryRevisionRequest request,
-        ClaimsPrincipal user,
-        HttpRequest httpRequest,
-        PayrollDbContext db,
-        CancellationToken ct)
+private static async Task<IResult> ProposeRevision(
+    [FromBody] CreateSalaryRevisionRequest request,
+    ClaimsPrincipal user,
+    PayrollDbContext db,
+    IPublishEndpoint bus,
+    CancellationToken ct)
     {
-        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
-        var submittedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
-        var tenantId = Guid.Parse(tenantIdStr);
+        var (tenantId, employeeId) = user.GetTenantAndEmployee();
+        if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
         var revision = SalaryRevision.Create(
             tenantId, request.EmployeeId, request.EmployeeName,
             RevisionType.AnnualIncrement,
             request.PreviousCTC, request.NewCTC, request.EffectiveFrom,
-            request.RequiresArrears, submittedBy, request.Reason);
+            request.RequiresArrears, employeeId.ToString()!, request.Reason);
 
         db.Set<SalaryRevision>().Add(revision);
         await db.SaveChangesAsync(ct);
@@ -85,7 +83,6 @@ public static class SalaryRevisionEndpoints
     private static async Task<IResult> ApproveRevision(
         Guid id,
         ClaimsPrincipal user,
-        HttpRequest httpRequest,
         PayrollDbContext db,
         IPublishEndpoint bus,
         CancellationToken ct)
@@ -93,7 +90,9 @@ public static class SalaryRevisionEndpoints
         var revision = await db.Set<SalaryRevision>().FirstOrDefaultAsync(r => r.Id == id, ct);
         if (revision is null) return Results.NotFound();
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var approvedBy = user.GetEmployeeIdString();
+        if (approvedBy is null) return Results.Unauthorized();
+
         revision.Approve(approvedBy);
 
         await db.SaveChangesAsync(ct);
