@@ -1,4 +1,6 @@
 using Karamchari.Billing.DependencyInjection;
+using Karamchari.Capability.DependencyInjection;
+using Karamchari.Capability.Persistence;
 using Karamchari.Compensation.DependencyInjection;
 using Karamchari.Compensation.Persistence;
 using Karamchari.Core.DependencyInjection;
@@ -6,6 +8,8 @@ using Karamchari.Core.Messaging.Outbox;
 using Karamchari.Forecasting.DependencyInjection;
 using Karamchari.HR.DependencyInjection;
 using Karamchari.HR.Persistence;
+using Karamchari.Intelligence.DependencyInjection;
+using Karamchari.Intelligence.Persistence;
 using Karamchari.Notifications.DependencyInjection;
 using Karamchari.Notifications.Persistence;
 using Karamchari.Payroll.Data;
@@ -36,6 +40,7 @@ public static class MassTransitExtensions
             services.AddKaramchariNotifications(configuration, x);
             services.AddKaramchariCompensation(configuration, x);
             services.AddKaramchariRecruitment(configuration, x);
+            services.AddKaramchariIntelligence(configuration, x);
 
             x.AddConsumer<Karamchari.PSA.Consumers.BillableRevenueConsumer>();
             x.AddConsumer<Karamchari.PSA.Consumers.ProfitCalculationConsumer>();
@@ -78,6 +83,16 @@ public static class MassTransitExtensions
                 if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<RecruitmentDbContext>(o =>
+            {
+                o.UseSqlServer();
+                if (isDev) o.UseBusOutbox();
+            });
+            x.AddEntityFrameworkOutbox<CapabilityDbContext>(o =>
+            {
+                o.UseSqlServer();
+                if (isDev) o.UseBusOutbox();
+            });
+            x.AddEntityFrameworkOutbox<IntelligenceDbContext>(o =>
             {
                 o.UseSqlServer();
                 if (isDev) o.UseBusOutbox();
