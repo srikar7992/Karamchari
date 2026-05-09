@@ -39,6 +39,7 @@ public sealed class FnFCalculationService
         FnFCalculationInput input,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(input);
         var profile = await _db.PayrollProfiles
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.EmployeeId == input.EmployeeId, ct)

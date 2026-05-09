@@ -31,6 +31,7 @@ public sealed class SalaryRevisionApprovedArrearConsumer : IConsumer<SalaryRevis
 
     public async Task Consume(ConsumeContext<SalaryRevisionApprovedIntegrationEvent> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
 
         if (!msg.RequiresArrears)
@@ -42,8 +43,11 @@ public sealed class SalaryRevisionApprovedArrearConsumer : IConsumer<SalaryRevis
 
         if (existing)
         {
-            _logger.LogInformation(
-                "Arrear already computed for revision {RevisionId}. Skipping.", msg.RevisionId);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation(
+                    "Arrear already computed for revision {RevisionId}. Skipping.", msg.RevisionId);
+            }
             return;
         }
 
@@ -51,19 +55,22 @@ public sealed class SalaryRevisionApprovedArrearConsumer : IConsumer<SalaryRevis
         var request = new ArrearCalculationRequest(
             msg.TenantId,
             msg.EmployeeId,
-            employeeName: "",  // real impl: load from HR
+            "", // EmployeeName
             ArrearTriggerType.SalaryRevision,
             msg.RevisionId.ToString(),
             msg.EffectiveFrom,
             today.AddMonths(-1),
-            initiatedBy: "system");
+            "system"); // InitiatedBy
 
         var result = await _engine.ComputeAsync(request, context.CancellationToken);
 
         if (result.PeriodDiffs.Count == 0)
         {
-            _logger.LogInformation(
-                "No arrear differentials found for revision {RevisionId}.", msg.RevisionId);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation(
+                    "No arrear differentials found for revision {RevisionId}.", msg.RevisionId);
+            }
             return;
         }
 
@@ -72,9 +79,12 @@ public sealed class SalaryRevisionApprovedArrearConsumer : IConsumer<SalaryRevis
         _db.Set<ArrearCalculation>().Add(result.Calculation);
         await _db.SaveChangesAsync(context.CancellationToken);
 
-        _logger.LogInformation(
-            "Arrear calculation {ArrearId} created for revision {RevisionId}. Delta: {Delta}",
-            result.Calculation.Id, msg.RevisionId, result.Calculation.TotalNetDelta);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "Arrear calculation {ArrearId} created for revision {RevisionId}. Delta: {TotalNetDelta}",
+                result.Calculation.Id, msg.RevisionId, result.Calculation.TotalNetDelta);
+        }
     }
 }
 
@@ -94,6 +104,7 @@ public sealed class ArrearApprovedConsumer : IConsumer<ArrearCalculationApproved
 
     public async Task Consume(ConsumeContext<ArrearCalculationApprovedIntegrationEvent> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
 
         var arrear = await _db.Set<ArrearCalculation>()
@@ -107,9 +118,9 @@ public sealed class ArrearApprovedConsumer : IConsumer<ArrearCalculationApproved
         var currentPeriod = $"{today.Year}-{today.Month:D2}";
 
         var deduction = Karamchari.Payroll.Domain.PayrollDeduction.Create(
-            msg.TenantId, msg.EmployeeId, currentPeriod,
-            amount: msg.TotalNetDelta,
-            reason: $"Arrear payout for {arrear.TriggerType} (ID: {msg.ArrearId})");
+            msg.TenantId.ToString(), msg.EmployeeId, currentPeriod,
+            msg.TotalNetDelta,
+            $"Arrear payout for {arrear.TriggerType} (ID: {msg.ArrearId})");
 
         _db.PayrollDeductions.Add(deduction);
         arrear.MarkProcessed(currentPeriod, runId: Guid.NewGuid().ToString());

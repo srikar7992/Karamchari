@@ -36,6 +36,7 @@ public sealed class ArrearCalculationEngine
         ArrearCalculationRequest request,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(request);
         var calculation = ArrearCalculation.Create(
             request.TenantId,
             request.EmployeeId,
@@ -59,10 +60,8 @@ public sealed class ArrearCalculationEngine
         // Load current (revised) payroll profile for recalculation
         var profile = await _db.PayrollProfiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.EmployeeId == request.EmployeeId, ct);
-
-        if (profile is null)
-            throw new InvalidOperationException($"No payroll profile for employee {request.EmployeeId}.");
+            .FirstOrDefaultAsync(p => p.EmployeeId == request.EmployeeId, ct)
+            ?? throw new InvalidOperationException($"No payroll profile for employee {request.EmployeeId}.");
 
         var diffs = new List<ArrearPeriodDiff>();
 

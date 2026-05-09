@@ -1,0 +1,44 @@
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.OpenTelemetry;
+
+namespace Karamchari.Api.DependencyInjection;
+
+public static class LoggingExtensions
+{
+    public static void AddKaramchariLogging(this WebApplicationBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        builder.Host.UseSerilog((context, services, configuration) =>
+        {
+            configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .Enrich.WithEnvironmentName()
+                .Enrich.WithProcessId()
+                .Enrich.WithProperty("Application", "Karamchari.Api")
+                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.OpenTelemetry(options =>
+                {
+                    options.Endpoint = context.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? "http://localhost:4317";
+                    options.ResourceAttributes = new Dictionary<string, object>
+                    {
+                        ["service.name"] = "Karamchari.Api",
+                        ["deployment.environment"] = context.HostingEnvironment.EnvironmentName
+                    };
+                });
+
+            if (context.HostingEnvironment.IsDevelopment())
+            {
+                configuration.MinimumLevel.Override("Microsoft", LogEventLevel.Information);
+                configuration.MinimumLevel.Override("MassTransit", LogEventLevel.Debug);
+            }
+            else
+            {
+                configuration.MinimumLevel.Override("Microsoft", LogEventLevel.Warning);
+                configuration.MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information);
+            }
+        });
+    }
+}

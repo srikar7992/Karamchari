@@ -30,7 +30,7 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
     /// <summary>
     /// Gets the event for starting a payroll run.
     /// </summary>
-    public Event<StartPayrollRunCommand> StartCommand { get; private set; } = null!;
+    public Event<Karamchari.Core.Contracts.IntegrationEvents.StartPayrollRunCommand> StartCommand { get; private set; } = null!;
     /// <summary>
     /// Gets the event for an individual employee's pay being calculated.
     /// </summary>
@@ -38,7 +38,7 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
     /// <summary>
     /// Gets the event for locking a payroll run.
     /// </summary>
-    public Event<LockPayrollRunCommand> LockCommand { get; private set; } = null!;
+    public Event<Karamchari.Core.Contracts.IntegrationEvents.LockPayrollRunCommand> LockCommand { get; private set; } = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PayrollRunStateMachine"/> class.

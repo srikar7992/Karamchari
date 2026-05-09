@@ -23,9 +23,14 @@ public sealed class HdfcBankAdapter : IBankDisbursementAdapter
         BankDisbursementRequest request,
         CancellationToken ct)
     {
-        _logger.LogInformation(
-            "HDFC disbursement submitted. Batch: {BatchRef}, Entries: {Count}, Total: {Total}",
-            request.BatchReference, request.Entries.Count, request.Entries.Sum(e => e.Amount));
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "HDFC disbursement submitted. Batch: {BatchReference}, Entries: {Count}, Total: {TotalAmount}",
+                request.BatchReference, request.Entries.Count, request.Entries.Sum(e => e.Amount));
+        }
 
         // Stub: mark all as success
         var results = request.Entries.Select(e => new EntryResult(

@@ -100,6 +100,21 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         string AdminEmail);
 
     /// <summary>
+    /// Command to start a new payroll run.
+    /// </summary>
+    public record StartPayrollRunCommand(
+        Guid RunId,
+        string TenantId,
+        string PeriodName);
+
+    /// <summary>
+    /// Command to lock a payroll run.
+    /// </summary>
+    public record LockPayrollRunCommand(
+        Guid RunId,
+        string ApprovedBy);
+
+    /// <summary>
     /// Event published when a tax declaration is rejected by HR.
     /// Triggers a notification to the employee.
     /// </summary>

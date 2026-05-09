@@ -38,6 +38,7 @@ public sealed class BankDisbursementOrchestrator
         DisbursementRequest request,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(request);
         // Deduplication guard: prevent duplicate disbursement for same run
         var existing = await _db.Set<DisbursementBatch>()
             .FirstOrDefaultAsync(b => b.RunId == request.RunId, ct);

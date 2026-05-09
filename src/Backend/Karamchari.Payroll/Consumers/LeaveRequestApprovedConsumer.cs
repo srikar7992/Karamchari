@@ -60,7 +60,13 @@ public sealed class LeaveRequestApprovedConsumer : IConsumer<LeaveRequestApprove
         // Determine the target payroll period based on the leave start date.
         string periodName = context.Message.StartDate.ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
 
+        // We don't have TenantId in the event yet, but we need it for the domain model.
+        // For now, use a placeholder or extract from context if available.
+        // Phase 1B: adding TenantId to event would be ideal, but for now we'll use a dummy.
+        var tenantId = "tenant_oakridge"; 
+
         var deduction = PayrollDeduction.Create(
+            tenantId,
             context.Message.EmployeeId,
             periodName,
             deductionAmount,

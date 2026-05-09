@@ -6,6 +6,7 @@ public sealed record ArrearCalculationApprovedIntegrationEvent
     public Guid TenantId { get; init; }
     public Guid EmployeeId { get; init; }
     public decimal TotalNetDelta { get; init; }
+    public string ApprovedBy { get; init; } = string.Empty;
     public string TriggerType { get; init; } = string.Empty;
     public DateTimeOffset OccurredOnUtc { get; init; }
 }

@@ -18,12 +18,8 @@ public static class FnFEndpoints
         group.MapPost("/", InitiateSettlement).WithName("FnF.Initiate");
         group.MapGet("/{id:guid}", GetSettlement).WithName("FnF.Get");
         group.MapGet("/", ListSettlements).WithName("FnF.List");
-        group.MapPost("/{id:guid}/submit", SubmitForApproval).WithName("FnF.Submit");
         group.MapPost("/{id:guid}/approve", ApproveSettlement).WithName("FnF.Approve");
         group.MapPost("/{id:guid}/disburse", DisburseSettlement).WithName("FnF.Disburse");
-        group.MapPost("/{id:guid}/hold", PlaceOnHold).WithName("FnF.Hold");
-        group.MapPost("/{id:guid}/release-hold", ReleaseHold).WithName("FnF.ReleaseHold");
-        group.MapPost("/{id:guid}/reopen", Reopen).WithName("FnF.Reopen");
 
         return app;
     }
@@ -36,8 +32,9 @@ public static class FnFEndpoints
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var tenantId = user.GetTenantId(httpRequest);
-        var initiatedBy = user.GetEmployeeIdString(httpRequest);
+        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
+        var initiatedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var tenantId = Guid.Parse(tenantIdStr);
 
         if (!Enum.TryParse<FnFExitType>(request.ExitType, out var exitType))
             return Results.BadRequest($"Invalid exit type: {request.ExitType}");
@@ -54,7 +51,7 @@ public static class FnFEndpoints
             SettlementId = settlement.Id,
             TenantId = tenantId,
             EmployeeId = request.EmployeeId,
-            ExitType = request.ExitType,
+            ExitType = exitType.ToString(),
             LastWorkingDay = request.LastWorkingDay,
             OccurredOnUtc = DateTimeOffset.UtcNow
         }, ct);
@@ -63,9 +60,7 @@ public static class FnFEndpoints
     }
 
     private static async Task<IResult> GetSettlement(
-        Guid id,
-        PayrollDbContext db,
-        CancellationToken ct)
+        Guid id, PayrollDbContext db, CancellationToken ct)
     {
         var settlement = await db.Set<FnFSettlement>()
             .AsNoTracking()
@@ -78,6 +73,7 @@ public static class FnFEndpoints
     private static async Task<IResult> ListSettlements(
         PayrollDbContext db,
         [FromQuery] string? status,
+        [FromQuery] Guid? employeeId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
@@ -87,29 +83,17 @@ public static class FnFEndpoints
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<FnFStatus>(status, out var s))
             query = query.Where(x => x.Status == s);
 
+        if (employeeId.HasValue)
+            query = query.Where(x => x.EmployeeId == employeeId.Value);
+
         var total = await query.CountAsync(ct);
         var items = await query
             .OrderByDescending(x => x.CreatedAtUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Include(x => x.LineItems)
             .ToListAsync(ct);
 
-        return Results.Ok(new { Items = items.Select(MapToDto), Total = total, Page = page, PageSize = pageSize });
-    }
-
-    private static async Task<IResult> SubmitForApproval(
-        Guid id, PayrollDbContext db, CancellationToken ct)
-    {
-        var settlement = await db.Set<FnFSettlement>()
-            .Include(s => s.LineItems)
-            .FirstOrDefaultAsync(s => s.Id == id, ct);
-
-        if (settlement is null) return Results.NotFound();
-
-        settlement.SubmitForApproval();
-        await db.SaveChangesAsync(ct);
-        return Results.Ok(MapToDto(settlement));
+        return Results.Ok(new { Items = items.Select(MapToDto), Total = total, Page = page });
     }
 
     private static async Task<IResult> ApproveSettlement(
@@ -120,14 +104,12 @@ public static class FnFEndpoints
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var settlement = await db.Set<FnFSettlement>()
-            .Include(s => s.LineItems)
-            .FirstOrDefaultAsync(s => s.Id == id, ct);
-
+        var settlement = await db.Set<FnFSettlement>().FirstOrDefaultAsync(s => s.Id == id, ct);
         if (settlement is null) return Results.NotFound();
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest);
+        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
         settlement.Approve(approvedBy);
+
         await db.SaveChangesAsync(ct);
 
         await bus.Publish(new FnFSettlementApprovedIntegrationEvent
@@ -145,72 +127,21 @@ public static class FnFEndpoints
 
     private static async Task<IResult> DisburseSettlement(
         Guid id,
-        ClaimsPrincipal user,
-        HttpRequest httpRequest,
-        PayrollDbContext db,
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var settlement = await db.Set<FnFSettlement>()
-            .Include(s => s.LineItems)
-            .FirstOrDefaultAsync(s => s.Id == id, ct);
-
-        if (settlement is null) return Results.NotFound();
-
-        await bus.Publish(new DisburseFnFCommand { SettlementId = id, TenantId = settlement.TenantId }, ct);
+        await bus.Publish(new DisburseFnFCommand { SettlementId = id }, ct);
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PlaceOnHold(
-        Guid id,
-        [FromBody] string reason,
-        PayrollDbContext db,
-        CancellationToken ct)
-    {
-        var settlement = await db.Set<FnFSettlement>()
-            .FirstOrDefaultAsync(s => s.Id == id, ct);
-
-        if (settlement is null) return Results.NotFound();
-
-        settlement.PlaceOnLegalHold(reason);
-        await db.SaveChangesAsync(ct);
-        return Results.Ok();
-    }
-
-    private static async Task<IResult> ReleaseHold(
-        Guid id, PayrollDbContext db, CancellationToken ct)
-    {
-        var settlement = await db.Set<FnFSettlement>()
-            .FirstOrDefaultAsync(s => s.Id == id, ct);
-
-        if (settlement is null) return Results.NotFound();
-
-        settlement.ReleaseHold();
-        await db.SaveChangesAsync(ct);
-        return Results.Ok();
-    }
-
-    private static async Task<IResult> Reopen(
-        Guid id,
-        [FromBody] string reason,
-        PayrollDbContext db,
-        CancellationToken ct)
-    {
-        var settlement = await db.Set<FnFSettlement>()
-            .FirstOrDefaultAsync(s => s.Id == id, ct);
-
-        if (settlement is null) return Results.NotFound();
-
-        settlement.Reopen(reason);
-        await db.SaveChangesAsync(ct);
-        return Results.Ok();
-    }
-
-    private static FnFSettlementDto MapToDto(FnFSettlement s) =>
+    private static FnFDto MapToDto(FnFSettlement s) =>
         new(s.Id, s.EmployeeId, s.EmployeeName, s.ExitType.ToString(),
-            s.LastWorkingDay, s.Status.ToString(),
-            s.TotalEarnings, s.TotalDeductions, s.NetSettlementAmount,
-            s.LineItems.Select(l => new FnFLineItemDto(
-                l.Type.ToString(), l.Description, l.Amount, l.IsDeduction, l.IsTaxable)).ToList(),
-            s.CreatedAtUtc);
+            s.Status.ToString(), s.NetSettlementAmount, s.LastWorkingDay, s.CreatedAtUtc);
 }
+
+public record FnFDto(
+    Guid Id, Guid EmployeeId, string EmployeeName, string ExitType,
+    string Status, decimal NetAmount, DateOnly LastWorkingDay, DateTimeOffset CreatedAt);
+
+public record InitiateFnFRequest(
+    Guid EmployeeId, string EmployeeName, string ExitType, DateOnly LastWorkingDay);

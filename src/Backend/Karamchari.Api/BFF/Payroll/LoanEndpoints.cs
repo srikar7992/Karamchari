@@ -34,8 +34,8 @@ public static class LoanEndpoints
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var tenantId = user.GetTenantId(httpRequest);
-        var approvedBy = user.GetEmployeeIdString(httpRequest);
+        var tenantId = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
+        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
 
         if (!Enum.TryParse<LoanType>(request.LoanType, out var loanType))
             return Results.BadRequest($"Invalid loan type: {request.LoanType}");
@@ -44,12 +44,12 @@ public static class LoanEndpoints
             return Results.BadRequest($"Invalid interest type: {request.InterestType}");
 
         var loan = EmployeeLoan.Create(
-            tenantId, request.EmployeeId, request.EmployeeName,
+            Guid.Parse(tenantId), request.EmployeeId, request.EmployeeName,
             loanType, interestType,
             request.PrincipalAmount, request.InterestRatePercent,
             request.TenureMonths, request.DisbursedOn, approvedBy);
 
-        var schedule = amortization.GenerateSchedule(loan, request.DisbursedOn);
+        var schedule = LoanAmortizationEngine.GenerateSchedule(loan, request.DisbursedOn);
         loan.SetSchedule(schedule.Installments, schedule.MonthlyEmi);
 
         db.Set<EmployeeLoan>().Add(loan);
@@ -58,7 +58,7 @@ public static class LoanEndpoints
         await bus.Publish(new LoanCreatedIntegrationEvent
         {
             LoanId = loan.Id,
-            TenantId = tenantId,
+            TenantId = Guid.Parse(tenantId),
             EmployeeId = request.EmployeeId,
             LoanType = request.LoanType,
             PrincipalAmount = request.PrincipalAmount,

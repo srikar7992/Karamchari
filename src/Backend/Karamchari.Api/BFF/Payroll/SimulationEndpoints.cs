@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
+using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Simulation;
 using Karamchari.Payroll.Services.Simulation;
@@ -14,40 +15,27 @@ public static class SimulationEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/simulations").RequireAuthorization();
 
-        group.MapPost("/", RunSimulation).WithName("Simulation.Run");
+        group.MapPost("/run", RunSimulation).WithName("Simulation.Run");
         group.MapGet("/{id:guid}", GetSimulation).WithName("Simulation.Get");
-        group.MapDelete("/{id:guid}", DiscardSimulation).WithName("Simulation.Discard");
+        group.MapGet("/", ListSimulations).WithName("Simulation.List");
 
         return app;
     }
 
     private static async Task<IResult> RunSimulation(
-        [FromBody] RunSimulationRequest request,
+        [FromBody] SimulationParameters parameters,
         ClaimsPrincipal user,
         HttpRequest httpRequest,
         PayrollSimulationEngine engine,
-        PayrollDbContext db,
         CancellationToken ct)
     {
-        var tenantId = user.GetTenantId(httpRequest);
-        var requestedBy = user.GetEmployeeIdString(httpRequest);
-
-        if (!Enum.TryParse<SimulationType>(request.SimulationType, out var simType))
-            return Results.BadRequest($"Invalid simulation type: {request.SimulationType}");
-
-        var parameters = new SimulationParameters(
-            simType,
-            request.EmployeeIds,
-            request.GlobalCTCAdjustmentPercent,
-            request.PerEmployeeCTC,
-            request.ForPeriodName);
+        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
+        var requestedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var tenantId = Guid.Parse(tenantIdStr);
 
         var simulation = await engine.RunAsync(tenantId, parameters, requestedBy, ct);
 
-        db.Set<PayrollSimulation>().Add(simulation);
-        await db.SaveChangesAsync(ct);
-
-        return Results.Created($"/api/v1/payroll/simulations/{simulation.Id}", MapToDto(simulation));
+        return Results.Accepted($"/api/v1/payroll/simulations/{simulation.Id}", MapToDto(simulation));
     }
 
     private static async Task<IResult> GetSimulation(
@@ -55,31 +43,35 @@ public static class SimulationEndpoints
     {
         var simulation = await db.Set<PayrollSimulation>()
             .AsNoTracking()
+            .Include(s => s.Results)
             .FirstOrDefaultAsync(s => s.Id == id, ct);
 
         return simulation is null ? Results.NotFound() : Results.Ok(MapToDto(simulation));
     }
 
-    private static async Task<IResult> DiscardSimulation(
-        Guid id, PayrollDbContext db, CancellationToken ct)
+    private static async Task<IResult> ListSimulations(
+        PayrollDbContext db,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
     {
-        var simulation = await db.Set<PayrollSimulation>()
-            .FirstOrDefaultAsync(s => s.Id == id, ct);
+        var query = db.Set<PayrollSimulation>().AsNoTracking();
 
-        if (simulation is null) return Results.NotFound();
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderByDescending(s => s.CreatedAtUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
 
-        simulation.Discard();
-        await db.SaveChangesAsync(ct);
-        return Results.NoContent();
+        return Results.Ok(new { Items = items.Select(MapToDto), Total = total, Page = page });
     }
 
-    private static SimulationResultDto MapToDto(PayrollSimulation s) =>
+    private static SimulationDto MapToDto(PayrollSimulation s) =>
         new(s.Id, s.Type.ToString(), s.Status.ToString(),
-            s.TotalProjectedGross, s.TotalProjectedNet, s.TotalProjectedDelta,
-            s.Results.Select(r => new SimulationEmployeeResultDto(
-                r.EmployeeId, r.EmployeeName,
-                r.CurrentGross, r.ProjectedGross,
-                r.CurrentNet, r.ProjectedNet,
-                r.NetDelta, r.ComponentBreakdown)).ToList(),
-            s.CreatedAtUtc);
+            s.Results.Count, s.CreatedAtUtc, s.CompletedAtUtc);
 }
+
+public record SimulationDto(
+    Guid Id, string Type, string Status, int EmployeeCount,
+    DateTimeOffset StartedAt, DateTimeOffset? CompletedAt);

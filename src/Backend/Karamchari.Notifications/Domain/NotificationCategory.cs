@@ -32,4 +32,7 @@ public enum NotificationCategory
 
     /// <summary>System-level notifications (maintenance, provisioning, billing — admin only).</summary>
     SystemAlerts = 9,
+
+    /// <summary>Payroll-related notifications (salary, FnF, arrears, reimbursements).</summary>
+    Payroll = 10,
 }

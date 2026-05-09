@@ -48,6 +48,11 @@ public sealed record NotificationIntent(
         NotificationIntentType.GoalOverdue            => "goal.overdue",
         NotificationIntentType.FeedbackRequested      => "feedback.requested",
         NotificationIntentType.FeedbackResponsePendingReminder => "feedback.response-pending",
+        NotificationIntentType.FnFApproved            => "payroll.fnf-approved",
+        NotificationIntentType.FnFDisbursed           => "payroll.fnf-disbursed",
+        NotificationIntentType.ArrearApproved         => "payroll.arrear-approved",
+        NotificationIntentType.ReimbursementApproved   => "payroll.reimbursement-approved",
+        NotificationIntentType.SalaryRevisionApproved  => "payroll.salary-revision-approved",
         _ => throw new ArgumentOutOfRangeException(nameof(IntentType), IntentType, "No template code mapping.")
     };
 }

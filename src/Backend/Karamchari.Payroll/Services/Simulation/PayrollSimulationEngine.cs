@@ -34,6 +34,7 @@ public sealed class PayrollSimulationEngine
         string requestedBy,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(parameters);
         var simulation = PayrollSimulation.Start(
             tenantId,
             parameters.Type,

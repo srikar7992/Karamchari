@@ -23,11 +23,15 @@ public sealed class InitiateDisbursementConsumer : IConsumer<InitiateDisbursemen
 
     public async Task Consume(ConsumeContext<InitiateDisbursementCommand> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
 
-        _logger.LogInformation(
-            "Initiating disbursement for run {RunId}, period {Period}, bank {Bank}",
-            msg.RunId, msg.PeriodName, msg.BankProvider);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "Initiating disbursement for run {RunId}, period {PeriodName}, bank {BankProvider}",
+                msg.RunId, msg.PeriodName, msg.BankProvider);
+        }
 
         if (!Enum.TryParse<Karamchari.Payroll.Domain.Disbursement.BankProvider>(
                 msg.BankProvider, out var bankProvider))
@@ -35,7 +39,7 @@ public sealed class InitiateDisbursementConsumer : IConsumer<InitiateDisbursemen
 
         var request = new DisbursementRequest(
             msg.TenantId, msg.RunId, msg.PeriodName,
-            bankProvider, debitAccountNumber: "", msg.InitiatedBy);
+            bankProvider, "", msg.InitiatedBy); // DebitAccountNumber
 
         var batch = await _orchestrator.InitiateAsync(request, context.CancellationToken);
 
@@ -69,8 +73,14 @@ public sealed class RetryDisbursementConsumer : IConsumer<RetryDisbursementComma
 
     public async Task Consume(ConsumeContext<RetryDisbursementCommand> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
-        _logger.LogInformation("Retrying disbursement batch {BatchId}", msg.BatchId);
-        await _orchestrator.SubmitAsync(msg.BatchId, debitAccountNumber: "", context.CancellationToken);
+
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Retrying disbursement batch {BatchId}", msg.BatchId);
+        }
+
+        await _orchestrator.SubmitAsync(msg.BatchId, "", context.CancellationToken); // DebitAccountNumber
     }
 }

@@ -30,6 +30,15 @@ internal static class BffClaimsExtensions
     internal static string? GetTenantId(this ClaimsPrincipal user) =>
         user.FindFirstValue("tenant_id");
 
+    internal static string? GetTenantId(this ClaimsPrincipal user, HttpRequest _) =>
+        user.GetTenantId();
+
+    internal static string? GetEmployeeIdString(this ClaimsPrincipal user, HttpRequest request)
+    {
+        var id = user.GetEmployeeId(request);
+        return id == Guid.Empty ? null : id.ToString();
+    }
+
     /// <summary>
     /// Extracts both tenant ID and employee ID (from 'sub' claim) in one call.
     /// Either value may be null/empty — callers must return 401 when that happens.

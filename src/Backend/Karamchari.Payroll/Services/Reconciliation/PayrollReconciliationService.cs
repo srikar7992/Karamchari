@@ -28,6 +28,7 @@ public sealed class PayrollReconciliationService
         int month,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(periodName);
         var job = ReconciliationJob.Start(tenantId, periodName);
 
         try
@@ -94,7 +95,7 @@ public sealed class PayrollReconciliationService
                         evidence: $"{{\"current\":{entry.MonthlyGross},\"previous\":{prev.MonthlyGross},\"variance\":{variance:F4}}}",
                         employeeId: entry.EmployeeId,
                         periodName: periodName,
-                        anomalyScore: (double)variance * 10 > 100 ? 100 : (double)variance * 10));
+                        anomalyScore: (decimal)Math.Min(100.0, (double)variance * 10.0)));
                 }
             }
 
@@ -122,14 +123,20 @@ public sealed class PayrollReconciliationService
 
             job.Complete(ledgerEntries.Count);
 
-            _logger.LogInformation(
-                "Reconciliation completed for {Period}. Employees: {Count}, Anomalies: {Anomalies}",
-                periodName, ledgerEntries.Count, job.TotalAnomalies);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation(
+                    "Reconciliation completed for {PeriodName}. Employees: {Count}, Anomalies: {TotalAnomalies}",
+                    periodName, ledgerEntries.Count, job.TotalAnomalies);
+            }
         }
         catch (Exception ex)
         {
             job.Fail(ex.Message);
-            _logger.LogError(ex, "Reconciliation failed for {Period}", periodName);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, "Reconciliation failed for {PeriodName}", periodName);
+            }
         }
 
         return job;

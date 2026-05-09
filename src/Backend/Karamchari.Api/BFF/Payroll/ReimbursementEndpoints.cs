@@ -7,6 +7,7 @@ using Karamchari.Payroll.Services.Reimbursements;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Karamchari.Api.BFF.Common;
 
 namespace Karamchari.Api.BFF.Payroll;
 
@@ -32,24 +33,23 @@ public static class ReimbursementEndpoints
         ClaimsPrincipal user,
         HttpRequest httpRequest,
         PayrollDbContext db,
-        ReimbursementPolicyEngine policyEngine,
         CancellationToken ct)
     {
-        var tenantId = user.GetTenantId(httpRequest);
+        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
+        var tenantId = Guid.Parse(tenantIdStr);
         var employeeId = user.GetEmployeeId(httpRequest);
-        var submittedBy = user.GetEmployeeIdString(httpRequest);
+        var submittedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
 
         if (!Enum.TryParse<ReimbursementCategory>(request.Category, out var category))
             return Results.BadRequest($"Invalid category: {request.Category}");
 
-        // Load existing hashes to detect duplicates
         var existingHashes = await db.Set<ReimbursementClaim>()
             .AsNoTracking()
             .Where(c => c.EmployeeId == employeeId)
             .Select(c => c.AttachmentHash)
             .ToListAsync(ct);
 
-        var policyCheck = policyEngine.Evaluate(
+        var policyCheck = ReimbursementPolicyEngine.Evaluate(
             category, request.ClaimedAmount,
             request.AttachmentHash, existingHashes);
 
@@ -57,7 +57,7 @@ public static class ReimbursementEndpoints
             return Results.UnprocessableEntity(new { reason = policyCheck.ViolationReason });
 
         var claim = ReimbursementClaim.Submit(
-            tenantId, employeeId, submittedBy,
+            tenantId, employeeId, user.Identity?.Name ?? "system",
             category, request.Description,
             request.ClaimedAmount, policyCheck.PolicyLimit,
             request.ExpenseDate, policyCheck.Taxability,
@@ -83,6 +83,29 @@ public static class ReimbursementEndpoints
         return claim is null ? Results.NotFound() : Results.Ok(MapToDto(claim));
     }
 
+    private static async Task<IResult> ListClaims(
+        PayrollDbContext db,
+        [FromQuery] string? status,
+        [FromQuery] Guid? employeeId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var query = db.Set<ReimbursementClaim>().AsNoTracking();
+
+        if (employeeId.HasValue)
+            query = query.Where(c => c.EmployeeId == employeeId.Value);
+
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<ReimbursementStatus>(status, out var s))
+            query = query.Where(c => c.Status == s);
+
+        var total = await query.CountAsync(ct);
+        var items = await query.OrderByDescending(c => c.CreatedAtUtc)
+            .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+
+        return Results.Ok(new { Items = items.Select(MapToDto), Total = total, Page = page });
+    }
+
     private static async Task<IResult> GetMyClaims(
         ClaimsPrincipal user,
         HttpRequest httpRequest,
@@ -101,32 +124,6 @@ public static class ReimbursementEndpoints
         return Results.Ok(items.Select(MapToDto));
     }
 
-    private static async Task<IResult> ListClaims(
-        PayrollDbContext db,
-        [FromQuery] string? status,
-        [FromQuery] Guid? employeeId,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
-    {
-        var query = db.Set<ReimbursementClaim>().AsNoTracking();
-
-        if (!string.IsNullOrEmpty(status) && Enum.TryParse<ReimbursementStatus>(status, out var s))
-            query = query.Where(c => c.Status == s);
-
-        if (employeeId.HasValue)
-            query = query.Where(c => c.EmployeeId == employeeId.Value);
-
-        var total = await query.CountAsync(ct);
-        var items = await query
-            .OrderByDescending(c => c.CreatedAtUtc)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(ct);
-
-        return Results.Ok(new { Items = items.Select(MapToDto), Total = total, Page = page });
-    }
-
     private static async Task<IResult> ApproveClaim(
         Guid id,
         [FromBody] decimal? approvedAmount,
@@ -136,13 +133,12 @@ public static class ReimbursementEndpoints
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var claim = await db.Set<ReimbursementClaim>()
-            .FirstOrDefaultAsync(c => c.Id == id, ct);
-
+        var claim = await db.Set<ReimbursementClaim>().FirstOrDefaultAsync(c => c.Id == id, ct);
         if (claim is null) return Results.NotFound();
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest);
+        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
         claim.Approve(approvedBy, approvedAmount);
+
         await db.SaveChangesAsync(ct);
 
         await bus.Publish(new ReimbursementApprovedIntegrationEvent
@@ -166,12 +162,12 @@ public static class ReimbursementEndpoints
         PayrollDbContext db,
         CancellationToken ct)
     {
-        var claim = await db.Set<ReimbursementClaim>()
-            .FirstOrDefaultAsync(c => c.Id == id, ct);
-
+        var claim = await db.Set<ReimbursementClaim>().FirstOrDefaultAsync(c => c.Id == id, ct);
         if (claim is null) return Results.NotFound();
 
-        claim.Reject(user.GetEmployeeIdString(httpRequest), reason);
+        var rejectedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        claim.Reject(rejectedBy, reason);
+
         await db.SaveChangesAsync(ct);
         return Results.Ok(MapToDto(claim));
     }

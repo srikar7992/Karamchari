@@ -17,7 +17,7 @@ public sealed class PayrollCorrectionStateMachine : MassTransitStateMachine<Payr
     public State Rejected { get; private set; } = null!;
 
     public Event<CorrectionApprovedIntegrationEvent> CorrectionApproved { get; private set; } = null!;
-    public Event<TriggerCorrectionRecalculationCommand> RecalculationTriggered_Evt { get; private set; } = null!;
+    public Event<TriggerCorrectionRecalculationCommand> RecalculationTriggeredEvent { get; private set; } = null!;
     public Event<CorrectionProcessedIntegrationEvent> CorrectionProcessed { get; private set; } = null!;
 
     public PayrollCorrectionStateMachine()
@@ -25,7 +25,7 @@ public sealed class PayrollCorrectionStateMachine : MassTransitStateMachine<Payr
         InstanceState(x => x.CurrentState);
 
         Event(() => CorrectionApproved, x => x.CorrelateById(ctx => ctx.Message.CorrectionId));
-        Event(() => RecalculationTriggered_Evt, x => x.CorrelateById(ctx => ctx.Message.CorrectionId));
+        Event(() => RecalculationTriggeredEvent, x => x.CorrelateById(ctx => ctx.Message.CorrectionId));
         Event(() => CorrectionProcessed, x => x.CorrelateById(ctx => ctx.Message.CorrectionId));
 
         Initially(
@@ -53,7 +53,7 @@ public sealed class PayrollCorrectionStateMachine : MassTransitStateMachine<Payr
         );
 
         During(Approved,
-            When(RecalculationTriggered_Evt)
+            When(RecalculationTriggeredEvent)
                 // Idempotency: skip if already triggered in this saga
                 .If(ctx => !ctx.Saga.RecalculationTriggered, binder => binder
                     .Then(ctx =>

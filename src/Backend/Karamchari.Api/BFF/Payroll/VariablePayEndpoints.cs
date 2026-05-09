@@ -15,58 +15,53 @@ public static class VariablePayEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/variable-pay").RequireAuthorization();
 
-        group.MapPost("/", AllocateVariablePay).WithName("VariablePay.Allocate");
-        group.MapGet("/{id:guid}", GetAllocation).WithName("VariablePay.Get");
-        group.MapGet("/", ListAllocations).WithName("VariablePay.List");
-        group.MapPost("/{id:guid}/approve", ApproveAllocation).WithName("VariablePay.Approve");
-        group.MapPost("/{id:guid}/schedule", ScheduleAllocation).WithName("VariablePay.Schedule");
-        group.MapPost("/{id:guid}/clawback", ClawbackAllocation).WithName("VariablePay.Clawback");
+        group.MapPost("/", SubmitVariablePay).WithName("VariablePay.Submit");
+        group.MapGet("/{id:guid}", GetVariablePay).WithName("VariablePay.Get");
+        group.MapGet("/", ListVariablePay).WithName("VariablePay.List");
+        group.MapPost("/{id:guid}/approve", ApproveVariablePay).WithName("VariablePay.Approve");
 
         return app;
     }
 
-    private static async Task<IResult> AllocateVariablePay(
-        [FromBody] AllocateVariablePayRequest request,
+    private static async Task<IResult> SubmitVariablePay(
+        [FromBody] SubmitVariablePayRequest request,
         ClaimsPrincipal user,
         HttpRequest httpRequest,
         PayrollDbContext db,
         CancellationToken ct)
     {
-        var tenantId = user.GetTenantId(httpRequest);
-        var allocatedBy = user.GetEmployeeIdString(httpRequest);
+        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
+        var submittedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var tenantId = Guid.Parse(tenantIdStr);
 
-        if (!Enum.TryParse<VariablePayType>(request.VariablePayType, out var vpType))
-            return Results.BadRequest($"Invalid type: {request.VariablePayType}");
+        if (!Enum.TryParse<VariablePayType>(request.Type, out var type))
+            return Results.BadRequest($"Invalid variable pay type: {request.Type}");
 
-        if (!Enum.TryParse<TaxTreatment>(request.TaxTreatment, out var taxTreatment))
-            return Results.BadRequest($"Invalid tax treatment: {request.TaxTreatment}");
-
-        var allocation = VariablePayAllocation.Allocate(
+        var pay = VariablePayAllocation.Allocate(
             tenantId, request.EmployeeId, request.EmployeeName,
-            vpType, request.AllocatedAmount, taxTreatment,
-            request.PerformancePeriod, request.ScheduledPayoutDate,
-            request.ClawbackWindowMonths, allocatedBy);
+            type, request.Amount, TaxTreatment.LumpSum,
+            request.PeriodName, null, 0, submittedBy);
 
-        db.Set<VariablePayAllocation>().Add(allocation);
+        db.Set<VariablePayAllocation>().Add(pay);
         await db.SaveChangesAsync(ct);
 
-        return Results.Created($"/api/v1/payroll/variable-pay/{allocation.Id}", MapToDto(allocation));
+        return Results.Created($"/api/v1/payroll/variable-pay/{pay.Id}", MapToDto(pay));
     }
 
-    private static async Task<IResult> GetAllocation(
+    private static async Task<IResult> GetVariablePay(
         Guid id, PayrollDbContext db, CancellationToken ct)
     {
-        var allocation = await db.Set<VariablePayAllocation>()
+        var pay = await db.Set<VariablePayAllocation>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.Id == id, ct);
+            .FirstOrDefaultAsync(p => p.Id == id, ct);
 
-        return allocation is null ? Results.NotFound() : Results.Ok(MapToDto(allocation));
+        return pay is null ? Results.NotFound() : Results.Ok(MapToDto(pay));
     }
 
-    private static async Task<IResult> ListAllocations(
+    private static async Task<IResult> ListVariablePay(
         PayrollDbContext db,
+        [FromQuery] string? periodName,
         [FromQuery] Guid? employeeId,
-        [FromQuery] string? status,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
@@ -74,21 +69,19 @@ public static class VariablePayEndpoints
         var query = db.Set<VariablePayAllocation>().AsNoTracking();
 
         if (employeeId.HasValue)
-            query = query.Where(a => a.EmployeeId == employeeId.Value);
-
-        if (!string.IsNullOrEmpty(status) && Enum.TryParse<VariablePayStatus>(status, out var s))
-            query = query.Where(a => a.Status == s);
+            query = query.Where(p => p.EmployeeId == employeeId.Value);
 
         var total = await query.CountAsync(ct);
         var items = await query
-            .OrderByDescending(a => a.CreatedAtUtc)
-            .Skip((page - 1) * pageSize).Take(pageSize)
+            .OrderByDescending(p => p.CreatedAtUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(ct);
 
         return Results.Ok(new { Items = items.Select(MapToDto), Total = total, Page = page });
     }
 
-    private static async Task<IResult> ApproveAllocation(
+    private static async Task<IResult> ApproveVariablePay(
         Guid id,
         ClaimsPrincipal user,
         HttpRequest httpRequest,
@@ -96,63 +89,37 @@ public static class VariablePayEndpoints
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var allocation = await db.Set<VariablePayAllocation>()
-            .FirstOrDefaultAsync(a => a.Id == id, ct);
+        var pay = await db.Set<VariablePayAllocation>().FirstOrDefaultAsync(p => p.Id == id, ct);
+        if (pay is null) return Results.NotFound();
 
-        if (allocation is null) return Results.NotFound();
+        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        pay.Approve(approvedBy);
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest);
-        allocation.Approve(approvedBy);
         await db.SaveChangesAsync(ct);
 
         await bus.Publish(new VariablePayApprovedIntegrationEvent
         {
-            AllocationId = allocation.Id,
-            TenantId = allocation.TenantId,
-            EmployeeId = allocation.EmployeeId,
-            VariablePayType = allocation.Type.ToString(),
-            Amount = allocation.ProratedAmount,
-            PayoutPeriodName = allocation.PayoutPeriodName,
+            AllocationId = pay.Id,
+            TenantId = pay.TenantId,
+            EmployeeId = pay.EmployeeId,
+            Amount = pay.ProratedAmount,
+            VariablePayType = pay.Type.ToString(),
+            PayoutPeriodName = pay.PayoutPeriodName,
             OccurredOnUtc = DateTimeOffset.UtcNow
         }, ct);
 
-        return Results.Ok(MapToDto(allocation));
+        return Results.Ok(MapToDto(pay));
     }
 
-    private static async Task<IResult> ScheduleAllocation(
-        Guid id,
-        [FromBody] string payoutPeriodName,
-        PayrollDbContext db,
-        CancellationToken ct)
-    {
-        var allocation = await db.Set<VariablePayAllocation>()
-            .FirstOrDefaultAsync(a => a.Id == id, ct);
-
-        if (allocation is null) return Results.NotFound();
-
-        allocation.Schedule(payoutPeriodName);
-        await db.SaveChangesAsync(ct);
-        return Results.Ok(MapToDto(allocation));
-    }
-
-    private static async Task<IResult> ClawbackAllocation(
-        Guid id,
-        [FromBody] string reason,
-        PayrollDbContext db,
-        CancellationToken ct)
-    {
-        var allocation = await db.Set<VariablePayAllocation>()
-            .FirstOrDefaultAsync(a => a.Id == id, ct);
-
-        if (allocation is null) return Results.NotFound();
-
-        allocation.Clawback(reason);
-        await db.SaveChangesAsync(ct);
-        return Results.Ok(MapToDto(allocation));
-    }
-
-    private static VariablePayAllocationDto MapToDto(VariablePayAllocation a) =>
-        new(a.Id, a.EmployeeId, a.EmployeeName, a.Type.ToString(),
-            a.Status.ToString(), a.AllocatedAmount, a.ProratedAmount,
-            a.PaidAmount, a.PayoutPeriodName, a.IsClawedBack, a.CreatedAtUtc);
+    private static VariablePayDto MapToDto(VariablePayAllocation p) =>
+        new(p.Id, p.EmployeeId, p.EmployeeName, p.Type.ToString(),
+            p.ProratedAmount, p.PayoutPeriodName ?? "", p.Status.ToString(), p.CreatedAtUtc);
 }
+
+public record VariablePayDto(
+    Guid Id, Guid EmployeeId, string EmployeeName, string Type,
+    decimal Amount, string PeriodName, string Status, DateTimeOffset CreatedAt);
+
+public record SubmitVariablePayRequest(
+    Guid EmployeeId, string EmployeeName, string Type,
+    decimal Amount, string PeriodName, string Description);

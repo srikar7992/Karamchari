@@ -33,7 +33,8 @@ public static class ArrearEndpoints
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var tenantId = user.GetTenantId(httpRequest);
+        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
+        var tenantId = Guid.Parse(tenantIdStr);
 
         var request = new ArrearCalculationRequest(
             tenantId, command.EmployeeId, "",
@@ -98,13 +99,12 @@ public static class ArrearEndpoints
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var arrear = await db.Set<ArrearCalculation>()
-            .FirstOrDefaultAsync(a => a.Id == id, ct);
-
+        var arrear = await db.Set<ArrearCalculation>().FirstOrDefaultAsync(a => a.Id == id, ct);
         if (arrear is null) return Results.NotFound();
 
-        var approvedBy = user.GetEmployeeIdString(httpRequest);
+        var approvedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
         arrear.Approve(approvedBy);
+
         await db.SaveChangesAsync(ct);
 
         await bus.Publish(new ArrearCalculationApprovedIntegrationEvent
@@ -113,18 +113,20 @@ public static class ArrearEndpoints
             TenantId = arrear.TenantId,
             EmployeeId = arrear.EmployeeId,
             TotalNetDelta = arrear.TotalNetDelta,
-            TriggerType = arrear.TriggerType.ToString(),
+            ApprovedBy = approvedBy,
             OccurredOnUtc = DateTimeOffset.UtcNow
         }, ct);
 
         return Results.Ok(MapToDto(arrear));
     }
 
-    private static ArrearCalculationDto MapToDto(ArrearCalculation a) =>
+    private static ArrearDto MapToDto(ArrearCalculation a) =>
         new(a.Id, a.EmployeeId, a.EmployeeName, a.TriggerType.ToString(),
-            a.Status.ToString(), a.EffectiveFrom, a.EffectiveTo,
-            a.TotalNetDelta, a.TotalGrossDelta,
-            a.PeriodDiffs.Select(d => new ArrearPeriodDiffDto(
-                d.PeriodName, d.OriginalGross, d.RecalculatedGross,
-                d.GrossDelta, d.NetDelta, d.TdsDelta)).ToList());
+            a.TriggerReference, a.EffectiveFrom, a.EffectiveTo,
+            a.TotalGrossDelta, a.TotalNetDelta, a.Status.ToString(), a.CreatedAtUtc);
 }
+
+public record ArrearDto(
+    Guid Id, Guid EmployeeId, string EmployeeName, string TriggerType,
+    string TriggerReference, DateOnly From, DateOnly To,
+    decimal TotalGross, decimal TotalNet, string Status, DateTimeOffset CreatedAt);

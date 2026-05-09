@@ -14,10 +14,11 @@ public sealed class LoanAmortizationEngine
         decimal TotalInterest,
         decimal TotalPayable);
 
-    public AmortizationResult GenerateSchedule(
+    public static AmortizationResult GenerateSchedule(
         EmployeeLoan loan,
         DateOnly disbursedOn)
     {
+        ArgumentNullException.ThrowIfNull(loan);
         var installments = new List<LoanInstallment>();
         decimal emi;
         decimal totalInterest = 0m;

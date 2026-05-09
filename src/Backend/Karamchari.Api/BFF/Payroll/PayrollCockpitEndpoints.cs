@@ -109,7 +109,7 @@ public static class PayrollCockpitEndpoints
             .Select(a => new PayrollAnomalyDto(
                 a.Id, a.Type.ToString(), a.Severity.ToString(),
                 a.ResolutionStatus.ToString(),
-                a.EmployeeId, a.EmployeeName,
+                a.EmployeeId ?? Guid.Empty, a.EmployeeName ?? "Unknown",
                 a.Description, a.AnomalyScore))
             .ToListAsync(ct);
 
@@ -177,7 +177,7 @@ public static class PayrollCockpitEndpoints
             .Select(a => new PayrollAnomalyDto(
                 a.Id, a.Type.ToString(), a.Severity.ToString(),
                 a.ResolutionStatus.ToString(),
-                a.EmployeeId, a.EmployeeName,
+                a.EmployeeId ?? Guid.Empty, a.EmployeeName ?? "Unknown",
                 a.Description, a.AnomalyScore))
             .ToListAsync(ct);
 
@@ -198,7 +198,7 @@ public static class PayrollCockpitEndpoints
 
         if (anomaly is null) return Results.NotFound();
 
-        anomaly.Resolve(user.GetEmployeeIdString(httpRequest), request.Note);
+        anomaly.Resolve(user.GetEmployeeIdString(httpRequest) ?? "system", request.Note);
         await db.SaveChangesAsync(ct);
         return Results.Ok();
     }
@@ -217,7 +217,7 @@ public static class PayrollCockpitEndpoints
 
         if (anomaly is null) return Results.NotFound();
 
-        anomaly.Dismiss(user.GetEmployeeIdString(httpRequest), request.Note);
+        anomaly.Dismiss(user.GetEmployeeIdString(httpRequest) ?? "system", request.Note);
         await db.SaveChangesAsync(ct);
         return Results.Ok();
     }

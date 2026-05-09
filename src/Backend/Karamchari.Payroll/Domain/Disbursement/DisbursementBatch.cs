@@ -91,6 +91,7 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
 
     public void ApplyBankResponse(IEnumerable<EntryResult> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
         foreach (var result in results)
         {
             var entry = _entries.FirstOrDefault(e => e.Id == result.EntryId);

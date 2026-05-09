@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
+    <ProjectReference Include="..\Karamchari.Notifications\Karamchari.Notifications.csproj" />
   </ItemGroup>
 
   <ItemGroup>

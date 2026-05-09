@@ -16,7 +16,7 @@ public static class DisbursementEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/disbursements").RequireAuthorization();
 
-        group.MapPost("/", InitiateDisbursement).WithName("Disbursement.Initiate");
+        group.MapPost("/initiate", InitiateDisbursement).WithName("Disbursement.Initiate");
         group.MapGet("/{id:guid}", GetBatch).WithName("Disbursement.Get");
         group.MapGet("/", ListBatches).WithName("Disbursement.List");
         group.MapPost("/{id:guid}/retry", RetryBatch).WithName("Disbursement.Retry");
@@ -28,22 +28,33 @@ public static class DisbursementEndpoints
         [FromBody] InitiateDisbursementRequest request,
         ClaimsPrincipal user,
         HttpRequest httpRequest,
+        BankDisbursementOrchestrator orchestrator,
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        var tenantId = user.GetTenantId(httpRequest);
-        var initiatedBy = user.GetEmployeeIdString(httpRequest);
+        var tenantIdStr = user.GetTenantId(httpRequest) ?? "00000000-0000-0000-0000-000000000000";
+        var initiatedBy = user.GetEmployeeIdString(httpRequest) ?? "system";
+        var tenantId = Guid.Parse(tenantIdStr);
 
+        var disbursementRequest = new DisbursementRequest(
+            tenantId, request.RunId, request.PeriodName,
+            Enum.Parse<BankProvider>(request.BankProvider),
+            request.DebitAccountNumber,
+            initiatedBy);
+
+        var batch = await orchestrator.InitiateAsync(disbursementRequest, ct);
+
+        // Actual bank submission is async via retry consumer/orchestrator
         await bus.Publish(new InitiateDisbursementCommand
         {
-            TenantId = tenantId,
             RunId = request.RunId,
+            TenantId = tenantId,
             PeriodName = request.PeriodName,
             BankProvider = request.BankProvider,
             InitiatedBy = initiatedBy
         }, ct);
 
-        return Results.Accepted();
+        return Results.Accepted($"/api/v1/payroll/disbursements/{batch.Id}", MapToDto(batch));
     }
 
     private static async Task<IResult> GetBatch(
@@ -59,16 +70,12 @@ public static class DisbursementEndpoints
 
     private static async Task<IResult> ListBatches(
         PayrollDbContext db,
-        [FromQuery] string? status,
         [FromQuery] string? periodName,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
         var query = db.Set<DisbursementBatch>().AsNoTracking();
-
-        if (!string.IsNullOrEmpty(status) && Enum.TryParse<DisbursementBatchStatus>(status, out var s))
-            query = query.Where(b => b.Status == s);
 
         if (!string.IsNullOrEmpty(periodName))
             query = query.Where(b => b.PeriodName == periodName);
@@ -88,12 +95,20 @@ public static class DisbursementEndpoints
         IPublishEndpoint bus,
         CancellationToken ct)
     {
-        await bus.Publish(new RetryDisbursementCommand { BatchId = id, TenantId = Guid.Empty }, ct);
+        await bus.Publish(new RetryDisbursementCommand { BatchId = id }, ct);
         return Results.Accepted();
     }
 
     private static DisbursementBatchDto MapToDto(DisbursementBatch b) =>
         new(b.Id, b.RunId, b.PeriodName, b.BankProvider.ToString(),
-            b.Status.ToString(), b.TotalAmount, b.TotalEntries,
-            b.SuccessCount, b.FailedCount, b.RetryCount, b.CreatedAtUtc);
+            b.Status.ToString(), b.TotalAmount, b.SuccessCount, b.FailedCount,
+            b.BatchReference, b.CreatedAtUtc);
 }
+
+public record DisbursementBatchDto(
+    Guid Id, Guid RunId, string PeriodName, string BankProvider,
+    string Status, decimal TotalAmount, int SuccessCount, int FailedCount,
+    string Reference, DateTimeOffset CreatedAt);
+
+public record InitiateDisbursementRequest(
+    Guid RunId, string PeriodName, string BankProvider, string DebitAccountNumber);

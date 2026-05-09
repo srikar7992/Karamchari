@@ -23,7 +23,7 @@ public sealed class FnFSettlementStateMachine : MassTransitStateMachine<FnFSettl
 
     public Event<FnFSettlementInitiatedIntegrationEvent> Initiated { get; private set; } = null!;
     public Event<InitiateFnFCalculationCommand> CalculationRequested { get; private set; } = null!;
-    public Event<FnFSettlementApprovedIntegrationEvent> Approved_Evt { get; private set; } = null!;
+    public Event<FnFSettlementApprovedIntegrationEvent> ApprovedEvent { get; private set; } = null!;
     public Event<DisburseFnFCommand> DisburseRequested { get; private set; } = null!;
     public Event<FnFSettlementDisbursedIntegrationEvent> Disbursed { get; private set; } = null!;
     public Event<DisbursementBatchFailedIntegrationEvent> DisbursementFailed { get; private set; } = null!;
@@ -34,7 +34,7 @@ public sealed class FnFSettlementStateMachine : MassTransitStateMachine<FnFSettl
 
         Event(() => Initiated, x => x.CorrelateById(ctx => ctx.Message.SettlementId));
         Event(() => CalculationRequested, x => x.CorrelateById(ctx => ctx.Message.SettlementId));
-        Event(() => Approved_Evt, x => x.CorrelateById(ctx => ctx.Message.SettlementId));
+        Event(() => ApprovedEvent, x => x.CorrelateById(ctx => ctx.Message.SettlementId));
         Event(() => DisburseRequested, x => x.CorrelateById(ctx => ctx.Message.SettlementId));
         Event(() => Disbursed, x => x.CorrelateById(ctx => ctx.Message.SettlementId));
         Event(() => DisbursementFailed, x => x.CorrelateById(ctx => ctx.Message.BatchId));
@@ -63,7 +63,7 @@ public sealed class FnFSettlementStateMachine : MassTransitStateMachine<FnFSettl
         );
 
         During(PendingApproval,
-            When(Approved_Evt)
+            When(ApprovedEvent)
                 .Then(ctx =>
                 {
                     ctx.Saga.ApprovedBy = ctx.Message.ApprovedBy;

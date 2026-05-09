@@ -8,8 +8,9 @@ using Karamchari.Core.Multitenancy;
 /// </summary>
 public sealed class PayrollDeduction : AggregateRoot<Guid>, ITenantOwned
 {
-    private PayrollDeduction(Guid id, Guid employeeId, string periodName, decimal amount, string reason) : base(id)
+    private PayrollDeduction(Guid id, string tenantId, Guid employeeId, string periodName, decimal amount, string reason) : base(id)
     {
+        TenantId = tenantId;
         EmployeeId = employeeId;
         PeriodName = periodName;
         Amount = amount;
@@ -63,14 +64,15 @@ public sealed class PayrollDeduction : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Creates a new payroll deduction.
     /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
     /// <param name="employeeId">The employee identifier.</param>
     /// <param name="periodName">The payroll period name.</param>
     /// <param name="amount">The deduction amount.</param>
     /// <param name="reason">The reason for the deduction.</param>
     /// <returns>A new <see cref="PayrollDeduction"/> instance.</returns>
-    public static PayrollDeduction Create(Guid employeeId, string periodName, decimal amount, string reason)
+    public static PayrollDeduction Create(string tenantId, Guid employeeId, string periodName, decimal amount, string reason)
     {
-        return new PayrollDeduction(Guid.NewGuid(), employeeId, periodName, amount, reason);
+        return new PayrollDeduction(Guid.NewGuid(), tenantId, employeeId, periodName, amount, reason);
     }
 
     /// <summary>

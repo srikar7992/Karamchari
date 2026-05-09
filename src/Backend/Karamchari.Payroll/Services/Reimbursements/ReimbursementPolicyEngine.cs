@@ -44,7 +44,7 @@ public sealed class ReimbursementPolicyEngine
         [ReimbursementCategory.Other] = ReimbursementTaxability.Taxable
     };
 
-    public PolicyCheckResult Evaluate(
+    public static PolicyCheckResult Evaluate(
         ReimbursementCategory category,
         decimal claimedAmount,
         string? attachmentHash,

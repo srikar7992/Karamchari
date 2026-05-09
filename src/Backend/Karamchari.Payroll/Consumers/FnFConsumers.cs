@@ -30,6 +30,7 @@ public sealed class InitiateFnFCalculationConsumer : IConsumer<InitiateFnFCalcul
 
     public async Task Consume(ConsumeContext<InitiateFnFCalculationCommand> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
 
         // Idempotency: skip if already calculated
@@ -39,15 +40,21 @@ public sealed class InitiateFnFCalculationConsumer : IConsumer<InitiateFnFCalcul
 
         if (settlement is null)
         {
-            _logger.LogWarning("FnF settlement {SettlementId} not found.", msg.SettlementId);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning("FnF settlement {SettlementId} not found.", msg.SettlementId);
+            }
             return;
         }
 
         if (settlement.Status != FnFStatus.Draft)
         {
-            _logger.LogInformation(
-                "FnF settlement {SettlementId} already past Draft (status: {Status}). Skipping calculation.",
-                msg.SettlementId, settlement.Status);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation(
+                    "FnF settlement {SettlementId} already past Draft (status: {Status}). Skipping calculation.",
+                    msg.SettlementId, settlement.Status);
+            }
             return;
         }
 
@@ -56,13 +63,13 @@ public sealed class InitiateFnFCalculationConsumer : IConsumer<InitiateFnFCalcul
             msg.TenantId, msg.EmployeeId,
             settlement.LastWorkingDay,
             settlement.ExitType,
-            NoticePeriodDays: 30,
-            ActualNoticeDays: 30,
-            PendingSalaryDays: DateTime.DaysInMonth(
+            30, // NoticePeriodDays
+            30, // ActualNoticeDays
+            DateTime.DaysInMonth(
                 settlement.LastWorkingDay.Year,
-                settlement.LastWorkingDay.Month) - settlement.LastWorkingDay.Day + 1,
-            LeaveBalance: 0m,
-            GratuityYearsOfService: 0m);
+                settlement.LastWorkingDay.Month) - settlement.LastWorkingDay.Day + 1, // PendingSalaryDays
+            0m, // LeaveBalance
+            0m); // GratuityYearsOfService
 
         var result = await _calculationService.CalculateAsync(input, context.CancellationToken);
 
@@ -70,9 +77,12 @@ public sealed class InitiateFnFCalculationConsumer : IConsumer<InitiateFnFCalcul
 
         await _db.SaveChangesAsync(context.CancellationToken);
 
-        _logger.LogInformation(
-            "FnF calculated for settlement {SettlementId}. Net: {Net}",
-            msg.SettlementId, result.NetSettlement);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "FnF calculated for settlement {SettlementId}. Net: {NetSettlement}",
+                msg.SettlementId, result.NetSettlement);
+        }
     }
 }
 
@@ -92,6 +102,7 @@ public sealed class DisburseFnFConsumer : IConsumer<DisburseFnFCommand>
 
     public async Task Consume(ConsumeContext<DisburseFnFCommand> context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
 
         var settlement = await _db.Set<FnFSettlement>()
@@ -99,8 +110,11 @@ public sealed class DisburseFnFConsumer : IConsumer<DisburseFnFCommand>
 
         if (settlement is null || settlement.Status != FnFStatus.Approved)
         {
-            _logger.LogWarning(
-                "Cannot disburse FnF {SettlementId}: not found or not approved.", msg.SettlementId);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(
+                    "Cannot disburse FnF {SettlementId}: not found or not approved.", msg.SettlementId);
+            }
             return;
         }
 
