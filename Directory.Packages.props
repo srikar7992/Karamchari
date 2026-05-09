@@ -50,10 +50,10 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
-    <PackageVersion Include="MassTransit" Version="8.3.0" />
-    <PackageVersion Include="MassTransit.Abstractions" Version="8.3.0" />
-    <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.3.0" />
-    <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.3.0" />
+    <PackageVersion Include="MassTransit" Version="8.3.6" />
+    <PackageVersion Include="MassTransit.Abstractions" Version="8.3.6" />
+    <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.3.6" />
+    <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.3.6" />
   </ItemGroup>
   <ItemGroup Label="Auth">
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />

@@ -6,21 +6,9 @@ namespace Karamchari.Api.BFF.Common;
 
 public record MapDlqRequest(Guid EmployeeId);
 
-public record ReviewFraudRequest(Karamchari.TimeAttendance.Domain.IoT.FraudStatus Status, string Notes);
-
 public record ReprocessAttendanceRequest(Guid? EmployeeId, string FromDate, string ToDate);
 
 public record MarkFiledRequest(Guid RunId, Karamchari.Payroll.Domain.Compliance.ComplianceType Type, string ReferenceNumber);
-
-public record MobilePunchRequest(
-    string EmployeeId,
-    DateTime Timestamp,
-    double Lat,
-    double Lon,
-    double Accuracy,
-    bool IsOfflineCaptured,
-    string ClientId,
-    Karamchari.TimeAttendance.Domain.IoT.PunchType Type);
 
 public record TaxSimulationRequest(decimal Section80C, decimal Section80D, decimal MonthlyRent, bool IsMetro, int FinancialYear);
 

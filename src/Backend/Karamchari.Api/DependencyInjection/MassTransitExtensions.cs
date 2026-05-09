@@ -13,6 +13,8 @@ using Karamchari.Payroll.DependencyInjection;
 using Karamchari.Performance.DependencyInjection;
 using Karamchari.Performance.Persistence;
 using Karamchari.PSA.Persistence;
+using Karamchari.Recruitment.DependencyInjection;
+using Karamchari.Recruitment.Persistence;
 using Karamchari.TimeAttendance.DependencyInjection;
 using Karamchari.TimeAttendance.Persistence;
 using MassTransit;
@@ -33,6 +35,7 @@ public static class MassTransitExtensions
             services.AddKaramchariPerformance(configuration, x);
             services.AddKaramchariNotifications(configuration, x);
             services.AddKaramchariCompensation(configuration, x);
+            services.AddKaramchariRecruitment(configuration, x);
 
             x.AddConsumer<Karamchari.PSA.Consumers.BillableRevenueConsumer>();
             x.AddConsumer<Karamchari.PSA.Consumers.ProfitCalculationConsumer>();
@@ -74,6 +77,11 @@ public static class MassTransitExtensions
                 o.UseSqlServer();
                 if (isDev) o.UseBusOutbox();
             });
+            x.AddEntityFrameworkOutbox<RecruitmentDbContext>(o =>
+            {
+                o.UseSqlServer();
+                if (isDev) o.UseBusOutbox();
+            });
 
             services.AddKaramchariBilling(configuration);
             services.AddKaramchariForecasting(configuration);
@@ -81,11 +89,6 @@ public static class MassTransitExtensions
             x.AddConsumer<Karamchari.Billing.Consumers.BillableEntryConsumer>();
             x.AddConsumer<Karamchari.Billing.Consumers.CollectionCaseConsumer>();
             x.AddConsumer<Karamchari.Forecasting.Consumers.ForecastUpdateConsumer>();
-
-            // TimeAttendance Consumers
-            x.AddConsumer<Karamchari.TimeAttendance.Consumers.PunchTranslationConsumer>();
-            x.AddConsumer<Karamchari.TimeAttendance.Consumers.LiveAttendanceConsumer>();
-            x.AddConsumer<Karamchari.TimeAttendance.Consumers.ReprocessAttendanceConsumer>();
 
             if (isDev)
             {

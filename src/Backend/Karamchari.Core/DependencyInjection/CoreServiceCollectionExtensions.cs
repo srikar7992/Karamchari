@@ -56,6 +56,7 @@ public static class CoreServiceCollectionExtensions
         services.AddScoped<TenantSchemaCommandInterceptor>();
         services.AddScoped<RlsSessionContextInterceptor>();
         services.AddScoped<TenantStampingInterceptor>();
+        services.AddScoped<AuditInterceptor>();
         services.AddScoped<DomainEventDispatchInterceptor>();
 
         // Default no-op dispatcher: a bounded context (or the API host) MUST

@@ -47,28 +47,23 @@ public static class ReimbursementEndpoints
             .Select(c => c.AttachmentHash)
             .ToListAsync(ct);
 
-        var policyCheck = ReimbursementPolicyEngine.Evaluate(
-            category, request.ClaimedAmount,
-            request.AttachmentHash, existingHashes);
+        try
+        {
+            var claim = ReimbursementClaim.SubmitWithPolicy(
+                tenantId, employeeId.Value, user.Identity?.Name ?? employeeId.ToString()!,
+                category, request.Description, request.ClaimedAmount, 
+                request.ExpenseDate, employeeId.ToString()!, existingHashes,
+                request.AttachmentBlobPath, request.AttachmentFileName, request.AttachmentHash);
 
-        if (!policyCheck.IsAllowed)
-            return Results.UnprocessableEntity(new { reason = policyCheck.ViolationReason });
+            db.Set<ReimbursementClaim>().Add(claim);
+            await db.SaveChangesAsync(ct);
 
-        var claim = ReimbursementClaim.Submit(
-            tenantId, employeeId.Value, user.Identity?.Name ?? employeeId.ToString()!,
-            category, request.Description,
-            request.ClaimedAmount, policyCheck.PolicyLimit,
-            request.ExpenseDate, policyCheck.Taxability,
-            employeeId.ToString()!, request.AttachmentBlobPath,
-            request.AttachmentFileName, request.AttachmentHash);
-
-        if (policyCheck.FraudIndicator != FraudIndicatorLevel.None)
-            claim.FlagFraud(policyCheck.FraudIndicator, "Automated fraud detection");
-
-        db.Set<ReimbursementClaim>().Add(claim);
-        await db.SaveChangesAsync(ct);
-
-        return Results.Created($"/api/v1/payroll/reimbursements/{claim.Id}", MapToDto(claim));
+            return Results.Created($"/api/v1/payroll/reimbursements/{claim.Id}", MapToDto(claim));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
     }
 
     private static async Task<IResult> GetClaim(

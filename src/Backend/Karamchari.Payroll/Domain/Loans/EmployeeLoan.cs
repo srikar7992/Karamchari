@@ -1,4 +1,5 @@
 using Karamchari.Core.Domain.Primitives;
+using Karamchari.Core.Domain.Workflows;
 using Karamchari.Payroll.Domain.Loans.Events;
 
 namespace Karamchari.Payroll.Domain.Loans;
@@ -11,6 +12,7 @@ namespace Karamchari.Payroll.Domain.Loans;
 public sealed class EmployeeLoan : AggregateRoot<Guid>
 {
     private readonly List<LoanInstallment> _installments = [];
+    private readonly List<ApprovalStep> _approvalChain = [];
 
     public string TenantId { get; private set; } = string.Empty;
     public Guid EmployeeId { get; private set; }
@@ -34,10 +36,11 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
     public byte[] RowVersion { get; private set; } = [];
 
     public IReadOnlyCollection<LoanInstallment> Installments => _installments.AsReadOnly();
+    public IReadOnlyCollection<ApprovalStep> ApprovalChain => _approvalChain.AsReadOnly();
 
     private EmployeeLoan() { }
 
-    public static EmployeeLoan Create(
+    public static EmployeeLoan Request(
         string tenantId,
         Guid employeeId,
         string employeeName,
@@ -46,8 +49,7 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
         decimal principalAmount,
         decimal interestRatePercent,
         int tenureMonths,
-        DateOnly disbursedOn,
-        string approvedBy)
+        DateOnly disbursedOn)
     {
         var loan = new EmployeeLoan
         {
@@ -62,16 +64,59 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
             TenureMonths = tenureMonths,
             OutstandingBalance = principalAmount,
             DisbursedOn = disbursedOn,
-            ApprovedBy = approvedBy,
-            ApprovedAtUtc = DateTimeOffset.UtcNow,
-            Status = LoanStatus.Active,
+            Status = LoanStatus.PendingApproval,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
+
+        // Standard loan chain: Manager -> HR -> Finance
+        loan._approvalChain.Add(ApprovalStep.Create(1, "Manager"));
+        loan._approvalChain.Add(ApprovalStep.Create(2, "HR"));
+        loan._approvalChain.Add(ApprovalStep.Create(3, "Finance"));
 
         loan.RaiseDomainEvent(new LoanCreatedEvent(
             loan.Id, tenantId, employeeId, type, principalAmount));
 
         return loan;
+    }
+
+    public void Approve(string approvedBy, string? note = null)
+    {
+        if (Status != LoanStatus.PendingApproval)
+            throw new InvalidOperationException($"Cannot approve loan in status {Status}.");
+
+        var currentStep = _approvalChain
+            .OrderBy(s => s.Sequence)
+            .FirstOrDefault(s => s.Status == ApprovalStatus.Pending)
+            ?? throw new InvalidOperationException("No pending approval steps found.");
+
+        currentStep.Approve(approvedBy, note);
+
+        // If all steps approved, activate loan
+        if (_approvalChain.All(s => s.Status == ApprovalStatus.Approved))
+        {
+            Status = LoanStatus.Active;
+            ApprovedBy = approvedBy; // Last approver
+            ApprovedAtUtc = DateTimeOffset.UtcNow;
+            RaiseDomainEvent(new LoanClosedEvent(Id, TenantId, EmployeeId, LoanStatus.Active)); // Using existing event for activation notify
+        }
+
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    public void Reject(string rejectedBy, string reason)
+    {
+        if (Status != LoanStatus.PendingApproval)
+            throw new InvalidOperationException($"Cannot reject loan in status {Status}.");
+
+        var currentStep = _approvalChain
+            .OrderBy(s => s.Sequence)
+            .FirstOrDefault(s => s.Status == ApprovalStatus.Pending)
+            ?? throw new InvalidOperationException("No pending approval steps found.");
+
+        currentStep.Reject(rejectedBy, reason);
+
+        Status = LoanStatus.Rejected;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
     public void SetSchedule(IEnumerable<LoanInstallment> installments, decimal monthlyEmi)

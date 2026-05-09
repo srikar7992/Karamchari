@@ -51,21 +51,28 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
 
     private ReimbursementClaim() { }
 
-    public static ReimbursementClaim Submit(
+    public static ReimbursementClaim SubmitWithPolicy(
         string tenantId,
         Guid employeeId,
         string employeeName,
         ReimbursementCategory category,
         string description,
         decimal claimedAmount,
-        decimal policyLimit,
         DateOnly expenseDate,
-        ReimbursementTaxability taxability,
         string submittedBy,
+        IEnumerable<string?> existingHashesForEmployee,
         string? attachmentBlobPath = null,
         string? attachmentFileName = null,
         string? attachmentHash = null)
     {
+        // 1. Evaluate policy (Domain Rule)
+        var policyCheck = Karamchari.Payroll.Services.Reimbursements.ReimbursementPolicyEngine.Evaluate(
+            category, claimedAmount, attachmentHash, existingHashesForEmployee);
+
+        if (!policyCheck.IsAllowed)
+            throw new InvalidOperationException($"Policy violation: {policyCheck.ViolationReason}");
+
+        // 2. Create claim
         var claim = new ReimbursementClaim
         {
             Id = Guid.NewGuid(),
@@ -75,17 +82,20 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
             Category = category,
             Description = description,
             ClaimedAmount = claimedAmount,
-            PolicyLimit = policyLimit,
+            PolicyLimit = policyCheck.PolicyLimit,
             ExpenseDate = expenseDate,
-            Taxability = taxability,
+            Taxability = policyCheck.Taxability,
             AttachmentBlobPath = attachmentBlobPath,
             AttachmentFileName = attachmentFileName,
             AttachmentHash = attachmentHash,
             Status = ReimbursementStatus.Submitted,
-            FraudIndicator = FraudIndicatorLevel.None,
+            FraudIndicator = policyCheck.FraudIndicator,
             SubmittedBy = submittedBy,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
+
+        if (policyCheck.FraudIndicator != FraudIndicatorLevel.None)
+            claim.FraudNote = "Automated fraud detection";
 
         claim.RaiseDomainEvent(new ReimbursementSubmittedEvent(
             claim.Id, tenantId, employeeId, category, claimedAmount));

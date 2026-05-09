@@ -2,7 +2,9 @@ namespace Karamchari.Payroll.Domain.Loans;
 
 public enum LoanStatus
 {
+    PendingApproval,
     Active,
+    Rejected,
     ClosedByEmployee,
     ClosedByExit,
     PreClosed,

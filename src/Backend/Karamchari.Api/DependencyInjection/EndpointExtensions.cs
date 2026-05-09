@@ -5,7 +5,6 @@ using Karamchari.Api.BFF.Employee;
 using Karamchari.Api.BFF.ESS;
 using Karamchari.Api.BFF.Executive;
 using Karamchari.Api.BFF.HR;
-using Karamchari.Api.BFF.IoT;
 using Karamchari.Api.BFF.Manager;
 using Karamchari.Api.BFF.Notifications;
 using Karamchari.Api.BFF.Payroll;
@@ -39,7 +38,6 @@ public static class EndpointExtensions
 
         // Feature Modules
         app.MapTenantEndpoints();
-        app.MapIoTEndpoints();
         app.MapAttendanceEndpoints();
         app.MapPayrollEndpoints();
         app.MapComplianceEndpoints();

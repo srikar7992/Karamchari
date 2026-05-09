@@ -155,60 +155,7 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
         IEnumerable<TimeEntryRecord> entries, bool isRetroactive,
         Guid eventId, DateTimeOffset occurredAt, CancellationToken ct)
     {
-        var billable = entries.Where(e => e.IsBillable).Sum(e => e.Hours);
-        var total = entries.Sum(e => e.Hours);
-
-        if (isRetroactive)
-        {
-            var allApproved = await _db.Set<Domain.Timesheets.Timesheet>()
-                .Where(t => t.TenantId == tenantId && t.EmployeeId == employeeId
-                    && t.Status == Domain.Timesheets.TimesheetStatus.Approved)
-                .SelectMany(t => t.Entries)
-                .Where(e => e.Date == date)
-                .ToListAsync(ct);
-
-            billable = allApproved.Where(e => e.IsBillable).Sum(e => e.Hours);
-            total = allApproved.Sum(e => e.Hours);
-
-            var rows = await _db.Database.ExecuteSqlRawAsync(
-                @"UPDATE Analytics_EmployeeMetrics
-                  SET BillableHours = {0}, TotalHours = {1},
-                      LastEventId = {2}, LastProcessedOccurredAt = {3}, LastUpdatedAt = {4}
-                  WHERE TenantId = {5} AND EmployeeId = {6} AND Date = {7}
-                    AND (LastProcessedOccurredAt IS NULL OR LastProcessedOccurredAt < {3})",
-                billable, total, eventId, occurredAt, DateTimeOffset.UtcNow,
-                tenantId, employeeId, date, ct);
-
-            if (rows > 0) return;
-        }
-        else
-        {
-            var rows = await _db.Database.ExecuteSqlRawAsync(
-                @"UPDATE Analytics_EmployeeMetrics
-                  SET BillableHours = BillableHours + {0},
-                      TotalHours    = TotalHours    + {1},
-                      LastEventId   = {2},
-                      LastProcessedOccurredAt = {3},
-                      LastUpdatedAt = {4}
-                  WHERE TenantId = {5} AND EmployeeId = {6} AND Date = {7}
-                    AND LastEventId != {2}
-                    AND (LastProcessedOccurredAt IS NULL OR LastProcessedOccurredAt < {3})",
-                billable, total, eventId, occurredAt, DateTimeOffset.UtcNow,
-                tenantId, employeeId, date, ct);
-
-            if (rows > 0) return;
-        }
-
-        _db.EmployeeMetrics.Add(new EmployeeMetrics
-        {
-            TenantId = tenantId,
-            EmployeeId = employeeId,
-            Date = date,
-            BillableHours = billable,
-            TotalHours = total,
-            LastEventId = eventId,
-            LastProcessedOccurredAt = occurredAt,
-            LastUpdatedAt = DateTimeOffset.UtcNow,
-        });
+        // Legacy EmployeeMetrics removed in Phase 1C. Analytics to be refactored in Objective 9.
+        await Task.CompletedTask;
     }
 }

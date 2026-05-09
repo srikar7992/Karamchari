@@ -17,16 +17,18 @@ public static class LoanEndpoints
     {
         var group = app.MapGroup("/api/v1/payroll/loans").RequireAuthorization();
 
-        group.MapPost("/", CreateLoan).WithName("Loan.Create").WithIdempotency();
+        group.MapPost("/", RequestLoan).WithName("Loan.Request").WithIdempotency();
         group.MapGet("/{id:guid}", GetLoan).WithName("Loan.Get");
         group.MapGet("/", ListLoans).WithName("Loan.List");
         group.MapGet("/{id:guid}/schedule", GetSchedule).WithName("Loan.Schedule");
+        group.MapPost("/{id:guid}/approve", ApproveLoan).WithName("Loan.Approve").WithIdempotency();
+        group.MapPost("/{id:guid}/reject", RejectLoan).WithName("Loan.Reject").WithIdempotency();
         group.MapPost("/{id:guid}/pre-close", PreCloseLoan).WithName("Loan.PreClose").WithIdempotency();
 
         return app;
     }
 
-    private static async Task<IResult> CreateLoan(
+    private static async Task<IResult> RequestLoan(
         [FromBody] CreateLoanRequest request,
         ClaimsPrincipal user,
         PayrollDbContext db,
@@ -42,11 +44,11 @@ public static class LoanEndpoints
         if (!Enum.TryParse<LoanInterestType>(request.InterestType, out var interestType))
             return Results.BadRequest($"Invalid interest type: {request.InterestType}");
 
-        var loan = EmployeeLoan.Create(
+        var loan = EmployeeLoan.Request(
             tenantId, request.EmployeeId, request.EmployeeName,
             loanType, interestType,
             request.PrincipalAmount, request.InterestRatePercent,
-            request.TenureMonths, request.DisbursedOn, employeeId.ToString()!);
+            request.TenureMonths, request.DisbursedOn);
 
         var schedule = LoanAmortizationEngine.GenerateSchedule(loan, request.DisbursedOn);
         loan.SetSchedule(schedule.Installments, schedule.MonthlyEmi);
@@ -66,6 +68,44 @@ public static class LoanEndpoints
         }, ct);
 
         return Results.Created($"/api/v1/payroll/loans/{loan.Id}", MapToDto(loan));
+    }
+
+    private static async Task<IResult> ApproveLoan(
+        Guid id,
+        [FromBody] string? note,
+        ClaimsPrincipal user,
+        PayrollDbContext db,
+        CancellationToken ct)
+    {
+        var loan = await db.Set<EmployeeLoan>().FindAsync(id);
+        if (loan == null) return Results.NotFound();
+
+        var approvedBy = user.GetEmployeeIdString();
+        if (approvedBy is null) return Results.Unauthorized();
+
+        loan.Approve(approvedBy, note);
+        await db.SaveChangesAsync(ct);
+
+        return Results.Ok(MapToDto(loan));
+    }
+
+    private static async Task<IResult> RejectLoan(
+        Guid id,
+        [FromBody] string reason,
+        ClaimsPrincipal user,
+        PayrollDbContext db,
+        CancellationToken ct)
+    {
+        var loan = await db.Set<EmployeeLoan>().FindAsync(id);
+        if (loan == null) return Results.NotFound();
+
+        var rejectedBy = user.GetEmployeeIdString();
+        if (rejectedBy is null) return Results.Unauthorized();
+
+        loan.Reject(rejectedBy, reason);
+        await db.SaveChangesAsync(ct);
+
+        return Results.Ok(MapToDto(loan));
     }
 
     private static async Task<IResult> GetLoan(

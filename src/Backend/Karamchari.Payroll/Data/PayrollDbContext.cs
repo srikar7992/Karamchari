@@ -347,6 +347,15 @@ public class PayrollDbContext : KaramchariDbContext
                 i.Property(x => x.InterestAmount).HasPrecision(18, 2);
                 i.Property(x => x.OutstandingAfter).HasPrecision(18, 2);
             });
+
+            b.OwnsMany(x => x.ApprovalChain, a =>
+            {
+                a.ToTable("LoanApprovalSteps");
+                a.WithOwner().HasForeignKey("LoanId");
+                a.Property<Guid>("Id");
+                a.HasKey("Id");
+                a.Property(x => x.Status).HasConversion<string>();
+            });
         });
 
         // ── Phase 1A: Variable Pay ────────────────────────────────────────────

@@ -9,18 +9,12 @@ namespace Karamchari.TimeAttendance.DependencyInjection;
 
 /// <summary>
 /// Extension methods for registering Time and Attendance module services.
+/// Phase 1C: Workforce Operational Intelligence Platform.
 /// </summary>
 public static class TimeAttendanceServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
-    /// <summary>
-    /// Adds the Time and Attendance module services to the service collection.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The configuration.</param>
-    /// <param name="busConfigurator">The MassTransit bus registration configurator.</param>
-    /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddKaramchariTimeAttendance(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -35,7 +29,19 @@ public static class TimeAttendanceServiceCollectionExtensions
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedAnalyticsConsumer>();
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.BillingAnalyticsConsumer>();
 
-        // RLS: Register tables for multi-tenancy enforcement
+        // ── RLS: Workforce operational intelligence (Phase 1C) ────────────────
+        
+        services.RegisterTenantTable("Workforce_ShiftDefinitions");
+        services.RegisterTenantTable("Workforce_Schedules");
+        services.RegisterTenantTable("Workforce_ShiftAssignments");
+        services.RegisterTenantTable("Workforce_AttendanceSessions");
+        services.RegisterTenantTable("Workforce_AttendanceEvents");
+        services.RegisterTenantTable("Workforce_AttendanceAnomalies");
+        services.RegisterTenantTable("Workforce_AttendancePolicies");
+        services.RegisterTenantTable("Workforce_ComplianceRules");
+
+        // ── Legacy Core Tables ───────────────────────────────────────────────
+        
         services.RegisterTenantTable("HolidayCalendars");
         services.RegisterTenantTable("Holidays");
         services.RegisterTenantTable("LeavePolicies");
@@ -43,28 +49,9 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.RegisterTenantTable("LeaveBalances");
         services.RegisterTenantTable("Timesheets");
 
-        // IoT & Edge Tables
-        services.RegisterTenantTable("IoT_Devices");
-        services.RegisterTenantTable("IoT_BiometricMappings");
-        services.RegisterTenantTable("IoT_RawPunches");
-        services.RegisterTenantTable("IoT_GeoFences");
-        services.RegisterTenantTable("IoT_LocationBoundaries");
-        services.RegisterTenantTable("IoT_EmployeeLocationAssignments");
-        services.RegisterTenantTable("IoT_FraudFlags");
-        services.RegisterTenantTable("IoT_FraudSignals");
-        services.RegisterTenantTable("IoT_LiveAttendance");
-        services.RegisterTenantTable("IoT_AttendanceResults");
-        services.RegisterTenantTable("IoT_AttendanceAudits");
-
-        // Shift Tables
-        services.RegisterTenantTable("Shifts_Templates");
-        services.RegisterTenantTable("Shifts_Assignments");
-        services.RegisterTenantTable("Shifts_Overrides");
-        services.RegisterTenantTable("Shifts_WeeklyOffRules");
-
-        // Analytics Tables
+        // ── Analytics ────────────────────────────────────────────────────────
+        
         services.RegisterTenantTable("Analytics_ProjectMetrics");
-        services.RegisterTenantTable("Analytics_EmployeeMetrics");
         services.RegisterTenantTable("Analytics_ProcessedEventLog");
 
         services.AddDbContext<TimeAttendanceDbContext>((serviceProvider, options) =>
@@ -73,7 +60,7 @@ public static class TimeAttendanceServiceCollectionExtensions
                 ?? throw new InvalidOperationException(
                     $"ConnectionStrings:{ConnectionStringName} must be configured before TimeAttendanceDbContext can be resolved.");
 
-            options.UseSqlServer(connectionString, x => x.UseNetTopologySuite());
+            options.UseSqlServer(connectionString);
             options.AddKaramchariInterceptors(serviceProvider);
         });
 
@@ -82,23 +69,7 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.AddSingleton<Karamchari.TimeAttendance.Services.ICapacityProvider,
                               Karamchari.TimeAttendance.Services.NullCapacityProvider>();
         
-        // Edge Services
-        services.AddScoped<Karamchari.TimeAttendance.Edge.DeviceAuthService>();
-        services.AddScoped<Karamchari.TimeAttendance.Edge.IngestionPublisher>();
-
-        // Reconciliation & Replay Services
         services.AddScoped<Karamchari.TimeAttendance.Services.ShiftRosteringEngine>();
-        services.AddScoped<Karamchari.TimeAttendance.Services.ShiftReconciliationEngine>();
-        services.AddScoped<Karamchari.TimeAttendance.Services.ReprocessingWorker>();
-        
-        // Live Attendance & Fraud Services
-        services.AddScoped<Karamchari.TimeAttendance.Services.LiveAttendanceService>();
-        services.AddScoped<Karamchari.TimeAttendance.Services.Geofencing.IGeofenceService, Karamchari.TimeAttendance.Services.Geofencing.GeofenceService>();
-        services.AddScoped<Karamchari.TimeAttendance.Services.Fraud.IFraudRiskEngine, Karamchari.TimeAttendance.Services.Fraud.FraudRiskEngine>();
-        services.AddScoped<Karamchari.TimeAttendance.Services.AsyncFraudDetectionWorker>();
-
-        // Background Workers
-        services.AddHostedService<Karamchari.TimeAttendance.Services.ProcessedEventLogCleanupWorker>();
 
         return services;
     }
