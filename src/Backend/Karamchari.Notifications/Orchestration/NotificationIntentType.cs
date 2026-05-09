@@ -61,4 +61,36 @@ public enum NotificationIntentType
 
     /// <summary>Feedback provider receives a reminder that their response is pending.</summary>
     FeedbackResponsePendingReminder = 501,
+
+    // ── Payroll ────────────────────────────────────────────────────────────────
+
+    /// <summary>HR/approver notified that payroll run requires approval.</summary>
+    PayrollApprovalRequired = 600,
+
+    /// <summary>Employee notified that salary disbursement is complete.</summary>
+    DisbursementCompleted = 601,
+
+    /// <summary>HR alerted to a failed disbursement batch.</summary>
+    DisbursementFailed = 602,
+
+    /// <summary>Employee notified FnF settlement has been approved.</summary>
+    FnFApproved = 610,
+
+    /// <summary>Employee notified FnF amount has been disbursed.</summary>
+    FnFDisbursed = 611,
+
+    /// <summary>Employee notified that their arrear adjustment was approved.</summary>
+    ArrearApproved = 620,
+
+    /// <summary>Employee notified that their reimbursement claim was approved.</summary>
+    ReimbursementApproved = 630,
+
+    /// <summary>Employee notified of a salary revision approval.</summary>
+    SalaryRevisionApproved = 640,
+
+    /// <summary>HR alerted to a payroll reconciliation anomaly.</summary>
+    PayrollAnomalyDetected = 650,
+
+    /// <summary>HR alerted to a compliance issue.</summary>
+    ComplianceIssueDetected = 660,
 }

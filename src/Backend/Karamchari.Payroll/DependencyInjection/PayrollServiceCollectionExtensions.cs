@@ -7,6 +7,15 @@ using Karamchari.Payroll.Services;
 using Karamchari.Payroll.Services.Payslip;
 using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Declarations;
+using Karamchari.Payroll.Services.FnF;
+using Karamchari.Payroll.Services.Arrears;
+using Karamchari.Payroll.Services.Loans;
+using Karamchari.Payroll.Services.Reimbursements;
+using Karamchari.Payroll.Services.Simulation;
+using Karamchari.Payroll.Services.Disbursement;
+using Karamchari.Payroll.Services.Disbursement.BankAdapters;
+using Karamchari.Payroll.Services.Reconciliation;
+using Karamchari.Payroll.Domain.Disbursement;
 using Karamchari.Payroll.StateMachines;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +50,18 @@ public static class PayrollServiceCollectionExtensions
         services.AddSingleton<CTCTemplateCompiler>();
         services.AddSingleton<CTCBreakdownService>();
         services.AddSingleton<StatutoryPipelineEngine>();
+
+        // Phase 1A services
+        services.AddScoped<FnFCalculationService>();
+        services.AddScoped<ArrearCalculationEngine>();
+        services.AddSingleton<LoanAmortizationEngine>();
+        services.AddSingleton<ReimbursementPolicyEngine>();
+        services.AddScoped<PayrollSimulationEngine>();
+        services.AddScoped<BankDisbursementOrchestrator>();
+        services.AddScoped<PayrollReconciliationService>();
+
+        // Bank adapters — registered as IEnumerable<IBankDisbursementAdapter>
+        services.AddSingleton<IBankDisbursementAdapter, HdfcBankAdapter>();
         
         services.AddScoped<IProfessionalTaxRepository, ProfessionalTaxRepository>();
         services.AddScoped<IProfessionalTaxProvider, CachedProfessionalTaxProvider>();
@@ -81,6 +102,25 @@ public static class PayrollServiceCollectionExtensions
         services.RegisterTenantTable("ITDeclarations");
         services.RegisterTenantTable("PayrollLedger");
 
+        // Phase 1A RLS tables
+        services.RegisterTenantTable("FnFSettlements");
+        services.RegisterTenantTable("FnFLineItems");
+        services.RegisterTenantTable("ArrearCalculations");
+        services.RegisterTenantTable("PayrollCorrections");
+        services.RegisterTenantTable("ReimbursementClaims");
+        services.RegisterTenantTable("EmployeeLoans");
+        services.RegisterTenantTable("LoanInstallments");
+        services.RegisterTenantTable("VariablePayAllocations");
+        services.RegisterTenantTable("SalaryRevisions");
+        services.RegisterTenantTable("DisbursementBatches");
+        services.RegisterTenantTable("DisbursementEntries");
+        services.RegisterTenantTable("PayrollSimulations");
+        services.RegisterTenantTable("ReconciliationJobs");
+        services.RegisterTenantTable("PayrollAnomalies");
+        services.RegisterTenantTable("FnFSettlementStates");
+        services.RegisterTenantTable("DisbursementBatchStates");
+        services.RegisterTenantTable("PayrollCorrectionStates");
+
         services.AddDbContext<PayrollDbContext>((serviceProvider, options) =>
         {
             var connectionString = configuration.GetConnectionString(ConnectionStringName)
@@ -92,15 +132,45 @@ public static class PayrollServiceCollectionExtensions
         });
 
         busConfigurator.AddConsumer<EmployeeOnboardedConsumer>();
-        busConfigurator.AddConsumer<CalculateAllEmployeePayCommandConsumer>(); // I should rename the other one or keep it
+        busConfigurator.AddConsumer<CalculateAllEmployeePayCommandConsumer>();
         busConfigurator.AddConsumer<PayrollBatchConsumer>();
         busConfigurator.AddConsumer<GeneratePayslipConsumer>();
         busConfigurator.AddConsumer<PayrollRunLockedConsumer>();
         busConfigurator.AddConsumer<LeaveRequestApprovedConsumer>();
         busConfigurator.AddConsumer<TenantProvisionedConsumer>();
         busConfigurator.AddConsumer<TimesheetApprovedConsumer>();
-        
+
+        // Phase 1A consumers
+        busConfigurator.AddConsumer<InitiateFnFCalculationConsumer>();
+        busConfigurator.AddConsumer<DisburseFnFConsumer>();
+        busConfigurator.AddConsumer<SalaryRevisionApprovedArrearConsumer>();
+        busConfigurator.AddConsumer<ArrearApprovedConsumer>();
+        busConfigurator.AddConsumer<InitiateDisbursementConsumer>();
+        busConfigurator.AddConsumer<RetryDisbursementConsumer>();
+        busConfigurator.AddConsumer<PayrollNotificationRouter>();
+
         busConfigurator.AddSagaStateMachine<PayrollRunStateMachine, PayrollRunState>()
+            .EntityFrameworkRepository(r =>
+            {
+                r.ConcurrencyMode = ConcurrencyMode.Optimistic;
+                r.AddDbContext<DbContext, PayrollDbContext>();
+            });
+
+        busConfigurator.AddSagaStateMachine<FnFSettlementStateMachine, FnFSettlementState>()
+            .EntityFrameworkRepository(r =>
+            {
+                r.ConcurrencyMode = ConcurrencyMode.Optimistic;
+                r.AddDbContext<DbContext, PayrollDbContext>();
+            });
+
+        busConfigurator.AddSagaStateMachine<DisbursementBatchStateMachine, DisbursementBatchState>()
+            .EntityFrameworkRepository(r =>
+            {
+                r.ConcurrencyMode = ConcurrencyMode.Optimistic;
+                r.AddDbContext<DbContext, PayrollDbContext>();
+            });
+
+        busConfigurator.AddSagaStateMachine<PayrollCorrectionStateMachine, PayrollCorrectionState>()
             .EntityFrameworkRepository(r =>
             {
                 r.ConcurrencyMode = ConcurrencyMode.Optimistic;

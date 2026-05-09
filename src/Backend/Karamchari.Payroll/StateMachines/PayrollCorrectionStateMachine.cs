@@ -1,0 +1,79 @@
+using MassTransit;
+using Karamchari.Payroll.Contracts;
+
+namespace Karamchari.Payroll.StateMachines;
+
+/// <summary>
+/// Saga for payroll correction lifecycle.
+/// Draft → PendingApproval → Approved → Recalculating → Processed
+/// Guards against duplicate recalculation via RecalculationTriggered flag.
+/// </summary>
+public sealed class PayrollCorrectionStateMachine : MassTransitStateMachine<PayrollCorrectionState>
+{
+    public State PendingApproval { get; private set; } = null!;
+    public State Approved { get; private set; } = null!;
+    public State Recalculating { get; private set; } = null!;
+    public State Processed { get; private set; } = null!;
+    public State Rejected { get; private set; } = null!;
+
+    public Event<CorrectionApprovedIntegrationEvent> CorrectionApproved { get; private set; } = null!;
+    public Event<TriggerCorrectionRecalculationCommand> RecalculationTriggered_Evt { get; private set; } = null!;
+    public Event<CorrectionProcessedIntegrationEvent> CorrectionProcessed { get; private set; } = null!;
+
+    public PayrollCorrectionStateMachine()
+    {
+        InstanceState(x => x.CurrentState);
+
+        Event(() => CorrectionApproved, x => x.CorrelateById(ctx => ctx.Message.CorrectionId));
+        Event(() => RecalculationTriggered_Evt, x => x.CorrelateById(ctx => ctx.Message.CorrectionId));
+        Event(() => CorrectionProcessed, x => x.CorrelateById(ctx => ctx.Message.CorrectionId));
+
+        Initially(
+            When(CorrectionApproved)
+                .Then(ctx =>
+                {
+                    ctx.Saga.TenantId = ctx.Message.TenantId;
+                    ctx.Saga.EmployeeId = ctx.Message.EmployeeId;
+                    ctx.Saga.CorrectionType = ctx.Message.CorrectionType;
+                    ctx.Saga.CorrectionScope = ctx.Message.CorrectionScope;
+                    ctx.Saga.AffectedPeriodName = ctx.Message.AffectedPeriodName;
+                    ctx.Saga.ApprovedBy = "system";
+                })
+                .TransitionTo(Approved)
+                // Trigger recalculation immediately on approval
+                .PublishAsync(ctx => ctx.Init<TriggerCorrectionRecalculationCommand>(new
+                {
+                    CorrectionId = ctx.Saga.CorrelationId,
+                    ctx.Message.TenantId,
+                    ctx.Message.EmployeeId,
+                    ctx.Message.AffectedPeriodName,
+                    ctx.Message.CorrectionScope,
+                    ChangeDetailsJson = string.Empty
+                }))
+        );
+
+        During(Approved,
+            When(RecalculationTriggered_Evt)
+                // Idempotency: skip if already triggered in this saga
+                .If(ctx => !ctx.Saga.RecalculationTriggered, binder => binder
+                    .Then(ctx =>
+                    {
+                        ctx.Saga.RecalculationTriggered = true;
+                        ctx.Saga.ChangeDetailsJson = ctx.Message.ChangeDetailsJson;
+                    })
+                    .TransitionTo(Recalculating))
+        );
+
+        During(Recalculating,
+            When(CorrectionProcessed)
+                .Then(ctx =>
+                {
+                    ctx.Saga.DifferentialAmount = ctx.Message.DifferentialAmount;
+                })
+                .TransitionTo(Processed)
+                .Finalize()
+        );
+
+        SetCompletedWhenFinalized();
+    }
+}

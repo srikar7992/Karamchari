@@ -4,6 +4,16 @@ using Karamchari.Payroll.Domain.SalaryStructures;
 using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.Payroll.StateMachines;
 using Karamchari.Payroll.Domain.Compliance;
+using Karamchari.Payroll.Domain.FnF;
+using Karamchari.Payroll.Domain.Arrears;
+using Karamchari.Payroll.Domain.Corrections;
+using Karamchari.Payroll.Domain.Reimbursements;
+using Karamchari.Payroll.Domain.Loans;
+using Karamchari.Payroll.Domain.VariablePay;
+using Karamchari.Payroll.Domain.SalaryRevisions;
+using Karamchari.Payroll.Domain.Disbursement;
+using Karamchari.Payroll.Domain.Simulation;
+using Karamchari.Payroll.Domain.Reconciliation;
 using Microsoft.EntityFrameworkCore;
 
 using Karamchari.Core.Persistence;
@@ -81,6 +91,21 @@ public class PayrollDbContext : KaramchariDbContext
     /// Gets the compliance filings set.
     /// </summary>
     public DbSet<ComplianceFiling> ComplianceFilings => Set<ComplianceFiling>();
+
+    // Phase 1A new DbSets
+    public DbSet<FnFSettlement> FnFSettlements => Set<FnFSettlement>();
+    public DbSet<ArrearCalculation> ArrearCalculations => Set<ArrearCalculation>();
+    public DbSet<PayrollCorrection> PayrollCorrections => Set<PayrollCorrection>();
+    public DbSet<ReimbursementClaim> ReimbursementClaims => Set<ReimbursementClaim>();
+    public DbSet<EmployeeLoan> EmployeeLoans => Set<EmployeeLoan>();
+    public DbSet<VariablePayAllocation> VariablePayAllocations => Set<VariablePayAllocation>();
+    public DbSet<SalaryRevision> SalaryRevisions => Set<SalaryRevision>();
+    public DbSet<DisbursementBatch> DisbursementBatches => Set<DisbursementBatch>();
+    public DbSet<PayrollSimulation> PayrollSimulations => Set<PayrollSimulation>();
+    public DbSet<ReconciliationJob> ReconciliationJobs => Set<ReconciliationJob>();
+    public DbSet<FnFSettlementState> FnFSettlementStates => Set<FnFSettlementState>();
+    public DbSet<DisbursementBatchState> DisbursementBatchStates => Set<DisbursementBatchState>();
+    public DbSet<PayrollCorrectionState> PayrollCorrectionStates => Set<PayrollCorrectionState>();
 
     /// <summary>
     /// Configures the domain model for the Payroll context.
@@ -196,6 +221,215 @@ public class PayrollDbContext : KaramchariDbContext
             b.HasKey(x => x.Id);
             b.HasIndex(x => new { x.PayrollRunId, x.Type });
             b.Property(x => x.Status).HasConversion<string>();
+        });
+
+        // ── Phase 1A: FnF ─────────────────────────────────────────────────────
+
+        modelBuilder.Entity<FnFSettlement>(b =>
+        {
+            b.ToTable("FnFSettlements");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.ExitType).HasConversion<string>();
+            b.Property(x => x.TotalEarnings).HasPrecision(18, 2);
+            b.Property(x => x.TotalDeductions).HasPrecision(18, 2);
+            b.Property(x => x.NetSettlementAmount).HasPrecision(18, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+            b.OwnsMany(x => x.LineItems, li =>
+            {
+                li.ToTable("FnFLineItems");
+                li.HasKey(x => x.Id);
+                li.Property(x => x.Type).HasConversion<string>();
+                li.Property(x => x.Amount).HasPrecision(18, 2);
+            });
+        });
+
+        modelBuilder.Entity<FnFSettlementState>(b =>
+        {
+            b.ToTable("FnFSettlementStates");
+            b.HasKey(x => x.CorrelationId);
+            b.Property(x => x.CurrentState).HasMaxLength(64);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 1A: Arrears ─────────────────────────────────────────────────
+
+        modelBuilder.Entity<ArrearCalculation>(b =>
+        {
+            b.ToTable("ArrearCalculations");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.HasIndex(x => x.TriggerReference);
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.TriggerType).HasConversion<string>();
+            b.Property(x => x.TotalGrossDelta).HasPrecision(18, 2);
+            b.Property(x => x.TotalNetDelta).HasPrecision(18, 2);
+            b.Property(x => x.TotalTdsDelta).HasPrecision(18, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+            b.OwnsMany(x => x.PeriodDiffs, d => d.ToJson());
+        });
+
+        // ── Phase 1A: Corrections ─────────────────────────────────────────────
+
+        modelBuilder.Entity<PayrollCorrection>(b =>
+        {
+            b.ToTable("PayrollCorrections");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.HasIndex(x => x.IdempotencyKey).IsUnique();
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.Scope).HasConversion<string>();
+            b.Property(x => x.DifferentialAmount).HasPrecision(18, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        modelBuilder.Entity<PayrollCorrectionState>(b =>
+        {
+            b.ToTable("PayrollCorrectionStates");
+            b.HasKey(x => x.CorrelationId);
+            b.Property(x => x.CurrentState).HasMaxLength(64);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 1A: Reimbursements ──────────────────────────────────────────
+
+        modelBuilder.Entity<ReimbursementClaim>(b =>
+        {
+            b.ToTable("ReimbursementClaims");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.HasIndex(x => x.AttachmentHash);
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.Category).HasConversion<string>();
+            b.Property(x => x.Taxability).HasConversion<string>();
+            b.Property(x => x.FraudIndicator).HasConversion<string>();
+            b.Property(x => x.ClaimedAmount).HasPrecision(18, 2);
+            b.Property(x => x.ApprovedAmount).HasPrecision(18, 2);
+            b.Property(x => x.PolicyLimit).HasPrecision(18, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 1A: Loans ───────────────────────────────────────────────────
+
+        modelBuilder.Entity<EmployeeLoan>(b =>
+        {
+            b.ToTable("EmployeeLoans");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.InterestType).HasConversion<string>();
+            b.Property(x => x.PrincipalAmount).HasPrecision(18, 2);
+            b.Property(x => x.OutstandingBalance).HasPrecision(18, 2);
+            b.Property(x => x.MonthlyEmi).HasPrecision(18, 2);
+            b.Property(x => x.InterestRatePercent).HasPrecision(5, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+            b.OwnsMany(x => x.Installments, i =>
+            {
+                i.ToTable("LoanInstallments");
+                i.HasKey(x => x.Id);
+                i.Property(x => x.Status).HasConversion<string>();
+                i.Property(x => x.PrincipalAmount).HasPrecision(18, 2);
+                i.Property(x => x.InterestAmount).HasPrecision(18, 2);
+                i.Property(x => x.OutstandingAfter).HasPrecision(18, 2);
+            });
+        });
+
+        // ── Phase 1A: Variable Pay ────────────────────────────────────────────
+
+        modelBuilder.Entity<VariablePayAllocation>(b =>
+        {
+            b.ToTable("VariablePayAllocations");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.TaxTreatment).HasConversion<string>();
+            b.Property(x => x.AllocatedAmount).HasPrecision(18, 2);
+            b.Property(x => x.ProratedAmount).HasPrecision(18, 2);
+            b.Property(x => x.PaidAmount).HasPrecision(18, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 1A: Salary Revisions ────────────────────────────────────────
+
+        modelBuilder.Entity<SalaryRevision>(b =>
+        {
+            b.ToTable("SalaryRevisions");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.PreviousCTC).HasPrecision(18, 2);
+            b.Property(x => x.NewCTC).HasPrecision(18, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 1A: Disbursement ────────────────────────────────────────────
+
+        modelBuilder.Entity<DisbursementBatch>(b =>
+        {
+            b.ToTable("DisbursementBatches");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.RunId).IsUnique();  // deduplication guard
+            b.HasIndex(x => x.PeriodName);
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.BankProvider).HasConversion<string>();
+            b.Property(x => x.TotalAmount).HasPrecision(18, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+            b.OwnsMany(x => x.Entries, e =>
+            {
+                e.ToTable("DisbursementEntries");
+                e.HasKey(x => x.Id);
+                e.HasIndex(x => x.IdempotencyKey).IsUnique();
+                e.Property(x => x.Status).HasConversion<string>();
+                e.Property(x => x.Amount).HasPrecision(18, 2);
+            });
+        });
+
+        modelBuilder.Entity<DisbursementBatchState>(b =>
+        {
+            b.ToTable("DisbursementBatchStates");
+            b.HasKey(x => x.CorrelationId);
+            b.Property(x => x.CurrentState).HasMaxLength(64);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 1A: Simulation ──────────────────────────────────────────────
+
+        modelBuilder.Entity<PayrollSimulation>(b =>
+        {
+            b.ToTable("PayrollSimulations");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.ExpiresAtUtc);
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.TotalProjectedGross).HasPrecision(18, 2);
+            b.Property(x => x.TotalProjectedNet).HasPrecision(18, 2);
+            b.Property(x => x.TotalProjectedDelta).HasPrecision(18, 2);
+            b.OwnsMany(x => x.Results, r => r.ToJson());
+        });
+
+        // ── Phase 1A: Reconciliation ──────────────────────────────────────────
+
+        modelBuilder.Entity<ReconciliationJob>(b =>
+        {
+            b.ToTable("ReconciliationJobs");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.PeriodName });
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.AnomalyScore).HasPrecision(5, 2);
+            b.OwnsMany(x => x.Anomalies, a =>
+            {
+                a.ToTable("PayrollAnomalies");
+                a.HasKey(x => x.Id);
+                a.Property(x => x.Type).HasConversion<string>();
+                a.Property(x => x.Severity).HasConversion<string>();
+                a.Property(x => x.ResolutionStatus).HasConversion<string>();
+                a.Property(x => x.AnomalyScore).HasPrecision(5, 2);
+            });
         });
     }
 }

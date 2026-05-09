@@ -49,6 +49,7 @@ using Karamchari.Api.BFF.HR;
 using Karamchari.Api.BFF.Executive;
 using Karamchari.Api.BFF.Notifications;
 using Karamchari.Api.BFF.Search;
+using Karamchari.Api.BFF.Payroll;
 
 // Entry point for the Karamchari API.
 var builder = WebApplication.CreateBuilder(args);
@@ -1899,6 +1900,18 @@ app.MapExecutiveWorkspace();
 app.MapNotificationCenter();
 app.MapExportJobs();
 app.MapSearch();
+
+// ── Payroll Phase 1A ──────────────────────────────────────────────────────────
+app.MapFnFEndpoints();
+app.MapArrearEndpoints();
+app.MapCorrectionEndpoints();
+app.MapReimbursementEndpoints();
+app.MapLoanEndpoints();
+app.MapVariablePayEndpoints();
+app.MapSalaryRevisionEndpoints();
+app.MapSimulationEndpoints();
+app.MapDisbursementEndpoints();
+app.MapPayrollCockpitEndpoints();
 
 app.Run();
 
