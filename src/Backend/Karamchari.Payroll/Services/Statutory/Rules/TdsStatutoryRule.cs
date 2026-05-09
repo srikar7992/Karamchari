@@ -62,7 +62,11 @@ public sealed class TdsStatutoryRule : IAsyncStatutoryRule
 
         decimal section80C = approvedDeclarations.Where(d => d.Category == "80C").Sum(d => d.ApprovedAmount ?? 0);
         decimal section80D = approvedDeclarations.Where(d => d.Category == "80D").Sum(d => d.ApprovedAmount ?? 0);
-        decimal monthlyRent = approvedDeclarations.Where(d => d.Category == "HRA").Max(d => d.ApprovedAmount ?? 0); // Rent is usually a monthly max
+        decimal monthlyRent = approvedDeclarations
+            .Where(d => d.Category == "HRA")
+            .Select(d => d.ApprovedAmount ?? 0)
+            .DefaultIfEmpty(0)
+            .Max(); // Rent is usually a monthly max
 
         // 3. Calculate HRA exemption using the actual component values from the CTC breakdown.
         //    Previously annualHra was hardcoded to 0 â€” this meant HRA exemption was never

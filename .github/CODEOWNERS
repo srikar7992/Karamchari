@@ -1,0 +1,9 @@
+* @srika
+
+/src/Backend/Karamchari.Payroll/ @srika
+/src/Backend/Karamchari.Identity/ @srika
+/src/Backend/Karamchari.Identity.Infrastructure/ @srika
+/src/Backend/Karamchari.Core/ @srika
+/Directory.Build.props @srika
+/Directory.Packages.props @srika
+/.github/workflows/ @srika

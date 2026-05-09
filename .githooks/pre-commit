@@ -1,47 +1,52 @@
 #!/bin/sh
-# ==============================================================================
-# Karamchari Enterprise Pre-Commit Hook
-# Prevents broken builds, formatting violations, and secrets from entering the repo.
-# ==============================================================================
+# Karamchari enterprise pre-commit hook.
+# Fast local gate: formatting, build/analyzers when backend files change, npm
+# audits when lock files change, and staged secret scanning for every commit.
 
 echo "Running Karamchari Pre-Commit Checks..."
 
-# 1. Check for staged files
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$')
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+BACKEND_FILES=$(printf '%s\n' "$STAGED_FILES" | grep -E '(\.cs$|\.csproj$|\.props$|\.targets$|\.sln$|NuGet\.config$|global\.json$)' || true)
+NPM_FILES=$(printf '%s\n' "$STAGED_FILES" | grep -E '(^src/Frontend/portal/package(-lock)?\.json$|^src/Mobile/karamchari-mobile/package(-lock)?\.json$)' || true)
 
-if [ -z "$STAGED_FILES" ]; then
-    echo "No C# files staged. Skipping .NET checks."
-else
-    echo "Staged C# files found. Running formatting and analyzers..."
+if [ -n "$BACKEND_FILES" ]; then
+    echo "Backend files changed. Running formatting and analyzers..."
 
-    # 2. Enforce Formatting
     echo ">> Enforcing dotnet format..."
-    dotnet format src/Backend/Karamchari.sln --verify-no-changes
-    FORMAT_STATUS=$?
-    if [ $FORMAT_STATUS -ne 0 ]; then
-        echo "❌ Formatting check failed. Run 'dotnet format src/Backend/Karamchari.sln' to fix."
+    dotnet format src/Backend/Karamchari.sln --verify-no-changes --severity warn --no-restore
+    if [ $? -ne 0 ]; then
+        echo "Formatting check failed. Run 'dotnet format src/Backend/Karamchari.sln' to fix."
         exit 1
     fi
 
-    # 3. Enforce Build & Analyzers
-    echo ">> Verifying Build & Analyzers (Zero Warnings Policy)..."
-    dotnet build src/Backend/Karamchari.sln -c Release -p:TreatWarningsAsErrors=true
-    BUILD_STATUS=$?
-    if [ $BUILD_STATUS -ne 0 ]; then
-        echo "❌ Build or Analyzer checks failed. Fix warnings/errors before committing."
+    echo ">> Verifying build and analyzers (Zero Warnings Policy)..."
+    dotnet build src/Backend/Karamchari.sln -c Release -warnaserror
+    if [ $? -ne 0 ]; then
+        echo "Build or analyzer checks failed. Fix warnings/errors before committing."
         exit 1
+    fi
+else
+    echo "No backend build files staged. Skipping .NET build gate."
+fi
+
+if [ -n "$NPM_FILES" ]; then
+    echo "Node dependency files changed. Running npm audits..."
+    if [ -f src/Frontend/portal/package-lock.json ]; then
+        npm audit --prefix src/Frontend/portal --audit-level=moderate || exit 1
+    fi
+    if [ -f src/Mobile/karamchari-mobile/package-lock.json ]; then
+        npm audit --prefix src/Mobile/karamchari-mobile --audit-level=moderate || exit 1
     fi
 fi
 
-# 4. Naive Secret Scanning (Example: looking for hardcoded 'Password=' or 'Secret=')
 echo ">> Scanning for hardcoded secrets..."
-SECRET_VIOLATIONS=$(git diff --cached -G"(?i)(password|secret|api[_-]?key)\s*[:=]\s*[\"'][^\"']+[\"']" --name-only)
+SECRET_VIOLATIONS=$(git diff --cached -G"(?i)(password|secret|api[_-]?key|token|connectionstring|accountkey|sharedaccesskey)\s*[:=]\s*[\"'][^\"']{8,}[\"']" --name-only)
 if [ -n "$SECRET_VIOLATIONS" ]; then
-    echo "❌ Potential hardcoded secrets found in the following files:"
+    echo "Potential hardcoded secrets found in the following files:"
     echo "$SECRET_VIOLATIONS"
     echo "Remove secrets and use user-secrets or environment variables."
     exit 1
 fi
 
-echo "✅ Pre-commit checks passed! Committing."
+echo "Pre-commit checks passed."
 exit 0

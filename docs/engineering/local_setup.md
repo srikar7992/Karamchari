@@ -1,26 +1,40 @@
-# Local Setup & Environment Validation Guide
+# Local Setup and Validation
 
-## 1. One-Command Setup
-To bootstrap your local development environment, run the setup script from the repository root:
+## One-command setup
 
-**Windows (PowerShell):**
+Windows:
+
 ```powershell
 .\setup.ps1
 ```
 
-**macOS/Linux:**
+Linux/WSL:
+
 ```bash
 git config core.hooksPath .githooks
-dotnet restore src/Backend/Karamchari.sln
-dotnet build src/Backend/Karamchari.sln
+./scripts/validate.sh
 ```
 
-## 2. What Does Setup Do?
-- **Hooks:** Points `git` to the `.githooks` directory to enforce pre-commit checks (Formatting, Build, Analyzer, Secret scanning).
-- **Restore:** Restores all centralized NuGet packages defined in `Directory.Packages.props`.
-- **Build:** Executes a strict build applying the Zero Warnings Policy.
+## What setup enforces
 
-## 3. Local Developer Experience Rules
-- **No Global Tools:** Do not rely on globally installed dotnet tools if they mutate code formatting. Use the local `dotnet format` command.
-- **Secrets:** Never check in `appsettings.Development.json` if it contains real secrets. Use `dotnet user-secrets` for local connections to databases or service buses.
-- **Reproducibility:** If your build works locally but fails in CI, ensure your local SDK matches `global.json` (or the CI pipeline version, currently `10.0.x`).
+- Git hooks are activated through `.githooks`.
+- The .NET SDK is pinned by `global.json`.
+- NuGet restore uses committed `packages.lock.json` files.
+- Backend builds run with analyzers and warnings as errors.
+- Frontend and mobile dependencies install through `npm ci` when Node.js is available.
+
+## Full local gate
+
+Run:
+
+```powershell
+.\scripts\validate.ps1
+```
+
+This is the same contract as CI: locked restore, formatting, build/analyzers, tests with coverage, NuGet audit, npm audits, and API publish validation.
+
+The SQL Server RLS integration tests use Testcontainers and require Docker. Use `.\scripts\validate.ps1 -SkipIntegration` only for fast local feedback; it is not a merge gate.
+
+## Secret handling
+
+Do not commit environment-specific `appsettings.*.json`, `.env`, certificates, keys, or connection strings. Use environment variables, `dotnet user-secrets`, or managed cloud secret stores.

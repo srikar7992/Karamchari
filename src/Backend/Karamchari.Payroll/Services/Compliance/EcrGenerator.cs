@@ -66,7 +66,8 @@ public sealed class EcrGenerator : IEcrGenerator
     private static string SanitizeName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "UNKNOWN";
-        return Regex.Replace(name.ToUpperInvariant(), @"[^A-Z\s]", "").Trim();
+        var sanitized = Regex.Replace(name.ToUpperInvariant(), @"[^A-Z\s]", " ");
+        return Regex.Replace(sanitized, @"\s+", " ").Trim();
     }
 
     /// <summary>

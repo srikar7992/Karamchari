@@ -8,7 +8,7 @@ import {
   fetchFraudFlags, 
   reviewFraud 
 } from "../api/attendanceApi";
-import { attendanceHub } from "@/lib/signalr/AttendanceHubClient";
+import { getAttendanceHub } from "@/lib/signalr/AttendanceHubClient";
 import { LiveAttendanceDto } from "../types";
 
 /**
@@ -29,6 +29,7 @@ export const useLiveAttendance = () => {
   });
 
   useEffect(() => {
+    const attendanceHub = getAttendanceHub();
     attendanceHub.start().catch(console.error);
 
     attendanceHub.onAttendanceUpdated((update: LiveAttendanceUpdatedEvent) => {

@@ -1,0 +1,21 @@
+#!/bin/sh
+# Karamchari enterprise pre-push hook.
+# Full backend validation before code leaves the workstation.
+
+echo "Running Karamchari Pre-Push Validation..."
+
+dotnet restore src/Backend/Karamchari.sln --locked-mode || exit 1
+dotnet format src/Backend/Karamchari.sln --verify-no-changes --severity warn --no-restore || exit 1
+dotnet build src/Backend/Karamchari.sln --no-restore -c Release -warnaserror || exit 1
+dotnet test src/Backend/Karamchari.sln --no-build -c Release --logger "trx;LogFileName=test_results.trx" --collect:"XPlat Code Coverage" || exit 1
+dotnet list src/Backend/Karamchari.sln package --vulnerable --include-transitive || exit 1
+
+if [ -f src/Frontend/portal/package-lock.json ]; then
+  npm audit --prefix src/Frontend/portal --audit-level=moderate || exit 1
+fi
+
+if [ -f src/Mobile/karamchari-mobile/package-lock.json ]; then
+  npm audit --prefix src/Mobile/karamchari-mobile --audit-level=moderate || exit 1
+fi
+
+echo "Pre-push validation passed."

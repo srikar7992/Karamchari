@@ -39,7 +39,7 @@ internal sealed class HttpTenantProvider : ITenantProvider
     }
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Resolves the current request tenant or throws when tenant context is invalid or missing.
     /// </summary>
     public TenantContext GetTenant()
     {
@@ -59,7 +59,7 @@ internal sealed class HttpTenantProvider : ITenantProvider
     }
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Attempts to resolve the current request tenant without throwing tenant-resolution failures.
     /// </summary>
     public bool TryGetTenant([NotNullWhen(true)] out TenantContext? tenant)
     {

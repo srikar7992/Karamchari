@@ -6,7 +6,7 @@ import { useLiveAttendance } from "@/features/attendance/hooks/useAttendance";
 import { LiveAttendanceDto } from "@/features/attendance/types";
 import { Badge } from "@/design-system/components/Badge";
 import { format } from "date-fns";
-import { attendanceHub } from "@/lib/signalr/AttendanceHubClient";
+import { getAttendanceHub } from "@/lib/signalr/AttendanceHubClient";
 
 /**
  * High-performance virtualized attendance grid.
@@ -18,12 +18,15 @@ export const AttendanceGrid = () => {
 
   // Capture recent updates to pin them to the top
   useEffect(() => {
+    const attendanceHub = getAttendanceHub();
     attendanceHub.onAttendanceUpdated((update) => {
       setRecentIds((prev) => {
         const next = [update.employeeId, ...prev.filter(id => id !== update.employeeId)];
         return next.slice(0, 5); // Keep top 5 recent
       });
     });
+
+    return () => attendanceHub.offAttendanceUpdated();
   }, []);
 
   // Compute the stable list (excluding recent)

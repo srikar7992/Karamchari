@@ -1,58 +1,140 @@
-name: Enterprise Build & Validation
+name: Enterprise Build and Validation
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, master]
   pull_request:
-    branches:
-      - main
+    branches: [main, master]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  CI: true
 
 jobs:
-  validate:
-    name: Build, Test, and Analyze
+  backend:
+    name: Backend Restore, Build, Test, Analyze
     runs-on: ubuntu-latest
-    env:
-      DOTNET_CLI_TELEMETRY_OPTOUT: 1
-      DOTNET_NOLOGO: 1
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+    timeout-minutes: 45
 
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Full history for analyzers and coverage
+          fetch-depth: 0
 
-      - name: Setup .NET
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
-          # Pin SDK to ensure deterministic builds
+          dotnet-version: 10.0.203
+          cache: true
+          cache-dependency-path: |
+            Directory.Packages.props
+            **/packages.lock.json
 
-      - name: Cache NuGet Packages
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Restore Dependencies
+      - name: Restore locked dependency graph
         run: dotnet restore src/Backend/Karamchari.sln --locked-mode
-        # Enforces package lock files if generated, preventing silent dependency drift
 
-      - name: Verify Formatting
-        run: dotnet format src/Backend/Karamchari.sln --verify-no-changes --severity warn
-        # Fails the build if code formatting deviates from .editorconfig
+      - name: Verify formatting
+        run: dotnet format src/Backend/Karamchari.sln --verify-no-changes --severity warn --no-restore
 
-      - name: Build Solution
+      - name: Build with analyzers and warnings as errors
         run: dotnet build src/Backend/Karamchari.sln --no-restore -c Release -warnaserror
-        # Zero Warnings Policy enforced here.
 
-      - name: Run Unit Tests
-        run: dotnet test src/Backend/Karamchari.sln --no-build -c Release --logger "trx;LogFileName=test_results.trx" --collect:"XPlat Code Coverage"
+      - name: Run tests with coverage
+        run: dotnet test src/Backend/Karamchari.sln --no-build -c Release --logger "trx;LogFilePrefix=test_results" --collect:"XPlat Code Coverage"
 
-      - name: Security Audit
+      - name: NuGet vulnerability audit
         run: dotnet list src/Backend/Karamchari.sln package --vulnerable --include-transitive
-        # Fails if transitive dependencies have known vulnerabilities not suppressed in Directory.Build.props
+
+      - name: Publish API validation
+        run: dotnet publish src/Backend/Karamchari.Api/Karamchari.Api.csproj --no-restore -c Release -o artifacts/publish/Karamchari.Api -warnaserror
+
+      - name: Upload test and coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: |
+            **/TestResults/**/*.trx
+            **/TestResults/**/coverage.cobertura.xml
+          retention-days: 14
+
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: karamchari-api-publish
+          path: artifacts/publish/Karamchari.Api
+          retention-days: 14
+
+  node:
+    name: Frontend and Mobile Dependency Governance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            src/Frontend/portal/package-lock.json
+            src/Mobile/karamchari-mobile/package-lock.json
+
+      - name: Portal deterministic install
+        run: npm ci --ignore-scripts --loglevel=error
+        working-directory: src/Frontend/portal
+
+      - name: Portal audit
+        run: npm audit --audit-level=moderate
+        working-directory: src/Frontend/portal
+
+      - name: Portal typecheck
+        run: npm run typecheck
+        working-directory: src/Frontend/portal
+
+      - name: Portal build
+        run: npm run build
+        working-directory: src/Frontend/portal
+
+      - name: Mobile deterministic install
+        run: npm ci --ignore-scripts --loglevel=error
+        working-directory: src/Mobile/karamchari-mobile
+
+      - name: Mobile audit
+        run: npm audit --audit-level=moderate
+        working-directory: src/Mobile/karamchari-mobile
+
+  security:
+    name: Secret and Repository Hygiene Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secret scan
+        uses: trufflesecurity/trufflehog@v3.89.2
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified

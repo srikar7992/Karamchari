@@ -51,12 +51,12 @@ public sealed partial record TenantTable
     }
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Gets the SQL Server table name participating in tenant row-level security.
     /// </summary>
     public string TableName { get; }
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Gets the tenant discriminator column used by row-level security predicates.
     /// </summary>
     public string TenantIdColumn { get; }
 }

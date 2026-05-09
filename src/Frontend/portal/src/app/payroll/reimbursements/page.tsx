@@ -168,7 +168,7 @@ function SubmitClaimModal({ onClose }: { onClose: () => void }) {
     category: "Travel" as ReimbursementCategory,
     claimedAmount: "",
     description: "",
-    claimDate: new Date().toISOString().split("T")[0],
+    claimDate: new Date().toISOString().split("T")[0] ?? "",
   });
 
   function handleSubmit(e: React.FormEvent) {

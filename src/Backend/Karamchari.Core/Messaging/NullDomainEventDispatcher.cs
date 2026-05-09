@@ -14,7 +14,7 @@ namespace Karamchari.Core.Messaging;
 internal sealed class NullDomainEventDispatcher : IDomainEventDispatcher
 {
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Dispatches domain events or fails when a real dispatcher has not been registered.
     /// </summary>
     public Task DispatchAsync(IReadOnlyCollection<IDomainEvent> events, CancellationToken cancellationToken = default)
     {

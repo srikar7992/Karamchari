@@ -12,12 +12,12 @@ public sealed class TenantTableRegistry : ITenantTableRegistry
     private readonly ConcurrentDictionary<string, TenantTable> _tables = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Gets the tenant-owned tables registered for row-level security provisioning.
     /// </summary>
     public IReadOnlyCollection<TenantTable> Tables => [.. _tables.Values];
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Registers a tenant-owned table for row-level security provisioning.
     /// </summary>
     public void Register(TenantTable table)
     {

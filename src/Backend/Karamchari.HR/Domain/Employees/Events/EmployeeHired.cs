@@ -18,12 +18,12 @@ public sealed record EmployeeHired(
     DateOnly HiredOn) : IDomainEvent
 {
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Gets the unique event identifier used for idempotent processing.
     /// </summary>
     public Guid EventId { get; } = Guid.NewGuid();
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Gets the UTC timestamp captured when the event instance is created.
     /// </summary>
     public DateTimeOffset OccurredOnUtc { get; } = DateTimeOffset.UtcNow;
 }

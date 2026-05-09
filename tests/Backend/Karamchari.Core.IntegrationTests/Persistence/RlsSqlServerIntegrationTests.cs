@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Diagnostics;
 using FluentAssertions;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
@@ -18,7 +19,7 @@ public sealed class RlsSqlServerIntegrationTests(SqlServerRlsFixture fixture)
     private static readonly TenantContext TenantA = new("contoso", TenantSource.JwtClaim);
     private static readonly TenantContext TenantB = new("fabrikam", TenantSource.JwtClaim);
 
-    [Fact]
+    [DockerRequiredFact]
     public async Task Query_UnderTenantSessionContext_ReturnsOnlyRowsOwnedByThatTenant()
     {
         await using var db = fixture.CreateDbContext(TenantA);
@@ -34,7 +35,7 @@ public sealed class RlsSqlServerIntegrationTests(SqlServerRlsFixture fixture)
         employees[0].Name.Should().Be("Contoso Visible");
     }
 
-    [Fact]
+    [DockerRequiredFact]
     public async Task Insert_WithAnotherTenantIdUnderCurrentSession_IsBlockedByRls()
     {
         await using var db = fixture.CreateDbContext(TenantA);
@@ -52,7 +53,7 @@ public sealed class RlsSqlServerIntegrationTests(SqlServerRlsFixture fixture)
             .Where(ex => IsRlsBlockPredicateFailure(ex));
     }
 
-    [Fact]
+    [DockerRequiredFact]
     public async Task RawSql_BypassingSchemaRewriterAgainstAnotherTenantSchema_IsBlockedByRls()
     {
         await using var db = fixture.CreateDbContext(TenantA);
@@ -272,4 +273,47 @@ public sealed class RlsTestEmployee : ITenantOwned
     public string TenantId { get; private set; } = string.Empty;
 
     public string Name { get; private set; } = string.Empty;
+}
+
+internal sealed class DockerRequiredFactAttribute : FactAttribute
+{
+    public DockerRequiredFactAttribute()
+    {
+        if (!IsContinuousIntegration() && !IsDockerAvailable())
+        {
+            Skip = "Docker is required for SQL Server RLS integration tests. Start Docker or run in CI.";
+        }
+    }
+
+    private static bool IsContinuousIntegration()
+    {
+        return string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"), "true", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsDockerAvailable()
+    {
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = "docker",
+                ArgumentList = { "info", "--format", "{{.ServerVersion}}" },
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+
+            return process is not null && process.WaitForExit(5000) && process.ExitCode == 0;
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            return false;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+    }
 }

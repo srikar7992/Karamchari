@@ -1,6 +1,6 @@
 namespace Karamchari.HR.Contracts.Organization;
 
 /// <summary>
-/// TODO: Add XML documentation.
+/// Command payload for creating a tenant-scoped department.
 /// </summary>
 public sealed record CreateDepartmentCommand(string Name, string? Description);

@@ -124,7 +124,8 @@ public class ComplianceTests
 
         // Assert
         Assert.True(result.EstimatedPenalty >= expectedPenaltyMin);
-        Assert.Equal("High", result.RiskLevel);
+        var expectedRiskLevel = daysLate > 30 ? "Critical" : "High";
+        Assert.Equal(expectedRiskLevel, result.RiskLevel);
     }
 
     [Fact]

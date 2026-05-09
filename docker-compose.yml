@@ -11,7 +11,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__KaramchariDb=Server=sqlserver;Database=Karamchari;User Id=sa;Password=Your_password123;TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=True
+      - ConnectionStrings__KaramchariDb=Server=sqlserver;Database=Karamchari;User Id=sa;Password=${KARAMCHARI_SQL_PASSWORD:?Set KARAMCHARI_SQL_PASSWORD before starting compose};TrustServerCertificate=True;Encrypt=False;MultipleActiveResultSets=True
       - ConnectionStrings__Redis=redis:6379
     depends_on:
       - sqlserver
@@ -23,7 +23,7 @@ services:
       - "1433:1433"
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=Your_password123
+      - MSSQL_SA_PASSWORD=${KARAMCHARI_SQL_PASSWORD:?Set KARAMCHARI_SQL_PASSWORD before starting compose}
     volumes:
       - sqlserver-data:/var/opt/mssql
 

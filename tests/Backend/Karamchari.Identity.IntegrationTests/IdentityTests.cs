@@ -3,9 +3,12 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using Karamchari.Identity.Contracts;
 using Karamchari.Identity.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Karamchari.Identity.IntegrationTests;
@@ -23,6 +26,7 @@ public class IdentityTests : IClassFixture<WebApplicationFactory<Program>>
         ArgumentNullException.ThrowIfNull(factory);
         _factory = factory.WithWebHostBuilder(builder =>
         {
+            builder.UseEnvironment("Development");
             builder.ConfigureServices(services =>
             {
                 // Remove all DB registrations and related services to avoid provider conflicts
@@ -38,33 +42,46 @@ public class IdentityTests : IClassFixture<WebApplicationFactory<Program>>
                     typeof(Karamchari.Compensation.Persistence.CompensationDbContext),
                     typeof(Karamchari.Billing.Persistence.BillingDbContext),
                     typeof(Karamchari.Forecasting.Persistence.ForecastingDbContext),
-                    typeof(Karamchari.Core.Persistence.CoreDbContext)
+                    typeof(Karamchari.Core.Persistence.CoreDbContext),
+                    typeof(Karamchari.Recruitment.Persistence.RecruitmentDbContext),
+                    typeof(Karamchari.Capability.Persistence.CapabilityDbContext),
+                    typeof(Karamchari.Intelligence.Persistence.IntelligenceDbContext),
+                    typeof(Karamchari.Governance.Persistence.GovernanceDbContext)
                 };
 
                 foreach (var dbContextType in dbContextTypes)
                 {
-                    // Remove DbContextOptions
                     var optionsType = typeof(DbContextOptions<>).MakeGenericType(dbContextType);
-                    var descriptors = services.Where(d => d.ServiceType == optionsType).ToList();
-                    foreach (var d in descriptors) services.Remove(d);
-
-                    // Remove DbContext itself
-                    var dbDescriptors = services.Where(d => d.ServiceType == dbContextType).ToList();
-                    foreach (var d in dbDescriptors) services.Remove(d);
+                    services.RemoveAll(optionsType);
+                    services.RemoveAll(dbContextType);
                 }
 
-                // Add In-Memory DBs
-                services.AddDbContext<IdentityDbContext>(o => o.UseInMemoryDatabase("IdentityTestDb"));
-                services.AddDbContext<Karamchari.Payroll.Data.PayrollDbContext>(o => o.UseInMemoryDatabase("PayrollTestDb"));
-                services.AddDbContext<Karamchari.HR.Persistence.HRDbContext>(o => o.UseInMemoryDatabase("HRTestDb"));
-                services.AddDbContext<Karamchari.TimeAttendance.Persistence.TimeAttendanceDbContext>(o => o.UseInMemoryDatabase("TimeAttendanceTestDb"));
-                services.AddDbContext<Karamchari.PSA.Persistence.PSADbContext>(o => o.UseInMemoryDatabase("PSATestDb"));
-                services.AddDbContext<Karamchari.Performance.Persistence.PerformanceDbContext>(o => o.UseInMemoryDatabase("PerformanceTestDb"));
-                services.AddDbContext<Karamchari.Notifications.Persistence.NotificationsDbContext>(o => o.UseInMemoryDatabase("NotificationsTestDb"));
-                services.AddDbContext<Karamchari.Compensation.Persistence.CompensationDbContext>(o => o.UseInMemoryDatabase("CompensationTestDb"));
-                services.AddDbContext<Karamchari.Billing.Persistence.BillingDbContext>(o => o.UseInMemoryDatabase("BillingTestDb"));
-                services.AddDbContext<Karamchari.Forecasting.Persistence.ForecastingDbContext>(o => o.UseInMemoryDatabase("ForecastingTestDb"));
-                services.AddDbContext<Karamchari.Core.Persistence.CoreDbContext>(o => o.UseInMemoryDatabase("CoreTestDb"));
+                services.RemoveAll<DbContext>();
+                services.RemoveAll<DbContextOptions<DbContext>>();
+                services.RemoveAll<IHostedService>();
+
+                var inMemoryProvider = new ServiceCollection()
+                    .AddEntityFrameworkInMemoryDatabase()
+                    .BuildServiceProvider();
+
+                // Add isolated In-Memory DBs. UseInternalServiceProvider prevents EF provider
+                // collisions with SQL Server registrations retained by MassTransit internals.
+                services.AddDbContext<IdentityDbContext>(o => ConfigureInMemory(o, "IdentityTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Payroll.Data.PayrollDbContext>(o => ConfigureInMemory(o, "PayrollTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.HR.Persistence.HRDbContext>(o => ConfigureInMemory(o, "HRTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.TimeAttendance.Persistence.TimeAttendanceDbContext>(o => ConfigureInMemory(o, "TimeAttendanceTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.PSA.Persistence.PSADbContext>(o => ConfigureInMemory(o, "PSATestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Performance.Persistence.PerformanceDbContext>(o => ConfigureInMemory(o, "PerformanceTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Notifications.Persistence.NotificationsDbContext>(o => ConfigureInMemory(o, "NotificationsTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Compensation.Persistence.CompensationDbContext>(o => ConfigureInMemory(o, "CompensationTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Billing.Persistence.BillingDbContext>(o => ConfigureInMemory(o, "BillingTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Forecasting.Persistence.ForecastingDbContext>(o => ConfigureInMemory(o, "ForecastingTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Core.Persistence.CoreDbContext>(o => ConfigureInMemory(o, "CoreTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Recruitment.Persistence.RecruitmentDbContext>(o => ConfigureInMemory(o, "RecruitmentTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Capability.Persistence.CapabilityDbContext>(o => ConfigureInMemory(o, "CapabilityTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Intelligence.Persistence.IntelligenceDbContext>(o => ConfigureInMemory(o, "IntelligenceTestDb", inMemoryProvider));
+                services.AddDbContext<Karamchari.Governance.Persistence.GovernanceDbContext>(o => ConfigureInMemory(o, "GovernanceTestDb", inMemoryProvider));
+                services.AddScoped<DbContext>(sp => sp.GetRequiredService<Karamchari.Payroll.Data.PayrollDbContext>());
             });
         });
     }
@@ -81,7 +98,8 @@ public class IdentityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await client.PostAsJsonAsync("/api/identity/register", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.OK, responseBody);
     }
 
     /// <summary>Tests that login returns Unauthorized for invalid credentials.</summary>
@@ -96,6 +114,13 @@ public class IdentityTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await client.PostAsJsonAsync("/api/identity/login", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized, responseBody);
+    }
+
+    private static void ConfigureInMemory(DbContextOptionsBuilder options, string databaseName, IServiceProvider provider)
+    {
+        options.UseInMemoryDatabase(databaseName);
+        options.UseInternalServiceProvider(provider);
     }
 }

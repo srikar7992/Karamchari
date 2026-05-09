@@ -1,30 +1,45 @@
-# Engineering Hardening Final Validation Report
+# Engineering Hardening Validation Report
 
-## 1. Enforcement Guarantees Established
-- **Main Branch Sanctity:** Protected via PRs, automated pre-commit checks, and GitHub Actions CI pipelines (`.github/workflows/ci.yml`). Direct commits are forbidden.
-- **Zero Warnings Policy:** `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` is globally enforced in `Directory.Build.props`. All `CS1591`, `CA1707`, `CA1716`, `CA1822`, and `CA1873` warnings have been systematically resolved.
-- **Deterministic Builds:** `<Deterministic>true</Deterministic>` and `<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>` are enabled, guaranteeing binary reproducibility between local and CI environments.
-- **Centralized Dependency Management:** `Directory.Packages.props` governs the version of every NuGet package across 20+ bounded contexts. `<CentralPackageTransitivePinningEnabled>` is active to prevent silent transitive downgrades.
-- **Formatting Discipline:** Code style is enforced via `.editorconfig` and validated in CI using `dotnet format --verify-no-changes`. Local `setup.ps1` installs a git hook to prevent malformed code from being committed.
+## Gates now enforced
 
-## 2. Final Validation Gates Cleared
-1. **Clean Clone & Restore:** `setup.ps1` executes flawlessly.
-2. **Build Success:** The full solution builds on .NET 10 with zero errors.
-3. **Analyzer Cleanliness:** All Code Analysis (CA) and IDE diagnostics are either resolved or formally justified.
-4. **Test Reliability:** The test suite (`dotnet test --no-build`) executes sequentially without locking or shared-state failures.
-5. **XML Documentation:** Core interfaces, aggregates, and integration events are rigorously documented. The `add_xml_docs.ps1` script has automated the baseline, removing the CS1591 bottleneck.
+- SDK pinning: `global.json` pins .NET SDK `10.0.203`.
+- Package determinism: `Directory.Build.props` enables package lock files and CI locked restore.
+- Package source governance: `NuGet.config` clears ambient package sources and allows only `nuget.org`.
+- Build determinism: deterministic compilation and CI build metadata are enabled globally.
+- Zero warnings: `TreatWarningsAsErrors`, .NET analyzers, code style enforcement, and `dotnet build -warnaserror` are required.
+- Formatting: `.editorconfig` is enforced by `dotnet format --verify-no-changes`.
+- Local enforcement: `.githooks/pre-commit` and `.githooks/pre-push` gate formatting, build, tests, audits, and staged secret patterns.
+- CI enforcement: `.github/workflows/ci.yml` runs backend restore, build, tests, coverage, audit, publish validation, npm audits, portal typecheck/build, artifact retention, and secret scanning.
+- Branch readiness: PR template and CODEOWNERS are present for required reviews and status checks.
 
-## 3. Remaining Risks
-- **Secret Scanning Boundaries:** The current pre-commit secret scanner relies on naive regex matching. For true enterprise readiness, this should be upgraded to use the `Gitleaks` or `TruffleHog` binaries.
-- **Cache Eviction Strategies:** While the CI pipeline caches NuGet packages (`~/.nuget/packages`), aggressive local caching in development environments might still lead to cross-project binding issues if local lock files drift.
+## Issues fixed during this hardening pass
 
-## 4. Technical Debt Register
-- **Legacy Migrations:** Time Attendance contains legacy `Analytics_` tables that are functionally dead but preserved for migration scripts. These should be dropped in the next major database version.
-- **Integration Test Sandboxing:** Test databases use `InMemory` provider which does not enforce relational constraints identically to SQL Server. Transitioning `Karamchari.Core.IntegrationTests` to use Testcontainers is required before multi-region database scaling.
+- Generated and committed NuGet `packages.lock.json` files for deterministic restore.
+- Replaced broad warning suppression with a documented `CA1848` policy exception while generated logging delegates are adopted.
+- Fixed TDS calculation when no HRA declarations exist by using an empty-safe maximum.
+- Fixed EPF ECR name normalization so special characters become single spaces instead of collapsing words.
+- Corrected payroll tests for old-regime 87A rebate behavior and critical risk level after 30 days.
+- Completed Identity integration test DbContext replacement for Capability, Governance, Intelligence, and Recruitment contexts.
+- Added a deterministic TimeAttendance test so the project is discoverable by the test gate.
+- Added npm `postcss` overrides and regenerated frontend/mobile lock files to clear the moderate PostCSS advisory.
+- Scoped deterministic `npm ci` logging to errors because Expo/React Native still emit upstream transitive deprecation notices for install-time tooling; dependency risk remains enforced by `npm audit --audit-level=moderate`.
 
-## 5. Future Recommendations
-- **Automated Dependency Updates:** Integrate Dependabot or Renovate to automatically propose PRs when versions in `Directory.Packages.props` fall behind.
-- **Architecture Fitness Functions:** Introduce `NetArchTest.Rules` to the `Karamchari.Governance` module to automatically enforce bounded context separation (e.g., `Payroll` cannot directly reference `Recruitment`).
-- **SOC2 Evidence Collection:** Expose the output of the GitHub Actions CI pipelines to a centralized compliance dashboard to automatically satisfy SOC2 change-management requirements.
+## Validation commands
 
-**Conclusion:** The repository has exited the hardening phase operating as a serious, production-grade enterprise engineering system. The main branch is locked, deterministic, and safe.
+```powershell
+dotnet restore src/Backend/Karamchari.sln --locked-mode
+dotnet format src/Backend/Karamchari.sln --verify-no-changes --severity warn --no-restore
+dotnet build src/Backend/Karamchari.sln --no-restore -c Release -warnaserror
+dotnet test src/Backend/Karamchari.sln --no-build -c Release --logger "trx;LogFilePrefix=test_results" --collect:"XPlat Code Coverage"
+dotnet list src/Backend/Karamchari.sln package --vulnerable --include-transitive
+npm audit --prefix src/Frontend/portal --audit-level=moderate
+npm run --prefix src/Frontend/portal typecheck
+npm run --prefix src/Frontend/portal build
+npm audit --prefix src/Mobile/karamchari-mobile --audit-level=moderate
+dotnet publish src/Backend/Karamchari.Api/Karamchari.Api.csproj --no-restore -c Release -o artifacts/publish/Karamchari.Api -warnaserror
+rg -n "TODO: Add XML documentation|Your_password123|AccountKey=|SharedAccessKey=" -g "!artifacts/**" -g "!.git/**" -g "!docs/**" -g "!**/package-lock.json"
+```
+
+## Remaining operational dependency
+
+The SQL Server RLS integration tests require Docker because they intentionally validate SQL Server row-level security through Testcontainers. CI runs on GitHub-hosted Linux runners where Docker is available. Local machines must run Docker before executing the full validation gate.

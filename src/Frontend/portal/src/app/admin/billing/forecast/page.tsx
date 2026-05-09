@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { 
   TrendingUp, 
   ArrowUpRight,
@@ -121,7 +121,15 @@ export default function ForecastDashboard() {
   );
 }
 
-function StatCard({ title, value, subtitle, icon, color }) {
+type StatCardProps = {
+  title: string;
+  value: string;
+  subtitle: string;
+  icon: ReactNode;
+  color: string;
+};
+
+function StatCard({ title, value, subtitle, icon, color }: StatCardProps) {
   return (
     <div className={`bg-white p-5 rounded-2xl border ${color} shadow-sm transition hover:shadow-md cursor-default`}>
       <div className="flex items-center justify-between mb-3">
@@ -134,7 +142,13 @@ function StatCard({ title, value, subtitle, icon, color }) {
   );
 }
 
-function InsightItem({ title, desc, action }) {
+type InsightItemProps = {
+  title: string;
+  desc: string;
+  action: string;
+};
+
+function InsightItem({ title, desc, action }: InsightItemProps) {
   return (
     <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
       <div className="text-xs font-bold text-yellow-400 uppercase mb-1">{title}</div>

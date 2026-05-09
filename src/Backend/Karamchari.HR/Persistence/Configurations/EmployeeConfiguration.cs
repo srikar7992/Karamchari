@@ -7,7 +7,7 @@ namespace Karamchari.HR.Persistence.Configurations;
 internal sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
 {
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Configures the employee aggregate persistence mapping.
     /// </summary>
     public void Configure(EntityTypeBuilder<Employee> builder)
     {

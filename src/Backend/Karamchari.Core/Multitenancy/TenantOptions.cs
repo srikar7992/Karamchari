@@ -14,7 +14,7 @@ namespace Karamchari.Core.Multitenancy;
 public sealed class TenantOptions
 {
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Configuration section name for tenant resolution options.
     /// </summary>
     public const string SectionName = "Tenancy";
 

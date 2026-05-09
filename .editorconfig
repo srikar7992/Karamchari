@@ -6,11 +6,14 @@ root = true
 
 [*]
 charset = utf-8
-end_of_line = crlf
+end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
+
+[*.{sln,csproj,props,targets,ps1,bat,cmd}]
+end_of_line = crlf
 
 [*.{json,yml,yaml,csproj,props,targets}]
 indent_size = 2
@@ -76,4 +79,3 @@ dotnet_diagnostic.CA2007.severity = none      # ConfigureAwait — we are an ASP
 dotnet_diagnostic.CA1848.severity = warning   # use LoggerMessage source-generated logging
 dotnet_diagnostic.IDE1006.severity = none      # async naming
 dotnet_diagnostic.CA1873.severity = none      # logging eval
-

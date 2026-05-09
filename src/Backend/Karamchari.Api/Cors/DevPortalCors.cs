@@ -19,12 +19,12 @@ namespace Karamchari.Api.Cors;
 public static class DevPortalCors
 {
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Named CORS policy used by the development portal.
     /// </summary>
     public const string PolicyName = "KaramchariDevPortal";
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Registers the development-only portal CORS policy.
     /// </summary>
     public static IServiceCollection AddKaramchariDevCors(this IServiceCollection services) =>
         services.AddCors(options =>
@@ -45,7 +45,7 @@ public static class DevPortalCors
         });
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Applies the development portal CORS policy to the request pipeline.
     /// </summary>
     public static IApplicationBuilder UseKaramchariDevCors(this IApplicationBuilder app) =>
         app.UseCors(PolicyName);

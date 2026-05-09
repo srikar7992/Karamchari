@@ -120,23 +120,23 @@ function DetailPanel({
       {/* Actions */}
       <div className="border-t border-outline/20 px-6 py-4 flex flex-wrap gap-2">
         {s.status === "Draft" && (
-          <Button onClick={() => submit.mutate()} disabled={submit.isPending} size="sm">
+          <Button onClick={() => submit.mutate(undefined)} disabled={submit.isPending} size="sm">
             Submit for Approval
           </Button>
         )}
         {s.status === "PendingApproval" && (
-          <Button onClick={() => approve.mutate()} disabled={approve.isPending} size="sm">
+          <Button onClick={() => approve.mutate(undefined)} disabled={approve.isPending} size="sm">
             Approve
           </Button>
         )}
         {s.status === "Approved" && (
-          <Button onClick={() => disburse.mutate()} disabled={disburse.isPending} size="sm">
+          <Button onClick={() => disburse.mutate(undefined)} disabled={disburse.isPending} size="sm">
             Disburse
           </Button>
         )}
         {(s.status === "PendingApproval" || s.status === "Approved") && (
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => hold.mutate("Legal review required")}
             disabled={hold.isPending}
             size="sm"
@@ -146,8 +146,8 @@ function DetailPanel({
         )}
         {s.status === "OnHold" && (
           <Button
-            variant="outline"
-            onClick={() => releaseHold.mutate()}
+            variant="secondary"
+            onClick={() => releaseHold.mutate(undefined)}
             disabled={releaseHold.isPending}
             size="sm"
           >
@@ -156,8 +156,8 @@ function DetailPanel({
         )}
         {s.status === "Disbursed" && (
           <Button
-            variant="outline"
-            onClick={() => reopen.mutate()}
+            variant="secondary"
+            onClick={() => reopen.mutate(undefined)}
             disabled={reopen.isPending}
             size="sm"
           >

@@ -7,7 +7,7 @@ namespace Karamchari.HR.Persistence.Configurations;
 internal sealed class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 {
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Configures the department aggregate persistence mapping.
     /// </summary>
     public void Configure(EntityTypeBuilder<Department> builder)
     {

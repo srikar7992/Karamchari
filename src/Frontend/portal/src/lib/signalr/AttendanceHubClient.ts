@@ -80,5 +80,9 @@ export class AttendanceHubClient {
   }
 }
 
-// Singleton instance for the application
-export const attendanceHub = new AttendanceHubClient();
+let attendanceHub: AttendanceHubClient | null = null;
+
+export function getAttendanceHub(): AttendanceHubClient {
+  attendanceHub ??= new AttendanceHubClient();
+  return attendanceHub;
+}

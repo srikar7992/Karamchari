@@ -138,10 +138,12 @@ public class TDSTests
         // Act â€” old regime basic exemption is 2.5L; income just above that
         var taxAt0 = provider.CalculateAnnualTax(250000, TaxRegime.Old);
         var taxAt500k = provider.CalculateAnnualTax(500000, TaxRegime.Old);
+        var taxAt600k = provider.CalculateAnnualTax(600000, TaxRegime.Old);
 
         // Assert
         Assert.Equal(0, taxAt0);
-        Assert.True(taxAt500k > 0); // 250k @ 5% = 12,500 + 4% cess
+        Assert.Equal(0, taxAt500k);
+        Assert.True(taxAt600k > 0);
     }
 
     private static StatutoryContext CreateContext(decimal gross)

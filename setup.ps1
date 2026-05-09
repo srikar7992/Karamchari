@@ -1,50 +1,50 @@
 <#
 .SYNOPSIS
-    Bootstraps the local development environment for the Karamchari Platform.
-    Ensures pre-commit hooks are installed and dependencies are restored.
+    Bootstraps the local development environment for the Karamchari platform.
 #>
+
+$ErrorActionPreference = "Stop"
 
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host " Karamchari Local Environment Setup" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 
-# 1. Configure Git Hooks Path
 Write-Host "Configuring Git to use .githooks directory..."
 git config core.hooksPath .githooks
+if (-not $?) { throw "Failed to configure Git hooks." }
+Write-Host "Git hooks configured successfully." -ForegroundColor Green
 
-if ($?) {
-    Write-Host "✅ Git hooks configured successfully." -ForegroundColor Green
-} else {
-    Write-Host "❌ Failed to configure Git hooks." -ForegroundColor Red
-    exit 1
-}
-
-# 2. Ensure SDK is installed
 Write-Host "Checking .NET SDK..."
 $sdkVersion = dotnet --version
 Write-Host "Found .NET SDK version: $sdkVersion"
 
-# 3. Restore Packages
-Write-Host "Restoring NuGet packages..."
-dotnet restore src/Backend/Karamchari.sln
-if ($?) {
-    Write-Host "✅ Packages restored successfully." -ForegroundColor Green
-} else {
-    Write-Host "❌ Package restore failed." -ForegroundColor Red
-    exit 1
-}
+Write-Host "Restoring NuGet packages in locked mode..."
+dotnet restore src/Backend/Karamchari.sln --locked-mode
+if (-not $?) { throw "Package restore failed." }
+Write-Host "Packages restored successfully." -ForegroundColor Green
 
-# 4. Initial Build Check
 Write-Host "Verifying local build (Zero Warnings Policy)..."
-dotnet build src/Backend/Karamchari.sln -c Debug
-if ($?) {
-    Write-Host "✅ Build succeeded with zero warnings." -ForegroundColor Green
+dotnet build src/Backend/Karamchari.sln --no-restore -c Debug -warnaserror
+if (-not $?) { throw "Build failed." }
+Write-Host "Build succeeded with zero warnings." -ForegroundColor Green
+
+if (Get-Command npm -ErrorAction SilentlyContinue) {
+    if (Test-Path "src/Frontend/portal/package-lock.json") {
+        Write-Host "Installing portal dependencies from package-lock.json..."
+        npm ci --prefix src/Frontend/portal --ignore-scripts --loglevel=error
+        if (-not $?) { throw "Portal npm install failed." }
+    }
+
+    if (Test-Path "src/Mobile/karamchari-mobile/package-lock.json") {
+        Write-Host "Installing mobile dependencies from package-lock.json..."
+        npm ci --prefix src/Mobile/karamchari-mobile --ignore-scripts --loglevel=error
+        if (-not $?) { throw "Mobile npm install failed." }
+    }
 } else {
-    Write-Host "❌ Build failed. Check the output above." -ForegroundColor Red
-    exit 1
+    Write-Host "npm not found; skipping frontend/mobile install. CI still enforces npm lockfile audits." -ForegroundColor Yellow
 }
 
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host " Environment is ready for development!" -ForegroundColor Cyan
-Write-Host " Next steps: See docs/engineering/local_setup.md" -ForegroundColor Cyan
+Write-Host " Next steps: Run .\scripts\validate.ps1 for the full validation gate." -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan

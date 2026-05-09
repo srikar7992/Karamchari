@@ -26,6 +26,8 @@ export interface ApiRequestInit extends Omit<RequestInit, "body" | "headers"> {
   rawBody?: BodyInit;
   /** Override the tenant id for this single call (e.g. cross-tenant admin views). */
   tenantId?: string;
+  /** Query string parameters. Undefined and null values are omitted. */
+  params?: Record<string, string | number | boolean | undefined | null>;
   /** Per-request header overrides. Tenant + gateway headers always win unless explicitly null. */
   headers?: Record<string, string>;
 }
@@ -34,7 +36,7 @@ const TENANT_HEADER = "X-Tenant-Id";
 const GATEWAY_HEADER = "X-Karamchari-Gateway";
 
 async function request<T>(path: string, init: ApiRequestInit = {}): Promise<T> {
-  const url = buildUrl(path);
+  const url = buildUrl(path, init.params);
   const headers: Record<string, string> = {
     Accept: "application/json",
     [TENANT_HEADER]: init.tenantId ?? process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID ?? "",
@@ -105,13 +107,23 @@ async function request<T>(path: string, init: ApiRequestInit = {}): Promise<T> {
   return (await response.json()) as T;
 }
 
-function buildUrl(path: string): string {
+function buildUrl(path: string, params?: ApiRequestInit["params"]): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (value !== undefined && value !== null) {
+      query.set(key, String(value));
+    }
+  }
+
   if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
+    if (query.size === 0) return path;
+    const separator = path.includes("?") ? "&" : "?";
+    return `${path}${separator}${query.toString()}`;
   }
   const base = apiConfig.baseUrl.replace(/\/$/, "");
   const suffix = path.startsWith("/") ? path : `/${path}`;
-  return `${base}${suffix}`;
+  const queryString = query.toString();
+  return queryString ? `${base}${suffix}?${queryString}` : `${base}${suffix}`;
 }
 
 export const api = {

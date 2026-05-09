@@ -1,21 +1,21 @@
 namespace Karamchari.HR.Services;
 
 /// <summary>
-/// TODO: Add XML documentation.
+/// Options for Azure Document Intelligence integration used by HR document processing.
 /// </summary>
 public class DocumentIntelligenceOptions
 {
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Configuration section name for binding document intelligence options.
     /// </summary>
     public const string SectionName = "DocumentIntelligence";
 
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// Azure Document Intelligence endpoint URI.
     /// </summary>
     public string Endpoint { get; set; } = string.Empty;
     /// <summary>
-    /// TODO: Add XML documentation.
+    /// API key used by local or non-managed-identity document analysis integrations.
     /// </summary>
     public string ApiKey { get; set; } = string.Empty;
 }

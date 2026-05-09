@@ -1,7 +1,7 @@
 namespace Karamchari.HR.Contracts.Employees;
 
 /// <summary>
-/// TODO: Add XML documentation.
+/// Application service boundary for employee lifecycle operations.
 /// </summary>
 public interface IEmployeeService
 {

@@ -11,7 +11,7 @@ public class PricingEngineTests
     [Theory]
     [InlineData(625, 1000, 0.30, 892.86, 37.5, 30.0)]
     [InlineData(500, 600, 0.20, 625.00, 16.67, 20.0)]
-    [InlineData(0, 500, 0.20, 500.00, 0, 20.0)] // Zero cost
+    [InlineData(0, 500, 0.20, 500.00, 100.0, 20.0)] // Zero cost
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>

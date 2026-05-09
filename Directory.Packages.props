@@ -83,7 +83,7 @@
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.1" />
   </ItemGroup>
   <ItemGroup Label="Data">
-    <PackageVersion Include="EFCore.BulkExtensions" Version="9.0.1" />
+    <PackageVersion Include="EFCore.BulkExtensions" Version="10.0.1" />
   </ItemGroup>
   <ItemGroup Label="Reporting">
     <PackageVersion Include="QuestPDF" Version="2024.12.1" />

@@ -76,7 +76,7 @@ function SimulationResultPanel({
           </div>
           {sim.status !== "Discarded" && (
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() => {
                 discard.mutate(undefined, { onSuccess: onDiscard });

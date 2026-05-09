@@ -70,3 +70,4 @@ test_results*.txt
 # to files when a pipe or redirect is malformed (e.g. grep output landing in
 # a file named after a code token).
 .claude/
+.aider*
