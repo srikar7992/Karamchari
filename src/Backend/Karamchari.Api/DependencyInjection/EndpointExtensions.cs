@@ -6,6 +6,7 @@ using Karamchari.Api.BFF.Employee;
 using Karamchari.Api.BFF.ESS;
 using Karamchari.Api.BFF.Executive;
 using Karamchari.Api.BFF.HR;
+using Karamchari.Api.BFF.Intelligence;
 using Karamchari.Api.BFF.Manager;
 using Karamchari.Api.BFF.Notifications;
 using Karamchari.Api.BFF.Payroll;
@@ -41,6 +42,7 @@ public static class EndpointExtensions
         app.MapTenantEndpoints();
         app.MapAttendanceEndpoints();
         app.MapCapabilityEndpoints();
+        app.MapStrategyEndpoints();
         app.MapPayrollEndpoints();
         app.MapComplianceEndpoints();
         app.MapPSAEndpoints();

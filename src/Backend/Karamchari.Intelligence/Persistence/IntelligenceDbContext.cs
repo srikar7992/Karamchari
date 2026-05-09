@@ -17,6 +17,10 @@ public class IntelligenceDbContext : KaramchariDbContext
 
     public DbSet<IntelligenceSignal> IntelligenceSignals => Set<IntelligenceSignal>();
     public DbSet<MetricDefinition> MetricDefinitions => Set<MetricDefinition>();
+    public DbSet<OrganizationalHealthSignal> OrganizationalHealthSignals => Set<OrganizationalHealthSignal>();
+    public DbSet<WorkforceRiskSignal> WorkforceRiskSignals => Set<WorkforceRiskSignal>();
+    public DbSet<ExecutiveInsight> ExecutiveInsights => Set<ExecutiveInsight>();
+    public DbSet<StrategicWorkforceScenario> StrategicWorkforceScenarios => Set<StrategicWorkforceScenario>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,6 +60,65 @@ public class IntelligenceDbContext : KaramchariDbContext
             {
                 cb.Property(p => p.Formula).IsRequired();
             });
+        });
+
+        modelBuilder.Entity<OrganizationalHealthSignal>(b =>
+        {
+            b.ToTable("Strategy_OrgHealthSignals");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.OrgUnitId });
+            b.Property(x => x.OverallHealthScore).HasPrecision(5, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+            
+            b.OwnsOne(x => x.BurnoutRisk);
+            b.OwnsOne(x => x.StaffingStress);
+            b.OwnsOne(x => x.Confidence, cb =>
+            {
+                cb.Property(p => p.Level).HasConversion<string>();
+                cb.Property(p => p.Score).HasPrecision(5, 2);
+            });
+            b.OwnsOne(x => x.Explanation, cb => cb.ToJson());
+        });
+
+        modelBuilder.Entity<WorkforceRiskSignal>(b =>
+        {
+            b.ToTable("Strategy_WorkforceRiskSignals");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Category, x.SubjectId });
+            b.Property(x => x.Category).HasConversion<string>();
+            b.Property(x => x.RowVersion).IsRowVersion();
+
+            b.OwnsOne(x => x.Severity);
+            b.OwnsOne(x => x.Confidence, cb =>
+            {
+                cb.Property(p => p.Level).HasConversion<string>();
+                cb.Property(p => p.Score).HasPrecision(5, 2);
+            });
+            b.OwnsOne(x => x.Explanation, cb => cb.ToJson());
+        });
+
+        modelBuilder.Entity<ExecutiveInsight>(b =>
+        {
+            b.ToTable("Strategy_ExecutiveInsights");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Category });
+            b.Property(x => x.ContributingSignalIds).HasConversion(
+                v => string.Join(',', v),
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList()
+            );
+
+            b.OwnsOne(x => x.AggregateConfidence, cb =>
+            {
+                cb.Property(p => p.Level).HasConversion<string>();
+                cb.Property(p => p.Score).HasPrecision(5, 2);
+            });
+        });
+
+        modelBuilder.Entity<StrategicWorkforceScenario>(b =>
+        {
+            b.ToTable("Strategy_StrategicScenarios");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.RowVersion).IsRowVersion();
         });
     }
 }

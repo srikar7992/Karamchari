@@ -21,6 +21,10 @@ public static class IntelligenceServiceCollectionExtensions
         // RLS setup
         services.RegisterTenantTable("Intelligence_Signals");
         services.RegisterTenantTable("Intelligence_MetricDefinitions");
+        services.RegisterTenantTable("Strategy_OrgHealthSignals");
+        services.RegisterTenantTable("Strategy_WorkforceRiskSignals");
+        services.RegisterTenantTable("Strategy_ExecutiveInsights");
+        services.RegisterTenantTable("Strategy_StrategicScenarios");
 
         services.AddDbContext<IntelligenceDbContext>((sp, options) =>
         {
@@ -30,6 +34,15 @@ public static class IntelligenceServiceCollectionExtensions
             options.UseSqlServer(connectionString);
             options.AddKaramchariInterceptors(sp);
         });
+
+        services.AddScoped<Karamchari.Intelligence.Services.IOrganizationalHealthEngine,
+                            Karamchari.Intelligence.Services.OrganizationalHealthEngine>();
+        services.AddScoped<Karamchari.Intelligence.Services.IWorkforceRiskEngine,
+                            Karamchari.Intelligence.Services.WorkforceRiskEngine>();
+        services.AddScoped<Karamchari.Intelligence.Services.IExecutiveDecisionService,
+                            Karamchari.Intelligence.Services.ExecutiveDecisionService>();
+        services.AddScoped<Karamchari.Intelligence.Services.IWorkforcePlanningService,
+                            Karamchari.Intelligence.Services.WorkforcePlanningService>();
 
         // Background Workers
         services.AddHostedService<Karamchari.Intelligence.Services.DriftDetectionWorker>();
