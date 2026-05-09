@@ -1,0 +1,39 @@
+using Karamchari.Core.DependencyInjection;
+using Karamchari.Governance.Persistence;
+using Karamchari.Governance.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Karamchari.Governance.DependencyInjection;
+
+public static class GovernanceServiceCollectionExtensions
+{
+    private const string ConnectionStringName = "KaramchariDb";
+
+    public static IServiceCollection AddKaramchariGovernance(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        // RLS setup
+        services.RegisterTenantTable("Governance_ServiceLevelObjectives");
+        services.RegisterTenantTable("Governance_OperationalIncidents");
+        services.RegisterTenantTable("Governance_SchemaDefinitions");
+
+        services.AddDbContext<GovernanceDbContext>((sp, options) =>
+        {
+            var connectionString = configuration.GetConnectionString(ConnectionStringName)
+                ?? throw new InvalidOperationException($"Missing connection string: {ConnectionStringName}");
+
+            options.UseSqlServer(connectionString);
+            options.AddKaramchariInterceptors(sp);
+        });
+
+        services.AddScoped<ISchemaValidator, SchemaValidator>();
+
+        return services;
+    }
+}

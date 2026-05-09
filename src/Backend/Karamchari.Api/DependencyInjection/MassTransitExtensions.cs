@@ -6,6 +6,8 @@ using Karamchari.Compensation.Persistence;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Messaging.Outbox;
 using Karamchari.Forecasting.DependencyInjection;
+using Karamchari.Governance.DependencyInjection;
+using Karamchari.Governance.Persistence;
 using Karamchari.HR.DependencyInjection;
 using Karamchari.HR.Persistence;
 using Karamchari.Intelligence.DependencyInjection;
@@ -93,6 +95,11 @@ public static class MassTransitExtensions
                 if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<IntelligenceDbContext>(o =>
+            {
+                o.UseSqlServer();
+                if (isDev) o.UseBusOutbox();
+            });
+            x.AddEntityFrameworkOutbox<GovernanceDbContext>(o =>
             {
                 o.UseSqlServer();
                 if (isDev) o.UseBusOutbox();
