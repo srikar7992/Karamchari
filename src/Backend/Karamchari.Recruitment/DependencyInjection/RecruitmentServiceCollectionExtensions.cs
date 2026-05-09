@@ -6,10 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Karamchari.Recruitment.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class RecruitmentServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariRecruitment(
         this IServiceCollection services,
         IConfiguration configuration,

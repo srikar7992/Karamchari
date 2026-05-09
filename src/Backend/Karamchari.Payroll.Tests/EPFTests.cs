@@ -6,6 +6,9 @@ using Karamchari.Payroll.Services;
 using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class EPFTests
 {
     private static readonly Guid BasicId = Guid.NewGuid();
@@ -15,6 +18,9 @@ public class EPFTests
     [InlineData(10000, 1200)] // Under cap
     [InlineData(15000, 1800)] // Exactly at cap
     [InlineData(50000, 1800)] // Over cap (capped at 15k)
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void EPFShouldApplyStatutoryCapWhenNotVPF(decimal basicMonthly, decimal expectedEPF)
     {
         // Arrange
@@ -36,6 +42,9 @@ public class EPFTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void EPFShouldBypassCapWhenVPFIsEnabled()
     {
         // Arrange

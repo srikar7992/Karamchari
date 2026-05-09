@@ -1,7 +1,7 @@
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
-using Karamchari.Performance.Domain.Career;
 using Karamchari.Performance.Domain.Calibration;
+using Karamchari.Performance.Domain.Career;
 using Karamchari.Performance.Domain.Feedback;
 using Karamchari.Performance.Domain.Goals;
 using Karamchari.Performance.Domain.KPIs;
@@ -25,7 +25,7 @@ namespace Karamchari.Performance.Persistence;
 ///   Performance.Core  (goals, OKRs, KPIs, review cycles, submissions)
 ///   Performance.Reviews (calibration, promotions, snapshots)
 ///   Performance.Career (skills, career framework, growth plans)
-/// Do NOT split prematurely — wait for migration or deployment velocity pain.
+/// Do NOT split prematurely â€” wait for migration or deployment velocity pain.
 /// </summary>
 public sealed class PerformanceDbContext : KaramchariDbContext
 {
@@ -35,53 +35,137 @@ public sealed class PerformanceDbContext : KaramchariDbContext
     }
 
     // Goals
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<GoalCycle> GoalCycles => Set<GoalCycle>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<Goal> Goals => Set<Goal>();
 
     // OKRs
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<OKRCycle> OKRCycles => Set<OKRCycle>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<Objective> Objectives => Set<Objective>();
 
     // KPIs
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<KPIDefinition> KPIDefinitions => Set<KPIDefinition>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<KPIResult> KPIResults => Set<KPIResult>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<KPISnapshot> KPISnapshots => Set<KPISnapshot>();
 
     // Reviews
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ReviewTemplate> ReviewTemplates => Set<ReviewTemplate>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ReviewCycle> ReviewCycles => Set<ReviewCycle>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ReviewAssignment> ReviewAssignments => Set<ReviewAssignment>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ReviewSubmission> ReviewSubmissions => Set<ReviewSubmission>();
 
     // Feedback
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<FeedbackRequest> FeedbackRequests => Set<FeedbackRequest>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<FeedbackSubmission> FeedbackSubmissions => Set<FeedbackSubmission>();
 
     // Calibration
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<CalibrationSession> CalibrationSessions => Set<CalibrationSession>();
 
     // Promotions
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<PromotionRecommendation> PromotionRecommendations => Set<PromotionRecommendation>();
 
     // Skills
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<SkillTaxonomy> SkillTaxonomies => Set<SkillTaxonomy>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<EmployeeSkillProfile> EmployeeSkillProfiles => Set<EmployeeSkillProfile>();
 
     // Career
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<CareerFramework> CareerFrameworks => Set<CareerFramework>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<EmployeeGrowthPlan> EmployeeGrowthPlans => Set<EmployeeGrowthPlan>();
 
     // Reporting (ADR-0013)
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ExportJob> ExportJobs => Set<ExportJob>();
 
     // Analytics read models + CQRS projections (ADR-0009)
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<PerformanceSnapshot> PerformanceSnapshots => Set<PerformanceSnapshot>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ManagerDashboardProjection> ManagerDashboardProjections => Set<ManagerDashboardProjection>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ReviewTaskInboxItem> ReviewTaskInboxItems => Set<ReviewTaskInboxItem>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<CalibrationBoardProjection> CalibrationBoardProjections => Set<CalibrationBoardProjection>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<PromotionPipelineItem> PromotionPipelineItems => Set<PromotionPipelineItem>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<TalentHeatmapEntry> TalentHeatmapEntries => Set<TalentHeatmapEntry>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<TeamGoalSummary> TeamGoalSummaries => Set<TeamGoalSummary>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<EmployeeSkillInventoryItem> EmployeeSkillInventoryItems => Set<EmployeeSkillInventoryItem>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)

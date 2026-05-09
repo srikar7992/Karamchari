@@ -4,7 +4,7 @@ namespace Karamchari.Payroll.Services.Declarations;
 /// Configuration options for Azure Document Intelligence.
 /// Bound from the <c>"DocumentIntelligence"</c> configuration section.
 /// In production, the <see cref="Endpoint"/> and <see cref="ApiKey"/> values are
-/// injected from Azure Key Vault via Managed Identity — they are NEVER stored
+/// injected from Azure Key Vault via Managed Identity â€” they are NEVER stored
 /// in code, appsettings files, or the repository.
 /// </summary>
 public sealed class DocumentIntelligenceOptions

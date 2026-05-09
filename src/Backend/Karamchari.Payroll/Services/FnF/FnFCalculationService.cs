@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Payroll.Services.FnF;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record FnFCalculationInput(
     string TenantId,
     Guid EmployeeId,
@@ -16,6 +19,9 @@ public record FnFCalculationInput(
     decimal LeaveBalance,
     decimal GratuityYearsOfService);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record FnFCalculationOutput(
     IReadOnlyList<FnFLineItem> LineItems,
     decimal TotalEarnings,
@@ -24,7 +30,7 @@ public record FnFCalculationOutput(
 
 /// <summary>
 /// Calculates FnF line items from employee exit parameters.
-/// Stateless — pure calculation. Caller persists result to FnFSettlement aggregate.
+/// Stateless â€” pure calculation. Caller persists result to FnFSettlement aggregate.
 /// </summary>
 public sealed class FnFCalculationService
 {
@@ -35,6 +41,9 @@ public sealed class FnFCalculationService
         _db = db;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<FnFCalculationOutput> CalculateAsync(
         FnFCalculationInput input,
         CancellationToken ct)
@@ -109,7 +118,7 @@ public sealed class FnFCalculationService
             {
                 lineItems.Add(FnFLineItem.Create(
                     FnFLineItemType.LoanRecovery,
-                    $"Loan recovery — outstanding balance (Loan #{loan.Id:N})",
+                    $"Loan recovery â€” outstanding balance (Loan #{loan.Id:N})",
                     loan.OutstandingBalance,
                     isDeduction: true,
                     reference: loan.Id.ToString()));

@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.TimeAttendance.Services;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record AttendanceSubmission(
     Guid EmployeeId,
     DateTimeOffset Timestamp,
@@ -28,6 +31,9 @@ public sealed class AttendanceTrackingService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<AttendanceSession> CheckInAsync(string tenantId, AttendanceSubmission submission, CancellationToken ct = default)
     {
         var workDate = DateOnly.FromDateTime(submission.Timestamp.Date);
@@ -46,11 +52,14 @@ public sealed class AttendanceTrackingService
         // ValidateLocation(submission.Location, session);
 
         session.CheckIn(submission.Timestamp, submission.Location, submission.DeviceId, submission.Source);
-        
+
         await _db.SaveChangesAsync(ct);
         return session;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<AttendanceSession> CheckOutAsync(string tenantId, AttendanceSubmission submission, CancellationToken ct = default)
     {
         var workDate = DateOnly.FromDateTime(submission.Timestamp.Date);

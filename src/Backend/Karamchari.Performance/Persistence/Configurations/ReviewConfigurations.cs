@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class ReviewTemplateConfiguration : IEntityTypeConfiguration<ReviewTemplate>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<ReviewTemplate> b)
     {
         b.ToTable("ReviewTemplates");
@@ -14,7 +17,7 @@ internal sealed class ReviewTemplateConfiguration : IEntityTypeConfiguration<Rev
         b.Property(x => x.Name).IsRequired().HasMaxLength(200);
         b.Property(x => x.RowVersion).IsRowVersion();
 
-        // Sections + nested Questions stored as JSON — immutable value objects.
+        // Sections + nested Questions stored as JSON â€” immutable value objects.
         // Avoids cross-table joins for template read; template structure changes = new template.
         b.OwnsMany(x => x.Sections, s =>
         {
@@ -35,6 +38,9 @@ internal sealed class ReviewTemplateConfiguration : IEntityTypeConfiguration<Rev
 
 internal sealed class ReviewCycleConfiguration : IEntityTypeConfiguration<ReviewCycle>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<ReviewCycle> b)
     {
         b.ToTable("ReviewCycles");
@@ -49,6 +55,9 @@ internal sealed class ReviewCycleConfiguration : IEntityTypeConfiguration<Review
 
 internal sealed class ReviewAssignmentConfiguration : IEntityTypeConfiguration<ReviewAssignment>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<ReviewAssignment> b)
     {
         b.ToTable("ReviewAssignments");
@@ -58,7 +67,7 @@ internal sealed class ReviewAssignmentConfiguration : IEntityTypeConfiguration<R
 
         b.HasIndex(x => new { x.TenantId, x.CycleId, x.RevieweeId }).IsUnique();
 
-        // ReviewerSlots are JSON — small, read with the assignment, not queried independently.
+        // ReviewerSlots are JSON â€” small, read with the assignment, not queried independently.
         b.OwnsMany(x => x.ReviewerSlots, rs =>
         {
             rs.ToJson();
@@ -71,6 +80,9 @@ internal sealed class ReviewAssignmentConfiguration : IEntityTypeConfiguration<R
 
 internal sealed class ReviewSubmissionConfiguration : IEntityTypeConfiguration<ReviewSubmission>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<ReviewSubmission> b)
     {
         b.ToTable("ReviewSubmissions");

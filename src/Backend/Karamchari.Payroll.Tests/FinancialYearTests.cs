@@ -7,9 +7,15 @@ using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
 using NSubstitute;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class FinancialYearTests
 {
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RuleSetRegistryShouldReturnCorrectYear()
     {
         // Arrange
@@ -28,6 +34,9 @@ public class FinancialYearTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RuleSetShouldContainRequiredIndianRules()
     {
         // Arrange

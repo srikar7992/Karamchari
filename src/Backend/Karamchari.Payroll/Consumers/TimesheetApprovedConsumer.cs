@@ -1,9 +1,9 @@
 namespace Karamchari.Payroll.Consumers;
 
-using MassTransit;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 /// <summary>
@@ -41,7 +41,7 @@ public sealed class TimesheetApprovedConsumer : IConsumer<TimesheetApprovedInteg
         {
             if (!msg.IsRetroactive)
             {
-                // Already recorded and not a correction — skip (idempotency).
+                // Already recorded and not a correction â€” skip (idempotency).
                 return;
             }
 

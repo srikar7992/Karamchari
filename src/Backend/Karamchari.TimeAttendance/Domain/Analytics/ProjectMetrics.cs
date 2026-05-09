@@ -10,18 +10,45 @@ namespace Karamchari.TimeAttendance.Domain.Analytics;
 /// </summary>
 public sealed class ProjectMetrics : ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ProjectId { get; set; }
 
     /// <summary>Calendar date (daily grain).</summary>
     public DateOnly Date { get; set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal BillableHours { get; set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalHours { get; set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Revenue { get; set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Cost { get; set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal CollectedAmount { get; set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Profit => Revenue - Cost;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Utilization => TotalHours > 0 ? BillableHours / TotalHours : 0;
 
     /// <summary>EventId of the last event that updated this row. Used for DB-level idempotency.</summary>
@@ -30,6 +57,9 @@ public sealed class ProjectMetrics : ITenantOwned
     /// <summary>OccurredAt of the last processed event. Used for last-write-wins ordering guard.</summary>
     public DateTimeOffset? LastProcessedOccurredAt { get; set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset LastUpdatedAt { get; set; }
 }
 
@@ -38,12 +68,30 @@ public sealed class ProjectMetrics : ITenantOwned
 /// </summary>
 public sealed class EmployeeMetrics : ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly Date { get; set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal BillableHours { get; set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalHours { get; set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal UtilizationRate => TotalHours > 0 ? BillableHours / TotalHours : 0;
 
     /// <summary>EventId of the last event that updated this row. Used for DB-level idempotency.</summary>
@@ -52,5 +100,8 @@ public sealed class EmployeeMetrics : ITenantOwned
     /// <summary>OccurredAt of the last processed event. Used for last-write-wins ordering guard.</summary>
     public DateTimeOffset? LastProcessedOccurredAt { get; set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset LastUpdatedAt { get; set; }
 }

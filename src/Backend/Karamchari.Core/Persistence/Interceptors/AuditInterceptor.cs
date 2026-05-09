@@ -1,7 +1,7 @@
+using System.Text.Json;
 using Karamchari.Core.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Text.Json;
 
 namespace Karamchari.Core.Persistence.Interceptors;
 
@@ -13,6 +13,10 @@ public sealed class AuditInterceptor : SaveChangesInterceptor
 {
     private readonly ITenantProvider _tenantProvider;
 
+    /// <summary>
+    /// Initializes a new instance of the AuditInterceptor.
+    /// </summary>
+    /// <param name="tenantProvider">The tenant provider.</param>
     public AuditInterceptor(ITenantProvider tenantProvider)
     {
         _tenantProvider = tenantProvider;
@@ -20,11 +24,19 @@ public sealed class AuditInterceptor : SaveChangesInterceptor
 
     private bool _isSaving;
 
+    /// <summary>
+    /// Intercepts the SaveChangesAsync call to write audit entries.
+    /// </summary>
+    /// <param name="eventData">The event data.</param>
+    /// <param name="result">The interception result.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The intercepted result.</returns>
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(eventData);
         if (eventData.Context is null || _isSaving) return result;
 
         try
@@ -61,9 +73,9 @@ public sealed class AuditInterceptor : SaveChangesInterceptor
             var auditEntry = new AuditEntry(entry)
             {
                 TableName = entry.Metadata.GetTableName() ?? entry.Entity.GetType().Name,
-                TenantId = (entry.Entity as ITenantOwned)?.TenantId ?? 
+                TenantId = (entry.Entity as ITenantOwned)?.TenantId ??
                            (_tenantProvider.TryGetTenant(out var t) ? t!.TenantId : "system"),
-                UserId = "system", 
+                UserId = "system",
                 Action = entry.State.ToString()
             };
 
@@ -111,14 +123,29 @@ internal sealed class AuditEntry
     }
 
     public Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry Entry { get; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string UserId { get; set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TableName { get; set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Action { get; set; } = string.Empty;
     public Dictionary<string, object?> KeyValues { get; } = new();
     public Dictionary<string, object?> OldValues { get; } = new();
     public Dictionary<string, object?> NewValues { get; } = new();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public AuditLog ToAuditLog()
     {
         return new AuditLog
@@ -136,15 +163,35 @@ internal sealed class AuditEntry
     }
 }
 
+/// <summary>
+/// Represents a persisted audit log record.
+/// </summary>
 public sealed class AuditLog
 {
+    /// <summary>Unique identifier.</summary>
     public Guid Id { get; set; }
+
+    /// <summary>Tenant identifier.</summary>
     public string TenantId { get; set; } = string.Empty;
+
+    /// <summary>User who made the change.</summary>
     public string UserId { get; set; } = string.Empty;
+
+    /// <summary>The action performed (Added, Modified, Deleted).</summary>
     public string Action { get; set; } = string.Empty;
+
+    /// <summary>Name of the affected table.</summary>
     public string TableName { get; set; } = string.Empty;
+
+    /// <summary>UTC timestamp of the change.</summary>
     public DateTimeOffset TimestampUtc { get; set; }
+
+    /// <summary>Primary key of the affected record, serialized as JSON.</summary>
     public string PrimaryKey { get; set; } = string.Empty;
+
+    /// <summary>Original values, serialized as JSON.</summary>
     public string? OldValues { get; set; }
+
+    /// <summary>New values, serialized as JSON.</summary>
     public string? NewValues { get; set; }
 }

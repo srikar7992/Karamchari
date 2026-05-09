@@ -11,7 +11,7 @@ namespace Karamchari.Core.Persistence.Provisioning;
 /// service.
 ///
 /// All identifier inputs (tenant id, schema name, table names) are re-validated
-/// at the SQL boundary even though they come from validated types â€” defence in
+/// at the SQL boundary even though they come from validated types Ã¢â‚¬â€ defence in
 /// depth, since we're about to embed them in DDL.
 /// </summary>
 public sealed partial class RlsScriptGenerator
@@ -39,7 +39,7 @@ public sealed partial class RlsScriptGenerator
 
     /// <summary>
     /// One-time database bootstrap: creates the <c>security</c> schema and the
-    /// shared <c>fn_tenant_access</c> predicate function. Idempotent â€” safe to
+    /// shared <c>fn_tenant_access</c> predicate function. Idempotent Ã¢â‚¬â€ safe to
     /// re-run on every deploy.
     /// </summary>
     public static IReadOnlyList<string> BuildBootstrapScripts() =>

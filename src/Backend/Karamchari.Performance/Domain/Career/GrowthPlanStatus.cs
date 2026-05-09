@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.Career;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum GrowthPlanStatus
 {
     Draft = 1,

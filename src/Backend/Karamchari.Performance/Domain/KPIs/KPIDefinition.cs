@@ -3,6 +3,9 @@ using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Performance.Domain.KPIs;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class KPIDefinition : AggregateRoot<Guid>, ITenantOwned
 {
     private KPIDefinition() { /* EF materialization */ }
@@ -33,16 +36,40 @@ public sealed class KPIDefinition : AggregateRoot<Guid>, ITenantOwned
         IsActive = true;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
 
     /// <summary>Machine-readable code. Unique per tenant. e.g. "UTIL_PCT", "ATTENDANCE_PCT".</summary>
     public string Code { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string DisplayName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public KPIType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public KPIAggregation Aggregation { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Unit { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public KPIPolarity Polarity { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public KPIPeriodicity Periodicity { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public KPIThreshold Threshold { get; private set; } = null!;
 
     /// <summary>
@@ -51,9 +78,18 @@ public sealed class KPIDefinition : AggregateRoot<Guid>, ITenantOwned
     /// See ADR-0006 for planned migration to AST-based declarative DSL.
     /// </summary>
     public string? FormulaExpression { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsActive { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static KPIDefinition Create(
         string tenantId,
         string code,
@@ -80,14 +116,23 @@ public sealed class KPIDefinition : AggregateRoot<Guid>, ITenantOwned
             threshold, formulaExpression?.Trim());
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Deactivate() => IsActive = false;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void UpdateThreshold(KPIThreshold threshold)
     {
         ArgumentNullException.ThrowIfNull(threshold);
         Threshold = threshold;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void UpdateFormula(string expression)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(expression);

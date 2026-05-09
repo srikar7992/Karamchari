@@ -8,8 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Billing;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class BillingEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapBillingEndpoints(this WebApplication app)
     {
         var billing = app.MapGroup("/api/billing").RequireAuthorization();
@@ -41,7 +47,7 @@ public static class BillingEndpoints
         var tenant = tenantProvider.GetTenant();
         var contract = Karamchari.Billing.Domain.Contracts.BillingContract.Create(
             tenant.TenantId, request.ClientId, request.ProjectId, request.BillingType);
-        
+
         contract.Currency = request.Currency;
         contract.BillingCycle = request.Cycle;
         if (!string.IsNullOrEmpty(request.StartDate))
@@ -61,10 +67,10 @@ public static class BillingEndpoints
         if (contract == null) return Results.NotFound();
 
         contract.AddRate(
-            request.RoleId, 
-            request.Rate, 
-            request.Unit, 
-            DateOnly.Parse(request.EffectiveFrom), 
+            request.RoleId,
+            request.Rate,
+            request.Unit,
+            DateOnly.Parse(request.EffectiveFrom),
             request.EffectiveTo != null ? DateOnly.Parse(request.EffectiveTo) : null);
 
         await db.SaveChangesAsync();
@@ -97,8 +103,8 @@ public static class BillingEndpoints
         Karamchari.Billing.Services.InvoiceGeneratorService generator)
     {
         var invoice = await generator.GenerateDraftAsync(
-            request.ContractId, 
-            DateOnly.Parse(request.StartDate), 
+            request.ContractId,
+            DateOnly.Parse(request.StartDate),
             DateOnly.Parse(request.EndDate));
         return invoice != null ? Results.Ok(invoice) : Results.NoContent();
     }
@@ -112,7 +118,8 @@ public static class BillingEndpoints
         var invoice = await db.Invoices.Include(i => i.Lines).FirstOrDefaultAsync(i => i.Id == id);
         if (invoice == null) return Results.NotFound();
 
-        var snapshot = System.Text.Json.JsonSerializer.Serialize(new {
+        var snapshot = System.Text.Json.JsonSerializer.Serialize(new
+        {
             invoice.InvoiceNumber,
             invoice.PeriodStart,
             invoice.PeriodEnd,

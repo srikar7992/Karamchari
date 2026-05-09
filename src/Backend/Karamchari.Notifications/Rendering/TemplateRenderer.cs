@@ -4,6 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Notifications.Rendering;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed partial class TemplateRenderer : ITemplateRenderer
 {
     private static readonly Regex PlaceholderRegex = BuildPlaceholderRegex();

@@ -13,10 +13,10 @@ using Microsoft.Extensions.Logging;
 /// into the <see cref="UnbilledRevenue"/> ledger.
 ///
 /// This is the "Gather" side of the dual-ledger pattern:
-///   Payroll consumer → salary ledger
-///   THIS consumer   → revenue ledger
+///   Payroll consumer â†’ salary ledger
+///   THIS consumer   â†’ revenue ledger
 ///
-/// Both consumers are fed from the exact same event — no cross-context reads.
+/// Both consumers are fed from the exact same event â€” no cross-context reads.
 ///
 /// Retroactive corrections: when <see cref="TimesheetApprovedIntegrationEvent.IsRetroactive"/>
 /// is true, existing revenue rows for the timesheet are deleted before new rows are inserted,
@@ -52,7 +52,7 @@ public sealed partial class BillableRevenueConsumer : IConsumer<TimesheetApprove
         {
             if (!message.IsRetroactive)
             {
-                // Already recorded and not a correction — idempotent skip.
+                // Already recorded and not a correction â€” idempotent skip.
                 LogRevenueAlreadyRecorded(_logger, message.TimesheetId);
                 return;
             }
@@ -81,7 +81,7 @@ public sealed partial class BillableRevenueConsumer : IConsumer<TimesheetApprove
         foreach (var entry in billableEntries)
         {
             // Time-bound rate lookup: use the rate active on the WORK DATE, not today.
-            // This is critical for invoicing accuracy — a rate change mid-project must
+            // This is critical for invoicing accuracy â€” a rate change mid-project must
             // only affect future work, not retroactively alter historical revenue.
             var assignment = await _resourceRepo.GetActiveAssignmentAsync(
                 message.EmployeeId,
@@ -91,7 +91,7 @@ public sealed partial class BillableRevenueConsumer : IConsumer<TimesheetApprove
 
             if (assignment is null)
             {
-                // Log and skip rather than fail the whole batch — a single missing assignment
+                // Log and skip rather than fail the whole batch â€” a single missing assignment
                 // should not block other valid entries from being recorded.
                 _logger.LogWarning(
                     "No active assignment for Employee {EmployeeId} on Project {ProjectId} on {Date}. " +

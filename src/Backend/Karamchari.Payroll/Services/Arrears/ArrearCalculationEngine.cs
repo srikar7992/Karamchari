@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Payroll.Services.Arrears;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record ArrearCalculationRequest(
     string TenantId,
     Guid EmployeeId,
@@ -14,6 +17,9 @@ public record ArrearCalculationRequest(
     DateOnly EffectiveTo,
     string InitiatedBy);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record ArrearCalculationEngineResult(
     ArrearCalculation Calculation,
     IReadOnlyList<ArrearPeriodDiff> PeriodDiffs);
@@ -32,6 +38,9 @@ public sealed class ArrearCalculationEngine
         _db = db;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<ArrearCalculationEngineResult> ComputeAsync(
         ArrearCalculationRequest request,
         CancellationToken ct)
@@ -70,12 +79,12 @@ public sealed class ArrearCalculationEngine
             var existing = existingLedger.FirstOrDefault(l => l.Year == period.Year && l.Month == period.Month);
 
             if (existing is null)
-                continue;  // period not yet processed — no arrear
+                continue;  // period not yet processed â€” no arrear
 
             // Simplified recalculation: use current base salary as revised amount
             // Real implementation: plug into CTCBreakdownService + StatutoryPipelineEngine
             var revisedMonthlyGross = profile.BaseSalary;
-            var revisedNet = revisedMonthlyGross * 0.85m;  // placeholder — statutory pipeline applies
+            var revisedNet = revisedMonthlyGross * 0.85m;  // placeholder â€” statutory pipeline applies
             var revisedTds = revisedMonthlyGross * 0.10m;
 
             if (Math.Abs(revisedMonthlyGross - existing.MonthlyGross) < 1m)

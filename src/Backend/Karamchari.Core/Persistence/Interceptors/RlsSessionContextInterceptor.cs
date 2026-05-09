@@ -9,8 +9,8 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// <summary>
 /// Sets <c>SESSION_CONTEXT(N'TenantId', @id)</c> on every connection open.
 /// SQL Server Row-Level Security policies on tenant tables read this value as
-/// the failsafe â€” if the schema-rewriting interceptor were ever bypassed (raw
-/// ADO.NET, an unguarded migration script, â€¦), RLS still blocks cross-tenant
+/// the failsafe Ã¢â‚¬â€ if the schema-rewriting interceptor were ever bypassed (raw
+/// ADO.NET, an unguarded migration script, Ã¢â‚¬Â¦), RLS still blocks cross-tenant
 /// reads and writes.
 ///
 /// Behaviour:

@@ -50,11 +50,11 @@ public sealed class SalaryTemplate : ITenantOwned
     public void AddComponent(SalaryTemplateComponent component)
     {
         ArgumentNullException.ThrowIfNull(component);
-        
+
         // Remove if exists and add fresh
         var existing = _components.FirstOrDefault(c => c.ComponentId == component.ComponentId);
         if (existing != null) _components.Remove(existing);
-        
+
         _components.Add(component);
     }
 }

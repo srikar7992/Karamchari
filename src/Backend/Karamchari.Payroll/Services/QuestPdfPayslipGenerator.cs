@@ -94,12 +94,12 @@ public sealed class QuestPdfPayslipGenerator : IPayslipGenerator
                                 foreach (var (name, amount) in data.Earnings)
                                 {
                                     t.Cell().PaddingVertical(2).Text(name);
-                                    t.Cell().PaddingVertical(2).AlignRight().Text($"₹{amount:N2}");
+                                    t.Cell().PaddingVertical(2).AlignRight().Text($"â‚¹{amount:N2}");
                                     totalEarnings += amount;
                                 }
 
                                 t.Cell().Text(txt => txt.Span("Total Earnings").SemiBold());
-                                t.Cell().AlignRight().Text(txt => txt.Span($"₹{totalEarnings:N2}").SemiBold());
+                                t.Cell().AlignRight().Text(txt => txt.Span($"â‚¹{totalEarnings:N2}").SemiBold());
                             });
                         });
 
@@ -119,12 +119,12 @@ public sealed class QuestPdfPayslipGenerator : IPayslipGenerator
                                 foreach (var (name, amount) in data.Deductions)
                                 {
                                     t.Cell().PaddingVertical(2).Text(name);
-                                    t.Cell().PaddingVertical(2).AlignRight().Text($"₹{amount:N2}");
+                                    t.Cell().PaddingVertical(2).AlignRight().Text($"â‚¹{amount:N2}");
                                     totalDeductions += amount;
                                 }
 
                                 t.Cell().Text(txt => txt.Span("Total Deductions").SemiBold());
-                                t.Cell().AlignRight().Text(txt => txt.Span($"₹{totalDeductions:N2}").SemiBold());
+                                t.Cell().AlignRight().Text(txt => txt.Span($"â‚¹{totalDeductions:N2}").SemiBold());
                             });
                         });
                     });
@@ -133,7 +133,7 @@ public sealed class QuestPdfPayslipGenerator : IPayslipGenerator
                     x.Item().PaddingTop(30).Background(Colors.Grey.Lighten4).Padding(10).Row(row =>
                     {
                         row.RelativeItem().Text(txt => txt.Span("Net Pay").FontSize(14).SemiBold());
-                        row.RelativeItem().AlignRight().Text(txt => txt.Span($"₹{data.NetPay:N2}").FontSize(14).SemiBold().FontColor(Colors.Green.Medium));
+                        row.RelativeItem().AlignRight().Text(txt => txt.Span($"â‚¹{data.NetPay:N2}").FontSize(14).SemiBold().FontColor(Colors.Green.Medium));
                     });
 
                     // YTD Summary
@@ -153,9 +153,9 @@ public sealed class QuestPdfPayslipGenerator : IPayslipGenerator
                             t.Cell().Text(txt => txt.Span("YTD PF").SemiBold());
                             t.Cell().Text(txt => txt.Span("YTD TDS").SemiBold());
 
-                            t.Cell().Text($"₹{data.YtdTotals.GetValueOrDefault("Gross", 0):N0}");
-                            t.Cell().Text($"₹{data.YtdTotals.GetValueOrDefault("PF", 0):N0}");
-                            t.Cell().Text($"₹{data.YtdTotals.GetValueOrDefault("TDS", 0):N0}");
+                            t.Cell().Text($"â‚¹{data.YtdTotals.GetValueOrDefault("Gross", 0):N0}");
+                            t.Cell().Text($"â‚¹{data.YtdTotals.GetValueOrDefault("PF", 0):N0}");
+                            t.Cell().Text($"â‚¹{data.YtdTotals.GetValueOrDefault("TDS", 0):N0}");
                         });
                     });
                 });

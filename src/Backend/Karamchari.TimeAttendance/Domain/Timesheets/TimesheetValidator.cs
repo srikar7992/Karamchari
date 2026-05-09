@@ -2,19 +2,19 @@ namespace Karamchari.TimeAttendance.Domain.Timesheets;
 
 /// <summary>
 /// Domain service for cross-entry timesheet validation and normalisation.
-/// All methods are pure / static — no I/O, no DI dependencies.
+/// All methods are pure / static â€” no I/O, no DI dependencies.
 /// </summary>
 public static class TimesheetValidator
 {
-    // ── Normalisation ────────────────────────────────────────────────────────
+    // â”€â”€ Normalisation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Splits a single entry that spans midnight into two or more entries,
     /// one per calendar day (employee-local date derived from <see cref="TimeEntry.Date"/>).
     ///
-    /// Example: 10 PM → 2 AM  produces:
-    ///   Day 1: 22:00 – 00:00  (2 h)
-    ///   Day 2: 00:00 – 02:00  (2 h)
+    /// Example: 10 PM â†’ 2 AM  produces:
+    ///   Day 1: 22:00 â€“ 00:00  (2 h)
+    ///   Day 2: 00:00 â€“ 02:00  (2 h)
     ///
     /// If the entry has no UTC timestamps, or does not cross midnight, it is
     /// returned unchanged in a single-element list.
@@ -28,7 +28,7 @@ public static class TimesheetValidator
         var start = entry.StartTimeUtc.Value;
         var end = entry.EndTimeUtc.Value;
 
-        // Same calendar day — nothing to split.
+        // Same calendar day â€” nothing to split.
         if (start.Date == end.Date)
             return [entry];
 
@@ -70,7 +70,7 @@ public static class TimesheetValidator
         return results;
     }
 
-    // ── Cross-entry validation ───────────────────────────────────────────────
+    // â”€â”€ Cross-entry validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Validates a full set of entries for daily limits and overlapping UTC windows.
@@ -81,7 +81,7 @@ public static class TimesheetValidator
     {
         var list = entries.ToList();
 
-        // 1. Daily total ≤ 24 h per calendar date.
+        // 1. Daily total â‰¤ 24 h per calendar date.
         foreach (var day in list.GroupBy(e => e.Date))
         {
             var total = day.Sum(e => e.Hours);
@@ -90,7 +90,7 @@ public static class TimesheetValidator
                     $"Total hours for {day.Key:d} ({total}h) exceeds the 24-hour daily limit.");
         }
 
-        // 2. Overlapping UTC windows — only entries with explicit timestamps.
+        // 2. Overlapping UTC windows â€” only entries with explicit timestamps.
         var timed = list
             .Where(e => e.StartTimeUtc.HasValue && e.EndTimeUtc.HasValue)
             .OrderBy(e => e.StartTimeUtc)
@@ -103,12 +103,12 @@ public static class TimesheetValidator
 
             if (b.StartTimeUtc < a.EndTimeUtc)
                 throw new InvalidOperationException(
-                    $"Overlapping entries: '{a.Description}' ({a.StartTimeUtc:t}–{a.EndTimeUtc:t}) " +
-                    $"overlaps with '{b.Description}' ({b.StartTimeUtc:t}–{b.EndTimeUtc:t}).");
+                    $"Overlapping entries: '{a.Description}' ({a.StartTimeUtc:t}â€“{a.EndTimeUtc:t}) " +
+                    $"overlaps with '{b.Description}' ({b.StartTimeUtc:t}â€“{b.EndTimeUtc:t}).");
         }
     }
 
-    // ── Capacity validation ──────────────────────────────────────────────────
+    // â”€â”€ Capacity validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Ensures total billable hours do not exceed the employee's contracted weekly capacity.

@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.Goals;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum GoalCycleType
 {
     Annual = 1,

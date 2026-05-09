@@ -10,8 +10,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class CorrectionEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapCorrectionEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/corrections").RequireAuthorization();
@@ -149,11 +155,17 @@ public static class CorrectionEndpoints
             c.DifferentialAmount, c.CreatedAtUtc);
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record CorrectionDto(
     Guid Id, Guid EmployeeId, string EmployeeName, string Type,
     string Scope, string PeriodName, string Status, decimal? Differential,
     DateTimeOffset CreatedAt);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record CreateCorrectionRequest(
     Guid EmployeeId, string EmployeeName, string Type, string Scope,
     string AffectedPeriodName, string Reason, string ChangeDetailsJson);

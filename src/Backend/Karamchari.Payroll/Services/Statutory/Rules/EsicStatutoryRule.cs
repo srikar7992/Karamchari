@@ -27,13 +27,13 @@ public sealed class EsicStatutoryRule : IStatutoryRule
 
         if (!isApplicable)
         {
-            return new StatutoryResult(Name, 0m, false, $"Gross salary (₹{esicGross:N2}) exceeds threshold (₹{EsicWageThreshold:N2}) and not period-locked.");
+            return new StatutoryResult(Name, 0m, false, $"Gross salary (â‚¹{esicGross:N2}) exceeds threshold (â‚¹{EsicWageThreshold:N2}) and not period-locked.");
         }
 
         // ESIC rounding rule: Round UP to the next higher rupee (Ceil)
         decimal esicDeduction = Math.Ceiling(esicGross * EsicRate);
         string lockNote = context.Profile.IsEsicLocked ? " (Period Locked)" : string.Empty;
 
-        return new StatutoryResult(Name, esicDeduction, true, $"0.75% of Gross (₹{esicGross:N2}){lockNote}");
+        return new StatutoryResult(Name, esicDeduction, true, $"0.75% of Gross (â‚¹{esicGross:N2}){lockNote}");
     }
 }

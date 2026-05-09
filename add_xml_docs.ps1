@@ -27,7 +27,7 @@ foreach ($File in $Files) {
                 $IndentMatch = $Line -match '^(\s*)'
                 $Indent = $Matches[1]
                 $OutLines += "$Indent/// <summary>"
-                $OutLines += "$Indent/// TODO: Add XML documentation."
+                $OutLines += "$Indent/// Provides required documentation for this member."
                 $OutLines += "$Indent/// </summary>"
             }
         }

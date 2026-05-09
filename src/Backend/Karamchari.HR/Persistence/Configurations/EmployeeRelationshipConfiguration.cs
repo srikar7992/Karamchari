@@ -6,6 +6,9 @@ namespace Karamchari.HR.Persistence.Configurations;
 
 internal sealed class EmployeeRelationshipConfiguration : IEntityTypeConfiguration<EmployeeRelationship>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<EmployeeRelationship> b)
     {
         b.ToTable("EmployeeRelationships");

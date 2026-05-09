@@ -15,12 +15,19 @@ public sealed class IdentityDbContext : IdentityDbContext<IdentityUser<Guid>, Id
     {
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<RevokedToken> RevokedTokens => Set<RevokedToken>();
 
     /// <summary>Configures the identity model.</summary>
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         base.OnModelCreating(builder);
         builder.HasDefaultSchema("identity");
 

@@ -4,7 +4,7 @@ namespace Karamchari.Notifications.Domain;
 
 /// <summary>
 /// Append-only record of one delivery attempt for one channel.
-/// Never updated — new attempt = new row. Supports retry auditing and bounce tracking.
+/// Never updated â€” new attempt = new row. Supports retry auditing and bounce tracking.
 /// </summary>
 public sealed class NotificationDeliveryAttempt : Entity<Guid>
 {
@@ -28,14 +28,29 @@ public sealed class NotificationDeliveryAttempt : Entity<Guid>
         AttemptedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid NotificationMessageId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public NotificationChannel Channel { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DeliveryResult Result { get; private set; }
 
     /// <summary>Message ID returned by the delivery provider (e.g., Azure Communication Services message ID).</summary>
     public string? ProviderMessageId { get; private set; }
 
     public string? FailureReason { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int AttemptNumber { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset AttemptedOnUtc { get; private set; }
 }

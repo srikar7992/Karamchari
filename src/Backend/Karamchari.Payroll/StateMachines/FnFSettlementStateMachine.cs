@@ -1,6 +1,6 @@
-using MassTransit;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,24 +8,63 @@ namespace Karamchari.Payroll.StateMachines;
 
 /// <summary>
 /// Saga orchestrating FnF settlement lifecycle:
-/// Initiated → Calculating → PendingApproval → Approved → Disbursing → Completed
+/// Initiated â†’ Calculating â†’ PendingApproval â†’ Approved â†’ Disbursing â†’ Completed
 /// Handles hold, reopen, failed disbursement retry.
 /// </summary>
 public sealed class FnFSettlementStateMachine : MassTransitStateMachine<FnFSettlementState>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Calculating { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State PendingApproval { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Approved { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Disbursing { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Completed { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State OnHold { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Failed { get; private set; } = null!;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<FnFSettlementInitiatedIntegrationEvent> Initiated { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<InitiateFnFCalculationCommand> CalculationRequested { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<FnFSettlementApprovedIntegrationEvent> ApprovedEvent { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<DisburseFnFCommand> DisburseRequested { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<FnFSettlementDisbursedIntegrationEvent> Disbursed { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<DisbursementBatchFailedIntegrationEvent> DisbursementFailed { get; private set; } = null!;
 
     public FnFSettlementStateMachine()

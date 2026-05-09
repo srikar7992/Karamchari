@@ -4,8 +4,14 @@ using Serilog.Sinks.OpenTelemetry;
 
 namespace Karamchari.Api.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class LoggingExtensions
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static void AddKaramchariLogging(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);

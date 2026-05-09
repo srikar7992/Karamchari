@@ -8,8 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Intelligence;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class StrategyEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapStrategyEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/strategy").RequireAuthorization();
@@ -95,7 +101,7 @@ public static class StrategyEndpoints
 
         var scenario = await service.RunSimulationAsync(
             tenantId, request.Name, request.Description, request.ParametersJson, user.Identity?.Name ?? "Admin");
-        
+
         return Results.Created($"/api/v1/strategy/scenarios/{scenario.Id}", scenario);
     }
 
@@ -106,5 +112,11 @@ public static class StrategyEndpoints
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record DetectRiskRequest(string SubjectId, RiskCategory Category);
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record RunSimulationRequest(string Name, string Description, string ParametersJson);

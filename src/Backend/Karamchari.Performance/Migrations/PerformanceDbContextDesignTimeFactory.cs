@@ -9,7 +9,7 @@ namespace Karamchari.Performance.Migrations;
 
 /// <summary>
 /// Design-time factory for <see cref="PerformanceDbContext"/>.
-/// Used exclusively by EF Core CLI tools (dotnet ef) — never resolved at runtime.
+/// Used exclusively by EF Core CLI tools (dotnet ef) â€” never resolved at runtime.
 /// </summary>
 /// <remarks>
 /// After running dotnet ef migrations add, open the generated migration file
@@ -17,11 +17,14 @@ namespace Karamchari.Performance.Migrations;
 ///
 /// Commands (from src/Backend/):
 ///   dotnet ef migrations add &lt;Name&gt; --project Karamchari.Performance --startup-project Karamchari.Api
-///   # Edit: replace [__tenant__] → [dbo] in the generated migration
+///   # Edit: replace [__tenant__] â†’ [dbo] in the generated migration
 ///   dotnet ef database update          --project Karamchari.Performance --startup-project Karamchari.Api
 /// </remarks>
 public sealed class PerformanceDbContextDesignTimeFactory : IDesignTimeDbContextFactory<PerformanceDbContext>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public PerformanceDbContext CreateDbContext(string[] args)
     {
         var config = new ConfigurationBuilder()
@@ -42,12 +45,21 @@ public sealed class PerformanceDbContextDesignTimeFactory : IDesignTimeDbContext
 
     private sealed class DesignTimeTenantProvider : ITenantProvider
     {
+        /// <summary>
+        /// Provides required documentation for this member.
+        /// </summary>
         public static readonly DesignTimeTenantProvider Instance = new();
         private static readonly TenantContext DesignTimeTenant =
             new("design_time", TenantSource.Provisioning);
 
+        /// <summary>
+        /// Provides required documentation for this member.
+        /// </summary>
         public TenantContext GetTenant() => DesignTimeTenant;
 
+        /// <summary>
+        /// Provides required documentation for this member.
+        /// </summary>
         public bool TryGetTenant(out TenantContext? tenant)
         {
             tenant = DesignTimeTenant;

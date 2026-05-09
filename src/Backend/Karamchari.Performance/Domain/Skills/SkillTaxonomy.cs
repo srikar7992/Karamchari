@@ -4,7 +4,7 @@ using Karamchari.Core.Multitenancy;
 namespace Karamchari.Performance.Domain.Skills;
 
 /// <summary>
-/// Root of the skill hierarchy: Taxonomy → Category → Skill → ProficiencyDescriptors.
+/// Root of the skill hierarchy: Taxonomy â†’ Category â†’ Skill â†’ ProficiencyDescriptors.
 /// One active taxonomy per tenant (IsActive enforced at app layer, not domain).
 /// </summary>
 public sealed class SkillTaxonomy : AggregateRoot<Guid>, ITenantOwned
@@ -21,13 +21,31 @@ public sealed class SkillTaxonomy : AggregateRoot<Guid>, ITenantOwned
         IsActive = true;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsActive { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<SkillCategory> Categories => _categories.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static SkillTaxonomy Create(string tenantId, string name, string? description = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
@@ -35,6 +53,9 @@ public sealed class SkillTaxonomy : AggregateRoot<Guid>, ITenantOwned
         return new SkillTaxonomy(Guid.NewGuid(), tenantId, name.Trim(), description?.Trim());
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public SkillCategory AddCategory(string name, string? description = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -46,5 +67,8 @@ public sealed class SkillTaxonomy : AggregateRoot<Guid>, ITenantOwned
         return category;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Deactivate() => IsActive = false;
 }

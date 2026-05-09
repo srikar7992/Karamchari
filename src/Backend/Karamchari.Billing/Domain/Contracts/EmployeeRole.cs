@@ -6,15 +6,30 @@ namespace Karamchari.Billing.Domain.Contracts;
 /// </summary>
 public sealed class EmployeeRole
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid Id { get; init; } = Guid.NewGuid();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RoleId { get; init; }
 
     /// <summary>Optional: If null, this is the default role for the employee across all projects.</summary>
     public Guid? ProjectId { get; init; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly EffectiveFrom { get; init; }
     public DateOnly? EffectiveTo { get; init; }
 }

@@ -25,19 +25,43 @@ public sealed class ReviewAssignment : AggregateRoot<Guid>, ITenantOwned
         IsFinalized = false;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid CycleId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RevieweeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsFinalized { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<ReviewerSlot> ReviewerSlots => _reviewerSlots.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ReviewAssignment Create(string tenantId, Guid cycleId, Guid revieweeId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         return new ReviewAssignment(Guid.NewGuid(), tenantId, cycleId, revieweeId);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddReviewer(Guid reviewerId, ReviewerRole role)
     {
         if (IsFinalized)
@@ -48,6 +72,9 @@ public sealed class ReviewAssignment : AggregateRoot<Guid>, ITenantOwned
         _reviewerSlots.Add(ReviewerSlot.Create(reviewerId, role));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RemoveReviewer(Guid reviewerId, ReviewerRole role)
     {
         if (IsFinalized)
@@ -57,6 +84,9 @@ public sealed class ReviewAssignment : AggregateRoot<Guid>, ITenantOwned
         _reviewerSlots.Remove(slot);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkReviewerCompleted(Guid reviewerId, ReviewerRole role)
     {
         var idx = _reviewerSlots.FindIndex(s => s.ReviewerId == reviewerId && s.Role == role);
@@ -65,6 +95,9 @@ public sealed class ReviewAssignment : AggregateRoot<Guid>, ITenantOwned
         _reviewerSlots[idx] = _reviewerSlots[idx].MarkCompleted();
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void FinalizeAssignment()
     {
         if (_reviewerSlots.Count == 0)
@@ -72,6 +105,9 @@ public sealed class ReviewAssignment : AggregateRoot<Guid>, ITenantOwned
         IsFinalized = true;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool AllReviewersCompleted()
         => _reviewerSlots.Count > 0 && _reviewerSlots.All(s => s.IsCompleted);
 }

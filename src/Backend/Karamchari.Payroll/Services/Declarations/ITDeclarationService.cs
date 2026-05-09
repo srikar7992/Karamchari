@@ -1,9 +1,9 @@
 namespace Karamchari.Payroll.Services.Declarations;
 
+using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.Payroll.Services.Statutory;
 using MassTransit;
-using Karamchari.Core.Contracts.IntegrationEvents;
 
 /// <summary>
 /// Service for managing the tax declaration lifecycle.
@@ -19,9 +19,12 @@ public class ITDeclarationService
         _publishEndpoint = publishEndpoint;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task ApproveAsync(Guid id, decimal approvedAmount, string approver)
     {
-        var declaration = await _repo.GetByIdAsync(id) 
+        var declaration = await _repo.GetByIdAsync(id)
             ?? throw new InvalidOperationException("Declaration not found.");
 
         declaration.Approve(approvedAmount, approver);
@@ -29,9 +32,12 @@ public class ITDeclarationService
         await _repo.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task RejectAsync(Guid id, string reason, string rejectedBy)
     {
-        var declaration = await _repo.GetByIdAsync(id) 
+        var declaration = await _repo.GetByIdAsync(id)
             ?? throw new InvalidOperationException("Declaration not found.");
 
         declaration.Reject(reason, rejectedBy);

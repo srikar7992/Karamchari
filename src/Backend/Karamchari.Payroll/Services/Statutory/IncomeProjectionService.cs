@@ -1,8 +1,8 @@
 namespace Karamchari.Payroll.Services.Statutory;
 
+using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
 using Microsoft.EntityFrameworkCore;
-using Karamchari.Payroll.Data;
 
 /// <summary>
 /// Projects annual income by combining YTD actuals with future estimates.
@@ -37,10 +37,10 @@ public sealed class IncomeProjectionService : IIncomeProjectionService
         // Indian FY starts in April (Month 4).
         // If current month is April (4), remaining = 12 (including current).
         // If current month is March (3), remaining = 1.
-        
+
         int currentMonth = context.PayrollMonth;
         int monthsProcessed = ledgerEntries.Count; // This assumes entries exist for all past months
-        
+
         // Alternatively, calculate based on month index
         // April=0, May=1, ..., March=11
         int fyMonthIndex = GetFyMonthIndex(currentMonth);

@@ -70,7 +70,7 @@ public sealed class ProjectResourceRepository
 
     /// <summary>
     /// Validates that an employee is assigned to a project on the given date.
-    /// Throws if not — enforcing the non-negotiable rule that timesheets cannot
+    /// Throws if not â€” enforcing the non-negotiable rule that timesheets cannot
     /// reference projects the employee is not authorized to log against.
     /// </summary>
     public async Task ValidateAssignmentAsync(

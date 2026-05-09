@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class CalibrationSessionConfiguration : IEntityTypeConfiguration<CalibrationSession>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<CalibrationSession> b)
     {
         b.ToTable("CalibrationSessions");

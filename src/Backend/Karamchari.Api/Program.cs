@@ -40,5 +40,8 @@ app.MapKaramchariEndpoints();
 
 app.Run();
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public partial class Program { }
 

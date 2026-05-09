@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class PerformanceSnapshotConfiguration : IEntityTypeConfiguration<PerformanceSnapshot>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<PerformanceSnapshot> b)
     {
         b.ToTable("PerformanceSnapshots");

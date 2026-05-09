@@ -10,7 +10,7 @@ using Karamchari.Core.Multitenancy;
 ///
 /// This snapshot is taken from the latest PayrollLedgerEntry (MonthlyGross)
 /// to include all statutory employer contributions (EPF employer share, ESIC,
-/// bonus provisions) — not just the base salary.
+/// bonus provisions) â€” not just the base salary.
 /// </summary>
 public sealed class EmployeeCostSnapshot : ITenantOwned
 {
@@ -37,7 +37,7 @@ public sealed class EmployeeCostSnapshot : ITenantOwned
 
     /// <summary>
     /// Gets the standard monthly working hours used for cost normalization.
-    /// Defaults to 160 (8h × 20 working days). Overridable per employee for
+    /// Defaults to 160 (8h Ã— 20 working days). Overridable per employee for
     /// part-time workers or clients with different SLAs.
     /// </summary>
     public decimal StandardMonthlyHours { get; private set; }

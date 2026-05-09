@@ -11,7 +11,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// to the active tenant's schema, immediately before SQL Server executes it.
 ///
 /// Why this and not <c>IModelCacheKeyFactory</c>? Including the tenant id in the
-/// model cache key produces one compiled EF model per tenant â€” at scale that
+/// model cache key produces one compiled EF model per tenant Ã¢â‚¬â€ at scale that
 /// blows up memory and warmup time. We keep a single compiled model and shift
 /// tenant resolution to command execution.
 ///
@@ -19,7 +19,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// <list type="bullet">
 ///   <item>An active tenant <b>must</b> be resolvable. No default fallback.</item>
 ///   <item>The tenant schema name must match the validated format defined on <see cref="TenantContext"/>.</item>
-///   <item>The placeholder must be unambiguous in the SQL â€” see <see cref="PlaceholderRegex"/>.</item>
+///   <item>The placeholder must be unambiguous in the SQL Ã¢â‚¬â€ see <see cref="PlaceholderRegex"/>.</item>
 /// </list>
 /// </summary>
 public sealed partial class TenantSchemaCommandInterceptor : DbCommandInterceptor
@@ -35,7 +35,7 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         RegexOptions.CultureInvariant | RegexOptions.Compiled)]
     private static partial Regex PlaceholderRegex();
 
-    /// <summary>Validates that the substituted schema is itself safe to embed in SQL â€” defence-in-depth, since the value already came from a validated <see cref="TenantContext"/>.</summary>
+    /// <summary>Validates that the substituted schema is itself safe to embed in SQL Ã¢â‚¬â€ defence-in-depth, since the value already came from a validated <see cref="TenantContext"/>.</summary>
     [GeneratedRegex(@"^tenant_[a-z0-9_]{1,64}$", RegexOptions.CultureInvariant | RegexOptions.Compiled)]
     private static partial Regex SchemaNameRegex();
 
@@ -135,7 +135,7 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         ArgumentNullException.ThrowIfNull(command);
 
         // Resolve the tenant first. If anything goes wrong, throwing here means
-        // the SQL never executes â€” RLS would catch it anyway, but we want loud
+        // the SQL never executes Ã¢â‚¬â€ RLS would catch it anyway, but we want loud
         // failures to stay loud.
         var tenant = _tenantProvider.GetTenant();
 
@@ -177,7 +177,7 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         if (ReferenceEquals(rewritten, original))
         {
             // Match-but-no-substitution should never happen given the regex,
-            // but if it does we treat it as a bug â€” better to throw than to
+            // but if it does we treat it as a bug Ã¢â‚¬â€ better to throw than to
             // silently run the wrong SQL.
             throw new InvalidOperationException(
                 "Tenant schema rewrite matched the placeholder but produced no substitution.");

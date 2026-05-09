@@ -2,6 +2,9 @@ using Karamchari.Payroll.Domain.Reimbursements;
 
 namespace Karamchari.Payroll.Services.Reimbursements;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record PolicyCheckResult(
     bool IsAllowed,
     decimal PolicyLimit,
@@ -15,7 +18,7 @@ public record PolicyCheckResult(
 /// </summary>
 public sealed class ReimbursementPolicyEngine
 {
-    // Policy limits per category per month — in production: load from tenant config
+    // Policy limits per category per month â€” in production: load from tenant config
     private static readonly Dictionary<ReimbursementCategory, decimal> DefaultLimits = new()
     {
         [ReimbursementCategory.Travel] = 50_000m,
@@ -44,6 +47,9 @@ public sealed class ReimbursementPolicyEngine
         [ReimbursementCategory.Other] = ReimbursementTaxability.Taxable
     };
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static PolicyCheckResult Evaluate(
         ReimbursementCategory category,
         decimal claimedAmount,
@@ -59,7 +65,7 @@ public sealed class ReimbursementPolicyEngine
         {
             return new PolicyCheckResult(
                 false, limit, taxability,
-                "Duplicate receipt detected — same attachment hash already submitted.",
+                "Duplicate receipt detected â€” same attachment hash already submitted.",
                 FraudIndicatorLevel.High);
         }
 

@@ -65,7 +65,7 @@ public sealed class TdsStatutoryRule : IAsyncStatutoryRule
         decimal monthlyRent = approvedDeclarations.Where(d => d.Category == "HRA").Max(d => d.ApprovedAmount ?? 0); // Rent is usually a monthly max
 
         // 3. Calculate HRA exemption using the actual component values from the CTC breakdown.
-        //    Previously annualHra was hardcoded to 0 — this meant HRA exemption was never
+        //    Previously annualHra was hardcoded to 0 â€” this meant HRA exemption was never
         //    applied even for employees with HRA declarations, causing TDS over-deduction.
         decimal annualBasic = context.GetBaseWage(_basicComponentIds) * 12;
         decimal annualHra = context.GetBaseWage(_hraComponentIds) * 12;
@@ -75,7 +75,7 @@ public sealed class TdsStatutoryRule : IAsyncStatutoryRule
 
         // 4. Calculate Net Taxable Income
         decimal netTaxableIncome = projection.TotalAnnualGross - hraExemption;
-        
+
         if (context.Profile.TaxRegime == TaxRegime.Old)
         {
             netTaxableIncome -= Math.Min(section80C, 150000);
@@ -93,11 +93,11 @@ public sealed class TdsStatutoryRule : IAsyncStatutoryRule
 
         // 6. Calculate Monthly TDS
         decimal remainingTax = annualTaxLiability - projection.YtdTds;
-        decimal monthlyTds = remainingTax > 0 && projection.RemainingMonths > 0 
+        decimal monthlyTds = remainingTax > 0 && projection.RemainingMonths > 0
             ? Math.Round(remainingTax / projection.RemainingMonths, 0, MidpointRounding.AwayFromZero)
             : 0;
 
-        string explanation = $"Projected Annual Tax: ₹{annualTaxLiability:N2}. Remaining months: {projection.RemainingMonths}. Net Taxable: ₹{netTaxableIncome:N2}.";
+        string explanation = $"Projected Annual Tax: â‚¹{annualTaxLiability:N2}. Remaining months: {projection.RemainingMonths}. Net Taxable: â‚¹{netTaxableIncome:N2}.";
 
         return new StatutoryResult(Name, monthlyTds, true, explanation);
     }

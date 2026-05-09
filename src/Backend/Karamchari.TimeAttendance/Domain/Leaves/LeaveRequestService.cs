@@ -23,10 +23,10 @@ public sealed class LeaveRequestService
     {
         double totalDays = 0;
         var current = start;
-        
+
         while (current <= end)
         {
-            if (current.DayOfWeek != DayOfWeek.Saturday && 
+            if (current.DayOfWeek != DayOfWeek.Saturday &&
                 current.DayOfWeek != DayOfWeek.Sunday &&
                 !holidays.Contains(current))
             {
@@ -34,7 +34,7 @@ public sealed class LeaveRequestService
             }
             current = current.AddDays(1);
         }
-        
+
         return totalDays;
     }
 }

@@ -13,7 +13,7 @@ public enum TenantSource
     /// <summary>Resolved from an <c>X-Tenant-Id</c>-style header injected by the API gateway. Trusted only on the gateway-only network path.</summary>
     TrustedHeader = 1,
 
-    /// <summary>Resolved from the request host (subdomain). Routing aid only â€” never authoritative.</summary>
+    /// <summary>Resolved from the request host (subdomain). Routing aid only Ã¢â‚¬â€ never authoritative.</summary>
     HostSubdomain = 2,
 
     /// <summary>System-resolved during a physical provisioning background task. Trusted.</summary>

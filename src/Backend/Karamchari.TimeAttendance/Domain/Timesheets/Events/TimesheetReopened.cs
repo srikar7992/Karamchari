@@ -15,6 +15,12 @@ public sealed record TimesheetReopened(
     Guid AdminId,
     string Reason) : IDomainEvent
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EventId { get; } = Guid.NewGuid();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset OccurredOnUtc { get; } = DateTimeOffset.UtcNow;
 }

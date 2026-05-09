@@ -17,7 +17,7 @@ public sealed class CollectionsBackgroundWorker : BackgroundService
     private readonly ILogger<CollectionsBackgroundWorker> _logger;
 
     public CollectionsBackgroundWorker(
-        IServiceProvider serviceProvider, 
+        IServiceProvider serviceProvider,
         ILogger<CollectionsBackgroundWorker> logger)
     {
         _serviceProvider = serviceProvider;
@@ -34,7 +34,7 @@ public sealed class CollectionsBackgroundWorker : BackgroundService
             {
                 using var scope = _serviceProvider.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
-                
+
                 await ProcessCollectionsAsync(db, stoppingToken);
             }
             catch (Exception ex)
@@ -104,10 +104,10 @@ public sealed class CollectionsBackgroundWorker : BackgroundService
     private Task TriggerAction(CollectionCase @case, string stage, string description)
     {
         _logger.LogInformation("Triggering {Stage} for Invoice {InvoiceId}: {Description}", stage, @case.InvoiceId, description);
-        
+
         // In production, this would call ICollectionsCommunicationService
         @case.RecordReminder(stage);
-        
+
         return Task.CompletedTask;
     }
 }

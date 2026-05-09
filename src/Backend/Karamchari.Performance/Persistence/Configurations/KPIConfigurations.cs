@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class KPIDefinitionConfiguration : IEntityTypeConfiguration<KPIDefinition>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<KPIDefinition> b)
     {
         b.ToTable("KPIDefinitions");
@@ -30,6 +33,9 @@ internal sealed class KPIDefinitionConfiguration : IEntityTypeConfiguration<KPID
 
 internal sealed class KPIResultConfiguration : IEntityTypeConfiguration<KPIResult>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<KPIResult> b)
     {
         b.ToTable("KPIResults");
@@ -47,6 +53,9 @@ internal sealed class KPIResultConfiguration : IEntityTypeConfiguration<KPIResul
 
 internal sealed class KPISnapshotConfiguration : IEntityTypeConfiguration<KPISnapshot>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<KPISnapshot> b)
     {
         b.ToTable("KPISnapshots");

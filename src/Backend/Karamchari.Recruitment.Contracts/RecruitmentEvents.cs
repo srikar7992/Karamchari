@@ -3,6 +3,9 @@ using Karamchari.Core.Messaging;
 namespace Karamchari.Recruitment.Contracts;
 
 // The payload for the Requisition Created event
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record JobRequisitionCreatedPayload(
     Guid RequisitionId,
     string Title,
@@ -11,6 +14,9 @@ public sealed record JobRequisitionCreatedPayload(
     int HeadcountTarget);
 
 // The payload for the Application Created event
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record CandidateAppliedPayload(
     Guid ApplicationId,
     Guid CandidateId,
@@ -19,6 +25,9 @@ public sealed record CandidateAppliedPayload(
 
 // The payload for the Hiring Decision Completed event
 // Consumed by Karamchari.HR to initiate onboarding
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record HiringDecisionCompletedPayload(
     Guid CandidateId,
     Guid RequisitionId,

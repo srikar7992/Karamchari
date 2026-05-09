@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.Skills;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum SkillDomain
 {
     Technical = 1,

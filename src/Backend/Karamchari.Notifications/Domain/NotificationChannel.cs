@@ -9,9 +9,9 @@ public enum NotificationChannel
     /// <summary>Delivered via email (Azure Communication Services).</summary>
     Email = 2,
 
-    /// <summary>Mobile push notification (Azure Notification Hubs — Phase 2).</summary>
+    /// <summary>Mobile push notification (Azure Notification Hubs â€” Phase 2).</summary>
     Push = 3,
 
-    /// <summary>Webhook delivery to Slack or Teams (tenant-configured — Phase 2).</summary>
+    /// <summary>Webhook delivery to Slack or Teams (tenant-configured â€” Phase 2).</summary>
     Webhook = 4,
 }

@@ -1,5 +1,8 @@
 namespace Karamchari.Payroll.Domain.Reimbursements;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ReimbursementStatus
 {
     Draft,
@@ -12,6 +15,9 @@ public enum ReimbursementStatus
     Clawback
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ReimbursementCategory
 {
     Travel,
@@ -26,6 +32,9 @@ public enum ReimbursementCategory
     Other
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ReimbursementTaxability
 {
     Exempt,
@@ -33,6 +42,9 @@ public enum ReimbursementTaxability
     PartiallyTaxable
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum FraudIndicatorLevel
 {
     None,

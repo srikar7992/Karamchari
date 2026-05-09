@@ -30,7 +30,7 @@ namespace Karamchari.Core.Messaging.Outbox;
 /// </summary>
 public sealed partial class OutboxRelayService : BackgroundService
 {
-    // ── row representation ────────────────────────────────────────────────────
+    // â”€â”€ row representation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private sealed record OutboxMessageRow(
         long SequenceNumber,
@@ -48,14 +48,14 @@ public sealed partial class OutboxRelayService : BackgroundService
         Guid? InitiatorId,
         Guid? RequestId);
 
-    // ── poison isolation: throw this to dead-letter without retry ─────────────
+    // â”€â”€ poison isolation: throw this to dead-letter without retry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private sealed class PoisonMessageException : Exception
     {
         internal PoisonMessageException(string reason) : base(reason) { }
     }
 
-    // ── full-envelope publish pipe ─────────────────────────────────────────────
+    // â”€â”€ full-envelope publish pipe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private sealed class PublishEnvelopePipe : IPipe<PublishContext>
     {
@@ -103,7 +103,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         public void Probe(ProbeContext context) { }
     }
 
-    // ── fields ────────────────────────────────────────────────────────────────
+    // â”€â”€ fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IBus _bus;
@@ -141,7 +141,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         _circuitBreaker = circuitBreaker;
     }
 
-    // ── main loop ─────────────────────────────────────────────────────────────
+    // â”€â”€ main loop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -189,7 +189,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         LogStopped(_logger, _instanceId);
     }
 
-    // ── batch orchestration ───────────────────────────────────────────────────
+    // â”€â”€ batch orchestration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task<int> ProcessBatchAsync(CancellationToken ct)
     {
@@ -248,7 +248,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         return messages.Count;
     }
 
-    // ── per-outbox-id processing ──────────────────────────────────────────────
+    // â”€â”€ per-outbox-id processing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task ProcessOutboxIdAsync(
         SqlConnection connection,
@@ -258,10 +258,10 @@ public sealed partial class OutboxRelayService : BackgroundService
     {
         var opts = _options.Value;
 
-        // Load persisted retry state — null means first attempt.
+        // Load persisted retry state â€” null means first attempt.
         var state = await LoadProcessingStateAsync(connection, outboxId, ct);
 
-        // Honour backoff window — another instance or the same instance on restart set NextRetryUtc.
+        // Honour backoff window â€” another instance or the same instance on restart set NextRetryUtc.
         if (state?.NextRetryUtc.HasValue == true && DateTime.UtcNow < state.NextRetryUtc.Value)
         {
             await ReleaseLocksAsync(connection, [outboxId], ct);
@@ -344,11 +344,11 @@ public sealed partial class OutboxRelayService : BackgroundService
         }
     }
 
-    // ── publish ───────────────────────────────────────────────────────────────
+    // â”€â”€ publish â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task PublishMessageAsync(OutboxMessageRow msg, CancellationToken ct)
     {
-        // Validate content type — reject anything that is neither MassTransit JSON nor plain JSON.
+        // Validate content type â€” reject anything that is neither MassTransit JSON nor plain JSON.
         if (msg.ContentType != null
             && !msg.ContentType.StartsWith("application/vnd.masstransit+json", StringComparison.OrdinalIgnoreCase)
             && !msg.ContentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
@@ -374,7 +374,7 @@ public sealed partial class OutboxRelayService : BackgroundService
             ?? throw new PoisonMessageException(
                 $"Deserialised null for type '{resolvedType.FullName}' MessageId={msg.MessageId}");
 
-        // Capture the raw envelope JSON before doc is disposed — pipes need it for header restoration.
+        // Capture the raw envelope JSON before doc is disposed â€” pipes need it for header restoration.
         var envelopeJson = msg.Body;
 
         if (!string.IsNullOrEmpty(msg.DestinationAddress)
@@ -389,9 +389,9 @@ public sealed partial class OutboxRelayService : BackgroundService
         }
     }
 
-    // ── context helpers ───────────────────────────────────────────────────────
+    // â”€â”€ context helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    // SendContext is the base for both PublishContext and standalone send — all writable ID fields live here.
+    // SendContext is the base for both PublishContext and standalone send â€” all writable ID fields live here.
     private static void ApplyCommonContext(SendContext ctx, OutboxMessageRow row)
     {
         ctx.MessageId = row.MessageId;
@@ -442,7 +442,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         catch (JsonException) { /* best-effort header restoration; envelope may be non-standard */ }
     }
 
-    // ── claiming ──────────────────────────────────────────────────────────────
+    // â”€â”€ claiming â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task<List<Guid>> ClaimBatchAsync(SqlConnection connection, CancellationToken ct)
     {
@@ -471,7 +471,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         return ids;
     }
 
-    // ── processing state persistence ──────────────────────────────────────────
+    // â”€â”€ processing state persistence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task UpsertProcessingStateLockAsync(
         SqlConnection connection, List<Guid> outboxIds, CancellationToken ct)
@@ -515,13 +515,13 @@ public sealed partial class OutboxRelayService : BackgroundService
 
         return new OutboxProcessingState
         {
-            OutboxId           = outboxId,
-            RetryCount         = reader.GetInt32(0),
-            LastAttemptUtc     = reader.IsDBNull(1) ? null : reader.GetDateTime(1),
-            NextRetryUtc       = reader.IsDBNull(2) ? null : reader.GetDateTime(2),
-            LastError          = reader.IsDBNull(3) ? null : reader.GetString(3),
+            OutboxId = outboxId,
+            RetryCount = reader.GetInt32(0),
+            LastAttemptUtc = reader.IsDBNull(1) ? null : reader.GetDateTime(1),
+            NextRetryUtc = reader.IsDBNull(2) ? null : reader.GetDateTime(2),
+            LastError = reader.IsDBNull(3) ? null : reader.GetString(3),
             LockedByInstanceId = reader.IsDBNull(4) ? null : reader.GetGuid(4),
-            LockAcquiredUtc    = reader.IsDBNull(5) ? null : reader.GetDateTime(5),
+            LockAcquiredUtc = reader.IsDBNull(5) ? null : reader.GetDateTime(5),
         };
     }
 
@@ -553,7 +553,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
-    // ── message loading ───────────────────────────────────────────────────────
+    // â”€â”€ message loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private static async Task<Dictionary<Guid, List<OutboxMessageRow>>> LoadMessagesAsync(
         SqlConnection connection, List<Guid> outboxIds, CancellationToken ct)
@@ -589,20 +589,20 @@ public sealed partial class OutboxRelayService : BackgroundService
         while (await reader.ReadAsync(ct))
         {
             var row = new OutboxMessageRow(
-                SequenceNumber:     reader.GetInt64(0),
-                MessageId:          reader.GetGuid(1),
-                OutboxId:           reader.GetGuid(2),
-                Body:               reader.GetString(3),
-                MessageType:        reader.GetString(4),
+                SequenceNumber: reader.GetInt64(0),
+                MessageId: reader.GetGuid(1),
+                OutboxId: reader.GetGuid(2),
+                Body: reader.GetString(3),
+                MessageType: reader.GetString(4),
                 DestinationAddress: reader.IsDBNull(5) ? null : reader.GetString(5),
-                Headers:            reader.IsDBNull(6) ? null : reader.GetString(6),
-                SentTime:           reader.GetDateTime(7),
-                ExpirationTime:     reader.IsDBNull(8) ? null : reader.GetDateTime(8),
-                ContentType:        reader.IsDBNull(9) ? null : reader.GetString(9),
-                CorrelationId:      reader.IsDBNull(10) ? null : reader.GetGuid(10),
-                ConversationId:     reader.IsDBNull(11) ? null : reader.GetGuid(11),
-                InitiatorId:        reader.IsDBNull(12) ? null : reader.GetGuid(12),
-                RequestId:          reader.IsDBNull(13) ? null : reader.GetGuid(13));
+                Headers: reader.IsDBNull(6) ? null : reader.GetString(6),
+                SentTime: reader.GetDateTime(7),
+                ExpirationTime: reader.IsDBNull(8) ? null : reader.GetDateTime(8),
+                ContentType: reader.IsDBNull(9) ? null : reader.GetString(9),
+                CorrelationId: reader.IsDBNull(10) ? null : reader.GetGuid(10),
+                ConversationId: reader.IsDBNull(11) ? null : reader.GetGuid(11),
+                InitiatorId: reader.IsDBNull(12) ? null : reader.GetGuid(12),
+                RequestId: reader.IsDBNull(13) ? null : reader.GetGuid(13));
 
             if (!result.TryGetValue(row.OutboxId, out var list))
             {
@@ -615,7 +615,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         return result;
     }
 
-    // ── atomic delivery completion ────────────────────────────────────────────
+    // â”€â”€ atomic delivery completion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private static async Task MarkDeliveredAtomicAsync(
         SqlConnection connection, Guid outboxId, CancellationToken ct)
@@ -656,7 +656,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         }
     }
 
-    // ── dead-lettering ────────────────────────────────────────────────────────
+    // â”€â”€ dead-lettering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task DeadLetterBatchAsync(
         SqlConnection connection,
@@ -735,18 +735,18 @@ public sealed partial class OutboxRelayService : BackgroundService
         await using var cmd = connection.CreateCommand();
         cmd.Transaction = tx;
         cmd.CommandText = sql;
-        cmd.Parameters.Add(new SqlParameter("@messageId",          SqlDbType.UniqueIdentifier) { Value = msg.MessageId });
-        cmd.Parameters.Add(new SqlParameter("@outboxId",           SqlDbType.UniqueIdentifier) { Value = outboxId });
-        cmd.Parameters.Add(new SqlParameter("@messageType",        SqlDbType.NVarChar) { Size = 500,  Value = msg.MessageType });
-        cmd.Parameters.Add(new SqlParameter("@body",               SqlDbType.NVarChar) { Size = -1,   Value = msg.Body });
-        cmd.Parameters.Add(new SqlParameter("@headers",            SqlDbType.NVarChar) { Size = -1,   Value = (object?)msg.Headers ?? DBNull.Value });
-        cmd.Parameters.Add(new SqlParameter("@destinationAddress", SqlDbType.NVarChar) { Size = 500,  Value = (object?)msg.DestinationAddress ?? DBNull.Value });
-        cmd.Parameters.Add(new SqlParameter("@failureReason",      SqlDbType.NVarChar) { Size = 2000, Value = failureReason });
-        cmd.Parameters.Add(new SqlParameter("@retryCount",         SqlDbType.Int)      { Value = retryCount });
+        cmd.Parameters.Add(new SqlParameter("@messageId", SqlDbType.UniqueIdentifier) { Value = msg.MessageId });
+        cmd.Parameters.Add(new SqlParameter("@outboxId", SqlDbType.UniqueIdentifier) { Value = outboxId });
+        cmd.Parameters.Add(new SqlParameter("@messageType", SqlDbType.NVarChar) { Size = 500, Value = msg.MessageType });
+        cmd.Parameters.Add(new SqlParameter("@body", SqlDbType.NVarChar) { Size = -1, Value = msg.Body });
+        cmd.Parameters.Add(new SqlParameter("@headers", SqlDbType.NVarChar) { Size = -1, Value = (object?)msg.Headers ?? DBNull.Value });
+        cmd.Parameters.Add(new SqlParameter("@destinationAddress", SqlDbType.NVarChar) { Size = 500, Value = (object?)msg.DestinationAddress ?? DBNull.Value });
+        cmd.Parameters.Add(new SqlParameter("@failureReason", SqlDbType.NVarChar) { Size = 2000, Value = failureReason });
+        cmd.Parameters.Add(new SqlParameter("@retryCount", SqlDbType.Int) { Value = retryCount });
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
-    // ── lock management ───────────────────────────────────────────────────────
+    // â”€â”€ lock management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task ReleaseLocksAsync(
         SqlConnection connection, List<Guid> outboxIds, CancellationToken ct)
@@ -815,7 +815,7 @@ public sealed partial class OutboxRelayService : BackgroundService
             await connection.OpenAsync(ct);
 
             // Release OutboxState locks for rows whose processing state shows a stale LockAcquiredUtc.
-            // Uses LockAcquiredUtc (accurate lock timestamp) — NOT OutboxState.Created (wrong for stale detection).
+            // Uses LockAcquiredUtc (accurate lock timestamp) â€” NOT OutboxState.Created (wrong for stale detection).
             await using var releaseLocks = connection.CreateCommand();
             releaseLocks.CommandText = """
                 UPDATE os
@@ -859,7 +859,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         }
     }
 
-    // ── observable gauge updates ──────────────────────────────────────────────
+    // â”€â”€ observable gauge updates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task TryUpdateQueueGaugesAsync(SqlConnection connection, CancellationToken ct)
     {
@@ -890,7 +890,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         }
     }
 
-    // ── helpers ───────────────────────────────────────────────────────────────
+    // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private static string FirstTypeShortName(string messageType)
     {
@@ -910,7 +910,7 @@ public sealed partial class OutboxRelayService : BackgroundService
         : error.Length > 2000 ? error[..2000]
         : error;
 
-    // ── source-generated log methods (CA1848 / CA1873) ────────────────────────
+    // â”€â”€ source-generated log methods (CA1848 / CA1873) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     [LoggerMessage(Level = LogLevel.Information,
         Message = "OutboxRelayService started. Instance={InstanceId} BatchSize={BatchSize} Interval={Interval}")]

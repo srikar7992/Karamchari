@@ -11,7 +11,7 @@ namespace Karamchari.TimeAttendance.Domain.Timesheets;
 /// </summary>
 public sealed record TimeEntry
 {
-    /// <summary>Stable identifier — survives collection reordering and partial approvals.</summary>
+    /// <summary>Stable identifier â€” survives collection reordering and partial approvals.</summary>
     public Guid EntryId { get; init; } = Guid.NewGuid();
 
     /// <summary>Calendar date the work occurred (employee's local date, not UTC).</summary>
@@ -49,7 +49,7 @@ public sealed record TimeEntry
 
     /// <summary>
     /// Monotonically incremented on every edit. Used to detect when an approved entry
-    /// has been modified retroactively (ApprovedAtVersion != Version → approval invalidated).
+    /// has been modified retroactively (ApprovedAtVersion != Version â†’ approval invalidated).
     /// </summary>
     public int Version { get; init; } = 1;
 
@@ -63,7 +63,7 @@ public sealed record TimeEntry
     public void Validate()
     {
         if (Hours <= 0 || Hours > 24)
-            throw new ArgumentOutOfRangeException(nameof(Hours), $"Hours must be > 0 and ≤ 24 (got {Hours}).");
+            throw new ArgumentOutOfRangeException(nameof(Hours), $"Hours must be > 0 and â‰¤ 24 (got {Hours}).");
 
         if (StartTimeUtc.HasValue && EndTimeUtc.HasValue)
         {
@@ -85,6 +85,9 @@ public sealed record TimeEntry
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum TimeEntryStatus
 {
     Draft = 0,

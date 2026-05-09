@@ -6,6 +6,9 @@ using Karamchari.Workflow.Domain.Events;
 
 namespace Karamchari.Workflow.Domain;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<WorkflowStepInstance> _stepInstances = [];
@@ -35,21 +38,51 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
         DefinitionSnapshotJson = string.Empty;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EntityType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EntityId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string DefinitionSnapshotJson { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int CurrentStep { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public WorkflowStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset StartedAt { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; }
 
     [Timestamp]
     public byte[]? RowVersion { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<WorkflowStepInstance> StepInstances => _stepInstances.AsReadOnly();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<WorkflowAuditEntry> AuditLog => _auditLog.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WorkflowInstance Start(
         string tenantId,
         string entityType,
@@ -107,6 +140,9 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
         return instance;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(Guid stepInstanceId, Guid approverId)
     {
         if (Status != WorkflowStatus.Pending)
@@ -128,6 +164,9 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
             AdvanceStep(stepInstance.StepOrder);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reject(Guid stepInstanceId, Guid approverId, string reason)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
@@ -151,6 +190,9 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
             Id, TenantId, EntityType, EntityId, WorkflowStatus.Rejected, DateTimeOffset.UtcNow));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Audit(string action, Guid actorId, int? stepOrder = null, string? notes = null)
     {
         var snapshot = JsonSerializer.Serialize(new
@@ -227,7 +269,7 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
         }
         catch (Exception)
         {
-            // Snapshot unreadable — treat as final step.
+            // Snapshot unreadable â€” treat as final step.
         }
 
         if (nextOrder.HasValue)
@@ -273,7 +315,7 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
         }
         catch (Exception)
         {
-            // Snapshot unreadable — no step instances created; engine must handle.
+            // Snapshot unreadable â€” no step instances created; engine must handle.
         }
     }
 }

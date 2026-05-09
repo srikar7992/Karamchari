@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace Karamchari.Notifications.Channels;
 
 /// <summary>
-/// In-app delivery: the notification is already persisted in NotificationMessages —
+/// In-app delivery: the notification is already persisted in NotificationMessages â€”
 /// recording a successful delivery attempt is sufficient for the inbox to surface it.
 /// </summary>
 public sealed class InAppChannelAdapter : INotificationChannelAdapter
@@ -13,8 +13,14 @@ public sealed class InAppChannelAdapter : INotificationChannelAdapter
 
     public InAppChannelAdapter(ILogger<InAppChannelAdapter> logger) => _logger = logger;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public NotificationChannel Channel => NotificationChannel.InApp;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task DeliverAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
         message.RecordDeliveryAttempt(

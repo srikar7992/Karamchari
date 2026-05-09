@@ -7,7 +7,7 @@ namespace Karamchari.Notifications.Orchestration;
 /// to exactly one recipient. Created by event consumers; executed by
 /// <see cref="INotificationOrchestrator"/>.
 ///
-/// TriggerEventId is the integration event's correlation / EventId — used as
+/// TriggerEventId is the integration event's correlation / EventId â€” used as
 /// part of the idempotency key to block duplicate delivery on event replay.
 /// </summary>
 public sealed record NotificationIntent(
@@ -29,30 +29,30 @@ public sealed record NotificationIntent(
 
     /// <summary>
     /// Template code used to look up <see cref="NotificationTemplate"/>.
-    /// Derived from IntentType: ReviewAssigned → "review.assigned".
+    /// Derived from IntentType: ReviewAssigned â†’ "review.assigned".
     /// </summary>
     public string TemplateCode => IntentType switch
     {
-        NotificationIntentType.ReviewAssigned         => "review.assigned",
-        NotificationIntentType.ReviewDueSoon          => "review.due-soon",
-        NotificationIntentType.ReviewOverdue          => "review.overdue",
-        NotificationIntentType.ReviewSubmitted        => "review.submitted",
-        NotificationIntentType.ReviewCycleCompleted   => "review.cycle-completed",
+        NotificationIntentType.ReviewAssigned => "review.assigned",
+        NotificationIntentType.ReviewDueSoon => "review.due-soon",
+        NotificationIntentType.ReviewOverdue => "review.overdue",
+        NotificationIntentType.ReviewSubmitted => "review.submitted",
+        NotificationIntentType.ReviewCycleCompleted => "review.cycle-completed",
         NotificationIntentType.CalibrationSessionScheduled => "calibration.session-scheduled",
-        NotificationIntentType.CalibrationFinalized   => "calibration.finalized",
-        NotificationIntentType.PromotionApproved      => "promotion.approved",
+        NotificationIntentType.CalibrationFinalized => "calibration.finalized",
+        NotificationIntentType.PromotionApproved => "promotion.approved",
         NotificationIntentType.PromotionPendingHRReview => "promotion.pending-hr-review",
-        NotificationIntentType.GoalCycleStarted       => "goal.cycle-started",
-        NotificationIntentType.GoalApprovalRequired   => "goal.approval-required",
-        NotificationIntentType.GoalDueSoon            => "goal.due-soon",
-        NotificationIntentType.GoalOverdue            => "goal.overdue",
-        NotificationIntentType.FeedbackRequested      => "feedback.requested",
+        NotificationIntentType.GoalCycleStarted => "goal.cycle-started",
+        NotificationIntentType.GoalApprovalRequired => "goal.approval-required",
+        NotificationIntentType.GoalDueSoon => "goal.due-soon",
+        NotificationIntentType.GoalOverdue => "goal.overdue",
+        NotificationIntentType.FeedbackRequested => "feedback.requested",
         NotificationIntentType.FeedbackResponsePendingReminder => "feedback.response-pending",
-        NotificationIntentType.FnFApproved            => "payroll.fnf-approved",
-        NotificationIntentType.FnFDisbursed           => "payroll.fnf-disbursed",
-        NotificationIntentType.ArrearApproved         => "payroll.arrear-approved",
-        NotificationIntentType.ReimbursementApproved   => "payroll.reimbursement-approved",
-        NotificationIntentType.SalaryRevisionApproved  => "payroll.salary-revision-approved",
+        NotificationIntentType.FnFApproved => "payroll.fnf-approved",
+        NotificationIntentType.FnFDisbursed => "payroll.fnf-disbursed",
+        NotificationIntentType.ArrearApproved => "payroll.arrear-approved",
+        NotificationIntentType.ReimbursementApproved => "payroll.reimbursement-approved",
+        NotificationIntentType.SalaryRevisionApproved => "payroll.salary-revision-approved",
         _ => throw new ArgumentOutOfRangeException(nameof(IntentType), IntentType, "No template code mapping.")
     };
 }

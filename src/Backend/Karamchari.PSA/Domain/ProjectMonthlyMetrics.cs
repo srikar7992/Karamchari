@@ -4,10 +4,10 @@ using Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Pre-aggregated monthly rollup of project financials.
-/// This is the ONLY table the dashboard queries hit — never the raw ledger.
+/// This is the ONLY table the dashboard queries hit â€” never the raw ledger.
 ///
 /// Updated via atomic MERGE/upsert by <c>ProfitCalculationConsumer</c> on every event.
-/// Composite PK: (ProjectId, Year, Month) — no duplicates, constant-time lookups.
+/// Composite PK: (ProjectId, Year, Month) â€” no duplicates, constant-time lookups.
 /// </summary>
 public sealed class ProjectMonthlyMetrics : ITenantOwned
 {
@@ -32,7 +32,7 @@ public sealed class ProjectMonthlyMetrics : ITenantOwned
     /// <summary>Gets the total allocated employee cost for the month.</summary>
     public decimal TotalCost { get; private set; }
 
-    /// <summary>Gets the computed profit (TotalRevenue − TotalCost).</summary>
+    /// <summary>Gets the computed profit (TotalRevenue âˆ’ TotalCost).</summary>
     public decimal TotalProfit => TotalRevenue - TotalCost;
 
     /// <summary>Gets the margin percentage.</summary>
@@ -45,7 +45,7 @@ public sealed class ProjectMonthlyMetrics : ITenantOwned
     public decimal TotalHours { get; private set; }
 
     /// <summary>
-    /// Gets the utilization percentage (BillableHours / TotalHours × 100).
+    /// Gets the utilization percentage (BillableHours / TotalHours Ã— 100).
     /// </summary>
     public decimal UtilizationPercent => TotalHours == 0 ? 0 : Math.Round(BillableHours / TotalHours * 100, 2);
 

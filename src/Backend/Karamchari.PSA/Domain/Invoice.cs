@@ -10,7 +10,7 @@ public sealed class InvoiceLine
     /// <summary>Gets the unique identifier.</summary>
     public Guid Id { get; init; } = Guid.NewGuid();
 
-    /// <summary>Gets the description shown on the invoice (e.g., "Jane Smith — Senior Engineer").</summary>
+    /// <summary>Gets the description shown on the invoice (e.g., "Jane Smith â€” Senior Engineer").</summary>
     public string Description { get; init; } = string.Empty;
 
     /// <summary>Gets the total billable hours for this line.</summary>

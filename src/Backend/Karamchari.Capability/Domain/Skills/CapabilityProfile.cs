@@ -12,17 +12,36 @@ public sealed class CapabilityProfile : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<VerifiedSkill> _skills = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? LastUpdatedUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<VerifiedSkill> Skills => _skills.AsReadOnly();
 
     private CapabilityProfile() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static CapabilityProfile Initialize(string tenantId, Guid employeeId)
     {
         return new CapabilityProfile
@@ -34,6 +53,9 @@ public sealed class CapabilityProfile : AggregateRoot<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddVerifiedSkill(Guid skillId, SkillLevel level, string evidenceRef, string verifiedBy)
     {
         // Prevent duplicate skill entries; require an update instead if it exists
@@ -44,6 +66,9 @@ public sealed class CapabilityProfile : AggregateRoot<Guid>, ITenantOwned
         LastUpdatedUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void UpdateSkillLevel(Guid skillId, SkillLevel newLevel, string newEvidenceRef, string verifiedBy)
     {
         var skill = _skills.FirstOrDefault(s => s.SkillId == skillId)
@@ -54,14 +79,35 @@ public sealed class CapabilityProfile : AggregateRoot<Guid>, ITenantOwned
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class VerifiedSkill : Entity<Guid>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ProfileId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid SkillId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public SkillLevel Level { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EvidenceReference { get; private set; } = string.Empty; // URL, Certificate ID, or Assessment ID
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string VerifiedBy { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset VerifiedAtUtc { get; private set; }
 
     private VerifiedSkill() { }

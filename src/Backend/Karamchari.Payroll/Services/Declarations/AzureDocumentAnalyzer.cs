@@ -8,7 +8,7 @@ namespace Karamchari.Payroll.Services.Declarations;
 /// Azure Document Intelligence implementation of <see cref="IDocumentAnalyzer"/>.
 /// Configuration is resolved from <see cref="DocumentIntelligenceOptions"/> (section
 /// <c>"DocumentIntelligence"</c>) so secrets flow from Azure Key Vault via Managed Identity
-/// — never from raw <c>IConfiguration</c> strings baked into code.
+/// â€” never from raw <c>IConfiguration</c> strings baked into code.
 /// </summary>
 public sealed class AzureDocumentAnalyzer : IDocumentAnalyzer
 {
@@ -19,7 +19,7 @@ public sealed class AzureDocumentAnalyzer : IDocumentAnalyzer
     /// </summary>
     /// <param name="options">
     /// Strongly-typed options bound from the <c>"DocumentIntelligence"</c> config section.
-    /// In development, leave <c>Endpoint</c> and <c>Key</c> empty — the constructor
+    /// In development, leave <c>Endpoint</c> and <c>Key</c> empty â€” the constructor
     /// sets <c>_client = null!</c> and any real call will surface a clear
     /// <see cref="InvalidOperationException"/> rather than a null-ref.
     /// </param>
@@ -39,6 +39,9 @@ public sealed class AzureDocumentAnalyzer : IDocumentAnalyzer
         _client = new DocumentIntelligenceClient(new Uri(cfg.Endpoint), new AzureKeyCredential(cfg.ApiKey));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<DocumentAnalysisResult> AnalyzeAsync(Stream stream, string fileName)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -46,7 +49,7 @@ public sealed class AzureDocumentAnalyzer : IDocumentAnalyzer
         if (_client == null) throw new InvalidOperationException("Azure Document Intelligence is not configured.");
 
         // Use the typed AnalyzeDocumentContent overload so the SDK returns Operation<AnalyzeResult>
-        // directly — avoids the raw-protocol BinaryData path and ModelReaderWriter deserialization.
+        // directly â€” avoids the raw-protocol BinaryData path and ModelReaderWriter deserialization.
         var content = new AnalyzeDocumentContent { Base64Source = BinaryData.FromStream(stream) };
         var operation = await _client.AnalyzeDocumentAsync(
             WaitUntil.Completed,

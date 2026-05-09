@@ -1,10 +1,10 @@
 namespace Karamchari.HR.Consumers;
 
-using MassTransit;
 using Karamchari.Core.Contracts.IntegrationEvents;
-using Karamchari.HR.Persistence;
 using Karamchari.HR.Domain.Departments;
 using Karamchari.HR.Domain.Employees;
+using Karamchari.HR.Persistence;
+using MassTransit;
 
 /// <summary>
 /// Provisions default HR structure (HQ department, Super Admin employee) for a new tenant.

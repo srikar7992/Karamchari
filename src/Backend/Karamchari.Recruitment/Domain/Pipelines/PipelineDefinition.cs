@@ -11,13 +11,25 @@ public sealed class PipelineDefinition : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<PipelineStage> _stages = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<PipelineStage> Stages => _stages.OrderBy(s => s.Sequence).ToList().AsReadOnly();
 
     private PipelineDefinition() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static PipelineDefinition Create(string tenantId, string name)
     {
         return new PipelineDefinition
@@ -28,6 +40,9 @@ public sealed class PipelineDefinition : AggregateRoot<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddStage(string name, int sequence, bool requiresInterview = false, bool requiresApproval = false)
     {
         if (_stages.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
@@ -39,6 +54,9 @@ public sealed class PipelineDefinition : AggregateRoot<Guid>, ITenantOwned
         _stages.Add(PipelineStage.Create(Id, name, sequence, requiresInterview, requiresApproval));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public PipelineStage GetNextStage(string currentStageName)
     {
         var current = _stages.FirstOrDefault(s => s.Name == currentStageName)
@@ -49,12 +67,30 @@ public sealed class PipelineDefinition : AggregateRoot<Guid>, ITenantOwned
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class PipelineStage : Entity<Guid>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid PipelineId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int Sequence { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool RequiresInterview { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool RequiresApproval { get; private set; }
 
     private PipelineStage() { }

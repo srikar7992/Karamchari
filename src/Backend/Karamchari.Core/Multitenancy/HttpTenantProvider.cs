@@ -11,13 +11,13 @@ namespace Karamchari.Core.Multitenancy;
 ///
 /// Resolution order (per the architecture charter):
 /// <list type="number">
-///   <item>JWT claim â€” authoritative for user-driven requests.</item>
-///   <item>Trusted gateway header â€” accepted only when the gateway proof header is present and valid.</item>
-///   <item>Host subdomain â€” used only to corroborate the JWT, never as the source of truth.</item>
+///   <item>JWT claim Ã¢â‚¬â€ authoritative for user-driven requests.</item>
+///   <item>Trusted gateway header Ã¢â‚¬â€ accepted only when the gateway proof header is present and valid.</item>
+///   <item>Host subdomain Ã¢â‚¬â€ used only to corroborate the JWT, never as the source of truth.</item>
 /// </list>
 ///
 /// If multiple sources are present they must agree; disagreement is an error.
-/// There is no fallback â€” missing tenant context is fatal for any request that
+/// There is no fallback Ã¢â‚¬â€ missing tenant context is fatal for any request that
 /// reaches this provider.
 /// </summary>
 internal sealed class HttpTenantProvider : ITenantProvider
@@ -102,7 +102,7 @@ internal sealed class HttpTenantProvider : ITenantProvider
             TenantResolutionFailureReason.MissingJwtClaim);
     }
 
-    private string? ReadJwtTenant(ClaimsPrincipal user)
+    private static string? ReadJwtTenant(ClaimsPrincipal user)
     {
         if (user.Identity?.IsAuthenticated != true)
         {

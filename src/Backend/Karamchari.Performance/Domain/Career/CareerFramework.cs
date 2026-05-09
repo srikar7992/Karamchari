@@ -21,13 +21,31 @@ public sealed class CareerFramework : AggregateRoot<Guid>, ITenantOwned
         IsActive = true;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsActive { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<CareerTrack> Tracks => _tracks.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static CareerFramework Create(string tenantId, string name, string? description = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
@@ -35,6 +53,9 @@ public sealed class CareerFramework : AggregateRoot<Guid>, ITenantOwned
         return new CareerFramework(Guid.NewGuid(), tenantId, name.Trim(), description?.Trim());
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public CareerTrack AddTrack(string name, TrackType type, string? description = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -46,5 +67,8 @@ public sealed class CareerFramework : AggregateRoot<Guid>, ITenantOwned
         return track;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Deactivate() => IsActive = false;
 }

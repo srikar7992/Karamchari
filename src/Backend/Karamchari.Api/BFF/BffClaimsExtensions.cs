@@ -6,7 +6,7 @@ internal static class BffClaimsExtensions
 {
     /// <summary>
     /// Extracts the employee ID from the JWT 'sub' claim.
-    /// Returns null if absent or invalid — callers should return 401.
+    /// Returns null if absent or invalid â€” callers should return 401.
     /// </summary>
     internal static Guid? GetEmployeeId(this ClaimsPrincipal user)
     {
@@ -16,7 +16,7 @@ internal static class BffClaimsExtensions
 
     /// <summary>
     /// Extracts the tenant ID from the JWT 'tenant_id' claim.
-    /// Returns null if absent — callers must return 401.
+    /// Returns null if absent â€” callers must return 401.
     /// </summary>
     internal static string? GetTenantId(this ClaimsPrincipal user) =>
         user.FindFirstValue("tenant_id");
@@ -26,7 +26,7 @@ internal static class BffClaimsExtensions
 
     /// <summary>
     /// Utility to get both TenantId (from claims) and EmployeeId (from 'sub' claim) in one call.
-    /// Either value may be null — callers must return 401 when that happens.
+    /// Either value may be null â€” callers must return 401 when that happens.
     /// </summary>
     internal static (string? TenantId, Guid? EmployeeId) GetTenantAndEmployee(this ClaimsPrincipal user)
     {

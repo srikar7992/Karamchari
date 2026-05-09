@@ -4,13 +4,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Intelligence.Services;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public interface IExecutiveDecisionService
 {
+    /// <inheritdoc/>
     Task<ExecutiveInsight> GenerateInsightAsync(string tenantId, string title, string category, IEnumerable<Guid> signalIds, CancellationToken ct = default);
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public interface IWorkforcePlanningService
 {
+    /// <inheritdoc/>
     Task<StrategicWorkforceScenario> RunSimulationAsync(string tenantId, string name, string description, string parametersJson, string userId, CancellationToken ct = default);
 }
 
@@ -23,6 +31,9 @@ internal sealed class ExecutiveDecisionService : IExecutiveDecisionService
         _db = db;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<ExecutiveInsight> GenerateInsightAsync(string tenantId, string title, string category, IEnumerable<Guid> signalIds, CancellationToken ct = default)
     {
         // 1. Fetch contributing signals
@@ -31,7 +42,7 @@ internal sealed class ExecutiveDecisionService : IExecutiveDecisionService
             .ToListAsync(ct);
 
         // 2. Aggregate confidence
-        var avgConfidence = signals.Any() ? signals.Average(s => s.Confidence.Score) : 50m;
+        var avgConfidence = signals.Count > 0 ? signals.Average(s => s.Confidence.Score) : 50m;
         var confidence = SignalConfidence.Create(avgConfidence, "Aggregated System Insight");
 
         // 3. Generate narrative (Placeholder for future LLM / Narrative Template Engine)
@@ -56,13 +67,16 @@ internal sealed class WorkforcePlanningService : IWorkforcePlanningService
         _db = db;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<StrategicWorkforceScenario> RunSimulationAsync(string tenantId, string name, string description, string parametersJson, string userId, CancellationToken ct = default)
     {
         var scenario = StrategicWorkforceScenario.Create(tenantId, name, description, parametersJson, userId);
 
         // Here, a separate simulation engine would consume these parameters 
         // and produce WorkforceForecast projections.
-        
+
         _db.StrategicWorkforceScenarios.Add(scenario);
         await _db.SaveChangesAsync(ct);
 

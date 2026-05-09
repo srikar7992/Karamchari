@@ -3,6 +3,9 @@ using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Payroll.Domain.Compliance;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum FilingStatus
 {
     Pending,
@@ -15,18 +18,45 @@ public enum FilingStatus
 /// </summary>
 public sealed class ComplianceFiling : Entity<Guid>, ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid PayrollRunId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ComplianceType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public FilingStatus Status { get; private set; }
     public DateTime? FiledAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string FiledBy { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string ReferenceNumber { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Remarks { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTime DueDate { get; private set; }
 
     private ComplianceFiling() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ComplianceFiling CreatePending(
         string tenantId,
         Guid payrollRunId,
@@ -44,6 +74,9 @@ public sealed class ComplianceFiling : Entity<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkAsFiled(string referenceNumber, string filedBy, string remarks = "")
     {
         Status = FilingStatus.Filed;
@@ -53,6 +86,9 @@ public sealed class ComplianceFiling : Entity<Guid>, ITenantOwned
         Remarks = remarks;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkAsFailed(string remarks)
     {
         Status = FilingStatus.Failed;

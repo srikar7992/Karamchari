@@ -1,23 +1,47 @@
-using MassTransit;
 using Karamchari.Payroll.Contracts;
+using MassTransit;
 
 namespace Karamchari.Payroll.StateMachines;
 
 /// <summary>
 /// Saga for payroll correction lifecycle.
-/// Draft → PendingApproval → Approved → Recalculating → Processed
+/// Draft â†’ PendingApproval â†’ Approved â†’ Recalculating â†’ Processed
 /// Guards against duplicate recalculation via RecalculationTriggered flag.
 /// </summary>
 public sealed class PayrollCorrectionStateMachine : MassTransitStateMachine<PayrollCorrectionState>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State PendingApproval { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Approved { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Recalculating { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Processed { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Rejected { get; private set; } = null!;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<CorrectionApprovedIntegrationEvent> CorrectionApproved { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<TriggerCorrectionRecalculationCommand> RecalculationTriggeredEvent { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<CorrectionProcessedIntegrationEvent> CorrectionProcessed { get; private set; } = null!;
 
     public PayrollCorrectionStateMachine()

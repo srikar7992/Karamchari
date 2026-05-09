@@ -4,6 +4,9 @@ using Karamchari.Performance.Domain.Scoring;
 
 namespace Karamchari.Performance.Domain.OKRs;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class Objective : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<KeyResult> _keyResults = [];
@@ -32,22 +35,52 @@ public sealed class Objective : AggregateRoot<Guid>, ITenantOwned
         AggregatedScore = 0m;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid CycleId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ObjectiveOwnerType OwnerType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid OwnerId { get; private set; }
     public Guid? ParentObjectiveId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Title { get; private set; } = string.Empty;
     public string? Description { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsStretch { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ObjectiveStatus Status { get; private set; }
 
-    /// <summary>Weighted average of KR scores × weights. 0–1.</summary>
+    /// <summary>Weighted average of KR scores Ã— weights. 0â€“1.</summary>
     public decimal AggregatedScore { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<KeyResult> KeyResults => _keyResults.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static Objective Create(
         string tenantId,
         Guid cycleId,
@@ -65,6 +98,9 @@ public sealed class Objective : AggregateRoot<Guid>, ITenantOwned
             parentObjectiveId, title.Trim(), description?.Trim(), isStretch);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public KeyResult AddKeyResult(
         string title,
         KRType type,
@@ -84,6 +120,9 @@ public sealed class Objective : AggregateRoot<Guid>, ITenantOwned
         return kr;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RecordCheckIn(
         Guid krId,
         decimal value,
@@ -103,6 +142,9 @@ public sealed class Objective : AggregateRoot<Guid>, ITenantOwned
                 : ObjectiveStatus.Active;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ComputeScore(IOKRScoringStrategy strategy)
     {
         ArgumentNullException.ThrowIfNull(strategy);
@@ -113,6 +155,9 @@ public sealed class Objective : AggregateRoot<Guid>, ITenantOwned
         Status = ObjectiveStatus.Scored;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Activate()
     {
         if (Status != ObjectiveStatus.Draft)

@@ -7,12 +7,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Forecasting.Persistence;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class ForecastingDbContext : KaramchariDbContext
 {
-    public ForecastingDbContext(DbContextOptions<ForecastingDbContext> options, ITenantProvider tenantProvider) 
+    public ForecastingDbContext(DbContextOptions<ForecastingDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider) { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ForecastMetrics> ForecastMetrics => Set<ForecastMetrics>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ClientPaymentProfile> ClientPaymentProfiles => Set<ClientPaymentProfile>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)

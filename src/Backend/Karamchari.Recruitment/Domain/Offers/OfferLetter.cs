@@ -1,18 +1,29 @@
 using Karamchari.Core.Domain.Primitives;
-using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Domain.Workflows;
+using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Recruitment.Domain.Offers;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum OfferStatus
 {
+    /// <inheritdoc/>
     Draft,
+    /// <inheritdoc/>
     PendingApproval,
+    /// <inheritdoc/>
     Approved,
+    /// <inheritdoc/>
     Extended,
+    /// <inheritdoc/>
     Accepted,
+    /// <inheritdoc/>
     Rejected,
+    /// <inheritdoc/>
     Expired,
+    /// <inheritdoc/>
     Revoked
 }
 
@@ -24,25 +35,61 @@ public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<ApprovalStep> _approvalChain = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ApplicationId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid CandidateId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RequisitionId { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal BaseSalary { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Currency { get; private set; } = string.Empty;
+    /// <inheritdoc/>
     public decimal? EquityGrant { get; private set; }
+    /// <inheritdoc/>
     public decimal? SignOnBonus { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public OfferStatus Status { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? ExpiresAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<ApprovalStep> ApprovalChain => _approvalChain.AsReadOnly();
 
     private OfferLetter() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static OfferLetter Create(
         string tenantId,
         Guid applicationId,
@@ -76,6 +123,9 @@ public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
         return offer;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RequestApproval()
     {
         if (Status != OfferStatus.Draft)
@@ -84,6 +134,9 @@ public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
         Status = OfferStatus.PendingApproval;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(string approverId, string? note = null)
     {
         if (Status != OfferStatus.PendingApproval)
@@ -102,6 +155,9 @@ public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
         }
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Extend(TimeSpan validityPeriod)
     {
         if (Status != OfferStatus.Approved)
@@ -111,6 +167,9 @@ public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
         ExpiresAtUtc = DateTimeOffset.UtcNow.Add(validityPeriod);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Accept()
     {
         if (Status != OfferStatus.Extended)
@@ -125,6 +184,9 @@ public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
         Status = OfferStatus.Accepted;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reject(string reason)
     {
         if (Status != OfferStatus.Extended)

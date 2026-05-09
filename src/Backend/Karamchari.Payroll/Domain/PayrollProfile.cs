@@ -66,7 +66,7 @@ public class PayrollProfile : ITenantOwned
     public bool IsActive { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether the employee has opted for Voluntary PF (overriding the ₹15,000 cap).
+    /// Gets a value indicating whether the employee has opted for Voluntary PF (overriding the â‚¹15,000 cap).
     /// </summary>
     public bool OptedForVoluntaryPF { get; private set; }
 

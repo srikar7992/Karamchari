@@ -11,14 +11,29 @@ public sealed class AttendancePolicy : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<ComplianceRule> _rules = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Description { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<ComplianceRule> Rules => _rules.AsReadOnly();
 
     private AttendancePolicy() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static AttendancePolicy Create(string tenantId, string name, string description)
     {
         return new AttendancePolicy
@@ -30,17 +45,35 @@ public sealed class AttendancePolicy : AggregateRoot<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddRule(ComplianceRuleType type, decimal threshold, ComplianceSeverity severity)
     {
         _rules.Add(ComplianceRule.Create(Id, type, threshold, severity));
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class ComplianceRule : Entity<Guid>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid PolicyId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ComplianceRuleType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Threshold { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ComplianceSeverity Severity { get; private set; }
 
     private ComplianceRule() { }

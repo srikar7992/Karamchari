@@ -10,26 +10,53 @@ namespace Karamchari.Capability.Domain.Learning;
 /// </summary>
 public sealed class LearningEnrollment : AggregateRoot<Guid>, ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ModuleId { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public EnrollmentStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsMandatory { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? DeadlineUtc { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset EnrolledAtUtc { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? CompletedAtUtc { get; private set; }
+    /// <inheritdoc/>
     public string? CompletionIdempotencyKey { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     private LearningEnrollment() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static LearningEnrollment Assign(
-        string tenantId, 
-        Guid employeeId, 
-        Guid moduleId, 
-        bool isMandatory, 
+        string tenantId,
+        Guid employeeId,
+        Guid moduleId,
+        bool isMandatory,
         DateTimeOffset? deadline = null)
     {
         return new LearningEnrollment
@@ -45,6 +72,9 @@ public sealed class LearningEnrollment : AggregateRoot<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Start()
     {
         if (Status != EnrollmentStatus.Assigned)
@@ -53,6 +83,9 @@ public sealed class LearningEnrollment : AggregateRoot<Guid>, ITenantOwned
         Status = EnrollmentStatus.InProgress;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkCompleted(string idempotencyKey)
     {
         // Safe retry guard

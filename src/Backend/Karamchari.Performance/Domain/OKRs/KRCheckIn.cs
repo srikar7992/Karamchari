@@ -2,6 +2,9 @@ using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Performance.Domain.OKRs;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class KRCheckIn : Entity<Guid>
 {
     private KRCheckIn() { /* EF materialization */ }
@@ -22,12 +25,24 @@ public sealed class KRCheckIn : Entity<Guid>
         OccurredOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid KeyResultId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Value { get; private set; }
 
-    /// <summary>0–100. Subjective confidence that KR will be achieved on time.</summary>
+    /// <summary>0â€“100. Subjective confidence that KR will be achieved on time.</summary>
     public decimal ConfidenceLevel { get; private set; }
     public string? Notes { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid UpdatedBy { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset OccurredOnUtc { get; private set; }
 }

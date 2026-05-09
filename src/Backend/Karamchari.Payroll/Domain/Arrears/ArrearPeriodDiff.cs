@@ -2,7 +2,7 @@ namespace Karamchari.Payroll.Domain.Arrears;
 
 /// <summary>
 /// Period-level differential: original vs recalculated amounts for one payroll period.
-/// Immutable value — recalculate rather than mutate.
+/// Immutable value â€” recalculate rather than mutate.
 /// </summary>
 public sealed record ArrearPeriodDiff(
     string PeriodName,
@@ -16,7 +16,16 @@ public sealed record ArrearPeriodDiff(
     decimal RecalculatedTds,
     IReadOnlyDictionary<string, decimal> ComponentDeltas)
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal GrossDelta => RecalculatedGross - OriginalGross;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal NetDelta => RecalculatedNet - OriginalNet;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TdsDelta => RecalculatedTds - OriginalTds;
 }

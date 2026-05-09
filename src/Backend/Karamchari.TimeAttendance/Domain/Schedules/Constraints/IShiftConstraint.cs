@@ -1,12 +1,21 @@
-using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Domain.Compliance;
+using Karamchari.TimeAttendance.Domain.Shifts;
 
 namespace Karamchari.TimeAttendance.Domain.Schedules.Constraints;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ConstraintSeverity { Information, Warning, Error }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ConstraintViolation(string RuleName, string Message, ConstraintSeverity Severity);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record SchedulingContext(
     WorkforceSchedule Schedule,
     IEnumerable<ShiftDefinition> AllShifts,
@@ -19,5 +28,5 @@ public sealed record SchedulingContext(
 public interface IShiftConstraint
 {
     string Name { get; }
-    IEnumerable<ConstraintViolation> Evaluate(Guid employeeId, Guid shiftId, DateOnly date, SchedulingContext context);
+    IEnumerable<ConstraintViolation> Evaluate(Guid employeeId, Guid shiftId, DateOnly workDate, SchedulingContext context);
 }

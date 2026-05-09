@@ -10,6 +10,9 @@ internal sealed class VisibilityResolver : IVisibilityResolver
 
     public VisibilityResolver(HRDbContext db) => _db = db;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<IReadOnlySet<Guid>> ResolveVisibleEmployeeIdsAsync(
         Guid actorId, VisibilityScope scope, CancellationToken ct = default)
     {

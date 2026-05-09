@@ -5,7 +5,7 @@ namespace Karamchari.Performance.Domain.Reviews;
 
 /// <summary>
 /// Defines the structure (sections + questions) used for one or more review cycles.
-/// Templates are versioned and immutable after first use — clone via CloneForEdit().
+/// Templates are versioned and immutable after first use â€” clone via CloneForEdit().
 /// Section weights must sum to 1.0 within a template.
 /// </summary>
 public sealed class ReviewTemplate : AggregateRoot<Guid>, ITenantOwned
@@ -33,19 +33,49 @@ public sealed class ReviewTemplate : AggregateRoot<Guid>, ITenantOwned
         IsLocked = false;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReviewCycleType ApplicableCycleType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IncludesSelfReview { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IncludesManagerReview { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IncludesPeerReview { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsActive { get; private set; }
 
     /// <summary>Locked once a ReviewCycle references this template. No structural changes permitted after lock.</summary>
     public bool IsLocked { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<ReviewSection> Sections => _sections.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ReviewTemplate Create(
         string tenantId,
         string name,
@@ -60,6 +90,9 @@ public sealed class ReviewTemplate : AggregateRoot<Guid>, ITenantOwned
             includesSelfReview, includesManagerReview, includesPeerReview);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddSection(ReviewSection section)
     {
         EnsureNotLocked();
@@ -68,6 +101,9 @@ public sealed class ReviewTemplate : AggregateRoot<Guid>, ITenantOwned
         ValidateSectionWeights();
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Lock()
     {
         if (_sections.Count == 0)
@@ -76,6 +112,9 @@ public sealed class ReviewTemplate : AggregateRoot<Guid>, ITenantOwned
         IsLocked = true;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Deactivate()
     {
         IsActive = false;

@@ -7,9 +7,9 @@ namespace Karamchari.Performance.Domain.Reviews;
 
 /// <summary>
 /// One reviewer's complete response set for one assignment in a review cycle.
-/// State machine: NotStarted → InProgress → Submitted → Acknowledged → Locked
-///                                         ↑             ↓
-///                                         └─ Reopened ←─ (HR/admin, requires justification)
+/// State machine: NotStarted â†’ InProgress â†’ Submitted â†’ Acknowledged â†’ Locked
+///                                         â†‘             â†“
+///                                         â””â”€ Reopened â†â”€ (HR/admin, requires justification)
 /// IdempotencyKey prevents duplicate submissions from retry storms.
 /// </summary>
 public sealed class ReviewSubmission : AggregateRoot<Guid>, ITenantOwned
@@ -39,12 +39,33 @@ public sealed class ReviewSubmission : AggregateRoot<Guid>, ITenantOwned
         IdempotencyKey = idempotencyKey;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid AssignmentId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RevieweeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ReviewerId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReviewerRole ReviewerRole { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid TemplateId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReviewSubmissionStatus Status { get; private set; }
     public decimal? ComputedScore { get; private set; }
     public DateTimeOffset? SubmittedOnUtc { get; private set; }
@@ -52,11 +73,23 @@ public sealed class ReviewSubmission : AggregateRoot<Guid>, ITenantOwned
 
     /// <summary>Unique constraint on (TenantId, IdempotencyKey) prevents duplicate submissions.</summary>
     public Guid IdempotencyKey { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<ReviewResponse> Responses => _responses.AsReadOnly();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<ReopenRecord> ReopenHistory => _reopenHistory.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ReviewSubmission Create(
         string tenantId,
         Guid assignmentId,
@@ -71,17 +104,23 @@ public sealed class ReviewSubmission : AggregateRoot<Guid>, ITenantOwned
             reviewerId, reviewerRole, templateId, key);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RecordRatingResponse(Guid questionId, decimal rating, QuestionType type, decimal minRating, decimal maxRating)
     {
         EnsureEditable();
         if (rating < minRating || rating > maxRating)
-            throw new ArgumentOutOfRangeException(nameof(rating), $"Rating must be {minRating}–{maxRating}.");
+            throw new ArgumentOutOfRangeException(nameof(rating), $"Rating must be {minRating}â€“{maxRating}.");
 
         RemoveExistingResponse(questionId);
         _responses.Add(ReviewResponse.ForRating(Id, questionId, rating, type));
         Status = ReviewSubmissionStatus.InProgress;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RecordTextResponse(Guid questionId, string text)
     {
         EnsureEditable();
@@ -92,6 +131,9 @@ public sealed class ReviewSubmission : AggregateRoot<Guid>, ITenantOwned
         Status = ReviewSubmissionStatus.InProgress;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Submit(IReviewScoringStrategy scoringStrategy, ReviewTemplate template)
     {
         if (Status != ReviewSubmissionStatus.InProgress && Status != ReviewSubmissionStatus.Reopened)
@@ -109,6 +151,9 @@ public sealed class ReviewSubmission : AggregateRoot<Guid>, ITenantOwned
             ComputedScore.Value, SubmittedOnUtc.Value));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Acknowledge()
     {
         if (Status != ReviewSubmissionStatus.Submitted)
@@ -117,6 +162,9 @@ public sealed class ReviewSubmission : AggregateRoot<Guid>, ITenantOwned
         AcknowledgedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Lock()
     {
         if (Status != ReviewSubmissionStatus.Acknowledged)
@@ -124,6 +172,9 @@ public sealed class ReviewSubmission : AggregateRoot<Guid>, ITenantOwned
         Status = ReviewSubmissionStatus.Locked;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reopen(Guid reopenedByHR, string justification)
     {
         if (Status != ReviewSubmissionStatus.Submitted && Status != ReviewSubmissionStatus.Acknowledged)

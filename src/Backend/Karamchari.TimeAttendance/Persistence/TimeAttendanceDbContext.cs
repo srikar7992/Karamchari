@@ -1,16 +1,16 @@
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
-using Karamchari.TimeAttendance.Domain.Holidays;
-using Karamchari.TimeAttendance.Domain.Leaves;
-using Karamchari.TimeAttendance.Domain.Timesheets;
 using Karamchari.TimeAttendance.Domain.Analytics;
-using Karamchari.TimeAttendance.Domain.Shifts;
-using Karamchari.TimeAttendance.Domain.Schedules;
 using Karamchari.TimeAttendance.Domain.Attendance;
 using Karamchari.TimeAttendance.Domain.Compliance;
-using Microsoft.EntityFrameworkCore;
+using Karamchari.TimeAttendance.Domain.Holidays;
+using Karamchari.TimeAttendance.Domain.Leaves;
+using Karamchari.TimeAttendance.Domain.Schedules;
+using Karamchari.TimeAttendance.Domain.Shifts;
+using Karamchari.TimeAttendance.Domain.Timesheets;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
+using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.TimeAttendance.Persistence;
 
@@ -25,25 +25,61 @@ public class TimeAttendanceDbContext : KaramchariDbContext
     {
     }
 
-    // ── Workforce Operational intelligence (Phase 1C) ─────────────────────────
+    // â”€â”€ Workforce Operational intelligence (Phase 1C) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ShiftDefinition> ShiftDefinitions => Set<ShiftDefinition>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<WorkforceSchedule> WorkforceSchedules => Set<WorkforceSchedule>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<AttendanceSession> AttendanceSessions => Set<AttendanceSession>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<AttendanceAnomaly> AttendanceAnomalies => Set<AttendanceAnomaly>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<AttendancePolicy> AttendancePolicies => Set<AttendancePolicy>();
 
-    // ── Core Attendance/Leave sets ───────────────────────────────────────────
+    // â”€â”€ Core Attendance/Leave sets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<HolidayCalendar> HolidayCalendars => Set<HolidayCalendar>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<LeavePolicy> LeavePolicies => Set<LeavePolicy>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<LeaveBalance> LeaveBalances => Set<LeaveBalance>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<Timesheet> Timesheets => Set<Timesheet>();
 
-    // ── Analytics ───────────────────────────────────────────────────────────
+    // â”€â”€ Analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ProjectMetrics> ProjectMetrics => Set<ProjectMetrics>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ProcessedEventLog> ProcessedEventLogs => Set<ProcessedEventLog>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -59,7 +95,7 @@ public class TimeAttendanceDbContext : KaramchariDbContext
         modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
         modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
 
-        // ── Workforce Aggregates Mapping ─────────────────────────────────────
+        // â”€â”€ Workforce Aggregates Mapping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<ShiftDefinition>(b =>
         {
@@ -92,7 +128,7 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             b.Property(x => x.Status).HasConversion<string>();
             b.Property(x => x.TotalWorkHours).HasPrecision(18, 2);
             b.Property(x => x.TotalBreakHours).HasPrecision(18, 2);
-            
+
             b.OwnsMany(x => x.Events, e =>
             {
                 e.ToTable("Workforce_AttendanceEvents");
@@ -127,7 +163,7 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             });
         });
 
-        // ── Legacy Infrastructure (Mismatched but needed for build consistency for now) ──
+        // â”€â”€ Legacy Infrastructure (Mismatched but needed for build consistency for now) â”€â”€
 
         modelBuilder.Entity<HolidayCalendar>(b =>
         {

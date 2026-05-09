@@ -3,6 +3,9 @@ using Karamchari.Payroll.Domain.Compliance;
 
 namespace Karamchari.Payroll.Services.Compliance;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public interface IEsicGenerator
 {
     byte[] Generate(IEnumerable<EsicRecord> records);
@@ -14,6 +17,9 @@ public interface IEsicGenerator
 /// </summary>
 public sealed class EsicGenerator : IEsicGenerator
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] Generate(IEnumerable<EsicRecord> records)
     {
         ArgumentNullException.ThrowIfNull(records);

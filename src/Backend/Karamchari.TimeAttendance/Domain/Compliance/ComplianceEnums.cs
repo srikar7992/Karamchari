@@ -1,5 +1,8 @@
 namespace Karamchari.TimeAttendance.Domain.Compliance;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ComplianceRuleType
 {
     MaxDailyHours,
@@ -11,6 +14,9 @@ public enum ComplianceRuleType
     NightShiftRestriction
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ComplianceSeverity
 {
     Info,
@@ -19,4 +25,7 @@ public enum ComplianceSeverity
     Blocker
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ComplianceResult(bool IsViolated, string? Message, ComplianceSeverity Severity);

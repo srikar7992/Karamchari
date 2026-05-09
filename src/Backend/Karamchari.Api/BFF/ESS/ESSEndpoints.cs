@@ -15,8 +15,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.ESS;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ESSEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapESSEndpoints(this WebApplication app)
     {
         var ess = app.MapGroup("/api/ess").RequireAuthorization();
@@ -54,8 +60,8 @@ public static class ESSEndpoints
     }
 
     private static async Task<IResult> DownloadPayslip(
-        int year, 
-        int month, 
+        int year,
+        int month,
         ClaimsPrincipal user,
         PayrollDbContext dbContext,
         IPayslipStorage storage)
@@ -112,7 +118,7 @@ public static class ESSEndpoints
         var (tenantId, employeeId) = user.GetTenantAndEmployee();
         if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
-        if (request.Section80C > 150000) return Results.BadRequest("Section 80C declaration cannot exceed ₹1,50,000.");
+        if (request.Section80C > 150000) return Results.BadRequest("Section 80C declaration cannot exceed â‚¹1,50,000.");
         if (request.MonthlyRent < 0) return Results.BadRequest("Monthly rent cannot be negative.");
 
         var profile = await dbContext.PayrollProfiles.FirstOrDefaultAsync(p => p.TenantId == tenantId && p.EmployeeId == employeeId);
@@ -141,7 +147,7 @@ public static class ESSEndpoints
 
         var staticRepo = new StaticDeclarationRepository(ephemeralDeclarations);
         var ruleSet = new FY20262027RuleSet(
-            new List<Guid> { employeeId.Value }, 
+            new List<Guid> { employeeId.Value },
             ptProvider, projectionService, exemptionCalculator, taxSlabProvider, staticRepo);
 
         var oldProfile = profile.CloneWithRegime(TaxRegime.Old);
@@ -172,7 +178,7 @@ public static class ESSEndpoints
     {
         if (file == null || file.Length == 0) return Results.BadRequest("No file uploaded.");
         if (file.Length > 5 * 1024 * 1024) return Results.BadRequest("File size exceeds 5MB limit.");
-        
+
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!ProofAllowedExtensions.Contains(extension)) return Results.BadRequest("Invalid file type. Only PDF, JPG, and PNG are supported.");
 

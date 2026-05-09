@@ -1,4 +1,4 @@
-﻿namespace Karamchari.Core.Multitenancy;
+namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Request-scoped accessor for the active tenant.

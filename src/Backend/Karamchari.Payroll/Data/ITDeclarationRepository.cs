@@ -23,9 +23,9 @@ public sealed class ITDeclarationRepository : IITDeclarationRepository
     public async Task<IReadOnlyList<ITDeclaration>> GetApprovedDeclarationsAsync(Guid employeeId, int financialYear)
     {
         return await _dbContext.ITDeclarations
-            .Where(x => 
-                x.EmployeeId == employeeId && 
-                x.FinancialYear == financialYear && 
+            .Where(x =>
+                x.EmployeeId == employeeId &&
+                x.FinancialYear == financialYear &&
                 x.Status == VerificationStatus.Approved)
             .ToListAsync();
     }
@@ -34,9 +34,9 @@ public sealed class ITDeclarationRepository : IITDeclarationRepository
     public async Task<ITDeclaration?> GetLatestAsync(Guid employeeId, int financialYear, string category)
     {
         return await _dbContext.ITDeclarations
-            .Where(x => 
-                x.EmployeeId == employeeId && 
-                x.FinancialYear == financialYear && 
+            .Where(x =>
+                x.EmployeeId == employeeId &&
+                x.FinancialYear == financialYear &&
                 x.Category == category)
             .OrderByDescending(x => x.Version)
             .FirstOrDefaultAsync();

@@ -1,8 +1,8 @@
+using System.Reflection;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Messaging;
 using Karamchari.Core.Multitenancy;
 using MassTransit;
-using System.Reflection;
 
 namespace Karamchari.HR.Messaging;
 
@@ -24,6 +24,9 @@ public sealed class MassTransitDomainEventDispatcher : IDomainEventDispatcher
         _tenantProvider = tenantProvider;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task DispatchAsync(IReadOnlyCollection<IDomainEvent> events, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(events);
@@ -37,7 +40,7 @@ public sealed class MassTransitDomainEventDispatcher : IDomainEventDispatcher
         foreach (var @event in events)
         {
             var eventType = @event.GetType();
-            
+
             // We use reflection to invoke the generic Wrap method
             var wrapMethod = typeof(EnterpriseEventEnvelope<>)
                 .MakeGenericType(eventType)
@@ -45,10 +48,10 @@ public sealed class MassTransitDomainEventDispatcher : IDomainEventDispatcher
 
             if (wrapMethod != null)
             {
-                var envelope = wrapMethod.Invoke(null, new object?[] 
-                { 
-                    @event, 
-                    tenantId, 
+                var envelope = wrapMethod.Invoke(null, new object?[]
+                {
+                    @event,
+                    tenantId,
                     eventType.Name,
                     "1.0",
                     null, // correlationId will be populated by MassTransit context

@@ -7,17 +7,31 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Governance.Persistence;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class GovernanceDbContext : KaramchariDbContext
 {
-    public GovernanceDbContext(DbContextOptions<GovernanceDbContext> options, ITenantProvider tenantProvider) 
+    /// <inheritdoc/>
+    public GovernanceDbContext(DbContextOptions<GovernanceDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ServiceLevelObjective> ServiceLevelObjectives => Set<ServiceLevelObjective>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<OperationalIncident> OperationalIncidents => Set<OperationalIncident>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<SchemaDefinition> SchemaDefinitions => Set<SchemaDefinition>();
 
+    /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);

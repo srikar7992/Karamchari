@@ -3,6 +3,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Notifications.RealTime;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class HubNotificationPushService : INotificationPushService
 {
     private readonly IHubContext<NotificationHub> _hub;
@@ -16,6 +19,9 @@ public sealed class HubNotificationPushService : INotificationPushService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task PushAsync(
         string tenantId,
         Guid recipientEmployeeId,

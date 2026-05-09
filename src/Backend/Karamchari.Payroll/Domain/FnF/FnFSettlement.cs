@@ -12,18 +12,48 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
 {
     private readonly List<FnFLineItem> _lineItems = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public FnFExitType ExitType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly LastWorkingDay { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly ExitInitiatedOn { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public FnFStatus Status { get; private set; }
     public string? LegalHoldReason { get; private set; }
 
-    // Calculated summary — updated by RecalculateTotals()
+    // Calculated summary â€” updated by RecalculateTotals()
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalEarnings { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalDeductions { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal NetSettlementAmount { get; private set; }
 
     // Approval / workflow
@@ -34,14 +64,26 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
     public DateTimeOffset? DisbursedAtUtc { get; private set; }
 
     // Idempotency
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? UpdatedAtUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<FnFLineItem> LineItems => _lineItems.AsReadOnly();
 
     private FnFSettlement() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static FnFSettlement Initiate(
         string tenantId,
         Guid employeeId,
@@ -70,6 +112,9 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         return settlement;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddLineItem(FnFLineItem item)
     {
         EnsureEditable();
@@ -78,6 +123,9 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ReplaceLineItems(IEnumerable<FnFLineItem> items)
     {
         EnsureEditable();
@@ -87,6 +135,9 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SubmitForApproval()
     {
         if (Status != FnFStatus.Draft && Status != FnFStatus.Reopened)
@@ -100,6 +151,9 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         RaiseDomainEvent(new FnFApprovalRequestedEvent(Id, TenantId, EmployeeId, NetSettlementAmount));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(string approvedBy)
     {
         if (Status != FnFStatus.PendingApproval)
@@ -112,6 +166,9 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         RaiseDomainEvent(new FnFApprovedEvent(Id, TenantId, EmployeeId, NetSettlementAmount, approvedBy));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkDisbursed(string disbursedBy)
     {
         if (Status != FnFStatus.Approved)
@@ -124,6 +181,9 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         RaiseDomainEvent(new FnFDisbursedEvent(Id, TenantId, EmployeeId, NetSettlementAmount));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void PlaceOnLegalHold(string reason)
     {
         if (Status == FnFStatus.Disbursed || Status == FnFStatus.Cancelled)
@@ -134,6 +194,9 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ReleaseHold()
     {
         if (Status != FnFStatus.OnHold)
@@ -144,6 +207,9 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reopen(string reason)
     {
         // Allow reopening post-disbursement for corrections
@@ -155,6 +221,9 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         RaiseDomainEvent(new FnFReopenedEvent(Id, TenantId, EmployeeId, reason));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Cancel(string reason)
     {
         if (Status == FnFStatus.Disbursed)

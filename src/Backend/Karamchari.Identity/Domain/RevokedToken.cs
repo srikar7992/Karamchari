@@ -5,12 +5,24 @@ namespace Karamchari.Identity.Domain;
 /// </summary>
 public sealed class RevokedToken
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Jti { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset RevokedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset ExpiresAtUtc { get; private set; }
 
     private RevokedToken() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static RevokedToken Create(string jti, DateTimeOffset expiresAt)
     {
         return new RevokedToken

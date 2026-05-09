@@ -1,5 +1,8 @@
 namespace Karamchari.Payroll.Domain.Disbursement;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum DisbursementBatchStatus
 {
     Pending,
@@ -11,15 +14,21 @@ public enum DisbursementBatchStatus
     Reversed
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum DisbursementEntryStatus
 {
     Pending,
     Success,
     Failed,
     Reversed,
-    Duplicate  // prevented — idempotency guard
+    Duplicate  // prevented â€” idempotency guard
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum BankProvider
 {
     HDFC,

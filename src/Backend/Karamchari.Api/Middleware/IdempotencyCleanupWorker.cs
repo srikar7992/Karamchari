@@ -45,7 +45,7 @@ internal sealed class IdempotencyCleanupWorker : BackgroundService
         var db = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
 
         var now = DateTimeOffset.UtcNow;
-        
+
         // Use ExecuteDeleteAsync for efficiency if using EF Core 7+
         // Fallback to traditional remove range for compatibility
         var toDelete = await db.IdempotentRequests

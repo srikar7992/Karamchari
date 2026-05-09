@@ -6,8 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.HR;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class HRWorkspaceEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapHRWorkspace(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/hr").RequireAuthorization();

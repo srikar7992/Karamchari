@@ -1,11 +1,11 @@
+using System.Net;
+using System.Net.Http.Json;
 using FluentAssertions;
 using Karamchari.Identity.Contracts;
 using Karamchari.Identity.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Net;
-using System.Net.Http.Json;
 using Xunit;
 
 namespace Karamchari.Identity.IntegrationTests;

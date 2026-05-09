@@ -16,6 +16,9 @@ public static class PerformanceServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariPerformance(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -29,7 +32,7 @@ public static class PerformanceServiceCollectionExtensions
         busConfigurator.AddConsumer<EmployeeOnboardedPerformanceConsumer>();
 
         // RLS: every table that holds tenant data must be registered here.
-        // Forgetting any of these is a security regression — RLS won't cover the table.
+        // Forgetting any of these is a security regression â€” RLS won't cover the table.
         services.RegisterTenantTable("GoalCycles");
         services.RegisterTenantTable("Goals");
         services.RegisterTenantTable("GoalProgressUpdates");
@@ -87,7 +90,7 @@ public static class PerformanceServiceCollectionExtensions
         // Reporting (ADR-0013)
         services.RegisterTenantTable("ExportJobs");
 
-        // Scoring strategies — pluggable per tenant in a future iteration
+        // Scoring strategies â€” pluggable per tenant in a future iteration
         services.AddScoped<IOKRScoringStrategy, DefaultOKRScoringStrategy>();
 
         services.AddDbContext<PerformanceDbContext>((serviceProvider, options) =>

@@ -1,5 +1,8 @@
 namespace Karamchari.TimeAttendance.Domain.Attendance;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum AttendanceStatus
 {
     Scheduled,
@@ -12,6 +15,9 @@ public enum AttendanceStatus
     Disputed
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum AttendanceSource
 {
     WebPortal,

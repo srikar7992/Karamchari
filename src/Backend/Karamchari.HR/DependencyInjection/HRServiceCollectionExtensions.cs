@@ -50,7 +50,7 @@ public static class HRServiceCollectionExtensions
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<IVisibilityResolver, VisibilityResolver>();
-        
+
         services.Configure<DocumentIntelligenceOptions>(
             configuration.GetSection(DocumentIntelligenceOptions.SectionName));
         services.AddScoped<IDocumentIntelligenceService, DocumentIntelligenceService>();

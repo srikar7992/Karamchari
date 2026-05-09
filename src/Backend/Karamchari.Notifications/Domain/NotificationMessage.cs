@@ -6,7 +6,7 @@ namespace Karamchari.Notifications.Domain;
 /// <summary>
 /// Aggregate representing one notification instance for one recipient.
 /// Owns delivery attempts. Idempotent: creating a second message with the same
-/// IdempotencyKey is a no-op — the existing message is returned unchanged.
+/// IdempotencyKey is a no-op â€” the existing message is returned unchanged.
 ///
 /// Idempotency key format: TenantId:TriggerEventId:Category:RecipientEmployeeId
 /// (prevents duplicate notifications from event replay).
@@ -45,28 +45,73 @@ public sealed class NotificationMessage : AggregateRoot<Guid>, ITenantOwned
         CreatedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RecipientEmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string RecipientEmail { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public NotificationCategory Category { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public NotificationChannel PreferredChannel { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid TemplateId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string RenderedSubject { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string RenderedBodyHtml { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string RenderedBodyText { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string IdempotencyKey { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public NotificationStatus Status { get; private set; }
 
     /// <summary>Delivery held until this time (quiet hours, rate-limit back-off).</summary>
     public DateTimeOffset? ScheduleDeliverAfter { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedOnUtc { get; private set; }
     public DateTimeOffset? DeliveredOnUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsRead { get; private set; }
     public DateTimeOffset? ReadOnUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<NotificationDeliveryAttempt> Attempts => _attempts.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static NotificationMessage Create(
         string tenantId,
         Guid recipientEmployeeId,
@@ -94,6 +139,9 @@ public sealed class NotificationMessage : AggregateRoot<Guid>, ITenantOwned
             idempotencyKey, scheduleDeliverAfter);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RecordDeliveryAttempt(
         NotificationChannel channel,
         DeliveryResult result,
@@ -117,12 +165,18 @@ public sealed class NotificationMessage : AggregateRoot<Guid>, ITenantOwned
             DeliveredOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Defer(DateTimeOffset deliverAfter)
     {
         Status = NotificationStatus.Deferred;
         ScheduleDeliverAfter = deliverAfter;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Cancel()
     {
         if (Status == NotificationStatus.Delivered)
@@ -130,6 +184,9 @@ public sealed class NotificationMessage : AggregateRoot<Guid>, ITenantOwned
         Status = NotificationStatus.Cancelled;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkRead()
     {
         if (!IsRead)
@@ -139,6 +196,9 @@ public sealed class NotificationMessage : AggregateRoot<Guid>, ITenantOwned
         }
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void QueueForDigest()
     {
         Status = NotificationStatus.DigestQueued;

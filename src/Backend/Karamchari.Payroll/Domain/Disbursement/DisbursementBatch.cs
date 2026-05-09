@@ -12,37 +12,88 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
 {
     private readonly List<DisbursementEntry> _entries = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RunId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string PeriodName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public BankProvider BankProvider { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DisbursementBatchStatus Status { get; private set; }
 
     // Idempotency guard
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string BatchReference { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalAmount { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int TotalEntries { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int SuccessCount { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int FailedCount { get; private set; }
 
     public string? BankFileS3Path { get; private set; }
     public string? BankAcknowledgementId { get; private set; }
     public string? FailureReason { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int RetryCount { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int MaxRetries { get; private set; } = 3;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string InitiatedBy { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? UpdatedAtUtc { get; private set; }
     public DateTimeOffset? CompletedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<DisbursementEntry> Entries => _entries.AsReadOnly();
 
     private DisbursementBatch() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static DisbursementBatch Create(
         string tenantId,
         Guid runId,
@@ -71,6 +122,9 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
         return batch;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkFileGenerated(string blobPath)
     {
         if (Status != DisbursementBatchStatus.Pending)
@@ -81,6 +135,9 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkSubmitted(string acknowledgementId)
     {
         Status = DisbursementBatchStatus.Submitted;
@@ -89,6 +146,9 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
         RaiseDomainEvent(new DisbursementBatchSubmittedEvent(Id, TenantId, RunId, PeriodName, TotalAmount));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ApplyBankResponse(IEnumerable<EntryResult> results)
     {
         ArgumentNullException.ThrowIfNull(results);
@@ -117,6 +177,9 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
         RaiseDomainEvent(new DisbursementBatchCompletedEvent(Id, TenantId, RunId, SuccessCount, FailedCount));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RecordRetry()
     {
         if (RetryCount >= MaxRetries)
@@ -126,6 +189,9 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkFailed(string reason)
     {
         Status = DisbursementBatchStatus.Failed;
@@ -134,6 +200,9 @@ public sealed class DisbursementBatch : AggregateRoot<Guid>
         RaiseDomainEvent(new DisbursementBatchFailedEvent(Id, TenantId, RunId, reason));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ReverseEntry(Guid entryId)
     {
         var entry = _entries.FirstOrDefault(e => e.Id == entryId)

@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class ManagerDashboardProjectionConfiguration : IEntityTypeConfiguration<ManagerDashboardProjection>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<ManagerDashboardProjection> b)
     {
         b.ToTable("ManagerDashboardProjections");
@@ -25,6 +28,9 @@ internal sealed class ManagerDashboardProjectionConfiguration : IEntityTypeConfi
 
 internal sealed class ReviewTaskInboxItemConfiguration : IEntityTypeConfiguration<ReviewTaskInboxItem>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<ReviewTaskInboxItem> b)
     {
         b.ToTable("ReviewTaskInboxItems");
@@ -50,6 +56,9 @@ internal sealed class ReviewTaskInboxItemConfiguration : IEntityTypeConfiguratio
 
 internal sealed class CalibrationBoardProjectionConfiguration : IEntityTypeConfiguration<CalibrationBoardProjection>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<CalibrationBoardProjection> b)
     {
         b.ToTable("CalibrationBoardProjections");
@@ -72,6 +81,9 @@ internal sealed class CalibrationBoardProjectionConfiguration : IEntityTypeConfi
 
 internal sealed class PromotionPipelineItemConfiguration : IEntityTypeConfiguration<PromotionPipelineItem>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<PromotionPipelineItem> b)
     {
         b.ToTable("PromotionPipelineItems");
@@ -99,6 +111,9 @@ internal sealed class PromotionPipelineItemConfiguration : IEntityTypeConfigurat
 
 internal sealed class TalentHeatmapEntryConfiguration : IEntityTypeConfiguration<TalentHeatmapEntry>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<TalentHeatmapEntry> b)
     {
         b.ToTable("TalentHeatmapEntries");
@@ -130,6 +145,9 @@ internal sealed class TalentHeatmapEntryConfiguration : IEntityTypeConfiguration
 
 internal sealed class TeamGoalSummaryConfiguration : IEntityTypeConfiguration<TeamGoalSummary>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<TeamGoalSummary> b)
     {
         b.ToTable("TeamGoalSummaries");
@@ -151,6 +169,9 @@ internal sealed class TeamGoalSummaryConfiguration : IEntityTypeConfiguration<Te
 
 internal sealed class EmployeeSkillInventoryItemConfiguration : IEntityTypeConfiguration<EmployeeSkillInventoryItem>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<EmployeeSkillInventoryItem> b)
     {
         b.ToTable("EmployeeSkillInventoryItems");

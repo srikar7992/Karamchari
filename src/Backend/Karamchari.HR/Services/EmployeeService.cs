@@ -18,7 +18,7 @@ internal sealed class EmployeeService(
     /// <remarks>
     /// Outbox ordering: IPublishEndpoint.Publish is called BEFORE SaveChangesAsync intentionally.
     /// MassTransit writes OutboxMessage rows inside the same EF Core transaction as the Employee
-    /// insert. If SaveChangesAsync throws, neither row is committed — the event is never delivered.
+    /// insert. If SaveChangesAsync throws, neither row is committed â€” the event is never delivered.
     ///
     /// Employee.Hire also raises EmployeeHired domain event, which DomainEventDispatchInterceptor
     /// dispatches during SaveChangesAsync. Both events are committed atomically.

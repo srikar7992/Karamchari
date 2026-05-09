@@ -2,6 +2,9 @@ using System.Globalization;
 
 namespace Karamchari.Payroll.Services.Declarations;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class LocalProofStorage : IProofStorage
 {
     private readonly string _basePath;
@@ -15,6 +18,9 @@ public sealed class LocalProofStorage : IProofStorage
         }
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<string> SaveAsync(Stream stream, string fileName, string tenantId, Guid employeeId, int financialYear)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -34,6 +40,9 @@ public sealed class LocalProofStorage : IProofStorage
         return physicalPath;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task<Stream> GetStreamAsync(string proofUri)
     {
         if (!File.Exists(proofUri))

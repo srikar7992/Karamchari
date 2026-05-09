@@ -10,6 +10,9 @@ namespace Karamchari.Intelligence.Domain.Signals;
 /// </summary>
 public sealed record WorkforcePressureIndex(int Level)
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WorkforcePressureIndex Create(int level)
     {
         if (level is < 1 or > 10)
@@ -24,21 +27,51 @@ public sealed record WorkforcePressureIndex(int Level)
 /// </summary>
 public sealed class OrganizationalHealthSignal : AggregateRoot<Guid>, ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string OrgUnitId { get; private set; } = string.Empty; // Department or Team
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal OverallHealthScore { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public WorkforcePressureIndex BurnoutRisk { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public WorkforcePressureIndex StaffingStress { get; private set; } = null!;
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public SignalConfidence Confidence { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ScoreExplanation Explanation { get; private set; } = null!;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset EvaluatedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     private OrganizationalHealthSignal() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static OrganizationalHealthSignal Evaluate(
         string tenantId,
         string orgUnitId,

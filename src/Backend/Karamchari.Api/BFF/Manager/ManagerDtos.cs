@@ -1,7 +1,10 @@
 namespace Karamchari.Api.BFF.Manager;
 
-// ── Dashboard ─────────────────────────────────────────────────────────────────
+// â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ManagerDashboardResponse(
     string CycleName,
     GoalSummaryWidget Goals,
@@ -12,6 +15,9 @@ public sealed record ManagerDashboardResponse(
     DateTimeOffset DataAsOf,
     bool IsStale);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record GoalSummaryWidget(
     int Total,
     int OnTrack,
@@ -19,16 +25,25 @@ public sealed record GoalSummaryWidget(
     int Overdue,
     decimal CompletionRate);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ReviewSummaryWidget(
     int Required,
     int Completed,
     int Overdue,
     int PendingApprovals);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record KpiSummaryWidget(int AtRisk, int OffTrack);
 
-// ── Review Inbox ──────────────────────────────────────────────────────────────
+// â”€â”€ Review Inbox â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ReviewInboxPageResponse(
     IReadOnlyList<ReviewInboxItem> Items,
     int TotalCount,
@@ -36,6 +51,9 @@ public sealed record ReviewInboxPageResponse(
     int PageSize,
     bool HasMore);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ReviewInboxItem(
     Guid AssignmentId,
     Guid RevieweeEmployeeId,
@@ -47,8 +65,11 @@ public sealed record ReviewInboxItem(
     int HoursUntilDeadline,
     int Priority);
 
-// ── Team Goals ────────────────────────────────────────────────────────────────
+// â”€â”€ Team Goals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record TeamGoalsResponse(
     string CycleName,
     string Department,
@@ -64,8 +85,11 @@ public sealed record TeamGoalsResponse(
     DateTimeOffset DataAsOf,
     bool IsStale);
 
-// ── Promotion Pipeline ────────────────────────────────────────────────────────
+// â”€â”€ Promotion Pipeline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record PromotionPipelinePageResponse(
     IReadOnlyList<PromotionPipelineEntry> Items,
     int TotalCount,
@@ -73,6 +97,9 @@ public sealed record PromotionPipelinePageResponse(
     int PageSize,
     bool HasMore);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record PromotionPipelineEntry(
     Guid RecommendationId,
     Guid EmployeeId,
@@ -86,13 +113,19 @@ public sealed record PromotionPipelineEntry(
     int DaysInCurrentStage,
     bool IsStale);
 
-// ── Talent Heatmap ────────────────────────────────────────────────────────────
+// â”€â”€ Talent Heatmap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record TalentHeatmapResponse(
     string CycleName,
     IReadOnlyList<TalentHeatmapItem> Entries,
     DateTimeOffset DataAsOf);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record TalentHeatmapItem(
     Guid EmployeeId,
     string DisplayName,

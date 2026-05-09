@@ -28,7 +28,7 @@ public sealed class HRDbContext : KaramchariDbContext
 
     /// <summary>
     /// Schema where MassTransit's transactional outbox tables live. They're
-    /// shared infrastructure â€” one queue serves every tenant and the relay
+    /// shared infrastructure Ã¢â‚¬â€ one queue serves every tenant and the relay
     /// process drains them globally, so they must NOT be subject to per-tenant
     /// schema rewriting.
     /// </summary>

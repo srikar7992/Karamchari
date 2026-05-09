@@ -5,6 +5,9 @@ using Karamchari.Payroll.Domain.Compliance;
 
 namespace Karamchari.Payroll.Services.Compliance;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public interface ITdsGenerator
 {
     string Generate(IEnumerable<TdsRecord> records);
@@ -15,6 +18,9 @@ public interface ITdsGenerator
 /// </summary>
 public sealed class TdsGenerator : ITdsGenerator
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Generate(IEnumerable<TdsRecord> records)
     {
         ArgumentNullException.ThrowIfNull(records);

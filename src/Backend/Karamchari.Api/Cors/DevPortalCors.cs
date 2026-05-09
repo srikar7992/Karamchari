@@ -1,4 +1,4 @@
-﻿namespace Karamchari.Api.Cors;
+namespace Karamchari.Api.Cors;
 
 /// <summary>
 /// Development-only CORS for the Next.js portal at <c>http://localhost:3000</c>.

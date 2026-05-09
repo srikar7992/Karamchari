@@ -3,7 +3,7 @@ namespace Karamchari.Notifications.RealTime;
 /// <summary>
 /// Pushes real-time notification signals to connected clients via SignalR.
 /// Called by the orchestrator after the notification is persisted.
-/// Fire-and-forget — failure here must never roll back the delivery.
+/// Fire-and-forget â€” failure here must never roll back the delivery.
 /// </summary>
 public interface INotificationPushService
 {

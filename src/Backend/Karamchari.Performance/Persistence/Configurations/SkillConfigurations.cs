@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class SkillTaxonomyConfiguration : IEntityTypeConfiguration<SkillTaxonomy>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<SkillTaxonomy> b)
     {
         b.ToTable("SkillTaxonomies");
@@ -37,7 +40,7 @@ internal sealed class SkillTaxonomyConfiguration : IEntityTypeConfiguration<Skil
                 skill.HasIndex(x => new { x.TenantId, x.Name, x.Domain })
                     .HasDatabaseName("IX_Skills_Tenant_Name_Domain");
 
-                // ProficiencyDescriptors: small, rarely queried independently → JSON
+                // ProficiencyDescriptors: small, rarely queried independently â†’ JSON
                 skill.OwnsMany(x => x.ProficiencyDescriptors, pd =>
                 {
                     pd.ToJson();
@@ -52,6 +55,9 @@ internal sealed class SkillTaxonomyConfiguration : IEntityTypeConfiguration<Skil
 
 internal sealed class EmployeeSkillProfileConfiguration : IEntityTypeConfiguration<EmployeeSkillProfile>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<EmployeeSkillProfile> b)
     {
         b.ToTable("EmployeeSkillProfiles");

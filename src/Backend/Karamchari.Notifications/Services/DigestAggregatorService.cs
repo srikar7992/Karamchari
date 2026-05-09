@@ -165,7 +165,7 @@ public sealed class DigestAggregatorService
         var typeLabel = digestType == DigestType.Daily ? "Daily" : "Weekly";
         var subject = string.Create(
             CultureInfo.InvariantCulture,
-            $"Your {typeLabel} Digest — {windowKey} ({messages.Count} updates)");
+            $"Your {typeLabel} Digest â€” {windowKey} ({messages.Count} updates)");
 
         var grouped = messages
             .GroupBy(m => m.Category)
@@ -178,7 +178,7 @@ public sealed class DigestAggregatorService
         htmlSb.AppendLine(CultureInfo.InvariantCulture, $"<h2>Your {typeLabel} Digest</h2>");
         htmlSb.AppendLine(CultureInfo.InvariantCulture, $"<p>{messages.Count} updates for {windowKey}</p>");
 
-        textSb.AppendLine(CultureInfo.InvariantCulture, $"YOUR {typeLabel.ToUpperInvariant()} DIGEST — {windowKey}");
+        textSb.AppendLine(CultureInfo.InvariantCulture, $"YOUR {typeLabel.ToUpperInvariant()} DIGEST â€” {windowKey}");
         textSb.AppendLine(CultureInfo.InvariantCulture, $"{messages.Count} updates");
         textSb.AppendLine();
 

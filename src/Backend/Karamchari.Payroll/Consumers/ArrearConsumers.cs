@@ -1,9 +1,9 @@
-using MassTransit;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Arrears;
 using Karamchari.Payroll.Domain.SalaryRevisions;
 using Karamchari.Payroll.Services.Arrears;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -29,6 +29,9 @@ public sealed class SalaryRevisionApprovedArrearConsumer : IConsumer<SalaryRevis
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<SalaryRevisionApprovedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -102,6 +105,9 @@ public sealed class ArrearApprovedConsumer : IConsumer<ArrearCalculationApproved
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<ArrearCalculationApprovedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);

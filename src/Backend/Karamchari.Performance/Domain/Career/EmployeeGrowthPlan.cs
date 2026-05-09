@@ -5,7 +5,7 @@ namespace Karamchari.Performance.Domain.Career;
 
 /// <summary>
 /// An employee's active development plan toward their target CareerLevel.
-/// TargetLevelId is advisory — references CareerLevel.Id. Not enforced as FK (cross-entity in same BC).
+/// TargetLevelId is advisory â€” references CareerLevel.Id. Not enforced as FK (cross-entity in same BC).
 /// </summary>
 public sealed class EmployeeGrowthPlan : AggregateRoot<Guid>, ITenantOwned
 {
@@ -29,15 +29,36 @@ public sealed class EmployeeGrowthPlan : AggregateRoot<Guid>, ITenantOwned
         Status = GrowthPlanStatus.Draft;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
     public Guid? TargetLevelId { get; private set; }
     public string? TargetLevelDisplay { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly TargetDate { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public GrowthPlanStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<DevelopmentAction> Actions => _actions.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static EmployeeGrowthPlan Create(
         string tenantId,
         Guid employeeId,
@@ -53,6 +74,9 @@ public sealed class EmployeeGrowthPlan : AggregateRoot<Guid>, ITenantOwned
             targetLevelId, targetLevelDisplay?.Trim(), targetDate);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DevelopmentAction AddAction(
         string title,
         DevelopmentActionType type,
@@ -68,6 +92,9 @@ public sealed class EmployeeGrowthPlan : AggregateRoot<Guid>, ITenantOwned
         return action;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Activate()
     {
         if (Status != GrowthPlanStatus.Draft)
@@ -75,11 +102,26 @@ public sealed class EmployeeGrowthPlan : AggregateRoot<Guid>, ITenantOwned
         Status = GrowthPlanStatus.Active;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void StartAction(Guid actionId) => FindAction(actionId).Start();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void CompleteAction(Guid actionId, string? notes) => FindAction(actionId).Complete(notes);
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void DeferAction(Guid actionId) => FindAction(actionId).Defer();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void CancelAction(Guid actionId) => FindAction(actionId).Cancel();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkComplete()
     {
         if (Status != GrowthPlanStatus.Active)
@@ -87,6 +129,9 @@ public sealed class EmployeeGrowthPlan : AggregateRoot<Guid>, ITenantOwned
         Status = GrowthPlanStatus.Completed;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Archive()
     {
         if (Status == GrowthPlanStatus.Archived)

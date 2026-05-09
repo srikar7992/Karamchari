@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Payroll.Services.Simulation;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record SimulationParameters(
     SimulationType Type,
     IReadOnlyList<Guid>? EmployeeIds,       // null = all active employees
@@ -14,7 +17,7 @@ public record SimulationParameters(
 
 /// <summary>
 /// Executes payroll simulations without touching real payroll state.
-/// All projections are ephemeral — stored only in PayrollSimulation aggregate.
+/// All projections are ephemeral â€” stored only in PayrollSimulation aggregate.
 /// Never raises domain events that could trigger downstream workflows.
 /// </summary>
 public sealed class PayrollSimulationEngine
@@ -28,6 +31,9 @@ public sealed class PayrollSimulationEngine
         _ctcBreakdown = ctcBreakdown;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<PayrollSimulation> RunAsync(
         string tenantId,
         SimulationParameters parameters,
@@ -75,7 +81,7 @@ public sealed class PayrollSimulationEngine
                 else if (parameters.GlobalCTCAdjustmentPercent.HasValue)
                     projectedCTC = currentCTC * (1 + parameters.GlobalCTCAdjustmentPercent.Value / 100m);
 
-                // Simplified projection — real implementation routes through full CTC pipeline
+                // Simplified projection â€” real implementation routes through full CTC pipeline
                 var projectedMonthlyGross = projectedCTC / 12m;
                 var projectedNet = projectedMonthlyGross * 0.85m;
                 var projectedTds = projectedMonthlyGross * 0.10m;

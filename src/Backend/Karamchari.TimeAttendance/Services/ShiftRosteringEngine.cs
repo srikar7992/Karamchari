@@ -1,5 +1,5 @@
-using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Domain.Schedules;
+using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +17,9 @@ public sealed class ShiftRosteringEngine
         _db = db;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<ShiftDefinition?> ResolveShiftAsync(Guid employeeId, DateOnly workDate, CancellationToken ct = default)
     {
         // 1. Resolve from Enterprise Rosters (Workforce_ShiftAssignments)

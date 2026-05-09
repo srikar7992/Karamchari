@@ -5,11 +5,17 @@ using Karamchari.Payroll.Services.Statutory;
 using Microsoft.Extensions.Caching.Memory;
 using NSubstitute;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class ProfessionalTaxProviderTests
 {
     private static readonly FinancialYear FY2026 = new(2026, 2027);
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ProviderShouldMatchSlabBasedOnGross()
     {
         // Arrange
@@ -22,7 +28,7 @@ public class ProfessionalTaxProviderTests
 
         var repo = Substitute.For<IProfessionalTaxRepository>();
         repo.GetSlabsAsync(FY2026).Returns(Task.FromResult(slabs));
-        
+
         var cache = new MemoryCache(new MemoryCacheOptions());
         var provider = new CachedProfessionalTaxProvider(repo, cache);
 
@@ -35,6 +41,9 @@ public class ProfessionalTaxProviderTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ProviderShouldHandleMonthOverride()
     {
         // Arrange
@@ -46,7 +55,7 @@ public class ProfessionalTaxProviderTests
 
         var repo = Substitute.For<IProfessionalTaxRepository>();
         repo.GetSlabsAsync(FY2026).Returns(Task.FromResult(slabs));
-        
+
         var cache = new MemoryCache(new MemoryCacheOptions());
         var provider = new CachedProfessionalTaxProvider(repo, cache);
 
@@ -60,12 +69,15 @@ public class ProfessionalTaxProviderTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ProviderShouldCacheSlabsAndNotHitRepoTwice()
     {
         // Arrange
         var repo = Substitute.For<IProfessionalTaxRepository>();
         repo.GetSlabsAsync(Arg.Any<FinancialYear>()).Returns(Task.FromResult(new List<ProfessionalTaxSlab>()));
-        
+
         var cache = new MemoryCache(new MemoryCacheOptions());
         var provider = new CachedProfessionalTaxProvider(repo, cache);
 

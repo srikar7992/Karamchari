@@ -1,4 +1,4 @@
-﻿namespace Karamchari.Api.Models;
+namespace Karamchari.Api.Models;
 
 internal sealed record DepartmentListItem(
     Guid Id,

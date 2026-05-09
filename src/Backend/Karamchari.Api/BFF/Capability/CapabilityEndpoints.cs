@@ -9,8 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Capability;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class CapabilityEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapCapabilityEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/capability").RequireAuthorization();
@@ -46,7 +52,7 @@ public static class CapabilityEndpoints
         if (string.IsNullOrEmpty(tenantId)) return Results.Unauthorized();
 
         var skill = SkillDefinition.Define(tenantId, request.Name, request.Category, request.Description);
-        
+
         db.SkillDefinitions.Add(skill);
         await db.SaveChangesAsync(ct);
 
@@ -134,5 +140,11 @@ public static class CapabilityEndpoints
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record DefineSkillRequest(string Name, string Category, string Description);
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record AddVerifiedSkillRequest(Guid SkillId, string Level, string EvidenceReference);

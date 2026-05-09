@@ -11,14 +11,14 @@ public sealed class OutboxRelayMetrics : IDisposable
 {
     private readonly Meter _meter;
 
-    // Observable gauge backing fields — updated by the relay on each gauge cycle.
+    // Observable gauge backing fields â€” updated by the relay on each gauge cycle.
     // Long writes are atomic on 64-bit platforms; no lock needed for single-writer/multi-reader.
     private long _queueDepth;
     private long _oldestPendingAgeSeconds;
     private long _retryBacklog;
     private long _dlqSize;
 
-    // ── counters ─────────────────────────────────────────────────────────────
+    // â”€â”€ counters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Incremented once per successfully published message.</summary>
     public Counter<long> MessagesProcessed { get; }
@@ -38,7 +38,7 @@ public sealed class OutboxRelayMetrics : IDisposable
     /// <summary>Incremented each time stale locks from a crashed relay instance are released.</summary>
     public Counter<long> StaleLockRecoveries { get; }
 
-    // ── histograms ────────────────────────────────────────────────────────────
+    // â”€â”€ histograms â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Wall-clock time per polling cycle in milliseconds.</summary>
     public Histogram<double> BatchDurationMs { get; }
@@ -46,7 +46,7 @@ public sealed class OutboxRelayMetrics : IDisposable
     /// <summary>Round-trip time from publish call to ASB acknowledgment per message, in milliseconds.</summary>
     public Histogram<double> PublishLatencyMs { get; }
 
-    // ── observable gauges (polled by OTEL SDK) ────────────────────────────────
+    // â”€â”€ observable gauges (polled by OTEL SDK) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Initializes a new instance of <see cref="OutboxRelayMetrics"/> and creates all instruments.

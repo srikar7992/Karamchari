@@ -7,10 +7,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Manager;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ManagerEndpoints
 {
     private static readonly TimeSpan StaleThreshold = TimeSpan.FromMinutes(15);
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapManagerWorkspace(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/manager").RequireAuthorization();

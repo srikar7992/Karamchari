@@ -7,7 +7,7 @@ namespace Karamchari.Notifications.Orchestration;
 /// </summary>
 public enum NotificationIntentType
 {
-    // ── Review Workflow ────────────────────────────────────────────────────────
+    // â”€â”€ Review Workflow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Reviewer receives a new review assignment.</summary>
     ReviewAssigned = 100,
@@ -24,7 +24,7 @@ public enum NotificationIntentType
     /// <summary>Review cycle is fully completed (HR summary notification).</summary>
     ReviewCycleCompleted = 104,
 
-    // ── Calibration ────────────────────────────────────────────────────────────
+    // â”€â”€ Calibration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Panel member invited to a calibration session.</summary>
     CalibrationSessionScheduled = 200,
@@ -32,7 +32,7 @@ public enum NotificationIntentType
     /// <summary>Calibration session has been finalized and locked.</summary>
     CalibrationFinalized = 201,
 
-    // ── Promotions ─────────────────────────────────────────────────────────────
+    // â”€â”€ Promotions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Employee / manager notified that a promotion was approved.</summary>
     PromotionApproved = 300,
@@ -40,7 +40,7 @@ public enum NotificationIntentType
     /// <summary>HR notified that a promotion recommendation requires review.</summary>
     PromotionPendingHRReview = 301,
 
-    // ── Goals ──────────────────────────────────────────────────────────────────
+    // â”€â”€ Goals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Goal cycle activated; employees prompted to set / review goals.</summary>
     GoalCycleStarted = 400,
@@ -54,7 +54,7 @@ public enum NotificationIntentType
     /// <summary>Owner / manager notified that a goal is overdue.</summary>
     GoalOverdue = 403,
 
-    // ── Feedback ───────────────────────────────────────────────────────────────
+    // â”€â”€ Feedback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Employee asked to provide feedback by a peer or manager.</summary>
     FeedbackRequested = 500,
@@ -62,7 +62,7 @@ public enum NotificationIntentType
     /// <summary>Feedback provider receives a reminder that their response is pending.</summary>
     FeedbackResponsePendingReminder = 501,
 
-    // ── Payroll ────────────────────────────────────────────────────────────────
+    // â”€â”€ Payroll â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>HR/approver notified that payroll run requires approval.</summary>
     PayrollApprovalRequired = 600,

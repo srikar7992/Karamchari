@@ -10,24 +10,51 @@ namespace Karamchari.Recruitment.Domain.Candidates;
 /// </summary>
 public sealed class CandidateProfile : AggregateRoot<Guid>, ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string FirstName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string LastName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Email { get; private set; } = string.Empty;
+    /// <inheritdoc/>
     public string? PhoneNumber { get; private set; }
-    
+
     // Future-proofing: links to internal employee if converted or internal mobility
+    /// <inheritdoc/>
     public string? InternalEmployeeId { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? LastInteractionUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     // Tracks right to be forgotten or PII lockdown
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsAnonymized { get; private set; }
 
     private CandidateProfile() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static CandidateProfile Register(
         string tenantId,
         string firstName,
@@ -53,11 +80,17 @@ public sealed class CandidateProfile : AggregateRoot<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void LogInteraction()
     {
         LastInteractionUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Anonymize()
     {
         FirstName = "Anonymized";

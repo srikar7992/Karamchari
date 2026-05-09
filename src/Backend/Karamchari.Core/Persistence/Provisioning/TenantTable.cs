@@ -7,7 +7,7 @@ namespace Karamchari.Core.Persistence.Provisioning;
 /// Bounded contexts register their tables via <see cref="ITenantTableRegistry"/>;
 /// the registry is consumed by <c>RlsScriptGenerator</c> at tenant provisioning time.
 ///
-/// We don't carry the schema name here â€” every tenant table lives under the
+/// We don't carry the schema name here Ã¢â‚¬â€ every tenant table lives under the
 /// active tenant's schema, derived per-tenant during provisioning.
 /// </summary>
 public sealed partial record TenantTable

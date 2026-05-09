@@ -8,7 +8,7 @@ namespace Karamchari.Api.BFF.Search;
 
 /// <summary>
 /// Phase 1 search endpoints backed by SQL Server Full-Text Search (ADR-0014).
-/// Phase 2: swap ISearchIndexer registration to AzureAiSearchIndexer — no endpoint changes.
+/// Phase 2: swap ISearchIndexer registration to AzureAiSearchIndexer â€” no endpoint changes.
 /// </summary>
 public static class SearchEndpoints
 {
@@ -16,6 +16,9 @@ public static class SearchEndpoints
     private const int DefaultPageSize = 20;
     private const int MaxPageSize = 100;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapSearch(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/search").RequireAuthorization();

@@ -4,7 +4,7 @@ namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Immutable snapshot of the resolved tenant for the current request scope.
-/// Construction validates the tenant id format â€” once you hold a
+/// Construction validates the tenant id format Ã¢â‚¬â€ once you hold a
 /// <see cref="TenantContext"/>, downstream code can trust it.
 /// </summary>
 public sealed partial record TenantContext
@@ -39,7 +39,7 @@ public sealed partial record TenantContext
         TenantId = tenantId;
         Source = source;
 
-        // SchemaName is derived deterministically â€” never accept it from user input.
+        // SchemaName is derived deterministically Ã¢â‚¬â€ never accept it from user input.
         // The hyphen replacement keeps SQL identifier rules happy without quoting.
         SchemaName = SchemaPrefix + tenantId.Replace('-', '_');
     }

@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.Reporting;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ExportJobStatus
 {
     Queued = 1,

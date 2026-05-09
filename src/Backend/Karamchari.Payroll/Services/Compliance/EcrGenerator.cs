@@ -5,6 +5,9 @@ using Karamchari.Payroll.Domain.Compliance;
 
 namespace Karamchari.Payroll.Services.Compliance;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public interface IEcrGenerator
 {
     string Generate(IEnumerable<EcrRecord> records);
@@ -16,6 +19,9 @@ public interface IEcrGenerator
 /// </summary>
 public sealed class EcrGenerator : IEcrGenerator
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Generate(IEnumerable<EcrRecord> records)
     {
         ArgumentNullException.ThrowIfNull(records);

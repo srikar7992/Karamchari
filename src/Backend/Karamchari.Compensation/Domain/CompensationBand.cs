@@ -40,20 +40,59 @@ public sealed class CompensationBand : AggregateRoot<Guid>, ITenantOwned
         IsActive = true;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string JobFamily { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CareerLevelCode { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public CompensationBandType BandType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CurrencyCode { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal MinimumAnnual { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal MidpointAnnual { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal MaximumAnnual { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly EffectiveFrom { get; private set; }
     public DateOnly? EffectiveTo { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsActive { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static CompensationBand Create(
         string tenantId,
         string name,
@@ -89,6 +128,9 @@ public sealed class CompensationBand : AggregateRoot<Guid>, ITenantOwned
     public decimal ComputeCompaRatio(decimal actualAnnualSalary) =>
         MidpointAnnual > 0 ? Math.Round(actualAnnualSalary / MidpointAnnual * 100, 2) : 0m;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Deactivate()
     {
         IsActive = false;

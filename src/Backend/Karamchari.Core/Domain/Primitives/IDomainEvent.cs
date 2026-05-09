@@ -1,4 +1,4 @@
-﻿namespace Karamchari.Core.Domain.Primitives;
+namespace Karamchari.Core.Domain.Primitives;
 
 /// <summary>
 /// Marker for an in-process domain event raised by an <see cref="AggregateRoot{TId}"/>.

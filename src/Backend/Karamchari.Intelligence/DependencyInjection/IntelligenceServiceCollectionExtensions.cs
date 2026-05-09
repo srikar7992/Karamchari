@@ -6,10 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Karamchari.Intelligence.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class IntelligenceServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariIntelligence(
         this IServiceCollection services,
         IConfiguration configuration,

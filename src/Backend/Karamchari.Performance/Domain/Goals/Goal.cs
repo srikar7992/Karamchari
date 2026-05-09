@@ -4,6 +4,9 @@ using Karamchari.Performance.Domain.Goals.Events;
 
 namespace Karamchari.Performance.Domain.Goals;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<GoalProgressUpdate> _updates = [];
@@ -40,31 +43,67 @@ public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
         CurrentProgress = 0m;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid CycleId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public GoalOwnerType OwnerType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid OwnerId { get; private set; }
     public Guid? ParentGoalId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Title { get; private set; } = string.Empty;
     public string? Description { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public GoalType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TargetValue { get; private set; }
     public string? Unit { get; private set; }
 
-    /// <summary>0–100. Sum of weights for a given owner in a cycle must equal 100.</summary>
+    /// <summary>0â€“100. Sum of weights for a given owner in a cycle must equal 100.</summary>
     public decimal Weight { get; private set; }
 
-    /// <summary>0–100 percentage-equivalent completion.</summary>
+    /// <summary>0â€“100 percentage-equivalent completion.</summary>
     public decimal CurrentProgress { get; private set; }
 
     /// <summary>Set at cycle lock by manager/system scoring.</summary>
     public decimal? FinalScore { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public GoalStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<GoalProgressUpdate> Updates => _updates.AsReadOnly();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<GoalRevisionRecord> Revisions => _revisions.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static Goal Create(
         string tenantId,
         Guid cycleId,
@@ -82,7 +121,7 @@ public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
 
         if (weight is < 0 or > 100)
-            throw new ArgumentOutOfRangeException(nameof(weight), "Weight must be 0–100.");
+            throw new ArgumentOutOfRangeException(nameof(weight), "Weight must be 0â€“100.");
 
         if (targetValue < 0)
             throw new ArgumentOutOfRangeException(nameof(targetValue), "TargetValue cannot be negative.");
@@ -91,6 +130,9 @@ public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
             parentGoalId, title.Trim(), description?.Trim(), type, targetValue, unit?.Trim(), weight);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SubmitForApproval()
     {
         if (Status != GoalStatus.Draft)
@@ -99,6 +141,9 @@ public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
         Status = GoalStatus.PendingApproval;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve()
     {
         if (Status != GoalStatus.PendingApproval)
@@ -108,6 +153,9 @@ public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
         RaiseDomainEvent(new GoalApproved(Id, TenantId, OwnerId, OwnerType, DateTimeOffset.UtcNow));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reject()
     {
         if (Status != GoalStatus.PendingApproval)
@@ -116,6 +164,9 @@ public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
         Status = GoalStatus.Rejected;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void UpdateProgress(decimal value, string? notes, Guid updatedBy)
     {
         if (Status != GoalStatus.Active)
@@ -132,15 +183,21 @@ public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
         CurrentProgress = percent;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RecordFinalScore(decimal score, Guid scoredBy)
     {
         if (score is < 0 or > 100)
-            throw new ArgumentOutOfRangeException(nameof(score), "Score must be 0–100.");
+            throw new ArgumentOutOfRangeException(nameof(score), "Score must be 0â€“100.");
 
         FinalScore = score;
         Status = GoalStatus.Closed;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Revise(string newTitle, decimal newTarget, string reason, Guid revisedBy)
     {
         if (Status != GoalStatus.Active)

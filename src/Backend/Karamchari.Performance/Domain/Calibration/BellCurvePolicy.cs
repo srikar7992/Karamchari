@@ -8,6 +8,9 @@ public sealed record BellCurvePolicy(
     string PolicyName,
     IReadOnlyList<BucketTargetAllocation> BucketTargets)
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static BellCurvePolicy Create(string policyName, IReadOnlyList<BucketTargetAllocation> targets)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(policyName);
@@ -22,6 +25,9 @@ public sealed record BellCurvePolicy(
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record BucketTargetAllocation(
     string BucketLabel,
     decimal TargetPercent,

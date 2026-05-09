@@ -15,7 +15,7 @@ public class PayrollRunState : SagaStateMachineInstance
     /// Gets or sets the current state of the saga (e.g., Calculating, Completed).
     /// </summary>
     public string CurrentState { get; set; } = null!;
-    
+
     // Business Data
     /// <summary>
     /// Gets or sets the tenant identifier.
@@ -33,7 +33,7 @@ public class PayrollRunState : SagaStateMachineInstance
     /// Gets or sets the date and time the payroll run was completed.
     /// </summary>
     public DateTime? CompletedAt { get; set; }
-    
+
     // Trackers for distributed workers
     /// <summary>
     /// Gets or sets the total number of employees to be processed in this run.

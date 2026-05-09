@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class CareerFrameworkConfiguration : IEntityTypeConfiguration<CareerFramework>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<CareerFramework> b)
     {
         b.ToTable("CareerFrameworks");
@@ -38,7 +41,7 @@ internal sealed class CareerFrameworkConfiguration : IEntityTypeConfiguration<Ca
                 lvl.HasIndex(x => new { x.TrackId, x.Order }).IsUnique()
                     .HasDatabaseName("IX_CareerLevels_Track_Order");
 
-                // CompetencyRequirements: small per level, not queried independently → JSON
+                // CompetencyRequirements: small per level, not queried independently â†’ JSON
                 lvl.OwnsMany(x => x.CompetencyRequirements, cr =>
                 {
                     cr.ToJson();
@@ -54,6 +57,9 @@ internal sealed class CareerFrameworkConfiguration : IEntityTypeConfiguration<Ca
 
 internal sealed class EmployeeGrowthPlanConfiguration : IEntityTypeConfiguration<EmployeeGrowthPlan>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<EmployeeGrowthPlan> b)
     {
         b.ToTable("EmployeeGrowthPlans");

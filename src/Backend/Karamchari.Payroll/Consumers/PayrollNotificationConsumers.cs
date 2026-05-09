@@ -1,9 +1,9 @@
-using MassTransit;
-using Karamchari.Payroll.Contracts;
-using Karamchari.Notifications.Orchestration;
-using Karamchari.Notifications.Domain;
-using Microsoft.Extensions.Logging;
 using System.Globalization;
+using Karamchari.Notifications.Domain;
+using Karamchari.Notifications.Orchestration;
+using Karamchari.Payroll.Contracts;
+using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Payroll.Consumers;
 
@@ -30,6 +30,9 @@ public sealed class PayrollNotificationRouter :
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<FnFSettlementApprovedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -48,6 +51,9 @@ public sealed class PayrollNotificationRouter :
             }), context.CancellationToken);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<FnFSettlementDisbursedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -65,6 +71,9 @@ public sealed class PayrollNotificationRouter :
             }), context.CancellationToken);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task Consume(ConsumeContext<DisbursementBatchCompletedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -77,6 +86,9 @@ public sealed class PayrollNotificationRouter :
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task Consume(ConsumeContext<DisbursementBatchFailedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -89,6 +101,9 @@ public sealed class PayrollNotificationRouter :
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<ArrearCalculationApprovedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -106,6 +121,9 @@ public sealed class PayrollNotificationRouter :
             }), context.CancellationToken);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<ReimbursementApprovedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -124,6 +142,9 @@ public sealed class PayrollNotificationRouter :
             }), context.CancellationToken);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<SalaryRevisionApprovedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);

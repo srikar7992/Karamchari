@@ -13,16 +13,16 @@ public interface IComplianceService
 {
     /// <summary>Generates the EPF ECR file for a specific payroll run.</summary>
     Task<(string fileName, byte[] content)> GetEpfEcrAsync(Guid runId);
-    
+
     /// <summary>Generates the ESIC Monthly Return file for a specific payroll run.</summary>
     Task<(string fileName, byte[] content)> GetEsicMonthlyAsync(Guid runId);
-    
+
     /// <summary>Generates the TDS Form 24Q file for a specific payroll run.</summary>
     Task<(string fileName, byte[] content)> GetTdsForm24QAsync(Guid runId);
-    
+
     /// <summary>Marks a compliance return as filed with a government reference number.</summary>
     Task MarkAsFiledAsync(Guid runId, ComplianceType type, string referenceNumber, string filedBy);
-    
+
     /// <summary>Retrieves a summary of compliance health and risk for the dashboard.</summary>
     Task<object> GetComplianceHealthAsync();
 }
@@ -64,7 +64,7 @@ public sealed class ComplianceService : IComplianceService
         if (snapshot != null) return (snapshot.FileName, snapshot.Content);
 
         var (entries, profiles) = await FetchDataAsync(runId);
-        
+
         await EnsureFilingExistsAsync(runId, ComplianceType.EpfEcr, entries.First().Month, entries.First().Year);
 
         var records = entries.Select(e =>
@@ -72,10 +72,10 @@ public sealed class ComplianceService : IComplianceService
             var p = profiles[e.EmployeeId];
             var basic = e.Earnings.GetValueOrDefault("Basic", 0);
             var epfWage = p.OptedForVoluntaryPF ? basic : Math.Min(basic, 15000);
-            
+
             var epfTotal = e.Deductions.GetValueOrDefault("EPF", 0);
             var epsContribution = Math.Round(Math.Min(epfWage * 0.0833m, 1250), 0, MidpointRounding.AwayFromZero);
-            
+
             return new EcrRecord
             {
                 Uan = p.Uan,
@@ -96,7 +96,7 @@ public sealed class ComplianceService : IComplianceService
         var fileName = $"EPF_ECR_{runId}.txt";
 
         await SaveSnapshotAsync(runId, ComplianceType.EpfEcr, fileName, content);
-        
+
         return (fileName, content);
     }
 
@@ -195,20 +195,23 @@ public sealed class ComplianceService : IComplianceService
             .Take(20)
             .ToListAsync();
 
-        var summaries = filings.Select(f => {
+        var summaries = filings.Select(f =>
+        {
             // Calculate actual liability from the ledger for this filing
             var ledgerEntries = _dbContext.PayrollLedger.Where(e => e.RunId == f.PayrollRunId).ToList();
-            
-            decimal amount = f.Type switch {
+
+            decimal amount = f.Type switch
+            {
                 ComplianceType.EpfEcr => ledgerEntries.Sum(e => e.Deductions.GetValueOrDefault("EPF", 0) + e.Earnings.GetValueOrDefault("EmployerPF", 0)),
                 ComplianceType.EsicMonthly => ledgerEntries.Sum(e => e.Deductions.GetValueOrDefault("ESIC", 0) + e.Earnings.GetValueOrDefault("EmployerESIC", 0)),
                 ComplianceType.TdsForm24Q => ledgerEntries.Sum(e => e.TdsDeducted),
                 _ => 0
             };
-            
+
             var risk = _riskEngine.Evaluate(f, amount);
-            
-            return new {
+
+            return new
+            {
                 f.Id,
                 f.PayrollRunId,
                 f.Type,
@@ -219,7 +222,8 @@ public sealed class ComplianceService : IComplianceService
             };
         });
 
-        return new {
+        return new
+        {
             TotalPending = filings.Count(f => f.Status != FilingStatus.Filed),
             HighRiskCount = summaries.Count(s => s.Risk.RiskLevel == "High" || s.Risk.RiskLevel == "Critical"),
             Filings = summaries
@@ -233,7 +237,7 @@ public sealed class ComplianceService : IComplianceService
         var profiles = await _dbContext.PayrollProfiles
             .Where(p => employeeIds.Contains(p.EmployeeId))
             .ToDictionaryAsync(p => p.EmployeeId);
-            
+
         return (entries, profiles);
     }
 

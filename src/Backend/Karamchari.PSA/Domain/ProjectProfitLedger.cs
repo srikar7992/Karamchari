@@ -3,14 +3,14 @@ namespace Karamchari.PSA.Domain;
 using Karamchari.Core.Multitenancy;
 
 /// <summary>
-/// Records the cost-vs-revenue breakdown for a single (Employee × Project × WorkDate)
+/// Records the cost-vs-revenue breakdown for a single (Employee Ã— Project Ã— WorkDate)
 /// intersection. This is the raw, per-entry profit ledger.
 ///
 /// Created by <c>ProfitCalculationConsumer</c> from every approved billable timesheet entry.
-/// Revenue is Hours × BillableRate (from ProjectResource).
-/// Cost is Hours × CostPerHour (from EmployeeCostSnapshot).
+/// Revenue is Hours Ã— BillableRate (from ProjectResource).
+/// Cost is Hours Ã— CostPerHour (from EmployeeCostSnapshot).
 ///
-/// This is NOT the table you query for dashboards — use <see cref="ProjectMonthlyMetrics"/>
+/// This is NOT the table you query for dashboards â€” use <see cref="ProjectMonthlyMetrics"/>
 /// for pre-aggregated reads.
 /// </summary>
 public sealed class ProjectProfitLedger : ITenantOwned
@@ -36,16 +36,16 @@ public sealed class ProjectProfitLedger : ITenantOwned
     /// <summary>Gets the billable hours for this entry.</summary>
     public decimal Hours { get; private set; }
 
-    /// <summary>Gets the revenue generated (Hours × BillableRate).</summary>
+    /// <summary>Gets the revenue generated (Hours Ã— BillableRate).</summary>
     public decimal Revenue { get; private set; }
 
-    /// <summary>Gets the allocated employee cost (Hours × CostPerHour).</summary>
+    /// <summary>Gets the allocated employee cost (Hours Ã— CostPerHour).</summary>
     public decimal Cost { get; private set; }
 
-    /// <summary>Gets the profit (Revenue − Cost).</summary>
+    /// <summary>Gets the profit (Revenue âˆ’ Cost).</summary>
     public decimal Profit => Revenue - Cost;
 
-    /// <summary>Gets the margin percentage (Profit / Revenue × 100). Returns 0 if Revenue is zero.</summary>
+    /// <summary>Gets the margin percentage (Profit / Revenue Ã— 100). Returns 0 if Revenue is zero.</summary>
     public decimal MarginPercent => Revenue == 0 ? 0 : Math.Round(Profit / Revenue * 100, 2);
 
     /// <summary>Gets the billable rate used (from ProjectResource).</summary>

@@ -2,8 +2,8 @@ namespace Karamchari.Payroll.Consumers;
 
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Contracts.IntegrationEvents.V2;
-using Karamchari.Payroll.Services.Payslip;
 using Karamchari.Payroll.Data;
+using Karamchari.Payroll.Services.Payslip;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,8 +20,8 @@ public sealed class GeneratePayslipConsumer : IConsumer<PayrollRunCompletedInteg
     /// Initializes a new instance of the <see cref="GeneratePayslipConsumer"/> class.
     /// </summary>
     public GeneratePayslipConsumer(
-        IPayslipGenerator generator, 
-        IPayslipStorage storage, 
+        IPayslipGenerator generator,
+        IPayslipStorage storage,
         PayrollDbContext dbContext)
     {
         _generator = generator;

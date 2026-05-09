@@ -3,6 +3,9 @@ using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Workflow.Domain;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<WorkflowStep> _steps = [];
@@ -18,9 +21,21 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
 
     private WorkflowDefinition() { TenantId = string.Empty; EntityType = string.Empty; Name = string.Empty; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EntityType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsActive { get; private set; }
 
     /// <summary>Structured JSON condition evaluated against ApprovalContext. Null = always matches.</summary>
@@ -29,8 +44,14 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
     /// <summary>Higher priority definitions are evaluated first when multiple definitions match.</summary>
     public int Priority { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<WorkflowStep> Steps => _steps.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WorkflowDefinition Create(string tenantId, string entityType, string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
@@ -40,6 +61,9 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
         return new WorkflowDefinition(Guid.NewGuid(), tenantId.Trim(), entityType.Trim(), name.Trim());
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddStep(WorkflowStep step)
     {
         ArgumentNullException.ThrowIfNull(step);
@@ -52,8 +76,17 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
         _steps.Sort((a, b) => a.Order.CompareTo(b.Order));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Deactivate() => IsActive = false;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SetCondition(string conditionJson) => ConditionJson = conditionJson;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SetPriority(int priority) => Priority = priority;
 }

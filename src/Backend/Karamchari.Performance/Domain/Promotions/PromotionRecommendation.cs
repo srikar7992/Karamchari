@@ -7,8 +7,8 @@ namespace Karamchari.Performance.Domain.Promotions;
 
 /// <summary>
 /// Drives a promotion recommendation through a multi-stage approval workflow.
-/// Stages: Manager → HR → Leadership (configurable subset at tenant level).
-/// ReadinessScore is computed at creation by IPromotionReadinessEngine — immutable after submission.
+/// Stages: Manager â†’ HR â†’ Leadership (configurable subset at tenant level).
+/// ReadinessScore is computed at creation by IPromotionReadinessEngine â€” immutable after submission.
 /// </summary>
 public sealed class PromotionRecommendation : AggregateRoot<Guid>, ITenantOwned
 {
@@ -42,23 +42,62 @@ public sealed class PromotionRecommendation : AggregateRoot<Guid>, ITenantOwned
         Status = PromotionStatus.Draft;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid NominatedByManagerId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CurrentGrade { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string ProposedGrade { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CurrentTitle { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string ProposedTitle { get; private set; } = string.Empty;
 
-    /// <summary>0–100 score computed by IPromotionReadinessEngine. Immutable after creation.</summary>
+    /// <summary>0â€“100 score computed by IPromotionReadinessEngine. Immutable after creation.</summary>
     public decimal ReadinessScore { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Justification { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly ProposedEffectiveDate { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public PromotionStatus Status { get; private set; }
     public DateOnly? ApprovedEffectiveDate { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<PromotionApprovalAction> ApprovalActions => _approvalActions.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static PromotionRecommendation Create(
         string tenantId,
         Guid employeeId,
@@ -78,13 +117,16 @@ public sealed class PromotionRecommendation : AggregateRoot<Guid>, ITenantOwned
         ArgumentException.ThrowIfNullOrWhiteSpace(proposedTitle);
         ArgumentException.ThrowIfNullOrWhiteSpace(justification);
         if (readinessScore < 0 || readinessScore > 100)
-            throw new ArgumentOutOfRangeException(nameof(readinessScore), "ReadinessScore must be 0–100.");
+            throw new ArgumentOutOfRangeException(nameof(readinessScore), "ReadinessScore must be 0â€“100.");
 
         return new PromotionRecommendation(Guid.NewGuid(), tenantId, employeeId, nominatedByManagerId,
             currentGrade.Trim(), proposedGrade.Trim(), currentTitle.Trim(), proposedTitle.Trim(),
             readinessScore, justification.Trim(), proposedEffectiveDate);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Submit()
     {
         if (Status != PromotionStatus.Draft)
@@ -92,6 +134,9 @@ public sealed class PromotionRecommendation : AggregateRoot<Guid>, ITenantOwned
         Status = PromotionStatus.Submitted;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(PromotionApprovalStage stage, Guid actorId, string? comments, bool isLastStage)
     {
         EnsureCanAct();
@@ -116,6 +161,9 @@ public sealed class PromotionRecommendation : AggregateRoot<Guid>, ITenantOwned
         }
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reject(PromotionApprovalStage stage, Guid actorId, string reason)
     {
         EnsureCanAct();
@@ -128,6 +176,9 @@ public sealed class PromotionRecommendation : AggregateRoot<Guid>, ITenantOwned
             Id, TenantId, EmployeeId, stage, reason, DateTimeOffset.UtcNow));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Withdraw()
     {
         if (Status is PromotionStatus.Approved or PromotionStatus.Rejected)

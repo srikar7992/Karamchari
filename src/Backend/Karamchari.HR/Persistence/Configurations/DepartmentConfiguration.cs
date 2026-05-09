@@ -1,4 +1,4 @@
-﻿using Karamchari.HR.Domain.Departments;
+using Karamchari.HR.Domain.Departments;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

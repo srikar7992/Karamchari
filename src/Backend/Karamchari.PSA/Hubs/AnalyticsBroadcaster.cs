@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 /// Broadcasts analytics updates to SignalR subscribers.
 /// Called by the ProfitCalculationConsumer AFTER aggregation, never from the raw event.
 ///
-/// Pattern: push aggregated data only → low bandwidth, high signal.
+/// Pattern: push aggregated data only â†’ low bandwidth, high signal.
 /// </summary>
 public sealed class AnalyticsBroadcaster
 {

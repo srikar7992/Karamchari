@@ -2,6 +2,9 @@ using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Payroll.Domain.VariablePay.Events;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record VariablePayApprovedEvent(
     Guid AllocationId,
     string TenantId,
@@ -10,10 +13,19 @@ public sealed record VariablePayApprovedEvent(
     decimal Amount,
     string ApprovedBy) : IDomainEvent
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EventId { get; } = Guid.NewGuid();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset OccurredOnUtc { get; } = DateTimeOffset.UtcNow;
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record VariablePayPaidOutEvent(
     Guid AllocationId,
     string TenantId,
@@ -21,6 +33,12 @@ public sealed record VariablePayPaidOutEvent(
     VariablePayType Type,
     decimal PaidAmount) : IDomainEvent
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EventId { get; } = Guid.NewGuid();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset OccurredOnUtc { get; } = DateTimeOffset.UtcNow;
 }

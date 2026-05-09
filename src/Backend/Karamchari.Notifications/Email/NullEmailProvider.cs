@@ -12,6 +12,9 @@ public sealed class NullEmailProvider : IEmailProvider
 
     public NullEmailProvider(ILogger<NullEmailProvider> logger) => _logger = logger;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task<EmailProviderResult> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         if (_logger.IsEnabled(LogLevel.Debug))

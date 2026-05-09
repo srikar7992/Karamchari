@@ -6,6 +6,9 @@ using Karamchari.Payroll.Services;
 using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class ESICTests
 {
     private static readonly FinancialYear FY2026 = new(2026, 2027);
@@ -14,6 +17,9 @@ public class ESICTests
     [InlineData(20999, true)]  // Under threshold
     [InlineData(21000, true)]  // At threshold
     [InlineData(21001, false)] // Over threshold
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ESICShouldDetermineApplicabilityBasedOnThreshold(decimal grossMonthly, bool expectedApplicable)
     {
         // Arrange
@@ -30,6 +36,9 @@ public class ESICTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ESICShouldCalculate075PercentAndCeilRounding()
     {
         // Arrange
@@ -47,6 +56,9 @@ public class ESICTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ESICShouldApplyIfLockedEvenIfOverThreshold()
     {
         // Arrange

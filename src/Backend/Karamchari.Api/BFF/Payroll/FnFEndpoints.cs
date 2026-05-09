@@ -10,8 +10,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class FnFEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapFnFEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/fnf").RequireAuthorization();
@@ -107,7 +113,7 @@ public static class FnFEndpoints
 
         var approvedBy = user.GetEmployeeIdString();
         if (approvedBy is null) return Results.Unauthorized();
-        
+
         settlement.Approve(approvedBy);
 
         await db.SaveChangesAsync(ct);
@@ -157,9 +163,15 @@ public static class FnFEndpoints
             s.Status.ToString(), s.NetSettlementAmount, s.LastWorkingDay, s.CreatedAtUtc);
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record FnFDto(
     Guid Id, Guid EmployeeId, string EmployeeName, string ExitType,
     string Status, decimal NetAmount, DateOnly LastWorkingDay, DateTimeOffset CreatedAt);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record InitiateFnFRequest(
     Guid EmployeeId, string EmployeeName, string ExitType, DateOnly LastWorkingDay);

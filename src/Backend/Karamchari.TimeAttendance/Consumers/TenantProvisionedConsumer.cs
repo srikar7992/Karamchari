@@ -1,10 +1,10 @@
 namespace Karamchari.TimeAttendance.Consumers;
 
-using MassTransit;
 using Karamchari.Core.Contracts.IntegrationEvents;
-using Karamchari.TimeAttendance.Persistence;
-using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Domain.Holidays;
+using Karamchari.TimeAttendance.Domain.Leaves;
+using Karamchari.TimeAttendance.Persistence;
+using MassTransit;
 
 /// <summary>
 /// Seeds default Time &amp; Attendance data (policies, calendars) for a newly provisioned tenant.
@@ -35,9 +35,10 @@ public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedInteg
 
         // 1. Seed Default Leave Policies
         var sickLeave = LeavePolicy.Create(
-            "Standard Sick Leave", 
+            "Standard Sick Leave",
             "10 days of paid sick leave per year.",
-            new LeavePolicyRules {
+            new LeavePolicyRules
+            {
                 Category = LeaveCategory.Paid,
                 AnnualAllowance = 10,
                 AccrualFrequency = AccrualFrequency.Upfront,
@@ -46,9 +47,10 @@ public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedInteg
             });
 
         var casualLeave = LeavePolicy.Create(
-            "Casual Leave", 
+            "Casual Leave",
             "Standard casual leave allowance for personal matters.",
-            new LeavePolicyRules {
+            new LeavePolicyRules
+            {
                 Category = LeaveCategory.Paid,
                 AnnualAllowance = 12,
                 AccrualFrequency = AccrualFrequency.Upfront,
@@ -60,12 +62,12 @@ public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedInteg
 
         // 2. Seed Default Holiday Calendar
         var calendar = HolidayCalendar.Create("Default Calendar", "Standard Organizational Calendar");
-        
+
         // Add some base global holidays
         var year = DateTime.UtcNow.Year;
         calendar.AddHoliday(new DateOnly(year, 1, 1), "New Year's Day");
         calendar.AddHoliday(new DateOnly(year, 12, 25), "Christmas Day");
-        
+
         _dbContext.HolidayCalendars.Add(calendar);
 
         await _dbContext.SaveChangesAsync();

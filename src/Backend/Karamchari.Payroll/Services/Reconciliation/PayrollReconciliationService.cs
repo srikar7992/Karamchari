@@ -21,6 +21,9 @@ public sealed class PayrollReconciliationService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<ReconciliationJob> RunAsync(
         string tenantId,
         string periodName,

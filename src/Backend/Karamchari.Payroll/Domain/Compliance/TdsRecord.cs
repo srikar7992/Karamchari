@@ -5,10 +5,28 @@ namespace Karamchari.Payroll.Domain.Compliance;
 /// </summary>
 public sealed record TdsRecord
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Pan { get; init; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeName { get; init; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal AnnualIncome { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalTax { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TdsDeducted { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal RemainingTax { get; init; }
 }

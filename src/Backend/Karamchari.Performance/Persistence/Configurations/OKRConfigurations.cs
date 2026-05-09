@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class OKRCycleConfiguration : IEntityTypeConfiguration<OKRCycle>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<OKRCycle> b)
     {
         b.ToTable("OKRCycles");
@@ -20,6 +23,9 @@ internal sealed class OKRCycleConfiguration : IEntityTypeConfiguration<OKRCycle>
 
 internal sealed class ObjectiveConfiguration : IEntityTypeConfiguration<Objective>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Objective> b)
     {
         b.ToTable("Objectives");

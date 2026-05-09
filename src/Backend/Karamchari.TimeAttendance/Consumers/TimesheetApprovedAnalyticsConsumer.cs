@@ -11,7 +11,7 @@ namespace Karamchari.TimeAttendance.Consumers;
 /// pre-aggregated <see cref="ProjectMetrics"/> and <see cref="EmployeeMetrics"/>.
 ///
 /// Idempotency: deduplicates on <see cref="KaramchariIntegrationEvent.EventId"/> via ProcessedEventLog.
-/// Replay-safety: IsRetroactive → scoped recompute for (ProjectId|EmployeeId, AffectedDates).
+/// Replay-safety: IsRetroactive â†’ scoped recompute for (ProjectId|EmployeeId, AffectedDates).
 /// Concurrency: UPDATE-then-INSERT pattern instead of MERGE (avoids SQL Server MERGE edge cases).
 /// </summary>
 public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
@@ -22,6 +22,9 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
 
     public TimesheetApprovedAnalyticsConsumer(TimeAttendanceDbContext db) => _db = db;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
     {
         var ev = context.Message;
@@ -31,7 +34,7 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
             throw new InvalidOperationException(
                 $"TimesheetApproved {ev.TimesheetId} missing ActorId. Dead-lettering.");
 
-        // 2. Idempotency check — exact-once via ProcessedEventLog
+        // 2. Idempotency check â€” exact-once via ProcessedEventLog
         var alreadyProcessed = await _db.ProcessedEventLogs
             .AnyAsync(l => l.EventId == ev.EventId && l.ConsumerName == ConsumerName,
                 context.CancellationToken);
@@ -48,7 +51,7 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
                 await UpsertProjectMetricsAsync(ev.TenantId, entry, ev.EventId, ev.OccurredAt, context.CancellationToken);
         }
 
-        // 4. Employee metrics — always scoped to affected dates only
+        // 4. Employee metrics â€” always scoped to affected dates only
         foreach (var (date, dateEntries) in ev.Entries
             .GroupBy(e => e.Date)
             .Select(g => (g.Key, g.AsEnumerable())))
@@ -92,7 +95,7 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
 
         if (rows == 0)
         {
-            // Row may not exist yet (first insert) — attempt insert, ignore if duplicate key
+            // Row may not exist yet (first insert) â€” attempt insert, ignore if duplicate key
             try
             {
                 _db.ProjectMetrics.Add(new ProjectMetrics
@@ -111,7 +114,7 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException)
             {
-                // PK violation = row inserted by concurrent request — safe to swallow
+                // PK violation = row inserted by concurrent request â€” safe to swallow
                 _db.ChangeTracker.Clear();
             }
         }
@@ -150,7 +153,7 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
         }
     }
 
-    private async Task UpsertEmployeeMetricsAsync(
+    private static async Task UpsertEmployeeMetricsAsync(
         string tenantId, Guid employeeId, DateOnly date,
         IEnumerable<TimeEntryRecord> entries, bool isRetroactive,
         Guid eventId, DateTimeOffset occurredAt, CancellationToken ct)

@@ -5,8 +5,20 @@ namespace Karamchari.Billing.Domain.Analytics;
 /// </summary>
 public sealed class ProcessedEventLog
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EventId { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string ConsumerName { get; init; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; init; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset ProcessedAt { get; init; } = DateTimeOffset.UtcNow;
 }

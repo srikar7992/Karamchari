@@ -1,9 +1,9 @@
 namespace Karamchari.Payroll.Consumers;
 
-using MassTransit;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 /// <summary>

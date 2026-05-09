@@ -1,18 +1,24 @@
+using Karamchari.Core.DependencyInjection;
 using Karamchari.Forecasting.Persistence;
 using Karamchari.Forecasting.Services;
-using Karamchari.Core.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Karamchari.Forecasting.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ForecastingServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariForecasting(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration)
     {
         services.RegisterTenantTable("Forecast_Metrics");

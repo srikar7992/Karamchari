@@ -43,7 +43,7 @@ public sealed class CTCTemplateCompiler
         {
             throw new InvalidOperationException("Only one remainder component is allowed per template.");
         }
-        
+
         // 2. Kahn's Algorithm for Topological Sort & Cycle Detection
         var inDegree = new Dictionary<Guid, int>();
         var adjacencyList = new Dictionary<Guid, List<Guid>>();
@@ -59,7 +59,7 @@ public sealed class CTCTemplateCompiler
             {
                 if (!adjacencyList.ContainsKey(depId)) adjacencyList[depId] = new List<Guid>();
                 adjacencyList[depId].Add(comp.ComponentId);
-                
+
                 if (!inDegree.ContainsKey(comp.ComponentId)) inDegree[comp.ComponentId] = 0;
                 inDegree[comp.ComponentId]++;
             }
@@ -93,13 +93,13 @@ public sealed class CTCTemplateCompiler
         // Note: ExecutionPriority allows users to force order among independent components
         var orderedSteps = sortedIds
             .Select(id => componentMap[id])
-            .Where(c => c.CalculationType != ComponentCalculationType.Remainder) 
+            .Where(c => c.CalculationType != ComponentCalculationType.Remainder)
             .OrderBy(c => c.ExecutionPriority)
             .Select(c => MapToStep(c, masterComponents))
             .ToList();
 
-        var remainderStep = remainderComponents.Count == 1 
-            ? MapToStep(remainderComponents.First(), masterComponents) 
+        var remainderStep = remainderComponents.Count == 1
+            ? MapToStep(remainderComponents.First(), masterComponents)
             : null;
 
         return new CompiledExecutionPlan(template.Id, orderedSteps, remainderStep);
@@ -109,12 +109,12 @@ public sealed class CTCTemplateCompiler
     {
         var master = masters.First(m => m.Id == tc.ComponentId);
         return new EvaluationStep(
-            tc.ComponentId, 
-            master.Type, 
-            tc.CalculationType, 
-            tc.Value, 
-            tc.DependsOnComponentIds, 
-            tc.AggregationType, 
+            tc.ComponentId,
+            master.Type,
+            tc.CalculationType,
+            tc.Value,
+            tc.DependsOnComponentIds,
+            tc.AggregationType,
             master.Rounding);
     }
 }

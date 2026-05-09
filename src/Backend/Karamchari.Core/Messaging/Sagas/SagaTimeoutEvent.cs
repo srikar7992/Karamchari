@@ -6,7 +6,12 @@ namespace Karamchari.Core.Messaging.Sagas;
 /// </summary>
 public sealed record SagaTimeoutEvent
 {
+    /// <summary>Correlation identifier for the saga.</summary>
     public Guid CorrelationId { get; init; }
+
+    /// <summary>Name of the state that timed out.</summary>
     public string StateName { get; init; } = string.Empty;
+
+    /// <summary>UTC timestamp when the timeout occurred.</summary>
     public DateTimeOffset TimeoutAtUtc { get; init; }
 }

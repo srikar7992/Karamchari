@@ -9,20 +9,43 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Capability.Persistence;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class CapabilityDbContext : KaramchariDbContext
 {
-    public CapabilityDbContext(DbContextOptions<CapabilityDbContext> options, ITenantProvider tenantProvider) 
+    /// <inheritdoc/>
+    public CapabilityDbContext(DbContextOptions<CapabilityDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<SkillDefinition> SkillDefinitions => Set<SkillDefinition>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<CapabilityProfile> CapabilityProfiles => Set<CapabilityProfile>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<LearningModule> LearningModules => Set<LearningModule>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<LearningEnrollment> LearningEnrollments => Set<LearningEnrollment>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<CertificationAchievement> CertificationAchievements => Set<CertificationAchievement>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<GrowthPlan> GrowthPlans => Set<GrowthPlan>();
 
+    /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);

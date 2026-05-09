@@ -1,17 +1,35 @@
 namespace Karamchari.Intelligence.Domain.Signals;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum EvidenceType
 {
+    /// <inheritdoc/>
     SystemCalculated,
+    /// <inheritdoc/>
     VerifiedCertificate,
+    /// <inheritdoc/>
     ManagerAssessment,
+    /// <inheritdoc/>
     PeerEndorsement,
+    /// <inheritdoc/>
     HistoricalPerformance,
+    /// <inheritdoc/>
     SelfReported
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ContributingFactor(string Name, decimal ImpactWeight, EvidenceType Evidence, string? Description);
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record PenalizingFactor(string Name, decimal ImpactWeight, string Reason);
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record MissingEvidence(string Name, string Description);
 
 /// <summary>
@@ -20,15 +38,27 @@ public sealed record MissingEvidence(string Name, string Description);
 /// </summary>
 public sealed record ScoreExplanation
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<ContributingFactor> Contributors { get; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<PenalizingFactor> Penalties { get; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<MissingEvidence> MissingInputs { get; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Summary { get; }
 
     private ScoreExplanation(
-        List<ContributingFactor> contributors, 
-        List<PenalizingFactor> penalties, 
-        List<MissingEvidence> missing, 
+        List<ContributingFactor> contributors,
+        List<PenalizingFactor> penalties,
+        List<MissingEvidence> missing,
         string summary)
     {
         Contributors = contributors.AsReadOnly();
@@ -37,6 +67,9 @@ public sealed record ScoreExplanation
         Summary = summary;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ScoreExplanation Compile(
         IEnumerable<ContributingFactor> contributors,
         IEnumerable<PenalizingFactor> penalties,

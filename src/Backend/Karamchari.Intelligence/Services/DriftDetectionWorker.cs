@@ -61,7 +61,7 @@ internal sealed class DriftDetectionWorker : BackgroundService
 
         foreach (var signal in staleSignals)
         {
-            _logger.LogWarning("STALE_INTELLIGENCE: Signal {SignalId} of type {SignalType} for subject {SubjectId} was last generated at {GeneratedAt}. Exceeds freshness threshold.", 
+            _logger.LogWarning("STALE_INTELLIGENCE: Signal {SignalId} of type {SignalType} for subject {SubjectId} was last generated at {GeneratedAt}. Exceeds freshness threshold.",
                 signal.Id, signal.SignalType, signal.SubjectId, signal.GeneratedAtUtc);
 
             // Publish event so downstream dashboards can render a "Stale Data Warning" overlay

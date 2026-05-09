@@ -10,20 +10,48 @@ namespace Karamchari.Capability.Domain.Learning;
 /// </summary>
 public sealed class CertificationAchievement : AggregateRoot<Guid>, ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Authority { get; private set; } = string.Empty; // e.g. AWS, Microsoft
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string LicenseNumber { get; private set; } = string.Empty;
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset IssuedAtUtc { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? ExpiresAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public CertificationStatus Status { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     private CertificationAchievement() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static CertificationAchievement Record(
         string tenantId,
         Guid employeeId,
@@ -50,6 +78,9 @@ public sealed class CertificationAchievement : AggregateRoot<Guid>, ITenantOwned
         return cert;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void EvaluateStatus()
     {
         if (Status == CertificationStatus.Revoked) return;
@@ -76,6 +107,9 @@ public sealed class CertificationAchievement : AggregateRoot<Guid>, ITenantOwned
         }
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Revoke(string reason)
     {
         Status = CertificationStatus.Revoked;

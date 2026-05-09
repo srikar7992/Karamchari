@@ -8,9 +8,9 @@ namespace Karamchari.Core.Messaging.Outbox;
 ///
 /// State machine:
 /// <list type="bullet">
-///   <item><c>Closed</c>  — normal operation; failures counted toward threshold.</item>
-///   <item><c>Open</c>    — relay skips batch cycles; waits for reset timeout to elapse.</item>
-///   <item><c>HalfOpen</c>— one probe batch allowed through; success → Closed, failure → Open.</item>
+///   <item><c>Closed</c>  â€” normal operation; failures counted toward threshold.</item>
+///   <item><c>Open</c>    â€” relay skips batch cycles; waits for reset timeout to elapse.</item>
+///   <item><c>HalfOpen</c>â€” one probe batch allowed through; success â†’ Closed, failure â†’ Open.</item>
 /// </list>
 /// </summary>
 public sealed class OutboxRelayCircuitBreaker
@@ -34,7 +34,7 @@ public sealed class OutboxRelayCircuitBreaker
 
     /// <summary>
     /// Returns <c>true</c> when the circuit is Open and the reset window has not elapsed.
-    /// Automatically transitions <c>Open → HalfOpen</c> once the reset window expires.
+    /// Automatically transitions <c>Open â†’ HalfOpen</c> once the reset window expires.
     /// When <c>true</c>, the relay should skip the batch cycle entirely.
     /// </summary>
     public bool ShouldSkip
@@ -77,8 +77,8 @@ public sealed class OutboxRelayCircuitBreaker
 
     /// <summary>
     /// Records a failed publish. Increments consecutive failure count.
-    /// Transitions <c>Closed → Open</c> when threshold reached.
-    /// Transitions <c>HalfOpen → Open</c> immediately on any failure.
+    /// Transitions <c>Closed â†’ Open</c> when threshold reached.
+    /// Transitions <c>HalfOpen â†’ Open</c> immediately on any failure.
     /// </summary>
     public void RecordFailure()
     {

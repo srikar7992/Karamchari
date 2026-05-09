@@ -2,6 +2,9 @@ using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Performance.Domain.Goals;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class GoalProgressUpdate : Entity<Guid>
 {
     private GoalProgressUpdate() { /* EF materialization */ }
@@ -22,10 +25,25 @@ public sealed class GoalProgressUpdate : Entity<Guid>
         OccurredOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid GoalId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Value { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal ProgressPercent { get; private set; }
     public string? Notes { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid UpdatedBy { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset OccurredOnUtc { get; private set; }
 }

@@ -10,10 +10,10 @@ public sealed class JwtOptions
 
     /// <summary>The secret key for signing tokens.</summary>
     public string Secret { get; init; } = string.Empty;
-    
+
     /// <summary>The token issuer.</summary>
     public string Issuer { get; init; } = string.Empty;
-    
+
     /// <summary>The token audience.</summary>
     public string Audience { get; init; } = string.Empty;
 
@@ -22,10 +22,10 @@ public sealed class JwtOptions
 
     /// <summary>Dictionary of valid signing keys by Key ID (kid).</summary>
     public Dictionary<string, string> SigningKeys { get; init; } = new();
-    
+
     /// <summary>Access token expiration in minutes.</summary>
     public int AccessTokenExpirationMinutes { get; init; } = 60;
-    
+
     /// <summary>Refresh token expiration in days.</summary>
     public int RefreshTokenExpirationDays { get; init; } = 7;
 }

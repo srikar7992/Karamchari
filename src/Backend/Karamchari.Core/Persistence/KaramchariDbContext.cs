@@ -13,12 +13,12 @@ namespace Karamchari.Core.Persistence;
 ///         that placeholder to the active tenant's schema at command execution time.</item>
 ///   <item>Derived contexts add MassTransit's transactional outbox entities
 ///         (<c>InboxState</c>, <c>OutboxMessage</c>, <c>OutboxState</c>) and
-///         pin them to <c>dbo</c> â€” the bus outbox is shared infrastructure,
+///         pin them to <c>dbo</c> Ã¢â‚¬â€ the bus outbox is shared infrastructure,
 ///         not tenant-owned.</item>
 /// </list>
 ///
 /// Derived contexts (e.g. <c>HRDbContext</c>) override <see cref="OnDomainModelCreating"/>
-/// â€” they must <b>not</b> override <see cref="OnModelCreating"/> directly, since
+/// Ã¢â‚¬â€ they must <b>not</b> override <see cref="OnModelCreating"/> directly, since
 /// it's sealed to guarantee the multi-tenant defaults are always applied first.
 /// </summary>
 public abstract class KaramchariDbContext : DbContext

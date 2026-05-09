@@ -1,4 +1,4 @@
-﻿namespace Karamchari.Core.Multitenancy;
+namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Marker for an entity whose rows belong to a tenant and must therefore

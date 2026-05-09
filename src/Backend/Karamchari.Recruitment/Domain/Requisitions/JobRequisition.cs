@@ -10,27 +10,67 @@ namespace Karamchari.Recruitment.Domain.Requisitions;
 /// </summary>
 public sealed class JobRequisition : AggregateRoot<Guid>, ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Title { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string DepartmentId { get; private set; } = string.Empty; // Cross-module reference
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string LocationId { get; private set; } = string.Empty;
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public RequisitionStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public HiringPriority Priority { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int HeadcountTarget { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public CompensationRange Budget { get; private set; } = null!;
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsConfidential { get; private set; }
+    /// <inheritdoc/>
     public string? HiringManagerId { get; private set; }
+    /// <inheritdoc/>
     public WorkforceDemandSignal? DemandSignal { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? ApprovedAtUtc { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? ClosedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     private JobRequisition() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static JobRequisition Draft(
         string tenantId,
         string title,
@@ -64,6 +104,9 @@ public sealed class JobRequisition : AggregateRoot<Guid>, ITenantOwned
         return req;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RequestApproval()
     {
         if (Status != RequisitionStatus.Draft && Status != RequisitionStatus.OnHold)
@@ -73,6 +116,9 @@ public sealed class JobRequisition : AggregateRoot<Guid>, ITenantOwned
         // Logic to initiate Approval Workflow goes here
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Open(string approvedBy)
     {
         if (Status != RequisitionStatus.PendingApproval)
@@ -83,6 +129,9 @@ public sealed class JobRequisition : AggregateRoot<Guid>, ITenantOwned
         // Raise RequisitionOpenedEvent
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void PutOnHold()
     {
         if (Status is RequisitionStatus.Filled or RequisitionStatus.Cancelled)
@@ -91,6 +140,9 @@ public sealed class JobRequisition : AggregateRoot<Guid>, ITenantOwned
         Status = RequisitionStatus.OnHold;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AttachDemandSignal(WorkforceDemandSource source, WorkforceDemandLevel level, string justification, string? sourceReferenceId = null)
     {
         if (Status != RequisitionStatus.Draft && Status != RequisitionStatus.PendingApproval)

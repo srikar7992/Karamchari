@@ -14,16 +14,16 @@ public class StatutoryContext
 {
     /// <summary>Gets the CTC breakdown results.</summary>
     public CTCBreakdownResult Breakdown { get; }
-    
+
     /// <summary>Gets the employee's payroll profile.</summary>
     public PayrollProfile Profile { get; }
-    
+
     /// <summary>Gets the current financial year.</summary>
     public FinancialYear Year { get; }
 
     /// <summary>Gets the specific month being processed (1-12).</summary>
     public int PayrollMonth { get; }
-    
+
     /// <summary>Gets the running ledger of deductions applied during this pipeline run.</summary>
     public Dictionary<string, decimal> ComputedValues { get; } = new();
 
@@ -44,7 +44,7 @@ public class StatutoryContext
     public decimal GetBaseWage(IEnumerable<Guid> componentIds)
     {
         ArgumentNullException.ThrowIfNull(componentIds);
-        return componentIds.Sum(id => 
+        return componentIds.Sum(id =>
             Breakdown.MonthlyBreakdown.TryGetValue(id, out var val) ? val : 0m);
     }
 }
@@ -56,7 +56,7 @@ public interface IStatutoryRuleMetadata
 {
     /// <summary>Gets the unique name of the rule (e.g., "EPF_Employee").</summary>
     string Name { get; }
-    
+
     /// <summary>Gets the execution order relative to other rules.</summary>
     int ExecutionOrder { get; }
 }

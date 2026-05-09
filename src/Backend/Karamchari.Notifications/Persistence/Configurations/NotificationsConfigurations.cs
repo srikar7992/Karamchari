@@ -7,6 +7,9 @@ namespace Karamchari.Notifications.Persistence.Configurations;
 
 internal sealed class NotificationTemplateConfiguration : IEntityTypeConfiguration<NotificationTemplate>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<NotificationTemplate> b)
     {
         b.ToTable("NotificationTemplates");
@@ -31,6 +34,9 @@ internal sealed class NotificationTemplateConfiguration : IEntityTypeConfigurati
 
 internal sealed class UserNotificationPreferenceConfiguration : IEntityTypeConfiguration<UserNotificationPreference>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<UserNotificationPreference> b)
     {
         b.ToTable("UserNotificationPreferences");
@@ -52,6 +58,9 @@ internal sealed class UserNotificationPreferenceConfiguration : IEntityTypeConfi
 
 internal sealed class NotificationMessageConfiguration : IEntityTypeConfiguration<NotificationMessage>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<NotificationMessage> b)
     {
         b.ToTable("NotificationMessages");
@@ -99,6 +108,9 @@ internal sealed class NotificationMessageConfiguration : IEntityTypeConfiguratio
 
 internal sealed class DigestBatchConfiguration : IEntityTypeConfiguration<DigestBatch>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<DigestBatch> b)
     {
         b.ToTable("DigestBatches");

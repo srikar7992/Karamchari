@@ -53,7 +53,7 @@ public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationE
         _dbContext.PayrollProfiles.Add(profile);
 
         await _dbContext.SaveChangesAsync(context.CancellationToken);
-        
+
         if (_logger.IsEnabled(LogLevel.Information))
         {
             _logger.LogInformation("Draft Payroll Profile created for Employee {EmployeeId}", message.EmployeeId);

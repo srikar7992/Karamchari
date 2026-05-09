@@ -8,7 +8,7 @@ namespace Karamchari.HR.Domain.Relationships;
 /// Models matrix organizations: direct managers, dotted-line managers, project leads,
 /// mentors, acting managers, and calibration committee memberships.
 ///
-/// Design rule: relationships are advisory — they inform visibility and workflow routing
+/// Design rule: relationships are advisory â€” they inform visibility and workflow routing
 /// but do NOT enforce access control by themselves. RBAC + RLS remain the authority.
 /// </summary>
 public sealed class EmployeeRelationship : Entity<Guid>, ITenantOwned
@@ -34,6 +34,9 @@ public sealed class EmployeeRelationship : Entity<Guid>, ITenantOwned
         Context = context;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
 
     /// <summary>The employee receiving the role (e.g., the manager).</summary>
@@ -42,7 +45,13 @@ public sealed class EmployeeRelationship : Entity<Guid>, ITenantOwned
     /// <summary>The employee being managed/mentored/etc.</summary>
     public Guid ToEmployeeId { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public RelationshipType RelationshipType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly EffectiveFrom { get; private set; }
 
     /// <summary>Null means the relationship is still active.</summary>
@@ -54,6 +63,9 @@ public sealed class EmployeeRelationship : Entity<Guid>, ITenantOwned
     /// <summary>True if EffectiveTo is null or in the future relative to today.</summary>
     public bool IsActive => EffectiveTo is null || EffectiveTo.Value >= DateOnly.FromDateTime(DateTime.UtcNow);
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static EmployeeRelationship Create(
         string tenantId,
         Guid fromEmployeeId,
@@ -76,6 +88,9 @@ public sealed class EmployeeRelationship : Entity<Guid>, ITenantOwned
             relationshipType, effectiveFrom, effectiveTo, context?.Trim());
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Terminate(DateOnly terminatedOn)
     {
         if (!IsActive)

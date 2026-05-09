@@ -1,5 +1,5 @@
-using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Domain.Schedules.Constraints;
+using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,7 +17,7 @@ public sealed class ShiftPlanningService
     private readonly ILogger<ShiftPlanningService> _logger;
 
     public ShiftPlanningService(
-        TimeAttendanceDbContext db, 
+        TimeAttendanceDbContext db,
         IEnumerable<IShiftConstraint> constraints,
         ILogger<ShiftPlanningService> logger)
     {
@@ -26,7 +26,10 @@ public sealed class ShiftPlanningService
         _logger = logger;
     }
 
-    public async Task AssignShiftAsync(Guid scheduleId, Guid employeeId, Guid shiftId, DateOnly date, CancellationToken ct = default)
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
+    public async Task AssignShiftAsync(Guid scheduleId, Guid employeeId, Guid shiftId, DateOnly workDate, CancellationToken ct = default)
     {
         var schedule = await _db.WorkforceSchedules
             .Include(s => s.Assignments)
@@ -39,7 +42,7 @@ public sealed class ShiftPlanningService
         var context = new SchedulingContext(schedule, allShifts, policies);
 
         var violations = _constraints
-            .SelectMany(c => c.Evaluate(employeeId, shiftId, date, context))
+            .SelectMany(c => c.Evaluate(employeeId, shiftId, workDate, context))
             .ToList();
 
         if (violations.Any(v => v.Severity == ConstraintSeverity.Error))
@@ -54,7 +57,7 @@ public sealed class ShiftPlanningService
             _logger.LogWarning("Scheduling warning for Employee {EmployeeId}: {Message}", employeeId, warning.Message);
         }
 
-        schedule.AssignShift(employeeId, shiftId, date);
+        schedule.AssignShift(employeeId, shiftId, workDate);
         await _db.SaveChangesAsync(ct);
     }
 }

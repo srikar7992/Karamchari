@@ -1,7 +1,7 @@
-using MassTransit;
-using Karamchari.Payroll.Contracts;
 using Karamchari.Core.Contracts.IntegrationEvents;
+using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -56,7 +56,7 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
         // Define the behavior
         Initially(
             When(StartCommand)
-                .ThenAsync(async context => 
+                .ThenAsync(async context =>
                 {
                     context.Saga.TenantId = context.Message.TenantId;
                     context.Saga.PeriodName = context.Message.PeriodName;
@@ -71,29 +71,29 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
                         .ConfigureAwait(false);
                 })
                 .TransitionTo(Calculating)
-                .PublishAsync(context => context.Init<CalculateAllEmployeePayCommand>(new 
-                { 
+                .PublishAsync(context => context.Init<CalculateAllEmployeePayCommand>(new
+                {
                     RunId = context.Saga.CorrelationId,
-                    PeriodName = context.Saga.PeriodName 
+                    PeriodName = context.Saga.PeriodName
                 }))
         );
 
         During(Calculating,
             When(PayCalculated)
-                .Then(context => 
+                .Then(context =>
                 {
                     context.Saga.ProcessedEmployees++;
                     context.Saga.TotalGross += context.Message.Gross;
                     context.Saga.TotalNet += context.Message.NetPay;
                 })
                 // If Processed == Total, transition to PendingReview
-                .If(context => context.Saga.ProcessedEmployees >= context.Saga.TotalEmployeesToProcess, 
+                .If(context => context.Saga.ProcessedEmployees >= context.Saga.TotalEmployeesToProcess,
                     binder => binder.TransitionTo(PendingReview))
         );
 
         During(PendingReview,
             When(LockCommand)
-                .Then(context => 
+                .Then(context =>
                 {
                     context.Saga.LockedBy = context.Message.ApprovedBy;
                     context.Saga.LockedAt = DateTime.UtcNow;

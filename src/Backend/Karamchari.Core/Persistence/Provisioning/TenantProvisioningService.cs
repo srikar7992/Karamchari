@@ -1,8 +1,8 @@
 namespace Karamchari.Core.Persistence.Provisioning;
 
+using Karamchari.Core.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Service responsible for the physical provisioning of a new tenant's database infrastructure.
@@ -69,7 +69,7 @@ public sealed class TenantProvisioningService
         {
             var checkExists = $"SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = '{schemaName}' AND t.name = '{table.TableName}'";
             var cloneSql = $"SELECT * INTO [{schemaName}].[{table.TableName}] FROM [dbo].[{table.TableName}] WHERE 1=0";
-            
+
             // Note: In a production app, we would use a more robust migration tool to copy indexes and constraints.
 #pragma warning disable EF1002
             await _dbContext.Database.ExecuteSqlRawAsync($"IF NOT EXISTS ({checkExists}) {cloneSql}");

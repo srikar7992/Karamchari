@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using Karamchari.Identity.Infrastructure.Configuration;
 using Karamchari.Identity.Infrastructure.Persistence;
 using Karamchari.Identity.Infrastructure.Security;
@@ -8,8 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 
 namespace Karamchari.Identity.Infrastructure;
 
@@ -86,7 +86,7 @@ public static class IdentityServiceCollectionExtensions
                         {
                             foreach (var s in jwtOptions.SigningKeys.Values)
                                 keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(s)));
-                            
+
                             keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)));
                         }
                         return keys;

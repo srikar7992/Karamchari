@@ -82,7 +82,7 @@ public sealed class ComplianceRiskEngine : IComplianceRiskEngine
 
     private static decimal CalculateTdsPenalty(int daysLate)
     {
-        // ₹200 per day of delay
+        // â‚¹200 per day of delay
         return daysLate * 200;
     }
 }

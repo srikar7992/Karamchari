@@ -21,9 +21,9 @@ public interface IIncomeProjectionService
 /// <param name="ProjectedRemainingGross">Projected gross income for the remaining months.</param>
 /// <param name="RemainingMonths">Number of months remaining in the FY (including current).</param>
 public record AnnualProjection(
-    decimal YtdGross, 
-    decimal YtdTds, 
-    decimal ProjectedRemainingGross, 
+    decimal YtdGross,
+    decimal YtdTds,
+    decimal ProjectedRemainingGross,
     int RemainingMonths)
 {
     /// <summary>Gets the total projected annual gross income.</summary>
@@ -39,9 +39,9 @@ public interface IExemptionCalculator
     /// Calculates the annual HRA exemption.
     /// </summary>
     decimal CalculateHraExemption(
-        decimal annualBasic, 
-        decimal annualHra, 
-        decimal annualRentPaid, 
+        decimal annualBasic,
+        decimal annualHra,
+        decimal annualRentPaid,
         bool isMetro);
 }
 

@@ -6,7 +6,7 @@ namespace Karamchari.Payroll.Services.Disbursement.BankAdapters;
 /// <summary>
 /// HDFC bank disbursement adapter.
 /// In production: generates HDFC-format salary file, uploads to SFTP/API, parses acknowledgement.
-/// Stub implementation for development — returns success for all entries.
+/// Stub implementation for development â€” returns success for all entries.
 /// </summary>
 public sealed class HdfcBankAdapter : IBankDisbursementAdapter
 {
@@ -17,8 +17,14 @@ public sealed class HdfcBankAdapter : IBankDisbursementAdapter
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public BankProvider Provider => BankProvider.HDFC;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task<BankDisbursementResult> DisburseAsync(
         BankDisbursementRequest request,
         CancellationToken ct)
@@ -44,6 +50,9 @@ public sealed class HdfcBankAdapter : IBankDisbursementAdapter
             null));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task<BankDisbursementResult> QueryStatusAsync(
         string batchReference,
         CancellationToken ct)

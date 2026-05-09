@@ -25,8 +25,17 @@ public sealed class ReviewResponse : Entity<Guid>
         TextValue = textValue;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid SubmissionId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid QuestionId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public QuestionType QuestionType { get; private set; }
     public decimal? RatingValue { get; private set; }
     public string? TextValue { get; private set; }

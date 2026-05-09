@@ -30,7 +30,7 @@ public enum NotificationCategory
     /// <summary>SLA breaches and escalation notifications to managers or HR.</summary>
     SLAEscalations = 8,
 
-    /// <summary>System-level notifications (maintenance, provisioning, billing — admin only).</summary>
+    /// <summary>System-level notifications (maintenance, provisioning, billing â€” admin only).</summary>
     SystemAlerts = 9,
 
     /// <summary>Payroll-related notifications (salary, FnF, arrears, reimbursements).</summary>

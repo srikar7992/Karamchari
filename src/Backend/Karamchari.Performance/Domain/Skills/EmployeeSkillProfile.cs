@@ -19,17 +19,35 @@ public sealed class EmployeeSkillProfile : AggregateRoot<Guid>, ITenantOwned
         EmployeeId = employeeId;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<EmployeeSkillAssessment> Assessments => _assessments.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static EmployeeSkillProfile Seed(string tenantId, Guid employeeId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         return new EmployeeSkillProfile(Guid.NewGuid(), tenantId, employeeId);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RecordAssessment(
         Guid skillId,
         ProficiencyLevel level,

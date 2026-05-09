@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using FluentValidation;
 using Karamchari.HR.Persistence;
 using Karamchari.Notifications.RealTime;
@@ -9,12 +10,17 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using System.Threading.RateLimiting;
 
 namespace Karamchari.Api.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class InfrastructureExtensions
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // Exception Handling

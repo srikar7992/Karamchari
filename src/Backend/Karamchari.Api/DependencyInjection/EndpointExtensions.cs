@@ -14,17 +14,23 @@ using Karamchari.Api.BFF.PSA;
 using Karamchari.Api.BFF.Search;
 using Karamchari.Api.BFF.Tenants;
 using Karamchari.Identity;
+using Karamchari.Notifications.RealTime;
 using Karamchari.PSA.Hubs;
 using Karamchari.TimeAttendance.Hubs;
-using Karamchari.Notifications.RealTime;
 using Karamchari.TimeAttendance.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class EndpointExtensions
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapKaramchariEndpoints(this WebApplication app)
     {
         // Infrastructure
@@ -79,12 +85,12 @@ public static class EndpointExtensions
         [FromQuery] string? endDate,
         TimeAttendanceDbContext db)
     {
-        var start = string.IsNullOrEmpty(startDate) 
-            ? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30)) 
+        var start = string.IsNullOrEmpty(startDate)
+            ? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30))
             : DateOnly.Parse(startDate);
-            
-        var end = string.IsNullOrEmpty(endDate) 
-            ? DateOnly.FromDateTime(DateTime.UtcNow) 
+
+        var end = string.IsNullOrEmpty(endDate)
+            ? DateOnly.FromDateTime(DateTime.UtcNow)
             : DateOnly.Parse(endDate);
 
         var query = db.ProjectMetrics

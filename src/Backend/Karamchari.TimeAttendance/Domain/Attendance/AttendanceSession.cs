@@ -12,26 +12,50 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<AttendanceEvent> _events = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
     public Guid? ShiftId { get; private set; } // Reference to ShiftDefinition
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly WorkDate { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public AttendanceStatus Status { get; private set; }
     public DateTimeOffset? CheckInTime { get; private set; }
     public DateTimeOffset? CheckOutTime { get; private set; }
 
     // Calculated metrics
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalWorkHours { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalBreakHours { get; private set; }
 
     public GeoPoint? CheckInLocation { get; private set; }
     public string? CheckInDeviceId { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<AttendanceEvent> Events => _events.AsReadOnly();
 
     private AttendanceSession() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static AttendanceSession CreateScheduled(string tenantId, Guid employeeId, Guid shiftId, DateOnly workDate)
     {
         return new AttendanceSession
@@ -45,6 +69,9 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void CheckIn(DateTimeOffset time, GeoPoint? location = null, string? deviceId = null, AttendanceSource source = AttendanceSource.WebPortal)
     {
         if (Status != AttendanceStatus.Scheduled && Status != AttendanceStatus.Missed)
@@ -56,10 +83,13 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
         Status = AttendanceStatus.CheckedIn;
 
         _events.Add(AttendanceEvent.Create(Id, time, "Check-In", source, location));
-        
+
         // Raise event: AttendanceCheckedIn
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void CheckOut(DateTimeOffset time, GeoPoint? location = null, AttendanceSource source = AttendanceSource.WebPortal)
     {
         if (Status != AttendanceStatus.CheckedIn && Status != AttendanceStatus.ReturnedFromBreak)
@@ -72,10 +102,13 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
         Status = AttendanceStatus.CheckedOut;
 
         _events.Add(AttendanceEvent.Create(Id, time, "Check-Out", source, location));
-        
+
         RecalculateHours();
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void StartBreak(DateTimeOffset time, AttendanceSource source = AttendanceSource.WebPortal)
     {
         if (Status != AttendanceStatus.CheckedIn)
@@ -85,6 +118,9 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
         _events.Add(AttendanceEvent.Create(Id, time, "Break-Start", source));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void EndBreak(DateTimeOffset time, AttendanceSource source = AttendanceSource.WebPortal)
     {
         if (Status != AttendanceStatus.OnBreak)
@@ -92,7 +128,7 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
 
         Status = AttendanceStatus.ReturnedFromBreak;
         _events.Add(AttendanceEvent.Create(Id, time, "Break-End", source));
-        
+
         RecalculateHours();
     }
 
@@ -101,18 +137,33 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
         if (!CheckInTime.HasValue || !CheckOutTime.HasValue) return;
 
         var rawDuration = CheckOutTime.Value - CheckInTime.Value;
-        
+
         // Logic to subtract breaks from raw duration
         // Simplified for now
         TotalWorkHours = (decimal)rawDuration.TotalHours;
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class AttendanceEvent : Entity<Guid>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid SessionId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset Timestamp { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EventType { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public AttendanceSource Source { get; private set; }
     public GeoPoint? Location { get; private set; }
 

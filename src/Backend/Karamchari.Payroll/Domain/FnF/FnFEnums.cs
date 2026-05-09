@@ -1,5 +1,8 @@
 namespace Karamchari.Payroll.Domain.FnF;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum FnFExitType
 {
     Resignation,
@@ -9,6 +12,9 @@ public enum FnFExitType
     ContractCompletion
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum FnFStatus
 {
     Draft,
@@ -21,6 +27,9 @@ public enum FnFStatus
     PostFnFCorrection
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum FnFLineItemType
 {
     PendingSalary,

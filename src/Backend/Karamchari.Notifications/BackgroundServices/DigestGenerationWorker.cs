@@ -15,7 +15,7 @@ namespace Karamchari.Notifications.BackgroundServices;
 ///                   preferred delivery time falls in the current window.
 ///   Weekly digests: runs on Monday between 07:00-08:00 UTC.
 ///
-/// Phase 1: simplified — runs against all tenants with queued messages.
+/// Phase 1: simplified â€” runs against all tenants with queued messages.
 /// Phase 2: per-tenant delivery-time scheduling via TenantConfiguration.
 ///
 /// Replay safety: DigestAggregatorService idempotency key blocks double-batch.

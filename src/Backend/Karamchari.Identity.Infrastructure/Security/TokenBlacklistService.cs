@@ -18,6 +18,9 @@ internal sealed class TokenBlacklistService : ITokenBlacklistService
         _cache = cache;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task RevokeTokenAsync(string jti, DateTimeOffset expiresAt)
     {
         if (string.IsNullOrEmpty(jti)) return;
@@ -34,6 +37,9 @@ internal sealed class TokenBlacklistService : ITokenBlacklistService
         }
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<bool> IsRevokedAsync(string jti)
     {
         if (string.IsNullOrEmpty(jti)) return false;

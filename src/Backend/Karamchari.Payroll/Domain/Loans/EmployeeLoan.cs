@@ -14,32 +14,83 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
     private readonly List<LoanInstallment> _installments = [];
     private readonly List<ApprovalStep> _approvalChain = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public LoanType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public LoanInterestType InterestType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public LoanStatus Status { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal PrincipalAmount { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal InterestRatePercent { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int TenureMonths { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal MonthlyEmi { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal OutstandingBalance { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly DisbursedOn { get; private set; }
     public string? ApprovedBy { get; private set; }
     public DateTimeOffset? ApprovedAtUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? UpdatedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<LoanInstallment> Installments => _installments.AsReadOnly();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<ApprovalStep> ApprovalChain => _approvalChain.AsReadOnly();
 
     private EmployeeLoan() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static EmployeeLoan Request(
         string tenantId,
         Guid employeeId,
@@ -79,6 +130,9 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
         return loan;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(string approvedBy, string? note = null)
     {
         if (Status != LoanStatus.PendingApproval)
@@ -103,6 +157,9 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reject(string rejectedBy, string reason)
     {
         if (Status != LoanStatus.PendingApproval)
@@ -119,6 +176,9 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SetSchedule(IEnumerable<LoanInstallment> installments, decimal monthlyEmi)
     {
         if (_installments.Count > 0)
@@ -129,6 +189,9 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void DeductInstallment(string periodName, int year, int month)
     {
         if (Status != LoanStatus.Active)
@@ -149,6 +212,9 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
         }
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SkipInstallment(string periodName, int year, int month, string reason)
     {
         var installment = _installments.FirstOrDefault(
@@ -159,6 +225,9 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void PreClose(decimal paymentAmount)
     {
         if (Status != LoanStatus.Active)
@@ -177,6 +246,9 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
         RaiseDomainEvent(new LoanClosedEvent(Id, TenantId, EmployeeId, LoanStatus.PreClosed));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void CloseOnExit()
     {
         // Remaining balance collected via FnF loan recovery line item

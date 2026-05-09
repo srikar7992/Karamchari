@@ -17,6 +17,9 @@ internal sealed class SchemaValidator : ISchemaValidator
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<SchemaValidationResult> ValidateAsync(string tenantId, string contractName, string version, string jsonPayload, CancellationToken ct = default)
     {
         var schemaDef = await _db.SchemaDefinitions

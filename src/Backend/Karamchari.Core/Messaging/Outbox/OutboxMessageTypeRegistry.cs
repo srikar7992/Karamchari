@@ -58,9 +58,9 @@ public sealed class OutboxMessageTypeRegistry
                     result.TryAdd(urn, type);
                 }
             }
-            catch (ReflectionTypeLoadException) { /* assembly partially loaded — skip */ }
+            catch (ReflectionTypeLoadException) { /* assembly partially loaded â€” skip */ }
             catch (NotSupportedException) { /* dynamic or unsupported assembly */ }
-            catch (FileNotFoundException) { /* missing dependency — skip */ }
+            catch (FileNotFoundException) { /* missing dependency â€” skip */ }
         }
 
         return result;

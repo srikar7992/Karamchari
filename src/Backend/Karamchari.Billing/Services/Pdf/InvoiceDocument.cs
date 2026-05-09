@@ -4,6 +4,9 @@ using QuestPDF.Infrastructure;
 
 namespace Karamchari.Billing.Services.Pdf;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record InvoiceSnapshotData(
     string InvoiceNumber,
     string ClientName,
@@ -20,18 +23,27 @@ public sealed record InvoiceSnapshotData(
     string TotalInWords,
     string Currency);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record InvoiceLineData(
     string Description,
     decimal Quantity,
     decimal Rate,
     decimal Amount);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class InvoiceDocument : IDocument
 {
     private readonly InvoiceSnapshotData _data;
 
     public InvoiceDocument(InvoiceSnapshotData data) => _data = data;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Compose(IDocumentContainer container)
     {
         container.Page(page =>
@@ -96,7 +108,7 @@ public sealed class InvoiceDocument : IDocument
                         header.Cell().Element(HeaderStyle).AlignRight().Text("Rate");
                         header.Cell().Element(HeaderStyle).AlignRight().Text("Total");
 
-                        static IContainer HeaderStyle(IContainer container) => 
+                        static IContainer HeaderStyle(IContainer container) =>
                             container.DefaultTextStyle(x => x.SemiBold()).PaddingVertical(5).BorderBottom(1).BorderColor(Colors.Black);
                     });
 
@@ -109,7 +121,7 @@ public sealed class InvoiceDocument : IDocument
                         table.Cell().Element(CellStyle).AlignRight().Text($"{_data.Currency} {line.Rate:N2}");
                         table.Cell().Element(CellStyle).AlignRight().Text($"{_data.Currency} {line.Amount:N2}");
 
-                        static IContainer CellStyle(IContainer container) => 
+                        static IContainer CellStyle(IContainer container) =>
                             container.PaddingVertical(5).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
                     }
                 });
@@ -121,7 +133,7 @@ public sealed class InvoiceDocument : IDocument
                     {
                         c.Item().PaddingTop(10).Text("Amount in Words:").FontSize(8).SemiBold().FontColor(Colors.Grey.Medium);
                         c.Item().Text($"{_data.TotalInWords} only").FontSize(9).Italic();
-                        
+
                         c.Item().PaddingTop(20).Text("NOTES").FontSize(8).SemiBold().FontColor(Colors.Grey.Medium);
                         c.Item().Text("Please quote invoice number on all payments.").FontSize(8);
                     });
@@ -133,7 +145,7 @@ public sealed class InvoiceDocument : IDocument
                             r.ConstantItem(100).Text("Subtotal:");
                             r.ConstantItem(100).AlignRight().Text($"{_data.Currency} {_data.Subtotal:N2}");
                         });
-                        
+
                         if (_data.TaxPercentage > 0)
                         {
                             c.Item().Row(r =>
@@ -142,7 +154,7 @@ public sealed class InvoiceDocument : IDocument
                                 r.ConstantItem(100).AlignRight().Text($"{_data.Currency} {_data.GstAmount:N2}");
                             });
                         }
-                        
+
                         c.Item().PaddingTop(5).BorderTop(1).Row(r =>
                         {
                             r.ConstantItem(100).Text("Total:").FontSize(12).Bold();

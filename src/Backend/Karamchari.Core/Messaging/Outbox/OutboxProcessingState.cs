@@ -5,7 +5,7 @@ namespace Karamchari.Core.Messaging.Outbox;
 /// Persists retry counts and lock-acquisition metadata so relay restarts
 /// do not reset progress and stale locks are detected by wall-clock time,
 /// not by the age of the originating OutboxState row.
-/// Lives in <c>dbo.OutboxProcessingState</c> — shared infrastructure, not tenant-owned.
+/// Lives in <c>dbo.OutboxProcessingState</c> â€” shared infrastructure, not tenant-owned.
 /// </summary>
 public sealed class OutboxProcessingState
 {
@@ -39,7 +39,7 @@ public sealed class OutboxProcessingState
 
     /// <summary>
     /// UTC wall-clock time when the current lock was acquired.
-    /// Used for stale-lock detection: rows with <c>LockAcquiredUtc &lt; NOW() − StaleLockTimeout</c>
+    /// Used for stale-lock detection: rows with <c>LockAcquiredUtc &lt; NOW() âˆ’ StaleLockTimeout</c>
     /// are considered abandoned by a dead relay instance and released on startup.
     /// </summary>
     public DateTime? LockAcquiredUtc { get; set; }

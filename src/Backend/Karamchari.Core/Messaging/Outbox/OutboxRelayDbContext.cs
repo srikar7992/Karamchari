@@ -4,7 +4,7 @@ namespace Karamchari.Core.Messaging.Outbox;
 
 /// <summary>
 /// Minimal DbContext for outbox relay infrastructure only.
-/// Does NOT inherit KaramchariDbContext — these tables are shared infrastructure,
+/// Does NOT inherit KaramchariDbContext â€” these tables are shared infrastructure,
 /// not tenant-owned, so no schema rewriting or RLS interceptors apply.
 /// </summary>
 public sealed class OutboxRelayDbContext : DbContext

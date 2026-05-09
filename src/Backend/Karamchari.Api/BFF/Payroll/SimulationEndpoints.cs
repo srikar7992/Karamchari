@@ -9,8 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class SimulationEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapSimulationEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/simulations").RequireAuthorization();
@@ -70,6 +76,9 @@ public static class SimulationEndpoints
             s.Results.Count, s.CreatedAtUtc, s.CompletedAtUtc);
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record SimulationDto(
     Guid Id, string Type, string Status, int EmployeeCount,
     DateTimeOffset StartedAt, DateTimeOffset? CompletedAt);

@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class FeedbackRequestConfiguration : IEntityTypeConfiguration<FeedbackRequest>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<FeedbackRequest> b)
     {
         b.ToTable("FeedbackRequests");
@@ -20,6 +23,9 @@ internal sealed class FeedbackRequestConfiguration : IEntityTypeConfiguration<Fe
 
 internal sealed class FeedbackSubmissionConfiguration : IEntityTypeConfiguration<FeedbackSubmission>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<FeedbackSubmission> b)
     {
         b.ToTable("FeedbackSubmissions");

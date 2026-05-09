@@ -15,10 +15,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Karamchari.Notifications.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class NotificationsServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariNotifications(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -28,7 +34,7 @@ public static class NotificationsServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(busConfigurator);
 
-        // RLS tenant table registrations — security regression if any table is omitted.
+        // RLS tenant table registrations â€” security regression if any table is omitted.
         services.RegisterTenantTable("NotificationTemplates");
         services.RegisterTenantTable("UserNotificationPreferences");
         services.RegisterTenantTable("NotificationMessages");
@@ -49,19 +55,19 @@ public static class NotificationsServiceCollectionExtensions
         services.AddScoped<ITemplateRenderer, TemplateRenderer>();
         services.AddScoped<INotificationOrchestrator, NotificationOrchestrator>();
 
-        // Channel adapters — registered as INotificationChannelAdapter so the orchestrator
+        // Channel adapters â€” registered as INotificationChannelAdapter so the orchestrator
         // gets IEnumerable<INotificationChannelAdapter> and iterates them.
         services.AddScoped<INotificationChannelAdapter, InAppChannelAdapter>();
         services.AddScoped<INotificationChannelAdapter, EmailChannelAdapter>();
 
-        // Email provider — NullEmailProvider for Phase 1; swap to SendGrid/SES in Phase 2.
+        // Email provider â€” NullEmailProvider for Phase 1; swap to SendGrid/SES in Phase 2.
         services.AddScoped<IEmailProvider, NullEmailProvider>();
 
         // Digest engine.
         services.AddScoped<DigestAggregatorService>();
         services.AddHostedService<DigestGenerationWorker>();
 
-        // Real-time push service — HubNotificationPushService is registered in
+        // Real-time push service â€” HubNotificationPushService is registered in
         // Karamchari.Api (needs IHubContext<NotificationHub> from SignalR).
         // The interface is registered here; the concrete binding happens in Program.cs
         // after AddSignalR() is called.

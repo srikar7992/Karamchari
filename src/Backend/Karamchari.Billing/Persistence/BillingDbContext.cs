@@ -9,16 +9,37 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Billing.Persistence;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class BillingDbContext : KaramchariDbContext
 {
-    public BillingDbContext(DbContextOptions<BillingDbContext> options, ITenantProvider tenantProvider) 
+    public BillingDbContext(DbContextOptions<BillingDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider) { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<BillingContract> Contracts => Set<BillingContract>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<RateCard> RateCards => Set<RateCard>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<EmployeeRole> EmployeeRoles => Set<EmployeeRole>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<BillableEntry> BillableEntries => Set<BillableEntry>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<Invoice> Invoices => Set<Invoice>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Karamchari.Billing.Domain.Collections.CollectionCase> CollectionCases => Set<Karamchari.Billing.Domain.Collections.CollectionCase>();
     public DbSet<Karamchari.Billing.Domain.Collections.CollectionPolicy> CollectionPolicies => Set<Karamchari.Billing.Domain.Collections.CollectionPolicy>();
@@ -46,7 +67,7 @@ public sealed class BillingDbContext : KaramchariDbContext
             b.Property(x => x.Currency).HasMaxLength(10);
             b.HasMany(x => x.RateCards).WithOne().HasForeignKey(x => x.ContractId);
             b.Property(x => x.RowVersion).IsRowVersion();
-            
+
             b.HasIndex(x => new { x.TenantId, x.ProjectId });
         });
 
@@ -72,7 +93,7 @@ public sealed class BillingDbContext : KaramchariDbContext
             b.Property(x => x.Hours).HasPrecision(9, 2);
             b.Property(x => x.Rate).HasPrecision(18, 2);
             b.Property(x => x.Amount).HasPrecision(18, 2);
-            
+
             b.HasIndex(x => new { x.TenantId, x.ProjectId, x.WorkDate });
             b.HasIndex(x => x.TimesheetEntryId).IsUnique().HasFilter("[IsVoided] = 0");
         });

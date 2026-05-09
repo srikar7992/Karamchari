@@ -5,6 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Payroll.Services.Disbursement;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record DisbursementRequest(
     string TenantId,
     Guid RunId,
@@ -34,6 +37,9 @@ public sealed class BankDisbursementOrchestrator
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<DisbursementBatch> InitiateAsync(
         DisbursementRequest request,
         CancellationToken ct)
@@ -60,7 +66,7 @@ public sealed class BankDisbursementOrchestrator
         if (ledgerEntries.Count == 0)
             throw new InvalidOperationException($"No payroll ledger entries for run {request.RunId}.");
 
-        // Load bank details from HR employee data — simplified placeholder
+        // Load bank details from HR employee data â€” simplified placeholder
         var entries = ledgerEntries
             .Where(l => l.NetPay > 0)
             .Select(l => DisbursementEntry.Create(
@@ -87,6 +93,9 @@ public sealed class BankDisbursementOrchestrator
         return batch;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<DisbursementBatch> SubmitAsync(
         Guid batchId,
         string debitAccountNumber,

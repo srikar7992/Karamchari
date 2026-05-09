@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.Promotions;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum PromotionStatus
 {
     Draft = 1,

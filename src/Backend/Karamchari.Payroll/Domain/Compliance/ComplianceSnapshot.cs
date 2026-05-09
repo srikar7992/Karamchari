@@ -3,6 +3,9 @@ using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Payroll.Domain.Compliance;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ComplianceType
 {
     EpfEcr,
@@ -15,16 +18,40 @@ public enum ComplianceType
 /// </summary>
 public sealed class ComplianceSnapshot : Entity<Guid>, ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid PayrollRunId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ComplianceType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string FileName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] Content { get; private set; } = Array.Empty<byte>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTime GeneratedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string GeneratedBy { get; private set; } = string.Empty;
 
     private ComplianceSnapshot() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ComplianceSnapshot Create(
         string tenantId,
         Guid payrollRunId,

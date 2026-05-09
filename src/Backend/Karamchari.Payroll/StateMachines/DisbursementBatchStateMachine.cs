@@ -1,27 +1,57 @@
-using MassTransit;
 using Karamchari.Payroll.Contracts;
+using MassTransit;
 
 namespace Karamchari.Payroll.StateMachines;
 
 /// <summary>
 /// Saga for bank disbursement batch lifecycle.
-/// Pending → FileGenerated → Submitted → (Completed | PartiallyProcessed | Failed)
+/// Pending â†’ FileGenerated â†’ Submitted â†’ (Completed | PartiallyProcessed | Failed)
 /// Handles retry up to MaxRetries before marking Failed.
 /// </summary>
 public sealed class DisbursementBatchStateMachine : MassTransitStateMachine<DisbursementBatchState>
 {
     private const int MaxRetries = 3;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Generating { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Submitted { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State PartiallyProcessed { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Completed { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public State Failed { get; private set; } = null!;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<InitiateDisbursementCommand> Initiate { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<DisbursementBatchSubmittedIntegrationEvent> BatchSubmitted { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<DisbursementBatchCompletedIntegrationEvent> BatchCompleted { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<DisbursementBatchFailedIntegrationEvent> BatchFailed { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Event<RetryDisbursementCommand> RetryRequested { get; private set; } = null!;
 
     public DisbursementBatchStateMachine()

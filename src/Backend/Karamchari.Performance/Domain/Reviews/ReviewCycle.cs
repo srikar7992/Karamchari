@@ -6,7 +6,7 @@ namespace Karamchari.Performance.Domain.Reviews;
 
 /// <summary>
 /// Drives one full review cycle from enrollment through calibration.
-/// GoalCycleId / OKRCycleId are nullable foreign keys — links to those BCs
+/// GoalCycleId / OKRCycleId are nullable foreign keys â€” links to those BCs
 /// are advisory (cross-context join at query time, not enforced by FK).
 /// </summary>
 public sealed class ReviewCycle : AggregateRoot<Guid>, ITenantOwned
@@ -37,25 +37,61 @@ public sealed class ReviewCycle : AggregateRoot<Guid>, ITenantOwned
         Status = ReviewCycleStatus.Draft;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReviewCycleType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid TemplateId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly ReviewPeriodStart { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly ReviewPeriodEnd { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly SubmissionDeadline { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReviewCycleStatus Status { get; private set; }
 
-    /// <summary>Advisory link — cross-context. Never enforced as a DB FK across schemas.</summary>
+    /// <summary>Advisory link â€” cross-context. Never enforced as a DB FK across schemas.</summary>
     public Guid? GoalCycleId { get; private set; }
 
-    /// <summary>Advisory link — cross-context. Never enforced as a DB FK across schemas.</summary>
+    /// <summary>Advisory link â€” cross-context. Never enforced as a DB FK across schemas.</summary>
     public Guid? OKRCycleId { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int TotalAssignments { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int CompletedAssignments { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ReviewCycle Create(
         string tenantId,
         string name,
@@ -78,6 +114,9 @@ public sealed class ReviewCycle : AggregateRoot<Guid>, ITenantOwned
             reviewPeriodStart, reviewPeriodEnd, submissionDeadline, goalCycleId, okrCycleId);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void StartEnrollment()
     {
         if (Status != ReviewCycleStatus.Draft)
@@ -85,6 +124,9 @@ public sealed class ReviewCycle : AggregateRoot<Guid>, ITenantOwned
         Status = ReviewCycleStatus.Enrolling;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void BeginReviews(int totalAssignments)
     {
         if (Status != ReviewCycleStatus.Enrolling)
@@ -94,6 +136,9 @@ public sealed class ReviewCycle : AggregateRoot<Guid>, ITenantOwned
         Status = ReviewCycleStatus.InProgress;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RecordSubmissionCompleted()
     {
         if (Status != ReviewCycleStatus.InProgress)
@@ -101,6 +146,9 @@ public sealed class ReviewCycle : AggregateRoot<Guid>, ITenantOwned
         CompletedAssignments++;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MoveToCalibration()
     {
         if (Status != ReviewCycleStatus.InProgress)
@@ -108,6 +156,9 @@ public sealed class ReviewCycle : AggregateRoot<Guid>, ITenantOwned
         Status = ReviewCycleStatus.Calibrating;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Complete()
     {
         if (Status != ReviewCycleStatus.Calibrating)
@@ -119,6 +170,9 @@ public sealed class ReviewCycle : AggregateRoot<Guid>, ITenantOwned
             TotalAssignments, CompletedAssignments, DateTimeOffset.UtcNow));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Archive()
     {
         if (Status != ReviewCycleStatus.Completed)

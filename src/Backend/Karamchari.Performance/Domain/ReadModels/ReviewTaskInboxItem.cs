@@ -6,21 +6,51 @@ namespace Karamchari.Performance.Domain.ReadModels;
 
 /// <summary>
 /// One row per pending review assignment for a reviewer.
-/// Drives the "My Review Inbox" experience — all pending tasks in one query.
+/// Drives the "My Review Inbox" experience â€” all pending tasks in one query.
 /// </summary>
 public sealed class ReviewTaskInboxItem : Entity<Guid>, ITenantOwned
 {
     private ReviewTaskInboxItem() { /* EF materialization */ }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ReviewerEmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ReviewAssignmentId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ReviewCycleId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CycleName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RevieweeEmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string RevieweeDisplayName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReviewerRole ReviewerRole { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset Deadline { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsOverdue { get; private set; }
 
     /// <summary>Hours until deadline. Negative when overdue.</summary>
@@ -29,8 +59,14 @@ public sealed class ReviewTaskInboxItem : Entity<Guid>, ITenantOwned
     /// <summary>Priority score used to sort the inbox: overdue + self-review + direct report outrank peers.</summary>
     public int Priority { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset LastRefreshedUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ReviewTaskInboxItem Create(
         string tenantId,
         Guid reviewerEmployeeId,

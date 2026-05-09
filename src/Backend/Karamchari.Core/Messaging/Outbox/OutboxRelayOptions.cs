@@ -11,7 +11,7 @@ public sealed class OutboxRelayOptions
     /// <summary>IConfiguration section key.</summary>
     public const string SectionName = "OutboxRelay";
 
-    /// <summary>Messages claimed per polling cycle. 50–200 is typical for ASB throughput.</summary>
+    /// <summary>Messages claimed per polling cycle. 50â€“200 is typical for ASB throughput.</summary>
     [Range(1, 1000)]
     public int BatchSize { get; init; } = 100;
 

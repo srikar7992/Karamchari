@@ -1,5 +1,8 @@
 namespace Karamchari.Payroll.Domain.Reconciliation;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ReconciliationJobStatus
 {
     Running,
@@ -8,6 +11,9 @@ public enum ReconciliationJobStatus
     Failed
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum AnomalyType
 {
     DuplicatePayout,
@@ -22,6 +28,9 @@ public enum AnomalyType
     GrossVarianceHigh
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum AnomalySeverity
 {
     Info,
@@ -29,6 +38,9 @@ public enum AnomalySeverity
     Critical
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum AnomalyResolutionStatus
 {
     Open,

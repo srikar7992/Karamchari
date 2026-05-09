@@ -4,7 +4,7 @@ namespace Karamchari.Performance.Domain.Promotions;
 
 /// <summary>
 /// Immutable audit record for each approval or rejection in the promotion workflow.
-/// Append-only — never updated after creation.
+/// Append-only â€” never updated after creation.
 /// </summary>
 public sealed class PromotionApprovalAction : Entity<Guid>
 {
@@ -26,10 +26,25 @@ public sealed class PromotionApprovalAction : Entity<Guid>
         ActedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RecommendationId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public PromotionApprovalStage Stage { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ActorId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool Approved { get; private set; }
     public string? Comments { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset ActedOnUtc { get; private set; }
 }

@@ -6,6 +6,9 @@ namespace Karamchari.Performance.Persistence.Configurations;
 
 internal sealed class PromotionRecommendationConfiguration : IEntityTypeConfiguration<PromotionRecommendation>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<PromotionRecommendation> b)
     {
         b.ToTable("PromotionRecommendations");

@@ -1,5 +1,8 @@
 namespace Karamchari.Payroll.Domain.Loans;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum LoanStatus
 {
     PendingApproval,
@@ -13,6 +16,9 @@ public enum LoanStatus
     Waived
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum LoanType
 {
     SalaryAdvance,
@@ -20,12 +26,18 @@ public enum LoanType
     EmergencyLoan
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum LoanInterestType
 {
     ZeroInterest,
     InterestBearing
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum InstallmentStatus
 {
     Pending,

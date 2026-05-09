@@ -1,5 +1,8 @@
 namespace Karamchari.Payroll.Domain.Arrears;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ArrearStatus
 {
     Pending,
@@ -10,6 +13,9 @@ public enum ArrearStatus
     Cancelled
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ArrearTriggerType
 {
     SalaryRevision,

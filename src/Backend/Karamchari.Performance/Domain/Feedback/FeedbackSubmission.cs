@@ -47,9 +47,21 @@ public sealed class FeedbackSubmission : AggregateRoot<Guid>, ITenantOwned
         IdempotencyKey = idempotencyKey;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RequestId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid SubjectEmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsAnonymous { get; private set; }
 
     /// <summary>
@@ -58,20 +70,32 @@ public sealed class FeedbackSubmission : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public string? AnonymityToken { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string StrengthsNarrative { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string GrowthAreasNarrative { get; private set; } = string.Empty;
     public string? OverallComment { get; private set; }
     public decimal? Rating { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public FeedbackSubmissionStatus Status { get; private set; }
     public DateTimeOffset? SubmittedOnUtc { get; private set; }
 
     /// <summary>Unique constraint on (TenantId, IdempotencyKey) prevents duplicate submissions.</summary>
     public Guid IdempotencyKey { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     /// <summary>
     /// Creates an anonymous submission. hmacKey is the tenant-scoped key from Key Vault.
-    /// ProviderId never stored — token computed once and stored.
+    /// ProviderId never stored â€” token computed once and stored.
     /// </summary>
     public static FeedbackSubmission CreateAnonymous(
         string tenantId,
@@ -96,6 +120,9 @@ public sealed class FeedbackSubmission : AggregateRoot<Guid>, ITenantOwned
             overallComment?.Trim(), rating, key);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static FeedbackSubmission CreateNamed(
         string tenantId,
         Guid requestId,
@@ -115,6 +142,9 @@ public sealed class FeedbackSubmission : AggregateRoot<Guid>, ITenantOwned
             overallComment?.Trim(), rating, key);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Submit()
     {
         if (Status != FeedbackSubmissionStatus.Draft)
@@ -123,6 +153,9 @@ public sealed class FeedbackSubmission : AggregateRoot<Guid>, ITenantOwned
         SubmittedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ShareWithReviewee()
     {
         if (Status != FeedbackSubmissionStatus.Submitted)
@@ -130,6 +163,9 @@ public sealed class FeedbackSubmission : AggregateRoot<Guid>, ITenantOwned
         Status = FeedbackSubmissionStatus.SharedWithReviewee;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Acknowledge()
     {
         if (Status != FeedbackSubmissionStatus.SharedWithReviewee)

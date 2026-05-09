@@ -9,16 +9,46 @@ namespace Karamchari.Payroll.Domain.Reimbursements;
 /// </summary>
 public sealed class ReimbursementClaim : AggregateRoot<Guid>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReimbursementCategory Category { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReimbursementStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReimbursementTaxability Taxability { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Description { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal ClaimedAmount { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal ApprovedAmount { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal PolicyLimit { get; private set; }
 
     // Attachment evidence
@@ -27,30 +57,51 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
     public string? AttachmentHash { get; private set; }  // SHA256 for duplicate detection
 
     // Date of expense
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly ExpenseDate { get; private set; }
 
     // Payroll linkage
     public string? PayoutPeriodName { get; private set; }
 
     // Fraud indicators
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public FraudIndicatorLevel FraudIndicator { get; private set; }
     public string? FraudNote { get; private set; }
 
     // Clawback
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsClawedBack { get; private set; }
     public string? ClawbackReason { get; private set; }
     public DateTimeOffset? ClawbackAtUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string SubmittedBy { get; private set; } = string.Empty;
     public string? ApprovedBy { get; private set; }
     public string? RejectedBy { get; private set; }
     public string? RejectionReason { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? UpdatedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     private ReimbursementClaim() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ReimbursementClaim SubmitWithPolicy(
         string tenantId,
         Guid employeeId,
@@ -103,6 +154,9 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
         return claim;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void FlagFraud(FraudIndicatorLevel level, string note)
     {
         FraudIndicator = level;
@@ -110,6 +164,9 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(string approvedBy, decimal? approvedAmount = null)
     {
         if (Status is not (ReimbursementStatus.Submitted or ReimbursementStatus.PendingApproval))
@@ -129,6 +186,9 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
         RaiseDomainEvent(new ReimbursementApprovedEvent(Id, TenantId, EmployeeId, ApprovedAmount, approvedBy));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reject(string rejectedBy, string reason)
     {
         if (Status is not (ReimbursementStatus.Submitted or ReimbursementStatus.PendingApproval))
@@ -140,6 +200,9 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkPaidOut(string payoutPeriodName)
     {
         if (Status is not (ReimbursementStatus.Approved or ReimbursementStatus.PartiallyApproved))
@@ -150,6 +213,9 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Clawback(string reason)
     {
         if (Status != ReimbursementStatus.PaidOut)

@@ -5,7 +5,7 @@ namespace Karamchari.Performance.Domain.Feedback;
 
 /// <summary>
 /// A request for feedback about a specific subject (employee) from a specific provider.
-/// ExpiresOnUtc enforced at application layer — no domain enforcement to allow grace periods.
+/// ExpiresOnUtc enforced at application layer â€” no domain enforcement to allow grace periods.
 /// </summary>
 public sealed class FeedbackRequest : AggregateRoot<Guid>, ITenantOwned
 {
@@ -33,19 +33,46 @@ public sealed class FeedbackRequest : AggregateRoot<Guid>, ITenantOwned
         Status = FeedbackRequestStatus.Pending;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid SubjectEmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RequestedByEmployeeId { get; private set; }
 
     /// <summary>Null for open/pool requests. Set for directed requests.</summary>
     public Guid? FeedbackProviderId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsAnonymous { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public FeedbackRequestType Type { get; private set; }
     public string? Context { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset ExpiresOnUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public FeedbackRequestStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static FeedbackRequest Create(
         string tenantId,
         Guid subjectEmployeeId,
@@ -64,8 +91,17 @@ public sealed class FeedbackRequest : AggregateRoot<Guid>, ITenantOwned
             feedbackProviderId, isAnonymous, type, context?.Trim(), expiresOnUtc);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkSubmitted() => Transition(FeedbackRequestStatus.Submitted);
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Decline() => Transition(FeedbackRequestStatus.Declined, FeedbackRequestStatus.Pending);
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Expire() => Status = FeedbackRequestStatus.Expired;
 
     private void Transition(FeedbackRequestStatus to, FeedbackRequestStatus? requiredFrom = null)

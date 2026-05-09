@@ -21,8 +21,14 @@ public sealed class InvoicePdfDocument : IDocument
         _client = client;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Compose(IDocumentContainer container)
     {
         container.Page(page =>
@@ -46,7 +52,7 @@ public sealed class InvoicePdfDocument : IDocument
             {
                 col.Item().Text("Karamchari Technologies Pvt. Ltd.")
                     .FontSize(16).Bold().FontColor(Colors.Indigo.Darken2);
-                col.Item().Text("Hyderabad, Telangana — GSTIN: 36AAAAA0000A1Z5")
+                col.Item().Text("Hyderabad, Telangana â€” GSTIN: 36AAAAA0000A1Z5")
                     .FontSize(8).FontColor(Colors.Grey.Darken1);
                 col.Item().PaddingTop(10).Text("TAX INVOICE")
                     .FontSize(22).Bold().FontColor(Colors.Indigo.Darken3);
@@ -175,7 +181,7 @@ public sealed class InvoicePdfDocument : IDocument
         });
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
+    // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private static void HeaderCell(IContainer cell, string text)
     {
@@ -202,8 +208,11 @@ public sealed class InvoicePdfDocument : IDocument
     private static string FormatCurrency(decimal amount, string currency) =>
         currency == "USD"
             ? $"${amount:N2}"
-            : $"₹{amount:N2}";
+            : $"â‚¹{amount:N2}";
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DocumentSettings GetSettings() => new() { CompressDocument = true };
 
     /// <summary>Generates the PDF bytes for the invoice.</summary>

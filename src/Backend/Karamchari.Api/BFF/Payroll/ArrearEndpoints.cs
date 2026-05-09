@@ -11,8 +11,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ArrearEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapArrearEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/arrears").RequireAuthorization();
@@ -107,7 +113,7 @@ public static class ArrearEndpoints
 
         var approvedBy = user.GetEmployeeIdString();
         if (approvedBy is null) return Results.Unauthorized();
-        
+
         arrear.Approve(approvedBy);
 
         await db.SaveChangesAsync(ct);
@@ -131,6 +137,9 @@ public static class ArrearEndpoints
             a.TotalGrossDelta, a.TotalNetDelta, a.Status.ToString(), a.CreatedAtUtc);
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record ArrearDto(
     Guid Id, Guid EmployeeId, string EmployeeName, string TriggerType,
     string TriggerReference, DateOnly From, DateOnly To,

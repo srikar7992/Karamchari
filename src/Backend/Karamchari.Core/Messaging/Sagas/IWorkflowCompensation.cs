@@ -6,6 +6,9 @@ namespace Karamchari.Core.Messaging.Sagas;
 /// </summary>
 public interface IWorkflowCompensation
 {
+    /// <summary>Correlation identifier for the saga.</summary>
     Guid CorrelationId { get; }
+
+    /// <summary>Reason for compensation.</summary>
     string Reason { get; }
 }

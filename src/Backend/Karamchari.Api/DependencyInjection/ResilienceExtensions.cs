@@ -1,11 +1,17 @@
+using System.Net;
 using Polly;
 using Polly.Extensions.Http;
-using System.Net;
 
 namespace Karamchari.Api.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ResilienceExtensions
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariResilience(this IServiceCollection services)
     {
         var random = new Random();
@@ -14,8 +20,8 @@ public static class ResilienceExtensions
         var retryPolicy = HttpPolicyExtensions
             .HandleTransientHttpError()
             .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound) // Example: some APIs return 404 for transient states
-            .WaitAndRetryAsync(3, retryAttempt => 
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)) + 
+            .WaitAndRetryAsync(3, retryAttempt =>
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)) +
                 TimeSpan.FromMilliseconds(random.Next(0, 1000)) // Add jitter
             );
 

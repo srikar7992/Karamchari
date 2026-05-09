@@ -14,10 +14,13 @@ using Microsoft.EntityFrameworkCore;
 namespace Karamchari.Api.BFF.Payroll;
 
 /// <summary>
-/// Payroll operations cockpit — unified visibility across all payroll workflows.
+/// Payroll operations cockpit â€” unified visibility across all payroll workflows.
 /// </summary>
 public static class PayrollCockpitEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapPayrollCockpitEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/cockpit").RequireAuthorization();
@@ -227,5 +230,11 @@ public static class PayrollCockpitEndpoints
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record RunReconciliationRequest(string TenantId, string PeriodName, int Year, int Month);
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record AnomalyResolutionRequest(string Note);

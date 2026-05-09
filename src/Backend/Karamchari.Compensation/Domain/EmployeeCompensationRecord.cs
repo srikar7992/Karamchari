@@ -1,6 +1,6 @@
+using Karamchari.Compensation.Contracts.IntegrationEvents;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;
-using Karamchari.Compensation.Contracts.IntegrationEvents;
 
 namespace Karamchari.Compensation.Domain;
 
@@ -27,15 +27,39 @@ public sealed class EmployeeCompensationRecord : AggregateRoot<Guid>, ITenantOwn
         CurrencyCode = currencyCode;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal CurrentAnnualCTC { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CurrencyCode { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset LastRevisedOnUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<CompensationRevision> Revisions => _revisions.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static EmployeeCompensationRecord CreateInitial(
         string tenantId,
         Guid employeeId,
@@ -51,6 +75,9 @@ public sealed class EmployeeCompensationRecord : AggregateRoot<Guid>, ITenantOwn
         return record;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ApplyRevision(EmployeeCompensationRevisedIntegrationEvent @event)
     {
         ArgumentNullException.ThrowIfNull(@event);
@@ -100,13 +127,37 @@ public sealed class CompensationRevision : Entity<Guid>
 
     private CompensationRevision() { /* EF materialization */ }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid CompensationRecordId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ExternalRevisionId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal PreviousAnnualCTC { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal NewAnnualCTC { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal IncrementPercent { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Reason { get; private set; } = string.Empty;
     public string? ReferenceId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly EffectiveDate { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset OccurredOnUtc { get; private set; }
 }

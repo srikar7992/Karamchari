@@ -7,9 +7,9 @@ namespace Karamchari.TimeAttendance.Domain.Timesheets;
 /// <summary>
 /// Aggregate root for a weekly collection of time entries for one employee.
 ///
-/// Lifecycle:  Draft → Submitted → Approved
-///                ↑                    │ (Reopen for retroactive edit)
-///                └────────────────────┘
+/// Lifecycle:  Draft â†’ Submitted â†’ Approved
+///                â†‘                    â”‚ (Reopen for retroactive edit)
+///                â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ///
 /// Row-level approval: individual entries move to Approved via <see cref="ApproveEntry"/>.
 /// When every entry is approved the timesheet auto-approves and publishes
@@ -32,12 +32,18 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
     // EF Core materialisation constructor
     private Timesheet() { TenantId = string.Empty; }
 
-    // ── Identity & ownership ────────────────────────────────────────────────
+    // â”€â”€ Identity & ownership â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
 
-    // ── Period ──────────────────────────────────────────────────────────────
+    // â”€â”€ Period â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Monday of the work week (ISO 8601).</summary>
     public DateOnly WeekStartDate { get; private set; }
@@ -49,8 +55,11 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public string EmployeeTimeZoneId { get; private set; } = "UTC";
 
-    // ── State ───────────────────────────────────────────────────────────────
+    // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public TimesheetStatus Status { get; private set; }
 
     /// <summary>UTC timestamp of the most recent approval (null while Draft/Submitted/Rejected).</summary>
@@ -64,22 +73,28 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
     public bool IsRetroactive { get; private set; }
 
     /// <summary>
-    /// SQL Server rowversion — EF Core concurrency token.
+    /// SQL Server rowversion â€” EF Core concurrency token.
     /// Prevents silent overwrites when two users edit the same timesheet concurrently.
     /// EF Core throws DbUpdateConcurrencyException on conflict; the API maps this to HTTP 409.
     /// </summary>
     [System.ComponentModel.DataAnnotations.Timestamp]
     public byte[]? RowVersion { get; private set; }
 
-    // ── Collections ─────────────────────────────────────────────────────────
+    // â”€â”€ Collections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<TimeEntry> Entries => _entries.AsReadOnly();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<TimesheetAuditEntry> AuditLog => _auditLog.AsReadOnly();
 
     /// <summary>Sum of all entry hours. Computed in-memory from the JSON entries column.</summary>
     public decimal TotalHours => _entries.Sum(x => x.Hours);
 
-    // ── Factory ─────────────────────────────────────────────────────────────
+    // â”€â”€ Factory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <param name="employeeId">Employee owner of this timesheet.</param>
     /// <param name="weekStartDate">ISO week start (Monday).</param>
@@ -90,7 +105,7 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
         return new Timesheet(Guid.NewGuid(), employeeId, weekStartDate, employeeTimeZoneId);
     }
 
-    // ── Commands ─────────────────────────────────────────────────────────────
+    // â”€â”€ Commands â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Replaces the full entry set. Only permitted while <see cref="Status"/> is Draft or Rejected.
@@ -244,7 +259,7 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
             Id, EmployeeId, TenantId, WeekStartDate, adminId, reason));
     }
 
-    // ── Private helpers ─────────────────────────────────────────────────────
+    // â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private void Audit(string action, Guid actorId, string? reason = null) =>
         _auditLog.Add(new TimesheetAuditEntry

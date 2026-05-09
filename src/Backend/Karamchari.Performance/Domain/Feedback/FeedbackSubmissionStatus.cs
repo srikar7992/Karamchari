@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.Feedback;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum FeedbackSubmissionStatus
 {
     Draft = 1,

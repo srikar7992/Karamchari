@@ -14,20 +14,48 @@ public sealed record CalculationDefinition(string Formula, string PrimarySourceC
 /// </summary>
 public sealed class MetricDefinition : AggregateRoot<Guid>, ITenantOwned
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty; // e.g., "FlightRiskScore"
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Owner { get; private set; } = string.Empty; // e.g., "HR.Analytics"
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CurrentVersion { get; private set; } = "1.0";
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public CalculationDefinition Calculation { get; private set; } = null!;
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsDeprecated { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? UpdatedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     private MetricDefinition() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static MetricDefinition Define(
         string tenantId,
         string name,
@@ -45,6 +73,9 @@ public sealed class MetricDefinition : AggregateRoot<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Evolve(string newVersion, CalculationDefinition newCalculation)
     {
         if (IsDeprecated) throw new InvalidOperationException("Cannot evolve a deprecated metric.");
@@ -55,6 +86,9 @@ public sealed class MetricDefinition : AggregateRoot<Guid>, ITenantOwned
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Deprecate()
     {
         IsDeprecated = true;

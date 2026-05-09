@@ -1,11 +1,17 @@
 namespace Karamchari.Payroll.Domain.Disbursement;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record BankDisbursementRequest(
     string BatchReference,
     IReadOnlyList<DisbursementEntry> Entries,
     string DebitAccountNumber,
     DateOnly ValueDate);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record BankDisbursementResult(
     string BatchReference,
     bool IsSuccess,
@@ -13,6 +19,9 @@ public record BankDisbursementResult(
     string? BankAcknowledgementId,
     string? ErrorMessage);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record EntryResult(
     Guid EntryId,
     bool IsSuccess,

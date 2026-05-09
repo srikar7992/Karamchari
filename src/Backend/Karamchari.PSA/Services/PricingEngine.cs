@@ -3,12 +3,12 @@ namespace Karamchari.PSA.Services;
 /// <summary>
 /// Computes the optimal billing rate to achieve a target profit margin.
 ///
-/// Formula: OptimalRate = CostPerHour / (1 − TargetMargin)
+/// Formula: OptimalRate = CostPerHour / (1 âˆ’ TargetMargin)
 ///
-/// Example: If CostPerHour = ₹625 and TargetMargin = 30%,
-///          OptimalRate = 625 / 0.7 = ₹892.86/hr
+/// Example: If CostPerHour = â‚¹625 and TargetMargin = 30%,
+///          OptimalRate = 625 / 0.7 = â‚¹892.86/hr
 ///
-/// This tells the CFO: "You need to charge at least ₹893/hr to achieve 30% margin."
+/// This tells the CFO: "You need to charge at least â‚¹893/hr to achieve 30% margin."
 /// </summary>
 public sealed class PricingEngine
 {

@@ -8,20 +8,43 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Intelligence.Persistence;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class IntelligenceDbContext : KaramchariDbContext
 {
-    public IntelligenceDbContext(DbContextOptions<IntelligenceDbContext> options, ITenantProvider tenantProvider) 
+    /// <inheritdoc/>
+    public IntelligenceDbContext(DbContextOptions<IntelligenceDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<IntelligenceSignal> IntelligenceSignals => Set<IntelligenceSignal>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<MetricDefinition> MetricDefinitions => Set<MetricDefinition>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<OrganizationalHealthSignal> OrganizationalHealthSignals => Set<OrganizationalHealthSignal>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<WorkforceRiskSignal> WorkforceRiskSignals => Set<WorkforceRiskSignal>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ExecutiveInsight> ExecutiveInsights => Set<ExecutiveInsight>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<StrategicWorkforceScenario> StrategicWorkforceScenarios => Set<StrategicWorkforceScenario>();
 
+    /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -41,7 +64,7 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.HasKey(x => x.Id);
             b.HasIndex(x => new { x.TenantId, x.SignalType, x.SubjectId });
             b.Property(x => x.RowVersion).IsRowVersion();
-            
+
             b.OwnsOne(x => x.Confidence, cb =>
             {
                 cb.Property(p => p.Level).HasConversion<string>();
@@ -69,7 +92,7 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.OrgUnitId });
             b.Property(x => x.OverallHealthScore).HasPrecision(5, 2);
             b.Property(x => x.RowVersion).IsRowVersion();
-            
+
             b.OwnsOne(x => x.BurnoutRisk);
             b.OwnsOne(x => x.StaffingStress);
             b.OwnsOne(x => x.Confidence, cb =>

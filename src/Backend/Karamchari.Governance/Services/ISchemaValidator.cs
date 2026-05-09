@@ -11,5 +11,6 @@ public sealed record SchemaValidationResult(bool IsValid, IReadOnlyCollection<st
 /// </summary>
 public interface ISchemaValidator
 {
+    /// <inheritdoc/>
     Task<SchemaValidationResult> ValidateAsync(string tenantId, string contractName, string version, string jsonPayload, CancellationToken ct = default);
 }

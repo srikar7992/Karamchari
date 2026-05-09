@@ -1,7 +1,7 @@
 namespace Karamchari.Performance.Domain.Reviews;
 
 /// <summary>
-/// Value object — part of ReviewSection. Stored as JSON column on ReviewSection.
+/// Value object â€” part of ReviewSection. Stored as JSON column on ReviewSection.
 /// QuestionId is stable across template versions for analytics correlation.
 /// </summary>
 public sealed record ReviewQuestion(
@@ -14,6 +14,9 @@ public sealed record ReviewQuestion(
     string? CompetencyCode,
     bool IsRequired)
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ReviewQuestion Create(
         string text,
         QuestionType type,
@@ -25,7 +28,7 @@ public sealed record ReviewQuestion(
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(text);
         if (weight < 0 || weight > 1)
-            throw new ArgumentOutOfRangeException(nameof(weight), "Question weight must be 0–1.");
+            throw new ArgumentOutOfRangeException(nameof(weight), "Question weight must be 0â€“1.");
         if (minRating >= maxRating)
             throw new ArgumentException("MinRating must be less than MaxRating.");
 

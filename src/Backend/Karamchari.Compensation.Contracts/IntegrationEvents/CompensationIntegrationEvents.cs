@@ -1,4 +1,4 @@
-// Compensation Planning bounded context — integration event contracts.
+// Compensation Planning bounded context â€” integration event contracts.
 // PLACEHOLDER: BC not yet implemented. Contracts defined here to allow
 // Performance BC to publish toward this namespace and avoid coupling.
 

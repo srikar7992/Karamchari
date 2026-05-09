@@ -74,3 +74,6 @@ dotnet_naming_style.async_suffix.capitalization = pascal_case
 dotnet_diagnostic.CA1062.severity = warning   # null-arg checks
 dotnet_diagnostic.CA2007.severity = none      # ConfigureAwait — we are an ASP.NET Core app, no SyncCtx
 dotnet_diagnostic.CA1848.severity = warning   # use LoggerMessage source-generated logging
+dotnet_diagnostic.IDE1006.severity = none      # async naming
+dotnet_diagnostic.CA1873.severity = none      # logging eval
+

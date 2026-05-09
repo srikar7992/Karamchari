@@ -1,7 +1,10 @@
 namespace Karamchari.Api.BFF.Employee;
 
-// ── My Goals ──────────────────────────────────────────────────────────────────
+// â”€â”€ My Goals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record MyGoalsResponse(
     IReadOnlyList<MyGoalItem> Items,
     int TotalCount,
@@ -9,6 +12,9 @@ public sealed record MyGoalsResponse(
     int PageSize,
     bool HasMore);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record MyGoalItem(
     Guid GoalId,
     Guid CycleId,
@@ -22,12 +28,18 @@ public sealed record MyGoalItem(
     string Status,
     decimal Weight);
 
-// ── My Reviews ────────────────────────────────────────────────────────────────
+// â”€â”€ My Reviews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record MyReviewsResponse(
     IReadOnlyList<ReviewInboxItemDto> Pending,
     int PendingCount);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ReviewInboxItemDto(
     Guid AssignmentId,
     Guid RevieweeEmployeeId,
@@ -38,12 +50,18 @@ public sealed record ReviewInboxItemDto(
     bool IsOverdue,
     int Priority);
 
-// ── My Skills ────────────────────────────────────────────────────────────────
+// â”€â”€ My Skills â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record MySkillsResponse(
     IReadOnlyList<SkillInventoryItemDto> Items,
     int SkillsWithGap);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record SkillInventoryItemDto(
     Guid SkillId,
     string SkillName,

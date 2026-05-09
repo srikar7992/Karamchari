@@ -1,4 +1,4 @@
-﻿using Karamchari.Core.Domain.Primitives;
+using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.HR.Domain.Departments.Events;
 

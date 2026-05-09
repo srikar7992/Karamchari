@@ -27,7 +27,7 @@ public sealed class CTCBreakdownService
     public static CTCBreakdownResult Calculate(decimal annualCTC, CompiledExecutionPlan plan, Dictionary<Guid, decimal>? overrides = null)
     {
         ArgumentNullException.ThrowIfNull(plan);
-        
+
         var computedAnnual = new Dictionary<Guid, decimal>();
         overrides ??= new Dictionary<Guid, decimal>();
 
@@ -40,7 +40,7 @@ public sealed class CTCBreakdownService
         // 2. Execute standard DAG steps
         foreach (var step in plan.OrderedSteps)
         {
-            if (computedAnnual.ContainsKey(step.ComponentId)) continue; 
+            if (computedAnnual.ContainsKey(step.ComponentId)) continue;
 
             decimal value = 0m;
             switch (step.CalcType)
@@ -59,7 +59,7 @@ public sealed class CTCBreakdownService
                     }
                     else if (step.Aggregation == DependencyAggregationType.Max)
                     {
-                        baseAmount = step.Dependencies.Count > 0 
+                        baseAmount = step.Dependencies.Count > 0
                             ? step.Dependencies.Max(d => computedAnnual.GetValueOrDefault(d, 0))
                             : 0;
                     }
@@ -76,7 +76,7 @@ public sealed class CTCBreakdownService
             {
                 // Remainder = CTC - SUM(Earnings + Employer Contributions)
                 decimal totalAllocated = 0m;
-                
+
                 foreach (var step in plan.OrderedSteps)
                 {
                     if (step.Type == ComponentType.Earning || step.Type == ComponentType.EmployerContribution)
@@ -86,7 +86,7 @@ public sealed class CTCBreakdownService
                 }
 
                 decimal remainderValue = annualCTC - totalAllocated;
-                
+
                 if (remainderValue < 0)
                 {
                     throw new InvalidOperationException($"CTC breakdown overflow. Allocated {totalAllocated} exceeds CTC {annualCTC}.");

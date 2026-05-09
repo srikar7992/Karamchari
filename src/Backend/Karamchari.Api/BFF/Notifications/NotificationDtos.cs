@@ -1,7 +1,10 @@
 namespace Karamchari.Api.BFF.Notifications;
 
-// ── Notification Inbox ────────────────────────────────────────────────────────
+// â”€â”€ Notification Inbox â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record NotificationInboxResponse(
     IReadOnlyList<NotificationDto> Items,
     int UnreadCount,
@@ -10,6 +13,9 @@ public sealed record NotificationInboxResponse(
     int PageSize,
     bool HasMore);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record NotificationDto(
     Guid Id,
     string Category,
@@ -22,10 +28,16 @@ public sealed record NotificationDto(
     DateTimeOffset? DeliveredAt,
     DateTimeOffset? ReadAt);
 
-// ── Unread Count ──────────────────────────────────────────────────────────────
+// â”€â”€ Unread Count â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record UnreadCountResponse(int UnreadCount);
 
-// ── Mark Read ─────────────────────────────────────────────────────────────────
+// â”€â”€ Mark Read â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record MarkReadResponse(bool Success);

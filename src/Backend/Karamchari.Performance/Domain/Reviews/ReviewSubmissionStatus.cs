@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.Reviews;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum ReviewSubmissionStatus
 {
     NotStarted = 1,

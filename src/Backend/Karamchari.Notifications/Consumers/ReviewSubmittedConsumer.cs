@@ -6,7 +6,7 @@ using MassTransit;
 namespace Karamchari.Notifications.Consumers;
 
 /// <summary>
-/// Notifies HR when any review is submitted — useful for cycle completion tracking.
+/// Notifies HR when any review is submitted â€” useful for cycle completion tracking.
 /// In a full implementation the manager of the reviewee would also be notified.
 /// Phase 1: HR system-alert only (HR employee ID sourced from a future
 /// TenantConfiguration BC; stub uses Guid.Empty which a real template will skip).
@@ -18,6 +18,9 @@ public sealed class ReviewSubmittedConsumer : IConsumer<ReviewSubmittedIntegrati
     public ReviewSubmittedConsumer(INotificationOrchestrator orchestrator) =>
         _orchestrator = orchestrator;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task Consume(ConsumeContext<ReviewSubmittedIntegrationEvent> context)
     {
         var e = context.Message;
@@ -29,12 +32,12 @@ public sealed class ReviewSubmittedConsumer : IConsumer<ReviewSubmittedIntegrati
             IntentType: NotificationIntentType.ReviewSubmitted,
             Category: NotificationCategory.ReviewWorkflow,
             RecipientEmployeeId: e.ReviewerEmployeeId,
-            RecipientEmail: string.Empty,   // reviewer email not in this event — template skips email channel
+            RecipientEmail: string.Empty,   // reviewer email not in this event â€” template skips email channel
             Locale: "en-US",
             Variables: new Dictionary<string, string>
             {
                 ["RevieweeName"] = e.RevieweeDisplayName,
-                ["CycleName"]    = e.CycleName,
+                ["CycleName"] = e.CycleName,
             });
 
         return _orchestrator.OrchestrateAsync(intent, context.CancellationToken);

@@ -2,8 +2,14 @@ using Karamchari.Performance.Domain.OKRs;
 
 namespace Karamchari.Performance.Domain.Scoring;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class DefaultOKRScoringStrategy : IOKRScoringStrategy
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal ComputeObjectiveScore(IReadOnlyCollection<KeyResult> keyResults)
     {
         ArgumentNullException.ThrowIfNull(keyResults);

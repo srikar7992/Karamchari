@@ -9,6 +9,9 @@ using Karamchari.Payroll.Domain.Statutory;
 public class PayrollProfileTests
 {
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void CreateDraft_WithLegalName_ShouldCacheEmployeeName()
     {
         // Arrange
@@ -26,6 +29,9 @@ public class PayrollProfileTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void CreateDraft_WithoutLegalName_ShouldNotThrow()
     {
         // Arrange
@@ -36,17 +42,20 @@ public class PayrollProfileTests
 
         // Assert
         Assert.Equal(employeeId, profile.EmployeeId);
-        Assert.Equal(string.Empty, profile.EmployeeName); // no name seeded — correct for tests/simulations
+        Assert.Equal(string.Empty, profile.EmployeeName); // no name seeded â€” correct for tests/simulations
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void CloneWithRegime_ShouldPreserveEmployeeName()
     {
         // Arrange
         var original = PayrollProfile.CreateDraft(Guid.NewGuid(), "Arun Reddy");
         original.Activate();
 
-        // Act — switch from New to Old for tax simulation
+        // Act â€” switch from New to Old for tax simulation
         var cloned = original.CloneWithRegime(TaxRegime.Old);
 
         // Assert
@@ -57,6 +66,9 @@ public class PayrollProfileTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void CloneWithRegime_OriginalShouldBeUnmodified()
     {
         // Arrange
@@ -65,13 +77,16 @@ public class PayrollProfileTests
         // Act
         var cloned = original.CloneWithRegime(TaxRegime.Old);
 
-        // Assert — original regime is still New
+        // Assert â€” original regime is still New
         Assert.Equal(TaxRegime.New, original.TaxRegime);
         Assert.Equal(TaxRegime.Old, cloned.TaxRegime);
         Assert.NotSame(original, cloned);
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SetSalaried_ShouldClearHourlyRate()
     {
         // Arrange
@@ -88,6 +103,9 @@ public class PayrollProfileTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SetHourly_ShouldClearBaseSalary()
     {
         // Arrange
@@ -104,6 +122,9 @@ public class PayrollProfileTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Activate_ShouldSetIsActiveTrue()
     {
         // Arrange

@@ -20,7 +20,7 @@ internal sealed class DocumentIntelligenceService : IDocumentIntelligenceService
         ILogger<DocumentIntelligenceService> logger)
     {
         _logger = logger;
-        
+
         var endpoint = options.Value.Endpoint;
         var apiKey = options.Value.ApiKey;
 
@@ -62,11 +62,11 @@ internal sealed class DocumentIntelligenceService : IDocumentIntelligenceService
             }
 
             var doc = result.Documents[0];
-            
+
             var firstName = ExtractStringField(doc, "FirstName");
             var lastName = ExtractStringField(doc, "LastName");
             var idNumber = ExtractStringField(doc, "DocumentNumber");
-            
+
             var dobField = doc.Fields.TryGetValue("DateOfBirth", out var f) ? f : null;
             DateOnly? dateOfBirth = null;
             if (dobField != null && dobField.ValueDate.HasValue)
@@ -74,8 +74,8 @@ internal sealed class DocumentIntelligenceService : IDocumentIntelligenceService
                 dateOfBirth = DateOnly.FromDateTime(dobField.ValueDate.Value.DateTime);
             }
 
-            var legalName = string.IsNullOrWhiteSpace(lastName) 
-                ? firstName 
+            var legalName = string.IsNullOrWhiteSpace(lastName)
+                ? firstName
                 : $"{firstName} {lastName}".Trim();
 
             return new AnalyzedDocumentResult(legalName ?? string.Empty, dateOfBirth, idNumber ?? string.Empty);

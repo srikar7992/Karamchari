@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.SignalR;
 /// <summary>
 /// SignalR hub for real-time analytics updates.
 /// CFOs subscribe to project groups and receive live metric pushes
-/// after every aggregation update — no polling, no page refresh.
+/// after every aggregation update â€” no polling, no page refresh.
 ///
-/// Architecture: Event → Aggregation → Broadcaster → this Hub → UI
-/// NOT: Event → this Hub (that would flood connections).
+/// Architecture: Event â†’ Aggregation â†’ Broadcaster â†’ this Hub â†’ UI
+/// NOT: Event â†’ this Hub (that would flood connections).
 /// </summary>
 public sealed class AnalyticsHub : Hub
 {

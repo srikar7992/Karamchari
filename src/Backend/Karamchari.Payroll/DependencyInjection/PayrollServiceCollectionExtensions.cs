@@ -2,20 +2,20 @@ using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Persistence.Provisioning;
 using Karamchari.Payroll.Consumers;
 using Karamchari.Payroll.Data;
+using Karamchari.Payroll.Domain.Disbursement;
 using Karamchari.Payroll.Persistence;
 using Karamchari.Payroll.Services;
-using Karamchari.Payroll.Services.Payslip;
-using Karamchari.Payroll.Services.Statutory;
-using Karamchari.Payroll.Services.Declarations;
-using Karamchari.Payroll.Services.FnF;
 using Karamchari.Payroll.Services.Arrears;
-using Karamchari.Payroll.Services.Loans;
-using Karamchari.Payroll.Services.Reimbursements;
-using Karamchari.Payroll.Services.Simulation;
+using Karamchari.Payroll.Services.Declarations;
 using Karamchari.Payroll.Services.Disbursement;
 using Karamchari.Payroll.Services.Disbursement.BankAdapters;
+using Karamchari.Payroll.Services.FnF;
+using Karamchari.Payroll.Services.Loans;
+using Karamchari.Payroll.Services.Payslip;
 using Karamchari.Payroll.Services.Reconciliation;
-using Karamchari.Payroll.Domain.Disbursement;
+using Karamchari.Payroll.Services.Reimbursements;
+using Karamchari.Payroll.Services.Simulation;
+using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.StateMachines;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -58,27 +58,27 @@ public static class PayrollServiceCollectionExtensions
         services.AddScoped<BankDisbursementOrchestrator>();
         services.AddScoped<PayrollReconciliationService>();
 
-        // Bank adapters — registered as IEnumerable<IBankDisbursementAdapter>
+        // Bank adapters â€” registered as IEnumerable<IBankDisbursementAdapter>
         services.AddSingleton<IBankDisbursementAdapter, HdfcBankAdapter>();
-        
+
         services.AddScoped<IProfessionalTaxRepository, ProfessionalTaxRepository>();
         services.AddScoped<IProfessionalTaxProvider, CachedProfessionalTaxProvider>();
-        
+
         services.AddScoped<IIncomeProjectionService, IncomeProjectionService>();
         services.AddScoped<IExemptionCalculator, ExemptionCalculator>();
         services.AddScoped<ITaxSlabProvider, TaxSlabProvider>();
         services.AddScoped<IITDeclarationRepository, ITDeclarationRepository>();
-        
+
         services.AddSingleton<IPayslipGenerator, QuestPdfPayslipGenerator>();
         services.AddScoped<IPayslipStorage, LocalFilePayslipStorage>();
 
         // Post-provisioning tasks: run after SELECT * INTO table clone to apply indexes.
-        // SELECT * INTO copies column structure but not indexes — this task recreates
+        // SELECT * INTO copies column structure but not indexes â€” this task recreates
         // the critical indexes defined in the EF model for every new tenant schema.
         services.AddSingleton<ITenantPostProvisioningTask, PayrollLedgerIndexProvisioningTask>();
 
         // Declaration & Proof Services
-        // Bind options from the "DocumentIntelligence" section — secrets resolved from
+        // Bind options from the "DocumentIntelligence" section â€” secrets resolved from
         // Azure Key Vault via Managed Identity in production, absent in dev (graceful degradation).
         services.Configure<DocumentIntelligenceOptions>(
             configuration.GetSection(DocumentIntelligenceOptions.SectionName));

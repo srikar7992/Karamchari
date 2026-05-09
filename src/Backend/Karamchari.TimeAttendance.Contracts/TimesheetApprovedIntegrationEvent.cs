@@ -3,7 +3,7 @@ namespace Karamchari.TimeAttendance.Contracts;
 /// <summary>
 /// Base record for all Karamchari integration events.
 /// Consumers must dead-letter any event where ActorId == Guid.Empty.
-/// EventId is the idempotency key — consumers dedup on this value.
+/// EventId is the idempotency key â€” consumers dedup on this value.
 /// </summary>
 public abstract record KaramchariIntegrationEvent
 {
@@ -23,6 +23,9 @@ public abstract record KaramchariIntegrationEvent
     public EventSource Source { get; init; } = EventSource.Api;
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum EventSource { Api = 1, Batch = 2, System = 3 }
 
 /// <summary>
@@ -39,6 +42,9 @@ public sealed record TimesheetApprovedIntegrationEvent(
     bool IsRetroactive,
     Guid ActorId) : KaramchariIntegrationEvent;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record TimeEntryRecord(
     DateOnly Date,
     decimal Hours,

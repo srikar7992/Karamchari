@@ -48,7 +48,7 @@ internal sealed class RefreshTokenCleanupWorker : BackgroundService
         var cutoff = DateTimeOffset.UtcNow.AddDays(-7);
 
         var toDelete = await db.RefreshTokens
-            .Where(t => (t.RevokedAtUtc != null && t.RevokedAtUtc < cutoff) || 
+            .Where(t => (t.RevokedAtUtc != null && t.RevokedAtUtc < cutoff) ||
                         (t.ExpiresAtUtc < cutoff))
             .ToListAsync(ct);
 

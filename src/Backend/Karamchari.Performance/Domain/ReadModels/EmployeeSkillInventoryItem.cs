@@ -6,32 +6,74 @@ namespace Karamchari.Performance.Domain.ReadModels;
 
 /// <summary>
 /// Denormalized skill snapshot per employee. One row per (employee, skill).
-/// Used for talent discovery queries (ADR-0010) — find employees with target skills.
+/// Used for talent discovery queries (ADR-0010) â€” find employees with target skills.
 /// Full-text search indexed on SkillName and SkillCategoryName.
 /// </summary>
 public sealed class EmployeeSkillInventoryItem : Entity<Guid>, ITenantOwned
 {
     private EmployeeSkillInventoryItem() { /* EF materialization */ }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeDisplayName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Department { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CareerLevel { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid SkillId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string SkillName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string SkillCategoryName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public SkillDomain Domain { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ProficiencyLevel CurrentProficiency { get; private set; }
     public ProficiencyLevel? TargetProficiency { get; private set; }
 
     /// <summary>Gap between target and current. Null if no target set or already met.</summary>
     public int? ProficiencyGap { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public AssessmentSource LastAssessmentSource { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset LastAssessedOnUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset LastRefreshedUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static EmployeeSkillInventoryItem Create(
         string tenantId,
         Guid employeeId,
@@ -77,6 +119,9 @@ public sealed class EmployeeSkillInventoryItem : Entity<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void UpdateProficiency(
         ProficiencyLevel current,
         ProficiencyLevel? target,

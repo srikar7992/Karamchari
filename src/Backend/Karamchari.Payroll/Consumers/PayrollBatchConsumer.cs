@@ -1,18 +1,18 @@
-using MassTransit;
+using EFCore.BulkExtensions;
+using Karamchari.Core.Contracts;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Karamchari.Payroll.Services.Statutory;
-using Karamchari.Payroll.Services;
-using Karamchari.Core.Contracts;
-using Karamchari.Payroll.Domain.Statutory;
-using Karamchari.Payroll.Services.Statutory.Rules;
 using Karamchari.Payroll.Domain;
 using Karamchari.Payroll.Domain.SalaryStructures;
-using EFCore.BulkExtensions;
+using Karamchari.Payroll.Domain.Statutory;
+using Karamchari.Payroll.Services;
+using Karamchari.Payroll.Services.Statutory;
+using Karamchari.Payroll.Services.Statutory.Rules;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Karamchari.Core.Multitenancy;
+using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Payroll.Consumers;
 
@@ -54,13 +54,16 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
         _tenantProvider = tenantProvider;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<ProcessPayrollBatchCommand> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;
         var employeeIds = message.EmployeeIds;
 
-        // Resolve tenant once per batch — scoped to this HTTP/message context.
+        // Resolve tenant once per batch â€” scoped to this HTTP/message context.
         var tenant = _tenantProvider.GetTenant();
         var tenantId = tenant.TenantId;
 
@@ -115,7 +118,7 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
         foreach (var profile in profiles)
         {
             // For salaried employees use AnnualCTC (the agreed total cost) as the CTC breakdown
-            // input — BaseSalary is the pre-template monthly floor used only for hourly fallback.
+            // input â€” BaseSalary is the pre-template monthly floor used only for hourly fallback.
             // Passing BaseSalary * 12 would zero-out all template calculations for any profile
             // where BaseSalary has not yet been explicitly overridden (e.g. newly onboarded drafts).
             decimal annualCtc = profile.PayType == PayType.Hourly
@@ -128,7 +131,7 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
 
             decimal totalExternalDeductions = externalDeductions.Sum(d => d.Amount);
             // External deductions (e.g. unpaid leave) reduce the monthly gross derived from the
-            // AnnualCTC breakdown — they are not subtracted from the CTC input itself.
+            // AnnualCTC breakdown â€” they are not subtracted from the CTC input itself.
             decimal externalDeductionMonthly = totalExternalDeductions;
 
             var template = allTemplates.FirstOrDefault(t => t.Id == profile.SalaryTemplateId);
@@ -151,14 +154,14 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
                 .ToDictionary(k => masterComponents.First(c => c.Id == k.Key).Name ?? string.Empty, v => v.Value);
 
             var ledgerEntry = PayrollLedgerEntry.Create(
-                message.RunId, message.PeriodName, profile.EmployeeId, 
+                message.RunId, message.PeriodName, profile.EmployeeId,
                 statutoryContext.PayrollMonth, DateTime.UtcNow.Year, ruleSet.Year.StartYear,
                 finalMonthlyGross, statutoryResult.Deductions.GetValueOrDefault("TDS", 0),
                 statutoryResult.NetPay, statutoryResult.Deductions, earningsMap);
 
             results.Add(ledgerEntry);
             completionEvents.Add(new EmployeePayCalculatedEvent(message.RunId, profile.EmployeeId, finalMonthlyGross, statutoryResult.NetPay));
-            
+
             // Mark deductions as processed (In bulk later if possible, but for now simple)
             foreach (var d in externalDeductions) d.MarkAsProcessed();
         }
@@ -167,7 +170,7 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
         // EFCore.BulkExtensions bypasses the EF Change Tracker and therefore also bypasses
         // TenantStampingInterceptor and RlsSessionContextInterceptor. We compensate by:
         //   a) Ensuring TenantId is stamped on each entry before insert (handled in
-        //      PayrollLedgerEntry.Create via ITenantOwned — TenantStampingInterceptor will
+        //      PayrollLedgerEntry.Create via ITenantOwned â€” TenantStampingInterceptor will
         //      have already set SESSION_CONTEXT on the connection during the preceding queries
         //      in this scope, so RLS predicates remain active).
         //   b) Using SaveChangesAsync for the deduction MarkAsProcessed mutations below, which

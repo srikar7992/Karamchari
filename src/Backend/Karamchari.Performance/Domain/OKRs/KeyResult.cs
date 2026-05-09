@@ -2,6 +2,9 @@ using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Performance.Domain.OKRs;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class KeyResult : Entity<Guid>
 {
     private readonly List<KRCheckIn> _checkIns = [];
@@ -31,28 +34,52 @@ public sealed class KeyResult : Entity<Guid>
         Status = KRStatus.NotStarted;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ObjectiveId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Title { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public KRType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Target { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Unit { get; private set; } = string.Empty;
 
-    /// <summary>0–100. Sum of weights within an Objective must equal 100.</summary>
+    /// <summary>0â€“100. Sum of weights within an Objective must equal 100.</summary>
     public decimal Weight { get; private set; }
     public Guid? DependsOnKrId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal CurrentValue { get; private set; }
 
-    /// <summary>0–140. Allows 140% for stretch goals.</summary>
+    /// <summary>0â€“140. Allows 140% for stretch goals.</summary>
     public decimal ProgressPercent { get; private set; }
 
-    /// <summary>0–100 subjective on-track confidence.</summary>
+    /// <summary>0â€“100 subjective on-track confidence.</summary>
     public decimal ConfidenceLevel { get; private set; }
 
-    /// <summary>0–1 normalized score. Set at cycle scoring.</summary>
+    /// <summary>0â€“1 normalized score. Set at cycle scoring.</summary>
     public decimal Score { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public KRStatus Status { get; private set; }
     public DateTimeOffset? LastCheckInUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<KRCheckIn> CheckIns => _checkIns.AsReadOnly();
 
     internal void RecordCheckIn(decimal value, decimal confidenceLevel, string? notes, Guid updatedBy)
@@ -85,8 +112,8 @@ public sealed class KeyResult : Entity<Guid>
     }
 
     /// <summary>
-    /// Computes normalized score (0–1) using standard OKR scoring formula.
-    /// Metric: min(CurrentValue / Target, 1.4) / 1.4 normalized to 0–1.
+    /// Computes normalized score (0â€“1) using standard OKR scoring formula.
+    /// Metric: min(CurrentValue / Target, 1.4) / 1.4 normalized to 0â€“1.
     /// Binary: 0 or 1. Milestone: weighted checklist completion.
     /// </summary>
     internal void ComputeScore()

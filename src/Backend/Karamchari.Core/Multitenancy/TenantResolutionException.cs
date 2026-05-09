@@ -1,7 +1,7 @@
 namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
-/// Thrown when the active request cannot be associated with a tenant â€”
+/// Thrown when the active request cannot be associated with a tenant Ã¢â‚¬â€
 /// missing JWT claim, malformed tenant id, or disagreement between sources
 /// (JWT vs. subdomain vs. trusted header).
 ///

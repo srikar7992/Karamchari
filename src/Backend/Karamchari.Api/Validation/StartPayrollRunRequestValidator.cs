@@ -3,6 +3,9 @@ using Karamchari.Api.BFF.Common;
 
 namespace Karamchari.Api.Validation;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class StartPayrollRunRequestValidator : AbstractValidator<StartPayrollRunRequest>
 {
     public StartPayrollRunRequestValidator()

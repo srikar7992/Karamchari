@@ -2,8 +2,14 @@ using FluentValidation;
 
 namespace Karamchari.Api.Validation;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ValidationFilter
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static RouteHandlerBuilder WithValidation<T>(this RouteHandlerBuilder builder)
     {
         return builder.AddEndpointFilter(async (context, next) =>

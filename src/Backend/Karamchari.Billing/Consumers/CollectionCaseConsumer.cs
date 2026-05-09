@@ -11,7 +11,7 @@ namespace Karamchari.Billing.Consumers;
 /// Manages the lifecycle of CollectionCase entities based on financial events.
 /// Creates cases for new invoices and closes them when payments are settled.
 /// </summary>
-public sealed class CollectionCaseConsumer : 
+public sealed class CollectionCaseConsumer :
     IConsumer<InvoiceIssuedIntegrationEvent>,
     IConsumer<PaymentReceivedIntegrationEvent>
 {
@@ -25,6 +25,9 @@ public sealed class CollectionCaseConsumer :
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<InvoiceIssuedIntegrationEvent> context)
     {
         var ev = context.Message;
@@ -60,6 +63,9 @@ public sealed class CollectionCaseConsumer :
         }
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<PaymentReceivedIntegrationEvent> context)
     {
         var ev = context.Message;

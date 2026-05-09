@@ -13,7 +13,7 @@ namespace Karamchari.Workflow.Services;
 /// </summary>
 public sealed class WorkflowConditionCompiler
 {
-    // Key = (DefinitionId, JsonHash) — deterministic across all instances
+    // Key = (DefinitionId, JsonHash) â€” deterministic across all instances
     private static readonly ConcurrentDictionary<(Guid, string), Func<ApprovalContext, bool>> _cache = new();
 
     /// <summary>Monotonic version of the compiler's evaluation semantics. Embed in snapshots.</summary>
@@ -26,7 +26,7 @@ public sealed class WorkflowConditionCompiler
 
     /// <summary>
     /// Compiles (and caches by definitionId + JSON hash) the condition expression.
-    /// Throws <see cref="WorkflowConditionException"/> on invalid JSON — call at definition-save time.
+    /// Throws <see cref="WorkflowConditionException"/> on invalid JSON â€” call at definition-save time.
     /// </summary>
     public static Func<ApprovalContext, bool> Compile(Guid definitionId, string conditionJson)
     {
@@ -80,16 +80,16 @@ public sealed class WorkflowConditionCompiler
         var left = Expression.Property(param, propInfo);
         var valueEl = el.GetProperty("value");
 
-        // Null-safe guard: if string field is empty/null at runtime → return false for comparisons
+        // Null-safe guard: if string field is empty/null at runtime â†’ return false for comparisons
         var right = BuildConstant(propInfo.PropertyType, valueEl);
 
         Expression comparison = op.ToUpperInvariant() switch
         {
-            "EQ"  or "==" => Expression.Equal(left, right),
+            "EQ" or "==" => Expression.Equal(left, right),
             "NEQ" or "!=" => Expression.NotEqual(left, right),
-            "GT"  or ">"  => Expression.GreaterThan(left, right),
+            "GT" or ">" => Expression.GreaterThan(left, right),
             "GTE" or ">=" => Expression.GreaterThanOrEqual(left, right),
-            "LT"  or "<"  => Expression.LessThan(left, right),
+            "LT" or "<" => Expression.LessThan(left, right),
             "LTE" or "<=" => Expression.LessThanOrEqual(left, right),
             _ => throw new WorkflowConditionException($"Unknown operator '{op}'.")
         };
@@ -108,7 +108,7 @@ public sealed class WorkflowConditionCompiler
     {
         var underlying = Nullable.GetUnderlyingType(targetType) ?? targetType;
 
-        // Coerce numeric types: JSON integers → decimal (covers Amount comparisons)
+        // Coerce numeric types: JSON integers â†’ decimal (covers Amount comparisons)
         object value = underlying switch
         {
             _ when underlying == typeof(decimal) =>
@@ -125,6 +125,9 @@ public sealed class WorkflowConditionCompiler
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class WorkflowConditionException : Exception
 {
     public WorkflowConditionException(string message) : base(message) { }

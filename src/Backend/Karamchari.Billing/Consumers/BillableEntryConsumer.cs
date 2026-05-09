@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Billing.Consumers;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class BillableEntryConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
 {
     private const string ConsumerName = nameof(BillableEntryConsumer);
@@ -14,6 +17,9 @@ public sealed class BillableEntryConsumer : IConsumer<TimesheetApprovedIntegrati
 
     public BillableEntryConsumer(BillingDbContext db) => _db = db;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
     {
         var ev = context.Message;
@@ -31,9 +37,9 @@ public sealed class BillableEntryConsumer : IConsumer<TimesheetApprovedIntegrati
         {
             var affectedDates = ev.Entries.Select(e => e.Date).Distinct().ToList();
             var existing = await _db.BillableEntries
-                .Where(e => e.TenantId == ev.TenantId && 
-                            e.EmployeeId == ev.EmployeeId && 
-                            affectedDates.Contains(e.WorkDate) && 
+                .Where(e => e.TenantId == ev.TenantId &&
+                            e.EmployeeId == ev.EmployeeId &&
+                            affectedDates.Contains(e.WorkDate) &&
                             !e.IsVoided)
                 .ToListAsync(context.CancellationToken);
 
@@ -50,7 +56,7 @@ public sealed class BillableEntryConsumer : IConsumer<TimesheetApprovedIntegrati
 
             // Resolve Role for the employee
             var roleMapping = await _db.EmployeeRoles
-                .Where(r => r.TenantId == ev.TenantId && r.EmployeeId == ev.EmployeeId && 
+                .Where(r => r.TenantId == ev.TenantId && r.EmployeeId == ev.EmployeeId &&
                             (r.ProjectId == null || r.ProjectId == projectId) &&
                             r.EffectiveFrom <= entry.Date && (r.EffectiveTo == null || r.EffectiveTo >= entry.Date))
                 .OrderByDescending(r => r.ProjectId) // Prefer project-specific role
@@ -60,7 +66,7 @@ public sealed class BillableEntryConsumer : IConsumer<TimesheetApprovedIntegrati
             {
                 // In production, we might want to flag this for manual review instead of failing the whole batch
                 // For now, we'll skip but log a warning or use a default if business rules allow.
-                continue; 
+                continue;
             }
 
             // Resolve Contract and Rate

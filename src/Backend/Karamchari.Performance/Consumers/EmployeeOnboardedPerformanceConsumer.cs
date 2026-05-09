@@ -26,6 +26,9 @@ public sealed partial class EmployeeOnboardedPerformanceConsumer : IConsumer<Emp
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
     {
         ArgumentNullException.ThrowIfNull(context);

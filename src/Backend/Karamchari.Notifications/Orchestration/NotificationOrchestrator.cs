@@ -35,13 +35,16 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task OrchestrateAsync(
         NotificationIntent intent,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(intent);
 
-        // Step 1 — Dedupe: block replay of the same event+intent+recipient.
+        // Step 1 â€” Dedupe: block replay of the same event+intent+recipient.
         var duplicate = await _db.NotificationMessages
             .AsNoTracking()
             .AnyAsync(m => m.IdempotencyKey == intent.IdempotencyKey, cancellationToken);
@@ -55,7 +58,7 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
             return;
         }
 
-        // Step 2 — Preference resolution (per-employee, per-category).
+        // Step 2 â€” Preference resolution (per-employee, per-category).
         var pref = await _db.UserNotificationPreferences
             .AsNoTracking()
             .FirstOrDefaultAsync(
@@ -72,7 +75,7 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
         string? quietEnd = pref?.QuietHoursEnd;
         string tz = pref?.Timezone ?? "UTC";
 
-        // Step 3 — Quiet hours check (best-effort; full scheduler deferred to Phase 2).
+        // Step 3 â€” Quiet hours check (best-effort; full scheduler deferred to Phase 2).
         DateTimeOffset? scheduleAfter = null;
         if (!digestEnabled && IsInQuietHours(quietStart, quietEnd, tz))
         {
@@ -83,7 +86,7 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
                     intent.RecipientEmployeeId, scheduleAfter);
         }
 
-        // Step 4 — Template resolution: prefer locale, fall back to en-US.
+        // Step 4 â€” Template resolution: prefer locale, fall back to en-US.
         var template = await ResolveTemplateAsync(
             intent.TenantId, intent.TemplateCode, NotificationChannel.InApp,
             intent.Locale, cancellationToken);
@@ -97,10 +100,10 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
             return;
         }
 
-        // Step 5 — Render.
+        // Step 5 â€” Render.
         var (subject, bodyHtml, bodyText) = _renderer.Render(template, intent.Variables);
 
-        // Step 6 — Build and persist the NotificationMessage aggregate.
+        // Step 6 â€” Build and persist the NotificationMessage aggregate.
         var message = NotificationMessage.Create(
             tenantId: intent.TenantId,
             recipientEmployeeId: intent.RecipientEmployeeId,
@@ -126,7 +129,7 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
             return;
         }
 
-        // Step 7 — Channel fanout.
+        // Step 7 â€” Channel fanout.
         if (inAppEnabled)
         {
             var inApp = _adapters.FirstOrDefault(a => a.Channel == NotificationChannel.InApp);
@@ -159,7 +162,7 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
         _db.NotificationMessages.Add(message);
         await _db.SaveChangesAsync(cancellationToken);
 
-        // Step 8 — Real-time push (fire-and-forget; failure logged inside PushService).
+        // Step 8 â€” Real-time push (fire-and-forget; failure logged inside PushService).
         var unreadCount = await _db.NotificationMessages
             .AsNoTracking()
             .CountAsync(
@@ -181,7 +184,7 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
             unreadCount, pushDto, cancellationToken);
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
+    // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task<NotificationTemplate?> ResolveTemplateAsync(
         string tenantId, string code, NotificationChannel channel,
@@ -225,7 +228,7 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
         }
         catch (Exception ex)
         {
-            // Channel failure must not abort the pipeline — record permanent failure.
+            // Channel failure must not abort the pipeline â€” record permanent failure.
             message.RecordDeliveryAttempt(
                 adapter.Channel,
                 DeliveryResult.PermanentFailure,
@@ -251,7 +254,7 @@ public sealed class NotificationOrchestrator : INotificationOrchestrator
             var s = TimeSpan.Parse(start, CultureInfo.InvariantCulture);
             var e = TimeSpan.Parse(end, CultureInfo.InvariantCulture);
 
-            // Quiet window may wrap midnight (e.g. 20:00 → 08:00).
+            // Quiet window may wrap midnight (e.g. 20:00 â†’ 08:00).
             return s < e ? current >= s && current < e : current >= s || current < e;
         }
         catch

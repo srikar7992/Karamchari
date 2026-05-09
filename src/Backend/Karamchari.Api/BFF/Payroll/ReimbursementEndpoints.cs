@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
+using Karamchari.Api.BFF.Common;
 using Karamchari.Api.Middleware;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
@@ -8,12 +9,17 @@ using Karamchari.Payroll.Services.Reimbursements;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Karamchari.Api.BFF.Common;
 
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ReimbursementEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapReimbursementEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/reimbursements").RequireAuthorization();
@@ -51,7 +57,7 @@ public static class ReimbursementEndpoints
         {
             var claim = ReimbursementClaim.SubmitWithPolicy(
                 tenantId, employeeId.Value, user.Identity?.Name ?? employeeId.ToString()!,
-                category, request.Description, request.ClaimedAmount, 
+                category, request.Description, request.ClaimedAmount,
                 request.ExpenseDate, employeeId.ToString()!, existingHashes,
                 request.AttachmentBlobPath, request.AttachmentFileName, request.AttachmentHash);
 
@@ -161,7 +167,7 @@ public static class ReimbursementEndpoints
 
         var rejectedBy = user.GetEmployeeIdString();
         if (rejectedBy is null) return Results.Unauthorized();
-        
+
         claim.Reject(rejectedBy, reason);
 
         await db.SaveChangesAsync(ct);

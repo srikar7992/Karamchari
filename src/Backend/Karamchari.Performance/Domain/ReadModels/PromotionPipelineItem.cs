@@ -12,27 +12,66 @@ public sealed class PromotionPipelineItem : Entity<Guid>, ITenantOwned
 {
     private PromotionPipelineItem() { /* EF materialization */ }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid PromotionRecommendationId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeDisplayName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CurrentCareerLevel { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string ProposedCareerLevel { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Department { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public PromotionStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public PromotionApprovalStage CurrentStage { get; private set; }
 
-    /// <summary>0–100 composite readiness score from the promotion engine.</summary>
+    /// <summary>0â€“100 composite readiness score from the promotion engine.</summary>
     public decimal ReadinessScore { get; private set; }
 
     /// <summary>Number of calendar days in the current approval stage.</summary>
     public int DaysInCurrentStage { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsStale => DaysInCurrentStage > 14;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ReviewCycleId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset LastRefreshedUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static PromotionPipelineItem Create(
         string tenantId,
         Guid promotionRecommendationId,
@@ -66,6 +105,9 @@ public sealed class PromotionPipelineItem : Entity<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Refresh(
         PromotionStatus status,
         PromotionApprovalStage currentStage,

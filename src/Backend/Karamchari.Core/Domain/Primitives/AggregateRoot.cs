@@ -1,7 +1,7 @@
 namespace Karamchari.Core.Domain.Primitives;
 
 /// <summary>
-/// Base class for aggregate roots. An aggregate is the consistency boundary â€”
+/// Base class for aggregate roots. An aggregate is the consistency boundary Ã¢â‚¬â€
 /// state changes that span multiple entities must go through the root.
 ///
 /// Aggregate roots accumulate <see cref="IDomainEvent"/>s during a unit of work.
@@ -31,7 +31,7 @@ public abstract class AggregateRoot<TId> : Entity<TId>, IHasDomainEvents
 
     /// <summary>
     /// Records a domain event. Events are dispatched only after the aggregate's
-    /// state has been committed â€” never publish synchronously inside a method.
+    /// state has been committed Ã¢â‚¬â€ never publish synchronously inside a method.
     /// </summary>
     protected void RaiseDomainEvent(IDomainEvent @event)
     {

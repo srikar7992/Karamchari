@@ -1,4 +1,5 @@
 using Karamchari.Api.BFF.Common;
+using Karamchari.Api.Validation;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
@@ -11,12 +12,16 @@ using Karamchari.Payroll.Services.Statutory.Rules;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
-using Karamchari.Api.Validation;
-
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class PayrollEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapPayrollEndpoints(this WebApplication app)
     {
         var payroll = app.MapGroup("/api/payroll").RequireAuthorization();
@@ -26,7 +31,7 @@ public static class PayrollEndpoints
         payroll.MapGet("/runs/{id}/summary", GetPayrollRunSummary);
         payroll.MapGet("/runs/{id}/details", GetPayrollRunDetails);
         payroll.MapPut("/runs/{id}/lock", LockPayrollRun);
-        
+
         payroll.MapPost("/salary-components", CreateSalaryComponent);
         payroll.MapGet("/salary-components", GetSalaryComponents);
         payroll.MapPost("/salary-templates", CreateSalaryTemplate);
@@ -37,8 +42,8 @@ public static class PayrollEndpoints
     }
 
     private static async Task<IResult> StartPayrollRun(
-        StartPayrollRunRequest request, 
-        IPublishEndpoint publishEndpoint, 
+        StartPayrollRunRequest request,
+        IPublishEndpoint publishEndpoint,
         ITenantProvider tenantProvider)
     {
         var runId = NewId.NextGuid();
@@ -64,7 +69,7 @@ public static class PayrollEndpoints
             .Where(e => e.RunId == id)
             .SumAsync(e => e.TdsDeducted);
 
-        return Results.Ok(new 
+        return Results.Ok(new
         {
             run.CorrelationId,
             run.PeriodName,
@@ -99,7 +104,7 @@ public static class PayrollEndpoints
 
         var previousMap = previousEntries.ToDictionary(e => e.EmployeeId, e => e);
 
-        var details = currentEntries.Select(e => 
+        var details = currentEntries.Select(e =>
         {
             var prev = previousMap.GetValueOrDefault(e.EmployeeId);
             decimal variance = 0;
@@ -155,17 +160,17 @@ public static class PayrollEndpoints
     }
 
     private static async Task<IResult> CalculateCTCBreakdown(
-        Guid id, 
-        CalculateCTCBreakdownRequest request, 
+        Guid id,
+        CalculateCTCBreakdownRequest request,
         PayrollDbContext dbContext)
     {
         var template = await dbContext.SalaryTemplates.FindAsync(id);
         if (template == null) return Results.NotFound("Template not found");
-        
+
         var masterComponents = await dbContext.SalaryComponents.ToListAsync();
         var plan = CTCTemplateCompiler.Compile(template, masterComponents);
         var result = CTCBreakdownService.Calculate(request.AnnualCTC, plan, request.Overrides);
-        
+
         return Results.Ok(result);
     }
 
@@ -200,8 +205,8 @@ public static class PayrollEndpoints
 
         var statutoryContext = new StatutoryContext(breakdown, profile!, ruleSet.Year, DateTime.UtcNow.Month);
         var result = await StatutoryPipelineEngine.ExecuteAsync(statutoryContext, ruleSet);
-        
-        return Results.Ok(new 
+
+        return Results.Ok(new
         {
             Breakdown = breakdown,
             Statutory = result

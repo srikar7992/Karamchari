@@ -48,29 +48,65 @@ public sealed class DigestBatch : AggregateRoot<Guid>, ITenantOwned
         MessageCount = sourceMessageIds.Count;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RecipientEmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string RecipientEmail { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DigestType DigestType { get; private set; }
 
     /// <summary>"2026-05-09" for daily; "2026-W19" for weekly.</summary>
     public string WindowKey { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string IdempotencyKey { get; private set; } = string.Empty;
 
     /// <summary>JSON-serialized list of source NotificationMessage IDs included in this digest.</summary>
     public IReadOnlyList<Guid> SourceMessageIds { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string RenderedSubject { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string RenderedBodyHtml { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string RenderedBodyText { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int MessageCount { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DigestBatchStatus Status { get; private set; }
     public DateTimeOffset? ScheduleDeliverAfter { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedOnUtc { get; private set; }
     public DateTimeOffset? DeliveredOnUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static DigestBatch Create(
         string tenantId,
         Guid recipientEmployeeId,
@@ -100,27 +136,42 @@ public sealed class DigestBatch : AggregateRoot<Guid>, ITenantOwned
             renderedSubject, renderedBodyHtml, renderedBodyText, scheduleDeliverAfter);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkDelivered()
     {
         Status = DigestBatchStatus.Delivered;
         DeliveredOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkFailed(string reason)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
         Status = DigestBatchStatus.Failed;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Cancel() => Status = DigestBatchStatus.Cancelled;
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum DigestType
 {
     Daily = 1,
     Weekly = 2,
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum DigestBatchStatus
 {
     Pending = 1,

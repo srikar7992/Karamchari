@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 /// Aggregates unbilled revenue into draft invoices.
 /// Flow:
 ///   1. Query unbilled entries for the client up to <c>cutoffDate</c>
-///   2. Group by (Employee × Project) to form line items
+///   2. Group by (Employee Ã— Project) to form line items
 ///   3. Create Invoice aggregate
 ///   4. Mark source rows IsInvoiced = true (atomic with invoice creation)
 ///   5. Generate PDF via <see cref="InvoicePdfDocument"/>
@@ -55,12 +55,12 @@ public sealed partial class InvoiceGeneratorService
             return null;
         }
 
-        // 2. Fetch employee name lookup (employee name is stored in Payroll domain —
+        // 2. Fetch employee name lookup (employee name is stored in Payroll domain â€”
         //    we use the EmployeeId directly in descriptions for now; real impl
         //    would call the HR read-model or use a local projection).
         var employeeIds = unbilledItems.Select(r => r.EmployeeId).Distinct().ToList();
 
-        // 3. Group by (EmployeeId × ProjectId) to create invoice lines.
+        // 3. Group by (EmployeeId Ã— ProjectId) to create invoice lines.
         var grouped = unbilledItems
             .GroupBy(r => new { r.EmployeeId, r.ProjectId, r.Currency })
             .Select(g =>
@@ -72,7 +72,7 @@ public sealed partial class InvoiceGeneratorService
 
                 return new InvoiceLine
                 {
-                    Description = $"Employee {g.Key.EmployeeId.ToString()[..8]} — Project {g.Key.ProjectId.ToString()[..8]}",
+                    Description = $"Employee {g.Key.EmployeeId.ToString()[..8]} â€” Project {g.Key.ProjectId.ToString()[..8]}",
                     Hours = totalHours,
                     Rate = displayRate,
                     Amount = lineAmount,

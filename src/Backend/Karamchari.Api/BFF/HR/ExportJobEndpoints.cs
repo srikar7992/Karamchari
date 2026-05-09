@@ -8,10 +8,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.HR;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ExportJobEndpoints
 {
     private const int MaxConcurrentExportsPerTenant = 3;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapExportJobs(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/hr/reports").RequireAuthorization();

@@ -1,9 +1,9 @@
 namespace Karamchari.Payroll.Consumers;
 
-using MassTransit;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 /// <summary>
@@ -47,7 +47,7 @@ public sealed class LeaveRequestApprovedConsumer : IConsumer<LeaveRequestApprove
 
         if (profile == null)
         {
-            // Employee has no active payroll profile — cannot deduct pay.
+            // Employee has no active payroll profile â€” cannot deduct pay.
             return;
         }
 
@@ -63,7 +63,7 @@ public sealed class LeaveRequestApprovedConsumer : IConsumer<LeaveRequestApprove
         // We don't have TenantId in the event yet, but we need it for the domain model.
         // For now, use a placeholder or extract from context if available.
         // Phase 1B: adding TenantId to event would be ideal, but for now we'll use a dummy.
-        var tenantId = "tenant_oakridge"; 
+        var tenantId = "tenant_oakridge";
 
         var deduction = PayrollDeduction.Create(
             tenantId,

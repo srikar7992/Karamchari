@@ -5,8 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Karamchari.Api.BFF.Compliance;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ComplianceEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapComplianceEndpoints(this WebApplication app)
     {
         var compliance = app.MapGroup("/api/compliance").RequireAuthorization();
@@ -81,8 +87,8 @@ public static class ComplianceEndpoints
     }
 
     private static async Task<IResult> GetDeclarationDocument(
-        Guid id, 
-        Karamchari.Payroll.Services.Statutory.IITDeclarationRepository repo, 
+        Guid id,
+        Karamchari.Payroll.Services.Statutory.IITDeclarationRepository repo,
         Karamchari.Payroll.Services.Declarations.IProofStorage storage)
     {
         var declaration = await repo.GetByIdAsync(id);
@@ -95,8 +101,8 @@ public static class ComplianceEndpoints
     }
 
     private static async Task<IResult> ApproveDeclaration(
-        Guid id, 
-        [FromBody] decimal amount, 
+        Guid id,
+        [FromBody] decimal amount,
         Karamchari.Payroll.Services.Declarations.ITDeclarationService service)
     {
         var approver = "HR_Admin_01";
@@ -105,8 +111,8 @@ public static class ComplianceEndpoints
     }
 
     private static async Task<IResult> RejectDeclaration(
-        Guid id, 
-        [FromBody] string reason, 
+        Guid id,
+        [FromBody] string reason,
         Karamchari.Payroll.Services.Declarations.ITDeclarationService service)
     {
         var rejectedBy = "HR_Admin_01";

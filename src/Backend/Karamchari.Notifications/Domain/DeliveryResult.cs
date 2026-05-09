@@ -5,10 +5,10 @@ public enum DeliveryResult
 {
     Success = 1,
 
-    /// <summary>Transient failure — retryable.</summary>
+    /// <summary>Transient failure â€” retryable.</summary>
     TransientFailure = 2,
 
-    /// <summary>Permanent failure — do not retry (e.g., invalid address, unsubscribed).</summary>
+    /// <summary>Permanent failure â€” do not retry (e.g., invalid address, unsubscribed).</summary>
     PermanentFailure = 3,
 
     /// <summary>Delivery skipped due to user opt-out for this category/channel.</summary>
@@ -20,6 +20,6 @@ public enum DeliveryResult
     /// <summary>Delivery deferred due to rate limit.</summary>
     DeferredRateLimit = 6,
 
-    /// <summary>Delivery skipped — required data missing (e.g., no recipient email address).</summary>
+    /// <summary>Delivery skipped â€” required data missing (e.g., no recipient email address).</summary>
     Skipped = 7,
 }

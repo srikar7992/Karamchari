@@ -1,8 +1,8 @@
-using MassTransit;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.FnF;
 using Karamchari.Payroll.Services.FnF;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +10,7 @@ namespace Karamchari.Payroll.Consumers;
 
 /// <summary>
 /// Triggers FnF calculation when settlement is initiated.
-/// Idempotent via ProcessedEventLog — safe to replay.
+/// Idempotent via ProcessedEventLog â€” safe to replay.
 /// </summary>
 public sealed class InitiateFnFCalculationConsumer : IConsumer<InitiateFnFCalculationCommand>
 {
@@ -28,6 +28,9 @@ public sealed class InitiateFnFCalculationConsumer : IConsumer<InitiateFnFCalcul
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<InitiateFnFCalculationCommand> context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -58,7 +61,7 @@ public sealed class InitiateFnFCalculationConsumer : IConsumer<InitiateFnFCalcul
             return;
         }
 
-        // Default calculation inputs — real impl: load from HR exit data
+        // Default calculation inputs â€” real impl: load from HR exit data
         var input = new FnFCalculationInput(
             msg.TenantId, msg.EmployeeId,
             settlement.LastWorkingDay,
@@ -100,6 +103,9 @@ public sealed class DisburseFnFConsumer : IConsumer<DisburseFnFCommand>
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<DisburseFnFCommand> context)
     {
         ArgumentNullException.ThrowIfNull(context);

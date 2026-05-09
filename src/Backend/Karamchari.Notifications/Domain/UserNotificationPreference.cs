@@ -39,13 +39,37 @@ public sealed class UserNotificationPreference : AggregateRoot<Guid>, ITenantOwn
         Timezone = timezone;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public NotificationCategory Category { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool InAppEnabled { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool EmailEnabled { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool PushEnabled { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool DigestEnabled { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DigestFrequency DigestFrequency { get; private set; }
 
     /// <summary>HH:mm format in local time, e.g. "20:00".</summary>
@@ -57,6 +81,9 @@ public sealed class UserNotificationPreference : AggregateRoot<Guid>, ITenantOwn
     /// <summary>IANA timezone identifier, e.g. "Asia/Kolkata".</summary>
     public string Timezone { get; private set; } = "UTC";
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static UserNotificationPreference CreateDefault(
         string tenantId,
         Guid employeeId,
@@ -79,6 +106,9 @@ public sealed class UserNotificationPreference : AggregateRoot<Guid>, ITenantOwn
             timezone: timezone);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Update(
         bool inApp, bool email, bool push,
         bool digest, DigestFrequency frequency,

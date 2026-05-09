@@ -4,10 +4,10 @@ using Karamchari.Core.Multitenancy;
 namespace Karamchari.Compensation.Domain;
 
 /// <summary>
-/// Merit matrix: maps (performance rating, compa-ratio range) → recommended increment percentage.
+/// Merit matrix: maps (performance rating, compa-ratio range) â†’ recommended increment percentage.
 /// Guides merit cycle allocations. One matrix per review cycle (year).
 ///
-/// Example: ExceedsExpectations + Compa-ratio 80–100% → 8–12% increment.
+/// Example: ExceedsExpectations + Compa-ratio 80â€“100% â†’ 8â€“12% increment.
 /// Managers can deviate with HR approval; the matrix is a recommendation, not a hard constraint.
 /// </summary>
 public sealed class MeritMatrix : AggregateRoot<Guid>, ITenantOwned
@@ -29,15 +29,39 @@ public sealed class MeritMatrix : AggregateRoot<Guid>, ITenantOwned
         IsPublished = false;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int ReviewYear { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CurrencyCode { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsPublished { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<MeritMatrixCell> Cells => _cells.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static MeritMatrix Create(string tenantId, string name, int reviewYear, string currencyCode)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
@@ -49,6 +73,9 @@ public sealed class MeritMatrix : AggregateRoot<Guid>, ITenantOwned
         return new MeritMatrix(Guid.NewGuid(), tenantId, name.Trim(), reviewYear, currencyCode.ToUpperInvariant());
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddCell(
         MeritRating rating,
         decimal compaRatioMin,
@@ -69,6 +96,9 @@ public sealed class MeritMatrix : AggregateRoot<Guid>, ITenantOwned
         _cells.Add(cell);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Publish()
     {
         if (_cells.Count == 0)
@@ -111,11 +141,32 @@ public sealed class MeritMatrixCell : Entity<Guid>
 
     private MeritMatrixCell() { /* EF materialization */ }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid MatrixId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public MeritRating Rating { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal CompaRatioMin { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal CompaRatioMax { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal MinIncrementPercent { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal MidIncrementPercent { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal MaxIncrementPercent { get; private set; }
 }

@@ -11,21 +11,42 @@ public sealed class WorkforceSchedule : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<ShiftAssignment> _assignments = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TimeZoneId { get; private set; } = "UTC";
     public Guid? LocationId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly StartDate { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly EndDate { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<ShiftAssignment> Assignments => _assignments.AsReadOnly();
 
     private WorkforceSchedule() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WorkforceSchedule Create(string tenantId, string name, string tzId, DateOnly start, DateOnly end, Guid? locationId = null)
     {
         if (end < start) throw new ArgumentException("End date must be after start.");
-        
+
         return new WorkforceSchedule
         {
             Id = Guid.NewGuid(),
@@ -38,6 +59,9 @@ public sealed class WorkforceSchedule : AggregateRoot<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AssignShift(Guid employeeId, Guid shiftId, DateOnly date)
     {
         if (date < StartDate || date > EndDate)
@@ -51,11 +75,26 @@ public sealed class WorkforceSchedule : AggregateRoot<Guid>, ITenantOwned
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class ShiftAssignment : Entity<Guid>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ScheduleId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ShiftId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly Date { get; private set; }
 
     private ShiftAssignment() { }

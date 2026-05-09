@@ -9,7 +9,7 @@ using Karamchari.Payroll.Services;
 /// </summary>
 public class CTCBreakdownTests
 {
-    // ── Shared component IDs ────────────────────────────────────────────────
+    // â”€â”€ Shared component IDs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private static readonly SalaryComponent BasicComp =
         SalaryComponent.Create("Basic", ComponentType.Earning);
@@ -20,12 +20,15 @@ public class CTCBreakdownTests
     private static readonly SalaryComponent SpecialAllowanceComp =
         SalaryComponent.Create("Special Allowance", ComponentType.Earning);
 
-    // ── CTCTemplateCompiler ─────────────────────────────────────────────────
+    // â”€â”€ CTCTemplateCompiler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Compile_LinearDependency_ShouldReturnOrderedSteps()
     {
-        // Arrange: Basic (40% of CTC) → HRA (40% of Basic)
+        // Arrange: Basic (40% of CTC) â†’ HRA (40% of Basic)
         var template = SalaryTemplate.Create("Standard");
         template.AddComponent(new SalaryTemplateComponent
         {
@@ -60,6 +63,9 @@ public class CTCBreakdownTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Compile_WithRemainderComponent_ShouldIsolateItAsRemainderStep()
     {
         // Arrange
@@ -83,16 +89,19 @@ public class CTCBreakdownTests
         // Act
         var plan = CTCTemplateCompiler.Compile(template, masters);
 
-        // Assert — Special Allowance is the remainder step, not in OrderedSteps
+        // Assert â€” Special Allowance is the remainder step, not in OrderedSteps
         Assert.Single(plan.OrderedSteps);
         Assert.NotNull(plan.RemainderStep);
         Assert.Equal(SpecialAllowanceComp.Id, plan.RemainderStep!.ComponentId);
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Compile_CircularDependency_ShouldThrow()
     {
-        // Arrange: A depends on B, B depends on A → cycle
+        // Arrange: A depends on B, B depends on A â†’ cycle
         var compA = SalaryComponent.Create("CompA", ComponentType.Earning);
         var compB = SalaryComponent.Create("CompB", ComponentType.Earning);
 
@@ -119,6 +128,9 @@ public class CTCBreakdownTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Compile_MultipleRemainderComponents_ShouldThrow()
     {
         // Arrange
@@ -135,9 +147,12 @@ public class CTCBreakdownTests
         Assert.Throws<InvalidOperationException>(() => CTCTemplateCompiler.Compile(template, masters));
     }
 
-    // ── CTCBreakdownService ─────────────────────────────────────────────────
+    // â”€â”€ CTCBreakdownService â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Calculate_PercentageOfCTC_ShouldDistributeCorrectly()
     {
         // Arrange: Basic = 40% CTC, HRA = 40% Basic, Special = Remainder
@@ -166,7 +181,7 @@ public class CTCBreakdownTests
 
         var masters = new List<SalaryComponent> { BasicComp, HraComp, SpecialAllowanceComp };
         var plan = CTCTemplateCompiler.Compile(template, masters);
-        const decimal annualCTC = 1_200_000m; // ₹12L
+        const decimal annualCTC = 1_200_000m; // â‚¹12L
 
         // Act
         var result = CTCBreakdownService.Calculate(annualCTC, plan);
@@ -184,6 +199,9 @@ public class CTCBreakdownTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Calculate_RemainderOverflow_ShouldThrow()
     {
         // Arrange: two fixed amounts that together exceed CTC
@@ -216,11 +234,14 @@ public class CTCBreakdownTests
         var masters = new List<SalaryComponent> { comp1, comp2, rem };
         var plan = CTCTemplateCompiler.Compile(template, masters);
 
-        // Act + Assert — 700k + 600k = 1.3M > 1M CTC → overflow
+        // Act + Assert â€” 700k + 600k = 1.3M > 1M CTC â†’ overflow
         Assert.Throws<InvalidOperationException>(() => CTCBreakdownService.Calculate(1_000_000m, plan));
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Calculate_MonthlyBreakdownShouldSumToApproximatelyMonthlyGross()
     {
         // Arrange: single earning component = 100% of CTC, no deductions, no remainder

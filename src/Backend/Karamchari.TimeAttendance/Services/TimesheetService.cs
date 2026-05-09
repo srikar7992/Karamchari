@@ -26,9 +26,9 @@ public sealed class TimesheetService
         _capacityProvider = capacityProvider;
     }
 
-    // ── Create ───────────────────────────────────────────────────────────────
+    // â”€â”€ Create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    /// <summary>Creates a blank timesheet for a week. Idempotent — throws if one already exists.</summary>
+    /// <summary>Creates a blank timesheet for a week. Idempotent â€” throws if one already exists.</summary>
     public async Task<Timesheet> CreateAsync(
         Guid employeeId,
         DateOnly weekStartDate,
@@ -49,15 +49,15 @@ public sealed class TimesheetService
         return timesheet;
     }
 
-    // ── Entry management ─────────────────────────────────────────────────────
+    // â”€â”€ Entry management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// Replaces the full entry set.
     ///
     /// Pipeline applied before the aggregate sees the entries:
-    /// 1. Cross-midnight split   — entries spanning midnight become two entries.
-    /// 2. Capacity validation    — total billable hours checked against ICapacityProvider.
-    /// 3. Aggregate validation   — per-entry invariants + overlap detection.
+    /// 1. Cross-midnight split   â€” entries spanning midnight become two entries.
+    /// 2. Capacity validation    â€” total billable hours checked against ICapacityProvider.
+    /// 3. Aggregate validation   â€” per-entry invariants + overlap detection.
     /// </summary>
     public async Task UpdateEntriesAsync(
         Guid timesheetId,
@@ -71,7 +71,7 @@ public sealed class TimesheetService
             .SelectMany(TimesheetValidator.NormalizeAcrossMidnight)
             .ToList();
 
-        // 2. Capacity check — null means no cap configured.
+        // 2. Capacity check â€” null means no cap configured.
         var capacity = await _capacityProvider.GetBillableCapacityAsync(
             timesheet.EmployeeId, timesheet.WeekStartDate, cancellationToken);
         TimesheetValidator.ValidateCapacity(normalized, capacity);
@@ -82,8 +82,11 @@ public sealed class TimesheetService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Lifecycle transitions ─────────────────────────────────────────────────
+    // â”€â”€ Lifecycle transitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task SubmitAsync(Guid timesheetId, Guid actorId, CancellationToken cancellationToken = default)
     {
         var timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
@@ -92,9 +95,9 @@ public sealed class TimesheetService
     }
 
     /// <summary>
-    /// Full approval — approves all entries and the timesheet in one operation.
-    /// Triggers <c>TimesheetApproved</c> domain event → outbox → <c>TimesheetApprovedConsumer</c>
-    /// → <c>TimesheetApprovedIntegrationEvent</c> published to Payroll, Revenue, Utilization.
+    /// Full approval â€” approves all entries and the timesheet in one operation.
+    /// Triggers <c>TimesheetApproved</c> domain event â†’ outbox â†’ <c>TimesheetApprovedConsumer</c>
+    /// â†’ <c>TimesheetApprovedIntegrationEvent</c> published to Payroll, Revenue, Utilization.
     /// </summary>
     public async Task ApproveAsync(Guid timesheetId, Guid approverId, CancellationToken cancellationToken = default)
     {
@@ -117,6 +120,9 @@ public sealed class TimesheetService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task RejectAsync(
         Guid timesheetId,
         string reason,
@@ -144,18 +150,24 @@ public sealed class TimesheetService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    // ── Queries ───────────────────────────────────────────────────────────────
+    // â”€â”€ Queries â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<Timesheet?> FindAsync(Guid timesheetId, CancellationToken cancellationToken = default) =>
         await _dbContext.Timesheets.FindAsync([timesheetId], cancellationToken);
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IAsyncEnumerable<Timesheet> GetForEmployeeAsync(Guid employeeId, DateOnly from, DateOnly to) =>
         _dbContext.Timesheets
             .Where(t => t.EmployeeId == employeeId && t.WeekStartDate >= from && t.WeekStartDate <= to)
             .OrderBy(t => t.WeekStartDate)
             .AsAsyncEnumerable();
 
-    // ── Private ───────────────────────────────────────────────────────────────
+    // â”€â”€ Private â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async Task<Timesheet> RequireTimesheetAsync(Guid timesheetId, CancellationToken cancellationToken)
     {

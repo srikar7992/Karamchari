@@ -1,11 +1,14 @@
+using System.Text.Json;
 using Karamchari.Core.Domain.Idempotency;
 using Karamchari.Core.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace Karamchari.Api.Middleware;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class IdempotencyFilter : IEndpointFilter
 {
     private readonly CoreDbContext _dbContext;
@@ -15,6 +18,9 @@ public sealed class IdempotencyFilter : IEndpointFilter
         _dbContext = dbContext;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -81,7 +87,7 @@ public sealed class IdempotencyFilter : IEndpointFilter
                 // 24 hour retention policy
                 var ttl = TimeSpan.FromHours(24);
                 var idempotentRequest = IdempotentRequest.Create(idempotencyKey.ToString(), tenantId, statusCode, body, ttl);
-                
+
                 _dbContext.IdempotentRequests.Add(idempotentRequest);
                 await _dbContext.SaveChangesAsync();
             }
@@ -91,8 +97,14 @@ public sealed class IdempotencyFilter : IEndpointFilter
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class IdempotencyExtensions
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static RouteHandlerBuilder WithIdempotency(this RouteHandlerBuilder builder)
     {
         return builder.AddEndpointFilter<IdempotencyFilter>();

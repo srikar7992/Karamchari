@@ -5,7 +5,7 @@ namespace Karamchari.Payroll.Services.Statutory.Rules;
 /// </summary>
 public sealed class EpfStatutoryRule : IStatutoryRule
 {
-    private readonly List<Guid> _epfBaseComponentIds; 
+    private readonly List<Guid> _epfBaseComponentIds;
     private const decimal StatutoryWageCap = 15000m;
     private const decimal EpfRate = 0.12m; // Standard 12%
 
@@ -22,7 +22,7 @@ public sealed class EpfStatutoryRule : IStatutoryRule
     public string Name => "EPF_Employee";
 
     /// <inheritdoc/>
-    public int ExecutionOrder => 10; 
+    public int ExecutionOrder => 10;
 
     /// <inheritdoc/>
     public StatutoryResult Apply(StatutoryContext context)
@@ -31,12 +31,12 @@ public sealed class EpfStatutoryRule : IStatutoryRule
 
         decimal epfBaseWage = context.GetBaseWage(_epfBaseComponentIds);
 
-        // If not opting for Voluntary PF (VPF), cap the base at ₹15,000 for statutory deduction
-        string explanation = $"12% of wage base (₹{epfBaseWage:N2})";
+        // If not opting for Voluntary PF (VPF), cap the base at â‚¹15,000 for statutory deduction
+        string explanation = $"12% of wage base (â‚¹{epfBaseWage:N2})";
         if (!context.Profile.OptedForVoluntaryPF && epfBaseWage > StatutoryWageCap)
         {
             epfBaseWage = StatutoryWageCap;
-            explanation = $"12% of capped wage base (₹{StatutoryWageCap:N2})";
+            explanation = $"12% of capped wage base (â‚¹{StatutoryWageCap:N2})";
         }
 
         // Round to nearest rupee as per EPF standards

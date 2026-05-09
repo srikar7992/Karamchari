@@ -4,6 +4,9 @@ using Xunit;
 
 namespace Karamchari.Payroll.Tests;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class ComplianceTests
 {
     private readonly IEcrGenerator _ecrGenerator = new EcrGenerator();
@@ -12,6 +15,9 @@ public class ComplianceTests
     private readonly IComplianceRiskEngine _riskEngine = new ComplianceRiskEngine();
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void EcrGenerator_ShouldProduceCorrectPipeSeparatedFormat()
     {
         // Arrange
@@ -44,6 +50,9 @@ public class ComplianceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void EsicGenerator_ShouldEnforceEligibilityAndFormat()
     {
         // Arrange
@@ -69,6 +78,9 @@ public class ComplianceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void TdsGenerator_ShouldValidatePanAndFixedWidth()
     {
         // Arrange
@@ -99,6 +111,9 @@ public class ComplianceTests
     [Theory]
     [InlineData(10000, 10, 103)] // 10000 * 0.12 * 10/365 = 32.8 + 10000 * 0.05 = 500 => ~533? No, damages = 5% = 500. Total ~533.
     [InlineData(10000, 70, 1023)] // 70 days => 10% damages = 1000. Interest = 10000*0.12*70/365 = 230. Total ~1230.
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RiskEngine_ShouldCalculateCorrectEpfPenalty(decimal amount, int daysLate, decimal expectedPenaltyMin)
     {
         // Arrange
@@ -113,6 +128,9 @@ public class ComplianceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void TdsPenalty_ShouldBeLinearPerDay()
     {
         // Arrange

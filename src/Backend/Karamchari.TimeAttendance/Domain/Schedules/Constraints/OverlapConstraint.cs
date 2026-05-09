@@ -5,15 +5,21 @@ namespace Karamchari.TimeAttendance.Domain.Schedules.Constraints;
 /// </summary>
 public sealed class OverlapConstraint : IShiftConstraint
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name => "OverlapPrevention";
 
-    public IEnumerable<ConstraintViolation> Evaluate(Guid employeeId, Guid shiftId, DateOnly date, SchedulingContext context)
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
+    public IEnumerable<ConstraintViolation> Evaluate(Guid employeeId, Guid shiftId, DateOnly workDate, SchedulingContext context)
     {
-        if (context.Schedule.Assignments.Any(a => a.EmployeeId == employeeId && a.Date == date))
+        if (context.Schedule.Assignments.Any(a => a.EmployeeId == employeeId && a.Date == workDate))
         {
             yield return new ConstraintViolation(
-                Name, 
-                $"Employee already has a shift assignment on {date}.", 
+                Name,
+                $"Employee already has a shift assignment on {workDate}.",
                 ConstraintSeverity.Error);
         }
     }

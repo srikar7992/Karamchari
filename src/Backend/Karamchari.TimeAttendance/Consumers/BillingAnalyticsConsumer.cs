@@ -13,7 +13,7 @@ namespace Karamchari.TimeAttendance.Consumers;
 /// Idempotency: Deduplicates on eventId + consumerName.
 /// Logic: Attaches revenue/cash to the current day's grain.
 /// </summary>
-public sealed class BillingAnalyticsConsumer : 
+public sealed class BillingAnalyticsConsumer :
     IConsumer<InvoiceIssuedIntegrationEvent>,
     IConsumer<PaymentReceivedIntegrationEvent>
 {
@@ -22,6 +22,9 @@ public sealed class BillingAnalyticsConsumer :
 
     public BillingAnalyticsConsumer(TimeAttendanceDbContext db) => _db = db;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<InvoiceIssuedIntegrationEvent> context)
     {
         var ev = context.Message;
@@ -31,14 +34,17 @@ public sealed class BillingAnalyticsConsumer :
         if (await IsAlreadyProcessed(ev.EventId, context.CancellationToken)) return;
 
         // 2. Update Revenue (Invoiced)
-        await UpsertProjectMetricAsync(ev.TenantId, ev.ProjectId, date, 
-            revenueDelta: ev.TotalAmount, cashDelta: 0, 
+        await UpsertProjectMetricAsync(ev.TenantId, ev.ProjectId, date,
+            revenueDelta: ev.TotalAmount, cashDelta: 0,
             eventId: ev.EventId, occurredAt: ev.OccurredAt, context.CancellationToken);
 
         // 3. Mark Processed
         await MarkAsProcessed(ev.TenantId, ev.EventId, context.CancellationToken);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<PaymentReceivedIntegrationEvent> context)
     {
         var ev = context.Message;
@@ -47,16 +53,16 @@ public sealed class BillingAnalyticsConsumer :
         if (await IsAlreadyProcessed(ev.EventId, context.CancellationToken)) return;
 
         // 2. Update Cash Flow (Collected)
-        await UpsertProjectMetricAsync(ev.TenantId, ev.ProjectId, date, 
-            revenueDelta: 0, cashDelta: ev.Amount, 
+        await UpsertProjectMetricAsync(ev.TenantId, ev.ProjectId, date,
+            revenueDelta: 0, cashDelta: ev.Amount,
             eventId: ev.EventId, occurredAt: ev.OccurredAt, context.CancellationToken);
 
         await MarkAsProcessed(ev.TenantId, ev.EventId, context.CancellationToken);
     }
 
     private async Task UpsertProjectMetricAsync(
-        string tenantId, Guid projectId, DateOnly date, 
-        decimal revenueDelta, decimal cashDelta, 
+        string tenantId, Guid projectId, DateOnly date,
+        decimal revenueDelta, decimal cashDelta,
         Guid eventId, DateTimeOffset occurredAt, CancellationToken ct)
     {
         var rows = await _db.Database.ExecuteSqlRawAsync(

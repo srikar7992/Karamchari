@@ -6,7 +6,7 @@ namespace Karamchari.Notifications.Channels;
 /// Abstraction over a single delivery channel (in-app, email, push).
 /// The orchestrator calls every registered adapter whose channel matches the
 /// recipient's enabled preferences. Adapters record their own delivery attempts
-/// on the message aggregate — they never directly update <see cref="NotificationStatus"/>.
+/// on the message aggregate â€” they never directly update <see cref="NotificationStatus"/>.
 /// </summary>
 public interface INotificationChannelAdapter
 {

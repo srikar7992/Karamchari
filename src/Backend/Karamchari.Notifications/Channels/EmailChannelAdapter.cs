@@ -6,7 +6,7 @@ namespace Karamchari.Notifications.Channels;
 
 /// <summary>
 /// Email delivery adapter. Delegates sending to IEmailProvider so the provider
-/// (NullEmailProvider → SendGrid → SES) can be swapped without touching this class.
+/// (NullEmailProvider â†’ SendGrid â†’ SES) can be swapped without touching this class.
 /// </summary>
 public sealed class EmailChannelAdapter : INotificationChannelAdapter
 {
@@ -19,8 +19,14 @@ public sealed class EmailChannelAdapter : INotificationChannelAdapter
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public NotificationChannel Channel => NotificationChannel.Email;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task DeliverAsync(NotificationMessage message, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(message.RecipientEmail))

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 /// <summary>
 /// Accounts Receivable aging and cash flow forecasting.
 ///
-/// AR Aging buckets: Current, 1–30, 31–60, 60+
+/// AR Aging buckets: Current, 1â€“30, 31â€“60, 60+
 /// Cash flow forecast: weighted probability based on age of invoice.
 /// </summary>
 public sealed class CashFlowService

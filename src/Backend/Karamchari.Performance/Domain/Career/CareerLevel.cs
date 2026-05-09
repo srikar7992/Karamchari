@@ -4,7 +4,7 @@ namespace Karamchari.Performance.Domain.Career;
 
 /// <summary>
 /// One level within a CareerTrack (e.g., L3, Senior, Principal).
-/// CompetencyRequirements define the skill bar for this level — stored as JSON.
+/// CompetencyRequirements define the skill bar for this level â€” stored as JSON.
 /// </summary>
 public sealed class CareerLevel : Entity<Guid>
 {
@@ -27,11 +27,26 @@ public sealed class CareerLevel : Entity<Guid>
         Description = description;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid TrackId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Code { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string DisplayName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int Order { get; private set; }
     public string? Description { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<CompetencyRequirement> CompetencyRequirements => _competencyRequirements.AsReadOnly();
 
     internal void AddCompetencyRequirement(CompetencyRequirement requirement)

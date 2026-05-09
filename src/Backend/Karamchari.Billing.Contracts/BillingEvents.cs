@@ -1,5 +1,8 @@
 namespace Karamchari.Billing.Contracts;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record InvoiceIssuedIntegrationEvent(
     Guid EventId,
     Guid InvoiceId,
@@ -9,6 +12,9 @@ public sealed record InvoiceIssuedIntegrationEvent(
     decimal TaxAmount,
     DateTimeOffset OccurredAt);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record PaymentReceivedIntegrationEvent(
     Guid EventId,
     Guid PaymentId,

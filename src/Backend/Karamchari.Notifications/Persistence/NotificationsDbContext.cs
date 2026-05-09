@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Notifications.Persistence;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class NotificationsDbContext : KaramchariDbContext
 {
     private const string MessagingSchema = "dbo";
@@ -17,9 +20,21 @@ public sealed class NotificationsDbContext : KaramchariDbContext
     {
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<UserNotificationPreference> UserNotificationPreferences => Set<UserNotificationPreference>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<NotificationMessage> NotificationMessages => Set<NotificationMessage>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<DigestBatch> DigestBatches => Set<DigestBatch>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)

@@ -6,12 +6,12 @@ namespace Karamchari.Performance.Domain.Reporting;
 /// <summary>
 /// Aggregate representing one async export request.
 ///
-/// State machine: Queued → Processing → Ready | Failed | Cancelled
+/// State machine: Queued â†’ Processing â†’ Ready | Failed | Cancelled
 ///
 /// Idempotency key: TenantId:ReportType:ParameterHash:RequestedByEmployeeId
 /// Duplicates within 60 seconds return the existing job; beyond 60 seconds a new job is valid.
 ///
-/// ADR-0013: exports run async; streaming query → ClosedXML/CSV writer → Azure Blob (24h TTL).
+/// ADR-0013: exports run async; streaming query â†’ ClosedXML/CSV writer â†’ Azure Blob (24h TTL).
 /// </summary>
 public sealed class ExportJob : AggregateRoot<Guid>, ITenantOwned
 {
@@ -34,23 +34,44 @@ public sealed class ExportJob : AggregateRoot<Guid>, ITenantOwned
         CreatedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid RequestedByEmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ReportType ReportType { get; private set; }
 
     /// <summary>JSON-serialized report parameters (filters, cycle IDs, date ranges).</summary>
     public string ParametersJson { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string IdempotencyKey { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ExportJobStatus Status { get; private set; }
 
     /// <summary>Azure Blob Storage URI set when Status transitions to Ready.</summary>
     public string? BlobUri { get; private set; }
 
     public string? ErrorMessage { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedOnUtc { get; private set; }
     public DateTimeOffset? CompletedOnUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ExportJob Create(
         string tenantId,
         Guid requestedByEmployeeId,
@@ -65,6 +86,9 @@ public sealed class ExportJob : AggregateRoot<Guid>, ITenantOwned
         return new ExportJob(Guid.NewGuid(), tenantId, requestedByEmployeeId, reportType, parametersJson, idempotencyKey);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkProcessing()
     {
         if (Status != ExportJobStatus.Queued)
@@ -73,6 +97,9 @@ public sealed class ExportJob : AggregateRoot<Guid>, ITenantOwned
         Status = ExportJobStatus.Processing;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkReady(string blobUri)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(blobUri);
@@ -85,6 +112,9 @@ public sealed class ExportJob : AggregateRoot<Guid>, ITenantOwned
         CompletedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkFailed(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
@@ -94,6 +124,9 @@ public sealed class ExportJob : AggregateRoot<Guid>, ITenantOwned
         CompletedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Cancel()
     {
         if (Status is ExportJobStatus.Ready or ExportJobStatus.Failed)

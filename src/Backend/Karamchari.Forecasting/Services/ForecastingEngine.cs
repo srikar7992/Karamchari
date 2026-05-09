@@ -5,17 +5,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Forecasting.Services;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ForecastSummary(
     decimal TotalUnbilledRevenue,
     decimal ExpectedCashNext30Days,
     decimal HighRiskAR,
     IReadOnlyList<MonthlyForecast> Trends);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record MonthlyForecast(
     string Month,
     decimal Revenue,
     decimal Cash);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class ForecastingEngine
 {
     private readonly BillingDbContext _billingDb;
@@ -27,6 +36,9 @@ public sealed class ForecastingEngine
         _forecastDb = forecastDb;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<ForecastSummary> GetSummaryAsync(string tenantId, CancellationToken ct = default)
     {
         // 1. Revenue Forecast (Unbilled Billable Entries)
@@ -37,9 +49,9 @@ public sealed class ForecastingEngine
         // 2. Cash Forecast (Probability-weighted Outstanding Invoices)
         var outstandingInvoices = await _billingDb.Invoices
             .Include(i => i.Payments)
-            .Where(i => i.TenantId == tenantId && 
-                        i.Status != Billing.Domain.Invoices.InvoiceStatus.Draft && 
-                        i.Status != Billing.Domain.Invoices.InvoiceStatus.Paid && 
+            .Where(i => i.TenantId == tenantId &&
+                        i.Status != Billing.Domain.Invoices.InvoiceStatus.Draft &&
+                        i.Status != Billing.Domain.Invoices.InvoiceStatus.Paid &&
                         i.Status != Billing.Domain.Invoices.InvoiceStatus.Cancelled)
             .ToListAsync(ct);
 
@@ -60,7 +72,7 @@ public sealed class ForecastingEngine
             var probability = profile?.GetCollectionProbability(days) ?? GetDefaultProbability(days);
 
             expectedCash += outstanding * probability;
-            
+
             if (days > 90 || (profile != null && profile.AverageDaysToPay > 60))
             {
                 highRiskAr += outstanding;

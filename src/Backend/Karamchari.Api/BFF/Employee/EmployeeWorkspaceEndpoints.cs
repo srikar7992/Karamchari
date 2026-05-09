@@ -7,8 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Employee;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class EmployeeWorkspaceEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapEmployeeWorkspace(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/me").RequireAuthorization();

@@ -26,7 +26,7 @@ public sealed class CachedProfessionalTaxProvider : IProfessionalTaxProvider
     {
         ArgumentNullException.ThrowIfNull(year);
         var slabs = GetCachedSlabs(year);
-        
+
         if (!slabs.TryGetValue(stateCode, out var stateSlabs))
         {
             return new ProfessionalTaxResult(0m, false, $"No PT slabs configured for state {stateCode}.");
@@ -40,16 +40,16 @@ public sealed class CachedProfessionalTaxProvider : IProfessionalTaxProvider
 
         if (match == null)
         {
-            return new ProfessionalTaxResult(0m, false, $"No matching PT slab found for gross ₹{monthlyGross:N2} in state {stateCode}.");
+            return new ProfessionalTaxResult(0m, false, $"No matching PT slab found for gross â‚¹{monthlyGross:N2} in state {stateCode}.");
         }
 
-        return new ProfessionalTaxResult(match.MonthlyTaxAmount, true, $"PT Slab: ₹{match.MinGross:N0}-₹{match.MaxGross:N0} (₹{match.MonthlyTaxAmount})");
+        return new ProfessionalTaxResult(match.MonthlyTaxAmount, true, $"PT Slab: â‚¹{match.MinGross:N0}-â‚¹{match.MaxGross:N0} (â‚¹{match.MonthlyTaxAmount})");
     }
 
     private Dictionary<string, List<ProfessionalTaxSlab>> GetCachedSlabs(FinancialYear year)
     {
         string cacheKey = $"PT_Slabs_{year.StartYear}_{year.EndYear}";
-        
+
         return _cache.GetOrCreate(cacheKey, entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = CacheDuration;
@@ -57,7 +57,7 @@ public sealed class CachedProfessionalTaxProvider : IProfessionalTaxProvider
             // since we are calling it from a synchronous StatutoryPipeline.
             // For now, we'll use Task.Run(...).Result as a temporary bridge or assume it's pre-loaded.
             var slabs = _repository.GetSlabsAsync(year).GetAwaiter().GetResult();
-            
+
             return slabs
                 .Where(s => s.IsActive)
                 .GroupBy(s => s.StateCode)

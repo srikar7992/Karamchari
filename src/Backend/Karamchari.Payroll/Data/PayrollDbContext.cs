@@ -1,24 +1,23 @@
 using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Persistence;
 using Karamchari.Payroll.Domain;
-using Karamchari.Payroll.Domain.SalaryStructures;
-using Karamchari.Payroll.Domain.Statutory;
-using Karamchari.Payroll.StateMachines;
-using Karamchari.Payroll.Domain.Compliance;
-using Karamchari.Payroll.Domain.FnF;
 using Karamchari.Payroll.Domain.Arrears;
+using Karamchari.Payroll.Domain.Compliance;
 using Karamchari.Payroll.Domain.Corrections;
-using Karamchari.Payroll.Domain.Reimbursements;
-using Karamchari.Payroll.Domain.Loans;
-using Karamchari.Payroll.Domain.VariablePay;
-using Karamchari.Payroll.Domain.SalaryRevisions;
 using Karamchari.Payroll.Domain.Disbursement;
-using Karamchari.Payroll.Domain.Simulation;
+using Karamchari.Payroll.Domain.FnF;
+using Karamchari.Payroll.Domain.Loans;
 using Karamchari.Payroll.Domain.Reconciliation;
+using Karamchari.Payroll.Domain.Reimbursements;
+using Karamchari.Payroll.Domain.SalaryRevisions;
+using Karamchari.Payroll.Domain.SalaryStructures;
+using Karamchari.Payroll.Domain.Simulation;
+using Karamchari.Payroll.Domain.Statutory;
+using Karamchari.Payroll.Domain.VariablePay;
+using Karamchari.Payroll.StateMachines;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
-
-using Karamchari.Core.Persistence;
 
 namespace Karamchari.Payroll.Data;
 
@@ -32,7 +31,7 @@ public class PayrollDbContext : KaramchariDbContext
     /// </summary>
     /// <param name="options">The context options.</param>
     /// <param name="tenantProvider">The tenant provider.</param>
-    public PayrollDbContext(DbContextOptions<PayrollDbContext> options, ITenantProvider tenantProvider) 
+    public PayrollDbContext(DbContextOptions<PayrollDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
     }
@@ -95,18 +94,57 @@ public class PayrollDbContext : KaramchariDbContext
     public DbSet<ComplianceFiling> ComplianceFilings => Set<ComplianceFiling>();
 
     // Phase 1A new DbSets
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<FnFSettlement> FnFSettlements => Set<FnFSettlement>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ArrearCalculation> ArrearCalculations => Set<ArrearCalculation>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<PayrollCorrection> PayrollCorrections => Set<PayrollCorrection>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ReimbursementClaim> ReimbursementClaims => Set<ReimbursementClaim>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<EmployeeLoan> EmployeeLoans => Set<EmployeeLoan>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<VariablePayAllocation> VariablePayAllocations => Set<VariablePayAllocation>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<SalaryRevision> SalaryRevisions => Set<SalaryRevision>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<DisbursementBatch> DisbursementBatches => Set<DisbursementBatch>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<PayrollSimulation> PayrollSimulations => Set<PayrollSimulation>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<ReconciliationJob> ReconciliationJobs => Set<ReconciliationJob>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<FnFSettlementState> FnFSettlementStates => Set<FnFSettlementState>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<DisbursementBatchState> DisbursementBatchStates => Set<DisbursementBatchState>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<PayrollCorrectionState> PayrollCorrectionStates => Set<PayrollCorrectionState>();
 
     /// <summary>
@@ -235,7 +273,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.Status).HasConversion<string>();
         });
 
-        // ── Phase 1A: FnF ─────────────────────────────────────────────────────
+        // â”€â”€ Phase 1A: FnF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<FnFSettlement>(b =>
         {
@@ -265,7 +303,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.RowVersion).IsRowVersion();
         });
 
-        // ── Phase 1A: Arrears ─────────────────────────────────────────────────
+        // â”€â”€ Phase 1A: Arrears â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<ArrearCalculation>(b =>
         {
@@ -282,7 +320,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.OwnsMany(x => x.PeriodDiffs, d => d.ToJson());
         });
 
-        // ── Phase 1A: Corrections ─────────────────────────────────────────────
+        // â”€â”€ Phase 1A: Corrections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<PayrollCorrection>(b =>
         {
@@ -305,7 +343,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.RowVersion).IsRowVersion();
         });
 
-        // ── Phase 1A: Reimbursements ──────────────────────────────────────────
+        // â”€â”€ Phase 1A: Reimbursements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<ReimbursementClaim>(b =>
         {
@@ -323,7 +361,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.RowVersion).IsRowVersion();
         });
 
-        // ── Phase 1A: Loans ───────────────────────────────────────────────────
+        // â”€â”€ Phase 1A: Loans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<EmployeeLoan>(b =>
         {
@@ -358,7 +396,7 @@ public class PayrollDbContext : KaramchariDbContext
             });
         });
 
-        // ── Phase 1A: Variable Pay ────────────────────────────────────────────
+        // â”€â”€ Phase 1A: Variable Pay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<VariablePayAllocation>(b =>
         {
@@ -374,7 +412,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.RowVersion).IsRowVersion();
         });
 
-        // ── Phase 1A: Salary Revisions ────────────────────────────────────────
+        // â”€â”€ Phase 1A: Salary Revisions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<SalaryRevision>(b =>
         {
@@ -388,7 +426,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.RowVersion).IsRowVersion();
         });
 
-        // ── Phase 1A: Disbursement ────────────────────────────────────────────
+        // â”€â”€ Phase 1A: Disbursement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<DisbursementBatch>(b =>
         {
@@ -418,7 +456,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.RowVersion).IsRowVersion();
         });
 
-        // ── Phase 1A: Simulation ──────────────────────────────────────────────
+        // â”€â”€ Phase 1A: Simulation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<PayrollSimulation>(b =>
         {
@@ -433,7 +471,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.OwnsMany(x => x.Results, r => r.ToJson());
         });
 
-        // ── Phase 1A: Reconciliation ──────────────────────────────────────────
+        // â”€â”€ Phase 1A: Reconciliation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<ReconciliationJob>(b =>
         {

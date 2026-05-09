@@ -1,6 +1,6 @@
-using MassTransit;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Services.Disbursement;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Payroll.Consumers;
@@ -21,6 +21,9 @@ public sealed class InitiateDisbursementConsumer : IConsumer<InitiateDisbursemen
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<InitiateDisbursementCommand> context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -71,6 +74,9 @@ public sealed class RetryDisbursementConsumer : IConsumer<RetryDisbursementComma
         _logger = logger;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task Consume(ConsumeContext<RetryDisbursementCommand> context)
     {
         ArgumentNullException.ThrowIfNull(context);

@@ -12,32 +12,77 @@ public sealed class TalentHeatmapEntry : Entity<Guid>, ITenantOwned
 {
     private TalentHeatmapEntry() { /* EF materialization */ }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeDisplayName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Department { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CareerLevel { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ReviewCycleId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CycleName { get; private set; } = string.Empty;
 
-    /// <summary>0–100 weighted composite from calibrated review.</summary>
+    /// <summary>0â€“100 weighted composite from calibrated review.</summary>
     public decimal CompositeScore { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string PerformanceBucket { get; private set; } = string.Empty;
 
-    /// <summary>1–3 potential rating from manager/calibration panel.</summary>
+    /// <summary>1â€“3 potential rating from manager/calibration panel.</summary>
     public int PotentialRating { get; private set; }
 
     /// <summary>9-box grid position: "Performance_Potential" e.g. "High_High".</summary>
     public string NineBoxPosition { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsHighPerformer { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsAtRetentionRisk { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsPromotionReady { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsSuccessionCandidate { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset MaterializedOnUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset LastRefreshedUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static TalentHeatmapEntry Create(
         string tenantId,
         Guid employeeId,

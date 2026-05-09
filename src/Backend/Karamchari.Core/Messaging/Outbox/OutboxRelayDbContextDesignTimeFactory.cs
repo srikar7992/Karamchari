@@ -6,7 +6,7 @@ namespace Karamchari.Core.Messaging.Outbox;
 
 /// <summary>
 /// Design-time factory for <see cref="OutboxRelayDbContext"/>.
-/// Used exclusively by the EF Core CLI tools (<c>dotnet ef</c>) — never resolved
+/// Used exclusively by the EF Core CLI tools (<c>dotnet ef</c>) â€” never resolved
 /// at runtime by the application's DI container.
 /// <para>
 /// <b>Commands (from <c>src/Backend/</c>)</b>

@@ -1,7 +1,7 @@
 namespace Karamchari.Core.Domain.Primitives;
 
 /// <summary>
-/// Base class for entities â€” objects with identity, distinguished by <typeparamref name="TId"/>.
+/// Base class for entities Ã¢â‚¬â€ objects with identity, distinguished by <typeparamref name="TId"/>.
 /// Equality is by identifier, not by reference.
 /// </summary>
 /// <typeparam name="TId">The identifier type. Must be a non-null value.</typeparam>

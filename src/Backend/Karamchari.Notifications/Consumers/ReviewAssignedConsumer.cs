@@ -6,6 +6,9 @@ using MassTransit;
 
 namespace Karamchari.Notifications.Consumers;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class ReviewAssignedConsumer : IConsumer<ReviewAssignedIntegrationEvent>
 {
     private readonly INotificationOrchestrator _orchestrator;
@@ -13,6 +16,9 @@ public sealed class ReviewAssignedConsumer : IConsumer<ReviewAssignedIntegration
     public ReviewAssignedConsumer(INotificationOrchestrator orchestrator) =>
         _orchestrator = orchestrator;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task Consume(ConsumeContext<ReviewAssignedIntegrationEvent> context)
     {
         var e = context.Message;
@@ -27,10 +33,10 @@ public sealed class ReviewAssignedConsumer : IConsumer<ReviewAssignedIntegration
             Locale: "en-US",
             Variables: new Dictionary<string, string>
             {
-                ["ReviewerName"]   = e.ReviewerDisplayName,
-                ["RevieweeName"]   = e.RevieweeDisplayName,
-                ["CycleName"]      = e.CycleName,
-                ["Deadline"]       = e.Deadline.ToString("dd MMM yyyy", CultureInfo.InvariantCulture),
+                ["ReviewerName"] = e.ReviewerDisplayName,
+                ["RevieweeName"] = e.RevieweeDisplayName,
+                ["CycleName"] = e.CycleName,
+                ["Deadline"] = e.Deadline.ToString("dd MMM yyyy", CultureInfo.InvariantCulture),
             });
 
         return _orchestrator.OrchestrateAsync(intent, context.CancellationToken);

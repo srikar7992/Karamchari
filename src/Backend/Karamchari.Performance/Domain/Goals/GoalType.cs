@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.Goals;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum GoalType
 {
     /// <summary>Numeric target with a unit (e.g., "close 50 deals").</summary>

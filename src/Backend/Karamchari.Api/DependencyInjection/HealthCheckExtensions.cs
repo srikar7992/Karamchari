@@ -11,8 +11,14 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Karamchari.Api.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class HealthCheckExtensions
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariHealthChecks(this IServiceCollection services, IConfiguration configuration)
     {
         var healthBuilder = services.AddHealthChecks();
@@ -40,6 +46,9 @@ public static class HealthCheckExtensions
         return services;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapKaramchariHealthChecks(this WebApplication app)
     {
         app.MapHealthChecks("/health", new HealthCheckOptions

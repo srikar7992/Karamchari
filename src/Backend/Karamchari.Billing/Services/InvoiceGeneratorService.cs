@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Billing.Services;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class InvoiceGeneratorService
 {
     private readonly BillingDbContext _db;
@@ -15,21 +18,21 @@ public sealed class InvoiceGeneratorService
     /// Groups unbilled work for a specific contract and generates a Draft Invoice.
     /// </summary>
     public async Task<Invoice?> GenerateDraftAsync(
-        Guid contractId, 
-        DateOnly periodStart, 
-        DateOnly periodEnd, 
+        Guid contractId,
+        DateOnly periodStart,
+        DateOnly periodEnd,
         CancellationToken ct = default)
     {
         var contract = await _db.Contracts
             .FirstOrDefaultAsync(c => c.Id == contractId, ct);
-        
+
         if (contract == null) return null;
 
         var unbilledEntries = await _db.BillableEntries
-            .Where(e => e.ContractId == contractId && 
-                        e.WorkDate >= periodStart && 
-                        e.WorkDate <= periodEnd && 
-                        !e.IsBilled && 
+            .Where(e => e.ContractId == contractId &&
+                        e.WorkDate >= periodStart &&
+                        e.WorkDate <= periodEnd &&
+                        !e.IsBilled &&
                         !e.IsVoided)
             .ToListAsync(ct);
 
@@ -47,7 +50,7 @@ public sealed class InvoiceGeneratorService
         // Grouping logic for professional line items
         // We group by Project and Role to provide an itemized view that clients can audit.
         var groups = unbilledEntries
-            .GroupBy(e => new { e.ProjectId, e.Rate }) 
+            .GroupBy(e => new { e.ProjectId, e.Rate })
             .Select(g => new
             {
                 // In a production scenario, we'd join with Project/Role names for the description

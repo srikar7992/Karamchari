@@ -6,6 +6,9 @@ using MassTransit;
 
 namespace Karamchari.Notifications.Consumers;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class PromotionApprovedConsumer : IConsumer<PromotionApprovedIntegrationEvent>
 {
     private readonly INotificationOrchestrator _orchestrator;
@@ -13,6 +16,9 @@ public sealed class PromotionApprovedConsumer : IConsumer<PromotionApprovedInteg
     public PromotionApprovedConsumer(INotificationOrchestrator orchestrator) =>
         _orchestrator = orchestrator;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task Consume(ConsumeContext<PromotionApprovedIntegrationEvent> context)
     {
         var e = context.Message;
@@ -27,11 +33,11 @@ public sealed class PromotionApprovedConsumer : IConsumer<PromotionApprovedInteg
             Locale: "en-US",
             Variables: new Dictionary<string, string>
             {
-                ["PreviousTitle"]   = e.PreviousTitle,
-                ["NewTitle"]        = e.NewTitle,
-                ["PreviousGrade"]   = e.PreviousGrade,
-                ["NewGrade"]        = e.NewGrade,
-                ["EffectiveDate"]   = e.EffectiveDate.ToString("dd MMM yyyy", CultureInfo.InvariantCulture),
+                ["PreviousTitle"] = e.PreviousTitle,
+                ["NewTitle"] = e.NewTitle,
+                ["PreviousGrade"] = e.PreviousGrade,
+                ["NewGrade"] = e.NewGrade,
+                ["EffectiveDate"] = e.EffectiveDate.ToString("dd MMM yyyy", CultureInfo.InvariantCulture),
             });
 
         return _orchestrator.OrchestrateAsync(intent, context.CancellationToken);

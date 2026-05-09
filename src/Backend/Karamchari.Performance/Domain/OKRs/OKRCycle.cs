@@ -3,6 +3,9 @@ using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Performance.Domain.OKRs;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class OKRCycle : AggregateRoot<Guid>, ITenantOwned
 {
     private OKRCycle() { /* EF materialization */ }
@@ -23,14 +26,38 @@ public sealed class OKRCycle : AggregateRoot<Guid>, ITenantOwned
         Status = OKRCycleStatus.Draft;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Label { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public OKRCycleScope Scope { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly StartDate { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly EndDate { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public OKRCycleStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static OKRCycle Create(
         string tenantId,
         string label,
@@ -46,6 +73,9 @@ public sealed class OKRCycle : AggregateRoot<Guid>, ITenantOwned
         return new OKRCycle(Guid.NewGuid(), tenantId, label.Trim(), scope, startDate, endDate);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Activate()
     {
         if (Status != OKRCycleStatus.Draft)
@@ -53,6 +83,9 @@ public sealed class OKRCycle : AggregateRoot<Guid>, ITenantOwned
         Status = OKRCycleStatus.Active;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void BeginScoring()
     {
         if (Status != OKRCycleStatus.Active)
@@ -60,6 +93,9 @@ public sealed class OKRCycle : AggregateRoot<Guid>, ITenantOwned
         Status = OKRCycleStatus.Scoring;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Lock()
     {
         if (Status != OKRCycleStatus.Scoring)

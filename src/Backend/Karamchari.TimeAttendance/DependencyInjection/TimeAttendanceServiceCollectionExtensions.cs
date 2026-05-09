@@ -15,6 +15,9 @@ public static class TimeAttendanceServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariTimeAttendance(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -29,8 +32,8 @@ public static class TimeAttendanceServiceCollectionExtensions
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedAnalyticsConsumer>();
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.BillingAnalyticsConsumer>();
 
-        // ── RLS: Workforce operational intelligence (Phase 1C) ────────────────
-        
+        // â”€â”€ RLS: Workforce operational intelligence (Phase 1C) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
         services.RegisterTenantTable("Workforce_ShiftDefinitions");
         services.RegisterTenantTable("Workforce_Schedules");
         services.RegisterTenantTable("Workforce_ShiftAssignments");
@@ -40,8 +43,8 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.RegisterTenantTable("Workforce_AttendancePolicies");
         services.RegisterTenantTable("Workforce_ComplianceRules");
 
-        // ── Legacy Core Tables ───────────────────────────────────────────────
-        
+        // â”€â”€ Legacy Core Tables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
         services.RegisterTenantTable("HolidayCalendars");
         services.RegisterTenantTable("Holidays");
         services.RegisterTenantTable("LeavePolicies");
@@ -49,8 +52,8 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.RegisterTenantTable("LeaveBalances");
         services.RegisterTenantTable("Timesheets");
 
-        // ── Analytics ────────────────────────────────────────────────────────
-        
+        // â”€â”€ Analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
         services.RegisterTenantTable("Analytics_ProjectMetrics");
         services.RegisterTenantTable("Analytics_ProcessedEventLog");
 
@@ -68,7 +71,7 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.AddScoped<Karamchari.TimeAttendance.Services.TimesheetService>();
         services.AddSingleton<Karamchari.TimeAttendance.Services.ICapacityProvider,
                               Karamchari.TimeAttendance.Services.NullCapacityProvider>();
-        
+
         services.AddScoped<Karamchari.TimeAttendance.Services.ShiftRosteringEngine>();
 
         return services;

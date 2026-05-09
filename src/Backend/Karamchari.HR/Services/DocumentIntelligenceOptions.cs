@@ -1,4 +1,4 @@
-﻿namespace Karamchari.HR.Services;
+namespace Karamchari.HR.Services;
 
 /// <summary>
 /// TODO: Add XML documentation.

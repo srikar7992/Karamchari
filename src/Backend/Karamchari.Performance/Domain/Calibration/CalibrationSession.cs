@@ -30,16 +30,43 @@ public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
         Status = CalibrationSessionStatus.Draft;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ReviewCycleId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public BellCurvePolicy BellCurvePolicy { get; private set; } = null!;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public CalibrationSessionStatus Status { get; private set; }
     public DateTimeOffset? FinalizedOnUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<CalibrationEntry> Entries => _entries.AsReadOnly();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<CalibrationPanelMember> PanelMembers => _panelMembers.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static CalibrationSession Create(
         string tenantId,
         Guid reviewCycleId,
@@ -52,6 +79,9 @@ public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
         return new CalibrationSession(Guid.NewGuid(), tenantId, reviewCycleId, name.Trim(), bellCurvePolicy);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddPanelMember(Guid employeeId, CalibrationRole role)
     {
         EnsureNotFinalized();
@@ -60,6 +90,9 @@ public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
         _panelMembers.Add(new CalibrationPanelMember(Guid.NewGuid(), Id, employeeId, role));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void EnrollEmployee(Guid employeeId, decimal preCalibrationScore, string preCalibrationBucket)
     {
         EnsureNotFinalized();
@@ -70,6 +103,9 @@ public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
             preCalibrationScore, preCalibrationBucket));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Begin()
     {
         if (Status != CalibrationSessionStatus.Draft)
@@ -79,6 +115,9 @@ public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
         Status = CalibrationSessionStatus.InProgress;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AdjustEntry(Guid employeeId, decimal newScore, string newBucket, Guid adjustedBy, string justification)
     {
         if (Status != CalibrationSessionStatus.InProgress)
@@ -88,6 +127,9 @@ public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
         entry.AdjustScore(newScore, newBucket, adjustedBy, justification);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SubmitForApproval()
     {
         if (Status != CalibrationSessionStatus.InProgress)
@@ -95,6 +137,9 @@ public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
         Status = CalibrationSessionStatus.PendingApproval;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void FinalizeSession()
     {
         if (Status != CalibrationSessionStatus.PendingApproval)

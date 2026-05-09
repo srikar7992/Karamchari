@@ -2,6 +2,9 @@ using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Workflow.Domain.Events;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record WorkflowStepAdvanced(
     Guid InstanceId,
     string TenantId,
@@ -9,5 +12,8 @@ public sealed record WorkflowStepAdvanced(
     int ToStep,
     DateTimeOffset OccurredOnUtc) : IDomainEvent
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EventId { get; } = Guid.NewGuid();
 }

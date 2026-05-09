@@ -1,8 +1,8 @@
 namespace Karamchari.TimeAttendance.Hubs;
 
-using Microsoft.AspNetCore.SignalR;
-using Karamchari.Core.Multitenancy;
 using System.Security.Claims;
+using Karamchari.Core.Multitenancy;
+using Microsoft.AspNetCore.SignalR;
 
 /// <summary>
 /// Hub for live attendance monitoring. 
@@ -18,6 +18,9 @@ public sealed class AttendanceHub : Hub
         _tenantProvider = tenantProvider;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public override async Task OnConnectedAsync()
     {
         var tenant = _tenantProvider.GetTenant();
@@ -33,6 +36,9 @@ public sealed class AttendanceHub : Hub
         await base.OnConnectedAsync();
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var tenant = _tenantProvider.GetTenant();

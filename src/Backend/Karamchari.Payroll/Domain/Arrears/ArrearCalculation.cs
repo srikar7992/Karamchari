@@ -11,37 +11,85 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
 {
     private readonly List<ArrearPeriodDiff> _periodDiffs = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ArrearTriggerType TriggerType { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TriggerReference { get; private set; } = string.Empty;  // e.g., revision ID, correction ID
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public ArrearStatus Status { get; private set; }
 
     // Effective change period
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly EffectiveFrom { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly EffectiveTo { get; private set; }
 
     // Aggregate totals
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalGrossDelta { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalNetDelta { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalTdsDelta { get; private set; }
 
-    // Payout info — set when Processed
+    // Payout info â€” set when Processed
     public string? PayoutPeriodName { get; private set; }
     public string? ProcessedByRunId { get; private set; }
 
     public string? ApprovedBy { get; private set; }
     public DateTimeOffset? ApprovedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string InitiatedBy { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? UpdatedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<ArrearPeriodDiff> PeriodDiffs => _periodDiffs.AsReadOnly();
 
     private ArrearCalculation() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ArrearCalculation Create(
         string tenantId,
         Guid employeeId,
@@ -73,6 +121,9 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
         return calc;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SetPeriodDiffs(IEnumerable<ArrearPeriodDiff> diffs)
     {
         if (Status != ArrearStatus.Pending)
@@ -84,6 +135,9 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SubmitForApproval()
     {
         if (Status != ArrearStatus.Pending)
@@ -97,6 +151,9 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
         RaiseDomainEvent(new ArrearApprovalRequestedEvent(Id, TenantId, EmployeeId, TotalNetDelta));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(string approvedBy)
     {
         if (Status != ArrearStatus.PendingApproval)
@@ -108,6 +165,9 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkProcessed(string payoutPeriodName, string runId)
     {
         if (Status != ArrearStatus.Approved)
@@ -120,6 +180,9 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
         RaiseDomainEvent(new ArrearProcessedEvent(Id, TenantId, EmployeeId, TotalNetDelta, payoutPeriodName));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reverse(string reason)
     {
         if (Status != ArrearStatus.Processed)

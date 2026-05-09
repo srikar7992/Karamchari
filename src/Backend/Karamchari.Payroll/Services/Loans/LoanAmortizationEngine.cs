@@ -8,12 +8,18 @@ namespace Karamchari.Payroll.Services.Loans;
 /// </summary>
 public sealed class LoanAmortizationEngine
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public record AmortizationResult(
         IReadOnlyList<LoanInstallment> Installments,
         decimal MonthlyEmi,
         decimal TotalInterest,
         decimal TotalPayable);
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static AmortizationResult GenerateSchedule(
         EmployeeLoan loan,
         DateOnly disbursedOn)

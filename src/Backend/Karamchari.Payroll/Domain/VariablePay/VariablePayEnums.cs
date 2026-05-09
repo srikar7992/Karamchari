@@ -1,5 +1,8 @@
 namespace Karamchari.Payroll.Domain.VariablePay;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum VariablePayType
 {
     PerformanceBonus,
@@ -13,6 +16,9 @@ public enum VariablePayType
     ReferralBonus
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum VariablePayStatus
 {
     Draft,
@@ -25,6 +31,9 @@ public enum VariablePayStatus
     Deferred
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum TaxTreatment
 {
     /// <summary>Spread across months for TDS calculation.</summary>

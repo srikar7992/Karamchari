@@ -7,8 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.PSA;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class PSAEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapPSAEndpoints(this WebApplication app)
     {
         var psa = app.MapGroup("/api/psa").RequireAuthorization();

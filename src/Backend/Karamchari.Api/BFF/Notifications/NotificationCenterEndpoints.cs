@@ -6,8 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Notifications;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class NotificationCenterEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapNotificationCenter(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/notifications").RequireAuthorization();

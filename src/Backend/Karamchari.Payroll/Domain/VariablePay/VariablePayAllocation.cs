@@ -9,15 +9,42 @@ namespace Karamchari.Payroll.Domain.VariablePay;
 /// </summary>
 public sealed class VariablePayAllocation : AggregateRoot<Guid>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public VariablePayType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public VariablePayStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public TaxTreatment TaxTreatment { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal AllocatedAmount { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal ProratedAmount { get; private set; }  // after proration rules applied
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal PaidAmount { get; private set; }
 
     public string? PerformancePeriod { get; private set; }
@@ -26,26 +53,50 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
     public DateOnly? ActualPayoutDate { get; private set; }
 
     // Clawback window
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int ClawbackWindowMonths { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsClawedBack { get; private set; }
     public string? ClawbackReason { get; private set; }
     public DateTimeOffset? ClawbackAtUtc { get; private set; }
 
     // Deferred payout
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsDeferred { get; private set; }
     public DateOnly? DeferredUntil { get; private set; }
 
-    // Post-exit handling — was employee active at payout?
+    // Post-exit handling â€” was employee active at payout?
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool EmployeeExitedBeforePayout { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string AllocatedBy { get; private set; } = string.Empty;
     public string? ApprovedBy { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? UpdatedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     private VariablePayAllocation() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static VariablePayAllocation Allocate(
         string tenantId,
         Guid employeeId,
@@ -79,6 +130,9 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
         return allocation;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void ApplyProration(decimal proratedAmount)
     {
         if (proratedAmount < 0 || proratedAmount > AllocatedAmount)
@@ -88,6 +142,9 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SubmitForApproval()
     {
         if (Status != VariablePayStatus.Draft)
@@ -97,6 +154,9 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(string approvedBy)
     {
         if (Status != VariablePayStatus.PendingApproval)
@@ -108,6 +168,9 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
         RaiseDomainEvent(new VariablePayApprovedEvent(Id, TenantId, EmployeeId, Type, ProratedAmount, approvedBy));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Defer(DateOnly deferredUntil)
     {
         if (Status != VariablePayStatus.Approved)
@@ -119,6 +182,9 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Schedule(string payoutPeriodName)
     {
         if (Status is not (VariablePayStatus.Approved or VariablePayStatus.Deferred))
@@ -129,6 +195,9 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkPaidOut(decimal paidAmount, DateOnly payoutDate)
     {
         if (Status != VariablePayStatus.Scheduled)
@@ -141,12 +210,18 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
         RaiseDomainEvent(new VariablePayPaidOutEvent(Id, TenantId, EmployeeId, Type, paidAmount));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void FlagExitBeforePayout()
     {
         EmployeeExitedBeforePayout = true;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Clawback(string reason)
     {
         if (Status != VariablePayStatus.PaidOut)

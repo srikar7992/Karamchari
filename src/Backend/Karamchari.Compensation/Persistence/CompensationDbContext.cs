@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Compensation.Persistence;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class CompensationDbContext : KaramchariDbContext
 {
     private const string MessagingSchema = "dbo";
@@ -17,9 +20,21 @@ public sealed class CompensationDbContext : KaramchariDbContext
     {
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<CompensationBand> CompensationBands => Set<CompensationBand>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<MeritMatrix> MeritMatrices => Set<MeritMatrix>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<IncrementBudgetPool> IncrementBudgetPools => Set<IncrementBudgetPool>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<EmployeeCompensationRecord> EmployeeCompensationRecords => Set<EmployeeCompensationRecord>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)

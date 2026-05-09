@@ -17,6 +17,9 @@ public sealed class CalibrationFinalizedConsumer : IConsumer<EmployeeCalibration
     public CalibrationFinalizedConsumer(INotificationOrchestrator orchestrator) =>
         _orchestrator = orchestrator;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task Consume(ConsumeContext<EmployeeCalibrationFinalizedIntegrationEvent> context)
     {
         var e = context.Message;
@@ -31,8 +34,8 @@ public sealed class CalibrationFinalizedConsumer : IConsumer<EmployeeCalibration
             Locale: "en-US",
             Variables: new Dictionary<string, string>
             {
-                ["PerformanceBucket"]    = e.PerformanceBucket,
-                ["CalibratedScore"]      = e.CalibratedScore.ToString("F1", CultureInfo.InvariantCulture),
+                ["PerformanceBucket"] = e.PerformanceBucket,
+                ["CalibratedScore"] = e.CalibratedScore.ToString("F1", CultureInfo.InvariantCulture),
             });
 
         return _orchestrator.OrchestrateAsync(intent, context.CancellationToken);

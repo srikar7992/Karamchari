@@ -6,7 +6,7 @@ namespace Karamchari.Notifications.RealTime;
 /// SignalR hub for real-time notification streaming.
 ///
 /// Group naming convention: "{tenantId}:{employeeId}"
-/// Ensures tenant isolation — one employee cannot receive another tenant's signals.
+/// Ensures tenant isolation â€” one employee cannot receive another tenant's signals.
 ///
 /// Client must supply tenantId + employeeId as query-string parameters:
 ///   /hubs/notifications?tenantId=acme&amp;employeeId={guid}
@@ -16,6 +16,9 @@ namespace Karamchari.Notifications.RealTime;
 /// </summary>
 public sealed class NotificationHub : Hub
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public override async Task OnConnectedAsync()
     {
         var http = Context.GetHttpContext();

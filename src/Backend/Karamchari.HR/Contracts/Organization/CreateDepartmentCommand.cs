@@ -1,4 +1,4 @@
-﻿namespace Karamchari.HR.Contracts.Organization;
+namespace Karamchari.HR.Contracts.Organization;
 
 /// <summary>
 /// TODO: Add XML documentation.

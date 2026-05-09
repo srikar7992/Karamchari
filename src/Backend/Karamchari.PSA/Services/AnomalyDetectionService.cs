@@ -1,7 +1,7 @@
 namespace Karamchari.PSA.Services;
 
 /// <summary>
-/// Deterministic anomaly detection — not ML, just hard thresholds that catch
+/// Deterministic anomaly detection â€” not ML, just hard thresholds that catch
 /// real financial problems immediately.
 ///
 /// Anomalies:
@@ -31,7 +31,7 @@ public sealed class AnomalyDetectionService
                 anomalies.Add(new Anomaly(
                     c.ProjectId,
                     AnomalyType.ProfitDrop,
-                    $"Profit dropped {dropPct}% from ₹{c.PreviousProfit:N0} to ₹{c.CurrentProfit:N0}.",
+                    $"Profit dropped {dropPct}% from â‚¹{c.PreviousProfit:N0} to â‚¹{c.CurrentProfit:N0}.",
                     AnomalySeverity.Critical));
             }
 
@@ -42,7 +42,7 @@ public sealed class AnomalyDetectionService
                 anomalies.Add(new Anomaly(
                     c.ProjectId,
                     AnomalyType.RevenueDrop,
-                    $"Revenue dropped {dropPct}% from ₹{c.PreviousRevenue:N0} to ₹{c.CurrentRevenue:N0}.",
+                    $"Revenue dropped {dropPct}% from â‚¹{c.PreviousRevenue:N0} to â‚¹{c.CurrentRevenue:N0}.",
                     AnomalySeverity.Warning));
             }
 
@@ -53,7 +53,7 @@ public sealed class AnomalyDetectionService
                 anomalies.Add(new Anomaly(
                     c.ProjectId,
                     AnomalyType.CostSpike,
-                    $"Cost spiked {spikePct}% from ₹{c.PreviousCost:N0} to ₹{c.CurrentCost:N0}.",
+                    $"Cost spiked {spikePct}% from â‚¹{c.PreviousCost:N0} to â‚¹{c.CurrentCost:N0}.",
                     AnomalySeverity.Warning));
             }
 
@@ -63,7 +63,7 @@ public sealed class AnomalyDetectionService
                 anomalies.Add(new Anomaly(
                     c.ProjectId,
                     AnomalyType.NegativeMargin,
-                    $"Project is losing money. Revenue: ₹{c.CurrentRevenue:N0}, Cost: ₹{c.CurrentCost:N0}.",
+                    $"Project is losing money. Revenue: â‚¹{c.CurrentRevenue:N0}, Cost: â‚¹{c.CurrentCost:N0}.",
                     AnomalySeverity.Critical));
             }
         }

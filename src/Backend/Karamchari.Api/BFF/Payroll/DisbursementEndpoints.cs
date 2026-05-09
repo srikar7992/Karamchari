@@ -11,8 +11,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class DisbursementEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapDisbursementEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/disbursements").RequireAuthorization();
@@ -104,10 +110,16 @@ public static class DisbursementEndpoints
             b.BatchReference, b.CreatedAtUtc);
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record DisbursementBatchDto(
     Guid Id, Guid RunId, string PeriodName, string BankProvider,
     string Status, decimal TotalAmount, int SuccessCount, int FailedCount,
     string Reference, DateTimeOffset CreatedAt);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record InitiateDisbursementRequest(
     Guid RunId, string PeriodName, string BankProvider, string DebitAccountNumber);

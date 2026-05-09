@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.KPIs;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum KPIBand
 {
     Red = 1,

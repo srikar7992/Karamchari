@@ -1,16 +1,16 @@
 // Integration event contracts shared across all bounded contexts.
-// These are pure data records — no domain logic, no EF entities, no framework dependencies.
+// These are pure data records â€” no domain logic, no EF entities, no framework dependencies.
 // Versioned using nested namespaces so consumers can pin to a stable version
 // while producers gradually migrate to V2+.
 
 namespace Karamchari.Core.Contracts.IntegrationEvents
 {
-    // ── Common events that have not evolved yet ─────────────────────────────
+    // â”€â”€ Common events that have not evolved yet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     /// A single time-entry detail carried inside <see cref="TimesheetApprovedIntegrationEvent"/>.
     /// Both the Payroll consumer (total hours) and the PSA consumer (billable entries only)
-    /// work from this same event — no cross-context DB reads needed.
+    /// work from this same event â€” no cross-context DB reads needed.
     /// </summary>
     /// <param name="EntryId">Stable identifier matching <c>TimeEntry.EntryId</c> in the TimeAttendance context.</param>
     /// <param name="Date">Calendar date of the work (employee's local date).</param>
@@ -38,11 +38,11 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// <para>
     /// <see cref="IsRetroactive"/> is true when this event corrects a previously approved
     /// timesheet. Consumers must reverse previously posted amounts before applying the
-    /// new figures — typically by deleting existing rows for <see cref="TimesheetId"/>
+    /// new figures â€” typically by deleting existing rows for <see cref="TimesheetId"/>
     /// and re-inserting from the new <see cref="Entries"/>.
     /// </para>
     /// </summary>
-    /// <param name="TimesheetId">Stable timesheet identifier — also the idempotency key.</param>
+    /// <param name="TimesheetId">Stable timesheet identifier â€” also the idempotency key.</param>
     /// <param name="EmployeeId">Employee who submitted the timesheet.</param>
     /// <param name="TenantId">Tenant this timesheet belongs to.</param>
     /// <param name="WeekStartDate">Monday of the work week (ISO 8601).</param>
@@ -131,7 +131,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.V1
 {
-    // V1 Contracts — original baseline.
+    // V1 Contracts â€” original baseline.
     // Pin consumers to V1 if they don't yet need the V2 additions.
 
     /// <summary>Published when a new employee completes onboarding.</summary>
@@ -150,7 +150,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
         DateOnly HiredOn);
 
     /// <summary>
-    /// V1: does NOT include EmployeeName — consumers must look it up separately.
+    /// V1: does NOT include EmployeeName â€” consumers must look it up separately.
     /// Prefer <see cref="V2.PayrollRunCompletedIntegrationEvent"/> for new consumers.
     /// </summary>
     /// <param name="EmployeeId">The employee identifier.</param>
@@ -174,7 +174,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.V2
 {
-    // V2 Contracts — evolved versions.
+    // V2 Contracts â€” evolved versions.
 
     /// <summary>
     /// Evolved version of PayrollRunCompleted that includes <see cref="EmployeeName"/>

@@ -1,5 +1,8 @@
 namespace Karamchari.Payroll.Domain.Corrections;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum CorrectionStatus
 {
     Draft,
@@ -11,6 +14,9 @@ public enum CorrectionStatus
     Cancelled
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum CorrectionType
 {
     SalaryChange,
@@ -25,6 +31,9 @@ public enum CorrectionType
     BonusCorrection
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum CorrectionScope
 {
     /// <summary>Differential adjusted in next payroll cycle.</summary>

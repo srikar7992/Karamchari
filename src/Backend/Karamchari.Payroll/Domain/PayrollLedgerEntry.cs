@@ -55,12 +55,12 @@ public class PayrollLedgerEntry : ITenantOwned
     public static PayrollLedgerEntry Create(
         Guid runId,
         string periodName,
-        Guid employeeId, 
-        int month, 
-        int year, 
-        int fyStart, 
-        decimal gross, 
-        decimal tds, 
+        Guid employeeId,
+        int month,
+        int year,
+        int fyStart,
+        decimal gross,
+        decimal tds,
         decimal net,
         IReadOnlyDictionary<string, decimal> deductions,
         IReadOnlyDictionary<string, decimal> earnings)

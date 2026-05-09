@@ -3,7 +3,13 @@ using Karamchari.Payroll.Domain.SalaryRevisions.Events;
 
 namespace Karamchari.Payroll.Domain.SalaryRevisions;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum RevisionType { AnnualIncrement, Promotion, MarketCorrection, RetentionAdjustment, OffCycle }
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum RevisionStatus { Draft, PendingApproval, Approved, Applied, Cancelled }
 
 /// <summary>
@@ -12,31 +18,76 @@ public enum RevisionStatus { Draft, PendingApproval, Approved, Applied, Cancelle
 /// </summary>
 public sealed class SalaryRevision : AggregateRoot<Guid>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string EmployeeName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public RevisionType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public RevisionStatus Status { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal PreviousCTC { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal NewCTC { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal IncrementAmount => NewCTC - PreviousCTC;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal IncrementPercent => PreviousCTC > 0 ? (IncrementAmount / PreviousCTC) * 100m : 0m;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly EffectiveFrom { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool RequiresArrears { get; private set; }  // true if effective date is in past processed period
     public Guid? GeneratedArrearId { get; private set; }
 
     public string? Remarks { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string InitiatedBy { get; private set; } = string.Empty;
     public string? ApprovedBy { get; private set; }
     public DateTimeOffset? ApprovedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? UpdatedAtUtc { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
     private SalaryRevision() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static SalaryRevision Create(
         string tenantId,
         Guid employeeId,
@@ -72,6 +123,9 @@ public sealed class SalaryRevision : AggregateRoot<Guid>
         return revision;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void SubmitForApproval()
     {
         if (Status != RevisionStatus.Draft)
@@ -82,6 +136,9 @@ public sealed class SalaryRevision : AggregateRoot<Guid>
         RaiseDomainEvent(new SalaryRevisionApprovalRequestedEvent(Id, TenantId, EmployeeId, NewCTC, EffectiveFrom));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(string approvedBy)
     {
         if (Status != RevisionStatus.PendingApproval)
@@ -94,6 +151,9 @@ public sealed class SalaryRevision : AggregateRoot<Guid>
         RaiseDomainEvent(new SalaryRevisionApprovedEvent(Id, TenantId, EmployeeId, PreviousCTC, NewCTC, EffectiveFrom, approvedBy));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void MarkApplied(Guid? arrearId)
     {
         if (Status != RevisionStatus.Approved)
@@ -104,6 +164,9 @@ public sealed class SalaryRevision : AggregateRoot<Guid>
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Cancel(string reason)
     {
         if (Status is RevisionStatus.Applied)

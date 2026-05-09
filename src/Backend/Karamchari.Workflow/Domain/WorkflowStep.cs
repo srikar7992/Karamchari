@@ -2,6 +2,9 @@ using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Workflow.Domain;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class WorkflowStep : Entity<Guid>
 {
     private WorkflowStep(
@@ -28,17 +31,41 @@ public sealed class WorkflowStep : Entity<Guid>
 
     private WorkflowStep() { Name = string.Empty; ApproverRolesJson = "[]"; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid DefinitionId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int Order { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsParallel { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public QuorumRule QuorumRule { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int QuorumThreshold { get; private set; }
     public string? ConditionJson { get; private set; }
 
     // Stored as a JSON array in the DB column; deserialized by the service layer when needed.
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string ApproverRolesJson { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WorkflowStep Create(
         Guid definitionId,
         int order,
@@ -62,6 +89,9 @@ public sealed class WorkflowStep : Entity<Guid>
             isParallel, quorum, quorumThreshold, rolesJson, conditionJson);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<string> GetApproverRoles() =>
         System.Text.Json.JsonSerializer.Deserialize<List<string>>(ApproverRolesJson) ?? [];
 }

@@ -7,12 +7,18 @@ using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
 using NSubstitute;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class PipelineTests
 {
     private static readonly Guid BasicId = Guid.NewGuid();
     private static readonly FinancialYear FY2026 = new(2026, 2027);
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task PipelineShouldExecuteRulesAndDeductFromGross()
     {
         // Arrange
@@ -47,6 +53,9 @@ public class PipelineTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task PipelineShouldIncludeProfessionalTaxIfConfigured()
     {
         // Arrange
@@ -71,6 +80,9 @@ public class PipelineTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task PipelineShouldBeDeterministic()
     {
         // Arrange
@@ -91,6 +103,9 @@ public class PipelineTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task PipelineShouldHandleMixedSyncAndAsyncRules()
     {
         // Arrange: EPF is sync (IStatutoryRule), TDS is async (IAsyncStatutoryRule)
@@ -109,7 +124,7 @@ public class PipelineTests
 
         var taxSlabs = Substitute.For<ITaxSlabProvider>();
         taxSlabs.CalculateAnnualTax(Arg.Any<decimal>(), Arg.Any<TaxRegime>())
-            .Returns(60000m); // Flat mock: ₹60k annual tax → ₹5000/mo
+            .Returns(60000m); // Flat mock: â‚¹60k annual tax â†’ â‚¹5000/mo
 
         var declarationRepo = Substitute.For<IITDeclarationRepository>();
         declarationRepo.GetApprovedDeclarationsAsync(Arg.Any<Guid>(), Arg.Any<int>())
@@ -125,17 +140,20 @@ public class PipelineTests
         // Act
         var result = await StatutoryPipelineEngine.ExecuteAsync(context, ruleSet);
 
-        // Assert — both rules fired
+        // Assert â€” both rules fired
         Assert.True(result.Deductions.ContainsKey("EPF_Employee"));
         Assert.True(result.Deductions.ContainsKey("TDS"));
         Assert.Equal(5000m, result.Deductions["TDS"]);
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task PipelineShouldSkipRulesThatReturnNotApplicable()
     {
-        // Arrange — ESIC on a salary above the ₹21,000 wage ceiling
-        var grossMonthly = 25000m; // above ESIC ceiling → should return IsApplicable = false
+        // Arrange â€” ESIC on a salary above the â‚¹21,000 wage ceiling
+        var grossMonthly = 25000m; // above ESIC ceiling â†’ should return IsApplicable = false
         var profile = PayrollProfile.CreateDraft(Guid.Empty);
         var breakdown = new CTCBreakdownResult(300000, grossMonthly, new Dictionary<Guid, decimal>(), new Dictionary<Guid, decimal>());
         var context = new StatutoryContext(breakdown, profile, FY2026, 4);
@@ -146,7 +164,7 @@ public class PipelineTests
         // Act
         var result = await StatutoryPipelineEngine.ExecuteAsync(context, ruleSet);
 
-        // Assert — ESIC not deducted when gross > 21,000
+        // Assert â€” ESIC not deducted when gross > 21,000
         Assert.False(result.Deductions.ContainsKey("ESIC_Employee"));
         Assert.Equal(grossMonthly, result.NetPay);
     }
@@ -166,7 +184,13 @@ public class PipelineTests
             Rules = rules;
         }
 
+        /// <summary>
+        /// Provides required documentation for this member.
+        /// </summary>
         public FinancialYear Year { get; }
+        /// <summary>
+        /// Provides required documentation for this member.
+        /// </summary>
         public IReadOnlyList<IStatutoryRuleMetadata> Rules { get; }
     }
 }

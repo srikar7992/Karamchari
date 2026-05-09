@@ -10,7 +10,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// Drains domain events from tracked aggregates on save and hands them to the
 /// configured <see cref="IDomainEventDispatcher"/>.
 ///
-/// In production the dispatcher is the MassTransit-backed implementation â€”
+/// In production the dispatcher is the MassTransit-backed implementation Ã¢â‚¬â€
 /// publishing inside <c>SavingChangesAsync</c> means MassTransit's bus outbox
 /// captures the publishes into the OutboxMessage table atomically with the
 /// aggregate's state change.
@@ -50,7 +50,7 @@ public sealed class DomainEventDispatchInterceptor : SaveChangesInterceptor
         {
             throw new NotSupportedException(
                 "Aggregates have pending domain events but SaveChanges was called synchronously. " +
-                "Use SaveChangesAsync â€” domain event dispatch is async-only.");
+                "Use SaveChangesAsync Ã¢â‚¬â€ domain event dispatch is async-only.");
         }
 
         return base.SavingChanges(eventData, result);

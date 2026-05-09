@@ -6,7 +6,7 @@ public enum NotificationStatus
     /// <summary>Created, not yet dispatched.</summary>
     Pending = 1,
 
-    /// <summary>Deferred due to quiet hours or rate-limit — will be retried.</summary>
+    /// <summary>Deferred due to quiet hours or rate-limit â€” will be retried.</summary>
     Deferred = 2,
 
     /// <summary>Queued for digest batching.</summary>

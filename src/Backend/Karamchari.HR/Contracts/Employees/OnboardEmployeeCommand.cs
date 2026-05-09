@@ -1,4 +1,4 @@
-﻿namespace Karamchari.HR.Contracts.Employees;
+namespace Karamchari.HR.Contracts.Employees;
 
 /// <summary>
 /// Command to onboard a new employee into the HR system.

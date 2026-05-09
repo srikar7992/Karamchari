@@ -1,19 +1,40 @@
 namespace Karamchari.Payroll.Domain.Reconciliation;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class PayrollAnomaly
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid Id { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public AnomalyType Type { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public AnomalySeverity Severity { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public AnomalyResolutionStatus ResolutionStatus { get; private set; }
 
     public Guid? EmployeeId { get; private set; }
     public string? EmployeeName { get; private set; }
     public string? PeriodName { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Description { get; private set; } = string.Empty;
     public decimal? AnomalyScore { get; private set; }
 
     // Evidence: structured JSON describing what was found
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Evidence { get; private set; } = string.Empty;
 
     public string? ResolvedBy { get; private set; }
@@ -22,6 +43,9 @@ public sealed class PayrollAnomaly
 
     private PayrollAnomaly() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static PayrollAnomaly Detect(
         AnomalyType type,
         AnomalySeverity severity,
@@ -47,6 +71,9 @@ public sealed class PayrollAnomaly
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Resolve(string resolvedBy, string note)
     {
         ResolutionStatus = AnomalyResolutionStatus.Resolved;
@@ -55,6 +82,9 @@ public sealed class PayrollAnomaly
         ResolvedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Dismiss(string resolvedBy, string note)
     {
         ResolutionStatus = AnomalyResolutionStatus.Dismissed;
@@ -63,6 +93,9 @@ public sealed class PayrollAnomaly
         ResolvedAtUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Acknowledge(string acknowledgedBy)
     {
         ResolutionStatus = AnomalyResolutionStatus.Acknowledged;

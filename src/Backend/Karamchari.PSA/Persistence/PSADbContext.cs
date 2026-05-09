@@ -1,9 +1,9 @@
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.PSA.Domain;
-using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
+using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.PSA.Persistence;
 
@@ -129,7 +129,7 @@ public sealed class PSADbContext : KaramchariDbContext
             });
         });
 
-        // ── Profitability Engine tables ────────────────────────────────────────
+        // â”€â”€ Profitability Engine tables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         modelBuilder.Entity<EmployeeCostSnapshot>(b =>
         {
@@ -139,7 +139,7 @@ public sealed class PSADbContext : KaramchariDbContext
             b.Property(x => x.CostPerHour).HasPrecision(18, 4);
             b.Property(x => x.StandardMonthlyHours).HasPrecision(10, 2);
 
-            // One snapshot per employee per month — upsert-safe.
+            // One snapshot per employee per month â€” upsert-safe.
             b.HasIndex(x => new { x.EmployeeId, x.Year, x.Month }).IsUnique();
         });
 
@@ -178,7 +178,7 @@ public sealed class PSADbContext : KaramchariDbContext
             b.Ignore(x => x.UtilizationPercent);
             b.Ignore(x => x.BurnRate);
 
-            // One row per project per month — upsert target.
+            // One row per project per month â€” upsert target.
             b.HasIndex(x => new { x.ProjectId, x.Year, x.Month }).IsUnique();
 
             // Fast: "all projects this year" for the dashboard landing.

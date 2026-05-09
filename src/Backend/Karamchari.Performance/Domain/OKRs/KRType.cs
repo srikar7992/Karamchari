@@ -1,5 +1,8 @@
 namespace Karamchari.Performance.Domain.OKRs;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum KRType
 {
     /// <summary>Numeric target (e.g., revenue, NPS, count).</summary>

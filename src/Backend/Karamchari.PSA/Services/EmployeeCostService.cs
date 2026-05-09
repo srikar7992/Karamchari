@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 /// Resolves an employee's cost-per-hour for project cost allocation.
 ///
-/// The cost is sourced from <see cref="EmployeeCostSnapshot"/> — a monthly snapshot
+/// The cost is sourced from <see cref="EmployeeCostSnapshot"/> â€” a monthly snapshot
 /// of the employee's fully-loaded CTC (MonthlyGross from PayrollLedger).
 ///
 /// If no snapshot exists for the requested month, we fall back to the latest available
@@ -84,7 +84,7 @@ public sealed partial class EmployeeCostService
 
         if (existing != null)
         {
-            // Snapshot already exists — in a real system you'd update it if the cost changed.
+            // Snapshot already exists â€” in a real system you'd update it if the cost changed.
             // For now, we keep the first snapshot (payroll run is authoritative).
             return;
         }

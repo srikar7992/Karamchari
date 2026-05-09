@@ -13,14 +13,14 @@ using Microsoft.Extensions.Logging;
 /// Third consumer of <see cref="TimesheetApprovedIntegrationEvent"/>.
 ///
 /// The event pipeline now fans out to three consumers:
-///   1. PayrollConsumer → salary deductions (Payroll context)
-///   2. BillableRevenueConsumer → unbilled revenue ledger (PSA context)
-///   3. THIS → project profit ledger + aggregation (PSA context)
+///   1. PayrollConsumer â†’ salary deductions (Payroll context)
+///   2. BillableRevenueConsumer â†’ unbilled revenue ledger (PSA context)
+///   3. THIS â†’ project profit ledger + aggregation (PSA context)
 ///
 /// For each billable entry:
-///   Revenue = Hours × BillableRate (from ProjectResource)
-///   Cost    = Hours × CostPerHour  (from EmployeeCostSnapshot)
-///   Profit  = Revenue − Cost
+///   Revenue = Hours Ã— BillableRate (from ProjectResource)
+///   Cost    = Hours Ã— CostPerHour  (from EmployeeCostSnapshot)
+///   Profit  = Revenue âˆ’ Cost
 ///
 /// Then atomically upserts into <see cref="ProjectMonthlyMetrics"/>.
 /// </summary>

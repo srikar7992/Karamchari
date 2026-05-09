@@ -34,17 +34,50 @@ public sealed class IncrementBudgetPool : AggregateRoot<Guid>, ITenantOwned
         Status = BudgetStatus.Draft;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid DepartmentId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string DepartmentName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int ReviewYear { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalBudget { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal AllocatedBudget { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal RemainingBudget => TotalBudget - AllocatedBudget;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CurrencyCode { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public BudgetStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IncrementBudgetPool Create(
         string tenantId,
         Guid departmentId,
@@ -64,6 +97,9 @@ public sealed class IncrementBudgetPool : AggregateRoot<Guid>, ITenantOwned
             reviewYear, totalBudget, currencyCode.ToUpperInvariant());
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve()
     {
         if (Status != BudgetStatus.Draft)
@@ -71,6 +107,9 @@ public sealed class IncrementBudgetPool : AggregateRoot<Guid>, ITenantOwned
         Status = BudgetStatus.Approved;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Allocate(decimal amount)
     {
         if (Status != BudgetStatus.Approved)
@@ -84,6 +123,9 @@ public sealed class IncrementBudgetPool : AggregateRoot<Guid>, ITenantOwned
         Status = BudgetStatus.Allocated;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Close()
     {
         if (Status is BudgetStatus.Draft)

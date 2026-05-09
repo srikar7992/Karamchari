@@ -6,6 +6,9 @@ namespace Karamchari.Compensation.Persistence.Configurations;
 
 internal sealed class CompensationBandConfiguration : IEntityTypeConfiguration<CompensationBand>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<CompensationBand> b)
     {
         b.ToTable("CompensationBands");
@@ -28,6 +31,9 @@ internal sealed class CompensationBandConfiguration : IEntityTypeConfiguration<C
 
 internal sealed class MeritMatrixConfiguration : IEntityTypeConfiguration<MeritMatrix>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<MeritMatrix> b)
     {
         b.ToTable("MeritMatrices");
@@ -60,6 +66,9 @@ internal sealed class MeritMatrixConfiguration : IEntityTypeConfiguration<MeritM
 
 internal sealed class IncrementBudgetPoolConfiguration : IEntityTypeConfiguration<IncrementBudgetPool>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<IncrementBudgetPool> b)
     {
         b.ToTable("IncrementBudgetPools");
@@ -80,6 +89,9 @@ internal sealed class IncrementBudgetPoolConfiguration : IEntityTypeConfiguratio
 
 internal sealed class EmployeeCompensationRecordConfiguration : IEntityTypeConfiguration<EmployeeCompensationRecord>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Configure(EntityTypeBuilder<EmployeeCompensationRecord> b)
     {
         b.ToTable("EmployeeCompensationRecords");

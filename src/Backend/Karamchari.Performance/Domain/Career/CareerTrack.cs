@@ -3,6 +3,9 @@ using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Performance.Domain.Career;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class CareerTrack : Entity<Guid>, ITenantOwned
 {
     private readonly List<CareerLevel> _levels = [];
@@ -24,11 +27,26 @@ public sealed class CareerTrack : Entity<Guid>, ITenantOwned
         Description = description;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid FrameworkId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public TrackType Type { get; private set; }
     public string? Description { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<CareerLevel> Levels => _levels.AsReadOnly();
 
     internal CareerLevel AddLevel(string code, string displayName, int order, string? description = null)

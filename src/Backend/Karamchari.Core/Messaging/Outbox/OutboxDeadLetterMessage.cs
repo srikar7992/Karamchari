@@ -2,7 +2,7 @@ namespace Karamchari.Core.Messaging.Outbox;
 
 /// <summary>
 /// Persisted record of a message the relay gave up on after exhausting retries.
-/// Stored in dbo.OutboxDeadLetter — shared infrastructure, not tenant-owned.
+/// Stored in dbo.OutboxDeadLetter â€” shared infrastructure, not tenant-owned.
 /// </summary>
 public sealed class OutboxDeadLetterMessage
 {

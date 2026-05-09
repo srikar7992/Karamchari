@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 
 /// <summary>
 /// Design-time factory for <see cref="HRDbContext"/>.
-/// Used exclusively by the EF Core CLI tools (<c>dotnet ef</c>) — never resolved
+/// Used exclusively by the EF Core CLI tools (<c>dotnet ef</c>) â€” never resolved
 /// at runtime by the application's DI container.
 /// </summary>
 /// <remarks>
@@ -22,7 +22,7 @@ using Microsoft.Extensions.Configuration;
 /// <b>Commands (from <c>src/Backend/</c>)</b>
 /// <code>
 /// dotnet ef migrations add &lt;Name&gt; --project Karamchari.HR --startup-project Karamchari.Api
-/// # Edit: replace [__tenant__] → [dbo] in the generated migration file
+/// # Edit: replace [__tenant__] â†’ [dbo] in the generated migration file
 /// dotnet ef database update          --project Karamchari.HR --startup-project Karamchari.Api
 /// </code>
 /// </para>
@@ -44,19 +44,28 @@ public sealed class HRDbContextDesignTimeFactory : IDesignTimeDbContextFactory<H
 
         var optionsBuilder = new DbContextOptionsBuilder<HRDbContext>();
         optionsBuilder.UseSqlServer(connectionString);
-        // Karamchari interceptors intentionally omitted — see PayrollDbContextDesignTimeFactory.
+        // Karamchari interceptors intentionally omitted â€” see PayrollDbContextDesignTimeFactory.
 
         return new HRDbContext(optionsBuilder.Options, DesignTimeTenantProvider.Instance);
     }
 
     private sealed class DesignTimeTenantProvider : ITenantProvider
     {
+        /// <summary>
+        /// Provides required documentation for this member.
+        /// </summary>
         public static readonly DesignTimeTenantProvider Instance = new();
         private static readonly TenantContext DesignTimeTenant =
             new("design_time", TenantSource.Provisioning);
 
+        /// <summary>
+        /// Provides required documentation for this member.
+        /// </summary>
         public TenantContext GetTenant() => DesignTimeTenant;
 
+        /// <summary>
+        /// Provides required documentation for this member.
+        /// </summary>
         public bool TryGetTenant(out TenantContext? tenant)
         {
             tenant = DesignTimeTenant;

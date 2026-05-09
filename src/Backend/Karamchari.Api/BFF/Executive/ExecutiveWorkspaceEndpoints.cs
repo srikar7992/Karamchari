@@ -6,10 +6,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Executive;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class ExecutiveWorkspaceEndpoints
 {
     private static readonly TimeSpan StaleThreshold = TimeSpan.FromMinutes(30);
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapExecutiveWorkspace(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/executive").RequireAuthorization();

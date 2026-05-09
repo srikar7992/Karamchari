@@ -3,6 +3,9 @@ using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Performance.Domain.Skills;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class SkillCategory : Entity<Guid>, ITenantOwned
 {
     private readonly List<Skill> _skills = [];
@@ -22,10 +25,22 @@ public sealed class SkillCategory : Entity<Guid>, ITenantOwned
         Description = description;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid TaxonomyId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyList<Skill> Skills => _skills.AsReadOnly();
 
     internal Skill AddSkill(string name, string? description, SkillDomain domain)

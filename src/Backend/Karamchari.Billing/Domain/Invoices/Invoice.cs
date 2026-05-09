@@ -1,5 +1,8 @@
 namespace Karamchari.Billing.Domain.Invoices;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public enum InvoiceStatus
 {
     Draft = 0,
@@ -8,31 +11,76 @@ public enum InvoiceStatus
     Cancelled = 3
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class Invoice
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid Id { get; init; } = Guid.NewGuid();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ClientId { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ContractId { get; init; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string InvoiceNumber { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly PeriodStart { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly PeriodEnd { get; init; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TotalAmount { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal TaxAmount { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal GrandTotal => TotalAmount + TaxAmount;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public InvoiceStatus Status { get; private set; } = InvoiceStatus.Draft;
 
     private readonly List<InvoiceLine> _lines = new();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<InvoiceLine> Lines => _lines.AsReadOnly();
 
     private readonly List<Payment> _payments = new();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<Payment> Payments => _payments.AsReadOnly();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? FinalizedAt { get; private set; }
     public string? FinalizedBy { get; private set; }
@@ -43,6 +91,9 @@ public sealed class Invoice
     /// </summary>
     public string? SnapshotJson { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddLine(string description, decimal quantity, decimal rate)
     {
         if (Status != InvoiceStatus.Draft)
@@ -63,11 +114,14 @@ public sealed class Invoice
         TaxAmount = Math.Round(TotalAmount * 0.18m, 2);
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Finalize(string invoiceNumber, string finalizedBy, string snapshotJson)
     {
         if (Status != InvoiceStatus.Draft)
             throw new InvalidOperationException("Invoice is not in Draft status.");
-        
+
         InvoiceNumber = invoiceNumber;
         FinalizedBy = finalizedBy;
         SnapshotJson = snapshotJson;
@@ -75,6 +129,9 @@ public sealed class Invoice
         FinalizedAt = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void RecordPayment(decimal amount, DateTimeOffset paidAt)
     {
         if (Status == InvoiceStatus.Draft)
@@ -96,19 +153,52 @@ public sealed class Invoice
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class InvoiceLine
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid Id { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Description { get; init; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Quantity { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Rate { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Amount { get; init; }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class Payment
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid Id { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid InvoiceId { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public decimal Amount { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset PaidAt { get; init; }
 }

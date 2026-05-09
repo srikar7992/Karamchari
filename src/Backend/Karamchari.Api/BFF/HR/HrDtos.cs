@@ -1,7 +1,10 @@
 namespace Karamchari.Api.BFF.HR;
 
-// ── Review Cycles ─────────────────────────────────────────────────────────────
+// â”€â”€ Review Cycles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ReviewCyclePageResponse(
     IReadOnlyList<ReviewCycleDto> Items,
     int TotalCount,
@@ -9,6 +12,9 @@ public sealed record ReviewCyclePageResponse(
     int PageSize,
     bool HasMore);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ReviewCycleDto(
     Guid CycleId,
     string Name,
@@ -21,13 +27,19 @@ public sealed record ReviewCycleDto(
     int CompletedAssignments,
     decimal CompletionRate);
 
-// ── Calibration Board ─────────────────────────────────────────────────────────
+// â”€â”€ Calibration Board â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record CalibrationBoardResponse(
     IReadOnlyList<CalibrationSessionDto> Sessions,
     int TotalSessions,
     int SessionsPendingFinalization);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record CalibrationSessionDto(
     Guid SessionId,
     Guid ReviewCycleId,
@@ -46,8 +58,11 @@ public sealed record CalibrationSessionDto(
     DateTimeOffset? FinalizedOnUtc,
     DateTimeOffset LastRefreshedUtc);
 
-// ── Promotion Approvals ───────────────────────────────────────────────────────
+// â”€â”€ Promotion Approvals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record HRPromotionPipelineResponse(
     IReadOnlyList<HRPromotionEntry> Items,
     int TotalCount,
@@ -55,6 +70,9 @@ public sealed record HRPromotionPipelineResponse(
     int PageSize,
     bool HasMore);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record HRPromotionEntry(
     Guid RecommendationId,
     Guid EmployeeId,

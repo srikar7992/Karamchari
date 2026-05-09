@@ -7,11 +7,17 @@ using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
 using NSubstitute;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public class TDSTests
 {
     private static readonly FinancialYear FY2026 = new(2026, 2027);
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task TdsShouldCalculateMonthlyDeductionBasedOnProjection()
     {
         // Arrange
@@ -27,7 +33,7 @@ public class TDSTests
 
         var slabs = Substitute.For<ITaxSlabProvider>();
         slabs.CalculateAnnualTax(Arg.Any<decimal>(), Arg.Any<TaxRegime>())
-            .Returns(120000m); // 1.2L annual tax → 10k/month
+            .Returns(120000m); // 1.2L annual tax â†’ 10k/month
 
         var repo = Substitute.For<IITDeclarationRepository>();
         repo.GetApprovedDeclarationsAsync(Arg.Any<Guid>(), Arg.Any<int>())
@@ -45,9 +51,12 @@ public class TDSTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task TdsShouldReturnZeroWhenNoTaxLiability()
     {
-        // Arrange — income below 7L → New regime tax = 0 (rebate u/s 87A)
+        // Arrange â€” income below 7L â†’ New regime tax = 0 (rebate u/s 87A)
         var context = CreateContext(50000);
 
         var projection = Substitute.For<IIncomeProjectionService>();
@@ -76,6 +85,9 @@ public class TDSTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void HraExemptionShouldApplyCorrectMath()
     {
         // Arrange
@@ -85,10 +97,10 @@ public class TDSTests
         decimal rent = 240000;
 
         // Act
-        // Metro: Min(50% Basic=250k, Rent-10%Basic=190k, HRA=200k) → Min is 190k
+        // Metro: Min(50% Basic=250k, Rent-10%Basic=190k, HRA=200k) â†’ Min is 190k
         var exemptionMetro = calc.CalculateHraExemption(basic, hra, rent, isMetro: true);
 
-        // Non-metro: Min(40% Basic=200k, Rent-10%Basic=190k, HRA=200k) → Min is 190k
+        // Non-metro: Min(40% Basic=200k, Rent-10%Basic=190k, HRA=200k) â†’ Min is 190k
         var exemptionNonMetro = calc.CalculateHraExemption(basic, hra, rent, isMetro: false);
 
         // Assert
@@ -97,6 +109,9 @@ public class TDSTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void NewRegimeSlabsShouldHandleRebate()
     {
         // Arrange
@@ -112,12 +127,15 @@ public class TDSTests
     }
 
     [Fact]
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void OldRegimeShouldApplySlabsAbove250k()
     {
         // Arrange
         var provider = new TaxSlabProvider();
 
-        // Act — old regime basic exemption is 2.5L; income just above that
+        // Act â€” old regime basic exemption is 2.5L; income just above that
         var taxAt0 = provider.CalculateAnnualTax(250000, TaxRegime.Old);
         var taxAt500k = provider.CalculateAnnualTax(500000, TaxRegime.Old);
 

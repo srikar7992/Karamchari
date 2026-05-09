@@ -1,11 +1,11 @@
+using System.Net;
+using System.Text.Json;
 using FluentAssertions;
 using Karamchari.Api.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using System.Net;
-using System.Text.Json;
 using Xunit;
 
 namespace Karamchari.Api.UnitTests.Middleware;

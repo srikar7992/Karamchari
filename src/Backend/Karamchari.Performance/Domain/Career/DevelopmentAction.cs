@@ -2,6 +2,9 @@ using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Performance.Domain.Career;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class DevelopmentAction : Entity<Guid>
 {
     private DevelopmentAction() { /* EF materialization */ }
@@ -22,11 +25,23 @@ public sealed class DevelopmentAction : Entity<Guid>
         Status = DevelopmentActionStatus.NotStarted;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid GrowthPlanId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Title { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DevelopmentActionType Type { get; private set; }
     public string? Description { get; private set; }
     public DateOnly? TargetCompletionDate { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DevelopmentActionStatus Status { get; private set; }
     public string? CompletionNotes { get; private set; }
     public DateOnly? CompletedOnDate { get; private set; }

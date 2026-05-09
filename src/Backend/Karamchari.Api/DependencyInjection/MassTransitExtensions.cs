@@ -28,8 +28,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class MassTransitExtensions
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariMassTransit(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
         services.AddMassTransit(x =>
@@ -107,7 +113,7 @@ public static class MassTransitExtensions
 
             services.AddKaramchariBilling(configuration);
             services.AddKaramchariForecasting(configuration);
-            
+
             x.AddConsumer<Karamchari.Billing.Consumers.BillableEntryConsumer>();
             x.AddConsumer<Karamchari.Billing.Consumers.CollectionCaseConsumer>();
             x.AddConsumer<Karamchari.Forecasting.Consumers.ForecastUpdateConsumer>();

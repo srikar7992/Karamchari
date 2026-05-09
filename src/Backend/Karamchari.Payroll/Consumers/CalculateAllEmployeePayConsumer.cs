@@ -1,14 +1,14 @@
-using MassTransit;
+using Karamchari.Core.Contracts;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
+using Karamchari.Payroll.Domain;
+using Karamchari.Payroll.Domain.Statutory;
+using Karamchari.Payroll.Services;
+using Karamchari.Payroll.Services.Statutory;
+using Karamchari.Payroll.Services.Statutory.Rules;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Karamchari.Payroll.Services.Statutory;
-using Karamchari.Payroll.Services;
-using Karamchari.Core.Contracts;
-using Karamchari.Payroll.Domain.Statutory;
-using Karamchari.Payroll.Services.Statutory.Rules;
-using Karamchari.Payroll.Domain;
 
 namespace Karamchari.Payroll.Consumers;
 
@@ -32,7 +32,7 @@ public class CalculateAllEmployeePayCommandConsumer : IConsumer<CalculateAllEmpl
     /// Initializes a new instance of the <see cref="CalculateAllEmployeePayCommandConsumer"/> class.
     /// </summary>
     public CalculateAllEmployeePayCommandConsumer(
-        PayrollDbContext dbContext, 
+        PayrollDbContext dbContext,
         IPublishEndpoint publishEndpoint,
         ILogger<CalculateAllEmployeePayCommandConsumer> logger,
         StatutoryPipelineEngine statutoryEngine,
@@ -59,7 +59,7 @@ public class CalculateAllEmployeePayCommandConsumer : IConsumer<CalculateAllEmpl
         ArgumentNullException.ThrowIfNull(context);
 
         var message = context.Message;
-        
+
         // 1. Fetch all active employee IDs for the current tenant
         var employeeIds = await _dbContext.PayrollProfiles
             .Where(p => p.IsActive)

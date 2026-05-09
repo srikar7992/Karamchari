@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Billing.Services;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed record ARSummary(
     decimal TotalOutstanding,
     decimal Overdue30,
@@ -11,18 +14,24 @@ public sealed record ARSummary(
     decimal OverduePlus,
     double DaysSalesOutstanding);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class ARAnalyticsService
 {
     private readonly BillingDbContext _db;
 
     public ARAnalyticsService(BillingDbContext db) => _db = db;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public async Task<ARSummary> GetSummaryAsync(string tenantId, CancellationToken ct = default)
     {
         var invoices = await _db.Invoices
             .Include(i => i.Payments)
-            .Where(i => i.TenantId == tenantId && 
-                        i.Status != Domain.Invoices.InvoiceStatus.Draft && 
+            .Where(i => i.TenantId == tenantId &&
+                        i.Status != Domain.Invoices.InvoiceStatus.Draft &&
                         i.Status != Domain.Invoices.InvoiceStatus.Cancelled)
             .ToListAsync(ct);
 
@@ -39,10 +48,10 @@ public sealed class ARAnalyticsService
             total += outstanding;
 
             // Days based on PeriodEnd or FinalizedAt
-            var baseDate = inv.FinalizedAt?.Date != null 
-                ? DateOnly.FromDateTime(inv.FinalizedAt.Value.Date) 
+            var baseDate = inv.FinalizedAt?.Date != null
+                ? DateOnly.FromDateTime(inv.FinalizedAt.Value.Date)
                 : inv.PeriodEnd;
-            
+
             var days = today.DayNumber - baseDate.DayNumber;
 
             if (days <= 30) o30 += outstanding;
@@ -57,7 +66,7 @@ public sealed class ARAnalyticsService
         var recentSales = invoices
             .Where(i => i.PeriodEnd >= cutoff90)
             .Sum(i => i.GrandTotal);
-        
+
         double dso = recentSales > 0 ? (double)(total / (recentSales / 90)) : 0;
 
         return new ARSummary(total, o30, o60, o90, oPlus, dso);

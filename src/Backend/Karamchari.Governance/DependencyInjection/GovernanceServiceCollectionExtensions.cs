@@ -7,10 +7,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Karamchari.Governance.DependencyInjection;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class GovernanceServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static IServiceCollection AddKaramchariGovernance(
         this IServiceCollection services,
         IConfiguration configuration)

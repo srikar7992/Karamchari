@@ -5,6 +5,9 @@ using MassTransit;
 
 namespace Karamchari.Notifications.Consumers;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class GoalApprovalRequiredConsumer : IConsumer<GoalApprovalRequiredIntegrationEvent>
 {
     private readonly INotificationOrchestrator _orchestrator;
@@ -12,6 +15,9 @@ public sealed class GoalApprovalRequiredConsumer : IConsumer<GoalApprovalRequire
     public GoalApprovalRequiredConsumer(INotificationOrchestrator orchestrator) =>
         _orchestrator = orchestrator;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Task Consume(ConsumeContext<GoalApprovalRequiredIntegrationEvent> context)
     {
         var e = context.Message;
@@ -26,8 +32,8 @@ public sealed class GoalApprovalRequiredConsumer : IConsumer<GoalApprovalRequire
             Locale: "en-US",
             Variables: new Dictionary<string, string>
             {
-                ["OwnerName"]  = e.OwnerDisplayName,
-                ["GoalTitle"]  = e.GoalTitle,
+                ["OwnerName"] = e.OwnerDisplayName,
+                ["GoalTitle"] = e.GoalTitle,
             });
 
         return _orchestrator.OrchestrateAsync(intent, context.CancellationToken);

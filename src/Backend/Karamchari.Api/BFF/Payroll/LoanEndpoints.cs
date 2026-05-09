@@ -11,8 +11,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class LoanEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapLoanEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/loans").RequireAuthorization();
@@ -77,7 +83,7 @@ public static class LoanEndpoints
         PayrollDbContext db,
         CancellationToken ct)
     {
-        var loan = await db.Set<EmployeeLoan>().FindAsync(id);
+        var loan = await db.Set<EmployeeLoan>().FindAsync(new object[] { id }, ct);
         if (loan == null) return Results.NotFound();
 
         var approvedBy = user.GetEmployeeIdString();
@@ -96,7 +102,7 @@ public static class LoanEndpoints
         PayrollDbContext db,
         CancellationToken ct)
     {
-        var loan = await db.Set<EmployeeLoan>().FindAsync(id);
+        var loan = await db.Set<EmployeeLoan>().FindAsync(new object[] { id }, ct);
         if (loan == null) return Results.NotFound();
 
         var rejectedBy = user.GetEmployeeIdString();

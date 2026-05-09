@@ -5,8 +5,14 @@ using MassTransit;
 
 namespace Karamchari.Api.BFF.Tenants;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class TenantEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapTenantEndpoints(this WebApplication app)
     {
         app.MapPost("/api/tenants", ProvisionTenant);
@@ -14,20 +20,20 @@ public static class TenantEndpoints
     }
 
     private static async Task<IResult> ProvisionTenant(
-        ProvisionTenantRequest request, 
+        ProvisionTenantRequest request,
         TenantProvisioningService provisioningService,
         IPublishEndpoint publishEndpoint)
     {
         var tenantId = request.CompanyName.ToLowerInvariant().Replace(" ", "_");
         var schemaName = $"tenant_{tenantId}";
-        
+
         await provisioningService.ProvisionTenantAsync(tenantId, schemaName);
-        
+
         await publishEndpoint.Publish(new TenantProvisionedIntegrationEvent(
-            tenantId, 
-            request.CompanyName, 
+            tenantId,
+            request.CompanyName,
             request.AdminEmail));
-        
+
         return Results.Created($"/api/tenants/{tenantId}", new { TenantId = tenantId, SchemaName = schemaName });
     }
 }

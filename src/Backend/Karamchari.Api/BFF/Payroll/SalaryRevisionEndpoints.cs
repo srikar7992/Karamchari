@@ -9,8 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class SalaryRevisionEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapSalaryRevisionEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/revisions").RequireAuthorization();
@@ -22,12 +28,12 @@ public static class SalaryRevisionEndpoints
 
         return app;
     }
-private static async Task<IResult> ProposeRevision(
-    [FromBody] CreateSalaryRevisionRequest request,
-    ClaimsPrincipal user,
-    PayrollDbContext db,
-    IPublishEndpoint bus,
-    CancellationToken ct)
+    private static async Task<IResult> ProposeRevision(
+        [FromBody] CreateSalaryRevisionRequest request,
+        ClaimsPrincipal user,
+        PayrollDbContext db,
+        IPublishEndpoint bus,
+        CancellationToken ct)
     {
         var (tenantId, employeeId) = user.GetTenantAndEmployee();
         if (tenantId is null || employeeId is null) return Results.Unauthorized();
@@ -117,11 +123,17 @@ private static async Task<IResult> ProposeRevision(
             r.EffectiveFrom, r.Status.ToString(), r.RequiresArrears, r.CreatedAtUtc);
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record SalaryRevisionDto(
     Guid Id, Guid EmployeeId, string EmployeeName, decimal PreviousCTC,
     decimal NewCTC, DateOnly EffectiveFrom, string Status, bool RequiresArrears,
     DateTimeOffset CreatedAt);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record CreateSalaryRevisionRequest(
     Guid EmployeeId, string EmployeeName, decimal PreviousCTC,
     decimal NewCTC, DateOnly EffectiveFrom, string Reason, bool RequiresArrears);

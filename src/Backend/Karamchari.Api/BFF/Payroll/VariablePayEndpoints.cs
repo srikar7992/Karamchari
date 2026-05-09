@@ -9,8 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.BFF.Payroll;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public static class VariablePayEndpoints
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static WebApplication MapVariablePayEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/variable-pay").RequireAuthorization();
@@ -115,10 +121,16 @@ public static class VariablePayEndpoints
             p.ProratedAmount, p.PayoutPeriodName ?? "", p.Status.ToString(), p.CreatedAtUtc);
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record VariablePayDto(
     Guid Id, Guid EmployeeId, string EmployeeName, string Type,
     decimal Amount, string PeriodName, string Status, DateTimeOffset CreatedAt);
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public record SubmitVariablePayRequest(
     Guid EmployeeId, string EmployeeName, string Type,
     decimal Amount, string PeriodName, string Description);

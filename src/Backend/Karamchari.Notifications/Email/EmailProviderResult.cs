@@ -6,9 +6,15 @@ public sealed record EmailProviderResult(
     string? ProviderMessageId,
     string? FailureReason)
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static EmailProviderResult Ok(string providerMessageId) =>
         new(true, providerMessageId, null);
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static EmailProviderResult Fail(string reason) =>
         new(false, null, reason);
 }

@@ -31,7 +31,7 @@ public static class ConfidenceEvaluationEngine
         var decayPenalty = CalculateDecay(ageDays);
 
         var finalScore = baseScore + volumeBonus - decayPenalty;
-        
+
         // Clamp to 0-100
         finalScore = Math.Clamp(finalScore, 0m, 100m);
 

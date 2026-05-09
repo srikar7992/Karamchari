@@ -36,7 +36,7 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
 
         if (entries.Count == 0) return;
 
-        // 2. Bulk-load all profiles in one query — eliminates the N+1 that previously
+        // 2. Bulk-load all profiles in one query â€” eliminates the N+1 that previously
         //    issued one SELECT per ledger entry inside the loop.
         var employeeIds = entries.Select(e => e.EmployeeId).ToHashSet();
         var profilesById = await _dbContext.PayrollProfiles
@@ -46,7 +46,7 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
         // 3. Publish individual completion events to trigger payslip generation.
         //    Inside a MassTransit consumer, IPublishEndpoint is wired to the transactional
         //    outbox when the backing DbContext has AddEntityFrameworkOutbox configured.
-        //    The SaveChangesAsync call below writes the outbox rows atomically — events are
+        //    The SaveChangesAsync call below writes the outbox rows atomically â€” events are
         //    only delivered if the commit succeeds.
         foreach (var entry in entries)
         {

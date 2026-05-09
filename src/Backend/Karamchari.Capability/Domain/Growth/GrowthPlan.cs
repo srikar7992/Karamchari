@@ -12,21 +12,47 @@ public sealed class GrowthPlan : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<GrowthMilestone> _milestones = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <inheritdoc/>
     public Guid? MentorId { get; private set; } // Optional mentor assignment
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TargetRoleOrCapability { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public GrowthPlanStatus Status { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset CreatedAtUtc { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? TargetCompletionUtc { get; private set; }
-    
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public IReadOnlyCollection<GrowthMilestone> Milestones => _milestones.AsReadOnly();
 
     private GrowthPlan() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static GrowthPlan Create(
         string tenantId,
         Guid employeeId,
@@ -47,6 +73,9 @@ public sealed class GrowthPlan : AggregateRoot<Guid>, ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Activate()
     {
         if (Status != GrowthPlanStatus.Draft && Status != GrowthPlanStatus.OnHold)
@@ -56,6 +85,9 @@ public sealed class GrowthPlan : AggregateRoot<Guid>, ITenantOwned
         // Raise GrowthPlanActivatedEvent
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AddMilestone(string description, Guid? requiredSkillId = null)
     {
         if (Status == GrowthPlanStatus.Completed || Status == GrowthPlanStatus.Abandoned)
@@ -65,12 +97,26 @@ public sealed class GrowthPlan : AggregateRoot<Guid>, ITenantOwned
     }
 }
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class GrowthMilestone : Entity<Guid>
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid GrowthPlanId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string Description { get; private set; } = string.Empty;
+    /// <inheritdoc/>
     public Guid? RequiredSkillId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsAchieved { get; private set; }
+    /// <inheritdoc/>
     public DateTimeOffset? AchievedAtUtc { get; private set; }
 
     private GrowthMilestone() { }

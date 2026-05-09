@@ -61,7 +61,7 @@ public static class IdentityEndpoints
 
         var claims = await userManager.GetClaimsAsync(user);
         var tenantId = claims.FirstOrDefault(c => c.Type == Karamchari.Core.Multitenancy.TenantConstants.JwtClaimType)?.Value;
-        
+
         if (string.IsNullOrEmpty(tenantId))
         {
             auditService.LogAuthFailure(request.Email, "Missing tenant assignment", null, ip);
@@ -70,7 +70,7 @@ public static class IdentityEndpoints
 
         var roles = await userManager.GetRolesAsync(user);
         var accessToken = jwtService.GenerateAccessToken(tenantId, user.Id, user.Email!, roles, []);
-        
+
         var deviceInfo = context.Request.Headers.UserAgent.ToString();
         var (_, refreshToken) = await refreshService.CreateTokenAsync(user.Id, tenantId, deviceInfo);
 

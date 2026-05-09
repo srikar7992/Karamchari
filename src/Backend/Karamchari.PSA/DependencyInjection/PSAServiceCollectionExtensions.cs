@@ -18,7 +18,7 @@ public static class PSAServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // DbContext — same connection string as other contexts; RLS scopes by tenant.
+        // DbContext â€” same connection string as other contexts; RLS scopes by tenant.
         services.AddDbContext<PSADbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("KaramchariDb")));
 

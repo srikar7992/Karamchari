@@ -1,0 +1,58 @@
+name: Enterprise Build & Validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: Build, Test, and Analyze
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for analyzers and coverage
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          # Pin SDK to ensure deterministic builds
+
+      - name: Cache NuGet Packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore Dependencies
+        run: dotnet restore src/Backend/Karamchari.sln --locked-mode
+        # Enforces package lock files if generated, preventing silent dependency drift
+
+      - name: Verify Formatting
+        run: dotnet format src/Backend/Karamchari.sln --verify-no-changes --severity warn
+        # Fails the build if code formatting deviates from .editorconfig
+
+      - name: Build Solution
+        run: dotnet build src/Backend/Karamchari.sln --no-restore -c Release -warnaserror
+        # Zero Warnings Policy enforced here.
+
+      - name: Run Unit Tests
+        run: dotnet test src/Backend/Karamchari.sln --no-build -c Release --logger "trx;LogFileName=test_results.trx" --collect:"XPlat Code Coverage"
+
+      - name: Security Audit
+        run: dotnet list src/Backend/Karamchari.sln package --vulnerable --include-transitive
+        # Fails if transitive dependencies have known vulnerabilities not suppressed in Directory.Build.props

@@ -79,17 +79,20 @@ internal sealed class JwtTokenService : IJwtTokenService
         var randomNumber = new byte[64];
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
-        
+
         var raw = Convert.ToBase64String(randomNumber);
         var hash = HashToken(raw);
 
         return (raw, hash, DateTimeOffset.UtcNow.AddDays(_options.RefreshTokenExpirationDays));
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
+    /// <inheritdoc/>
     public string HashToken(string rawToken)
     {
-        using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(rawToken));
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
         return Convert.ToBase64String(bytes);
     }
 
@@ -140,7 +143,7 @@ internal sealed class JwtTokenService : IJwtTokenService
                 {
                     keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(s)));
                 }
-                
+
                 // 3. Fallback to legacy Secret
                 keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Secret)));
             }

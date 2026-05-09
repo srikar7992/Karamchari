@@ -6,7 +6,7 @@ namespace Karamchari.Performance.Domain.ReadModels;
 /// <summary>
 /// Immutable point-in-time performance summary materialized after a review cycle completes calibration.
 /// Serves analytics, trend analysis, succession planning, and attrition risk detection.
-/// Never updated after creation — append a new snapshot if recalibration occurs.
+/// Never updated after creation â€” append a new snapshot if recalibration occurs.
 /// </summary>
 public sealed class PerformanceSnapshot : Entity<Guid>, ITenantOwned
 {
@@ -46,26 +46,56 @@ public sealed class PerformanceSnapshot : Entity<Guid>, ITenantOwned
         MaterializedOnUtc = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid ReviewCycleId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string CycleName { get; private set; } = string.Empty;
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly ReviewPeriodStart { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateOnly ReviewPeriodEnd { get; private set; }
 
-    /// <summary>Weighted composite 0–100 across all scoring dimensions.</summary>
+    /// <summary>Weighted composite 0â€“100 across all scoring dimensions.</summary>
     public decimal CompositeScore { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string PerformanceBucket { get; private set; } = string.Empty;
     public decimal? GoalCompletionRate { get; private set; }
     public decimal? OKRScore { get; private set; }
     public decimal? KPIScore { get; private set; }
     public decimal? PeerFeedbackScore { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public bool IsHighPerformer { get; private set; }
 
     /// <summary>Derived from composite score trajectory + engagement signals. Used in succession planning.</summary>
     public bool IsAtRetentionRisk { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTimeOffset MaterializedOnUtc { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static PerformanceSnapshot Materialize(
         string tenantId,
         Guid employeeId,

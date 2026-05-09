@@ -50,7 +50,7 @@ public interface IStatutoryRuleSet
 {
     /// <summary>Gets the financial year this ruleset covers.</summary>
     FinancialYear Year { get; }
-    
+
     /// <summary>Gets the sorted list of rules.</summary>
     IReadOnlyList<IStatutoryRuleMetadata> Rules { get; }
 }

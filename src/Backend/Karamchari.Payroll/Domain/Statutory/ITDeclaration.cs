@@ -10,14 +10,26 @@ public class ITDeclaration : ITenantOwned
     /// <inheritdoc/>
     public string TenantId { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid Id { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public Guid EmployeeId { get; private set; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public int FinancialYear { get; private set; }
 
     /// <summary>The version of this specific declaration (increments on re-upload).</summary>
     public int Version { get; private set; }
     public Guid? PreviousVersionId { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public VerificationStatus Status { get; private set; }
 
     /// <summary>The category of the declaration (e.g., "80C", "80D", "HRA").</summary>
@@ -34,9 +46,15 @@ public class ITDeclaration : ITenantOwned
 
     public string? RejectionReason { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string SubmittedBy { get; private set; } = string.Empty;
     public string? VerifiedBy { get; private set; }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DateTime SubmittedAt { get; private set; }
     public DateTime? VerifiedAt { get; private set; }
 
@@ -45,12 +63,15 @@ public class ITDeclaration : ITenantOwned
 
     private ITDeclaration() { }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public static ITDeclaration Create(
-        Guid employeeId, 
-        int financialYear, 
-        string category, 
-        decimal amount, 
-        string proofUri, 
+        Guid employeeId,
+        int financialYear,
+        string category,
+        decimal amount,
+        string proofUri,
         string submittedBy)
     {
         return new ITDeclaration
@@ -68,6 +89,9 @@ public class ITDeclaration : ITenantOwned
         };
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Approve(decimal amount, string approver)
     {
         if (Status != VerificationStatus.PendingReview && Status != VerificationStatus.Submitted)
@@ -79,6 +103,9 @@ public class ITDeclaration : ITenantOwned
         VerifiedAt = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Reject(string reason, string rejectedBy)
     {
         if (Status != VerificationStatus.PendingReview && Status != VerificationStatus.Submitted)
@@ -90,6 +117,9 @@ public class ITDeclaration : ITenantOwned
         VerifiedAt = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void Supersede()
     {
         Status = VerificationStatus.Superseded;
