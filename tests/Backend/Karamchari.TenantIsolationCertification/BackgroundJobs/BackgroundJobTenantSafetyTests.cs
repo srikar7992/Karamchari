@@ -1,0 +1,655 @@
+using FluentAssertions;
+using Karamchari.Core.BackgroundJobs.Tenant;
+using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Multitenancy.Execution;
+using Karamchari.TenantIsolationCertification.Infrastructure;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+
+namespace Karamchari.TenantIsolationCertification.BackgroundJobs;
+
+public sealed class TenantAwareJobEnvelopeTests
+{
+    [Fact]
+    public void FromEnvelope_ShouldMapAllProperties()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob)
+        {
+            RetryAttempt = 2,
+            UserIdentity = "user_123",
+            ReplayMetadata = new Dictionary<string, string> { { "key", "value" } }
+        };
+
+        var jobEnvelope = TenantAwareJobEnvelope.FromEnvelope(envelope);
+
+        jobEnvelope.TenantId.Should().Be("acme");
+        jobEnvelope.CorrelationId.Should().Be(envelope.CorrelationId);
+        jobEnvelope.RequestId.Should().Be(envelope.RequestId);
+        jobEnvelope.Source.Should().Be(ExecutionSource.BackgroundJob);
+        jobEnvelope.RetryAttempt.Should().Be(2);
+        jobEnvelope.UserIdentity.Should().Be("user_123");
+        jobEnvelope.Metadata.Should().ContainKey("key");
+    }
+
+    [Fact]
+    public void ToEnvelope_ShouldRestoreEnvelopeCorrectly()
+    {
+        var correlationId = Guid.NewGuid();
+        var requestId = Guid.NewGuid();
+        var timestamp = DateTime.UtcNow;
+
+        var jobEnvelope = new TenantAwareJobEnvelope
+        {
+            TenantId = "globex",
+            CorrelationId = correlationId,
+            RequestId = requestId,
+            Source = ExecutionSource.BackgroundJob,
+            RetryAttempt = 1,
+            Timestamp = timestamp,
+            UserIdentity = "admin_user",
+            Metadata = new Dictionary<string, string> { { "env", "prod" } }
+        };
+
+        var envelope = jobEnvelope.ToEnvelope();
+
+        envelope.TenantId.Should().Be("globex");
+        envelope.CorrelationId.Should().Be(correlationId);
+        envelope.RequestId.Should().Be(requestId);
+        envelope.ExecutionSource.Should().Be(ExecutionSource.BackgroundJob);
+        envelope.RetryAttempt.Should().Be(1);
+        envelope.Timestamp.Should().Be(timestamp);
+        envelope.UserIdentity.Should().Be("admin_user");
+        envelope.ReplayMetadata.Should().ContainKey("env");
+    }
+
+    [Theory]
+    [InlineData("acme")]
+    [InlineData("globex-corp")]
+    [InlineData("initech_2024")]
+    [InlineData("a")]
+    public void ToEnvelope_ShouldAcceptValidTenantIds(string tenantId)
+    {
+        var jobEnvelope = new TenantAwareJobEnvelope
+        {
+            TenantId = tenantId,
+            CorrelationId = Guid.NewGuid(),
+            RequestId = Guid.NewGuid(),
+            Source = ExecutionSource.BackgroundJob
+        };
+
+        var act = () => jobEnvelope.ToEnvelope();
+
+        act.Should().NotThrow();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("InvalidTenant")]
+    [InlineData("ADMIN")]
+    [InlineData("tenant/../admin")]
+    public void ToEnvelope_ShouldRejectInvalidTenantIds(string tenantId)
+    {
+        var jobEnvelope = new TenantAwareJobEnvelope
+        {
+            TenantId = tenantId,
+            CorrelationId = Guid.NewGuid(),
+            RequestId = Guid.NewGuid(),
+            Source = ExecutionSource.BackgroundJob
+        };
+
+        var act = () => jobEnvelope.ToEnvelope();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+}
+
+public sealed class TenantJobContextSerializerTests : IDisposable
+{
+    private readonly TenantJobContextSerializer _serializer;
+    private readonly Mock<ILogger<TenantJobContextSerializer>> _loggerMock;
+    private readonly TenantTestContext _contextA;
+    private readonly TenantTestContext _contextB;
+
+    public TenantJobContextSerializerTests()
+    {
+        _loggerMock = new Mock<ILogger<TenantJobContextSerializer>>();
+        _serializer = new TenantJobContextSerializer(_loggerMock.Object);
+        _contextA = TenantTestContext.Create("acme", Karamchari.Core.Caching.Tenant.TenantSource.Background);
+        _contextB = TenantTestContext.Create("globex", Karamchari.Core.Caching.Tenant.TenantSource.Background);
+    }
+
+    [Fact]
+    public void Serialize_ShouldProduceBase64Output()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var serialized = _serializer.Serialize(envelope);
+
+        serialized.Should().NotBeNullOrEmpty();
+        var act = () => Convert.FromBase64String(serialized);
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Deserialize_ShouldRestoreEnvelope()
+    {
+        var originalEnvelope = new TenantExecutionEnvelope(
+            "globex",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob)
+        {
+            RetryAttempt = 3,
+            UserIdentity = "user_456"
+        };
+
+        var serialized = _serializer.Serialize(originalEnvelope);
+        var restored = _serializer.Deserialize(serialized);
+
+        restored.TenantId.Should().Be("globex");
+        restored.CorrelationId.Should().Be(originalEnvelope.CorrelationId);
+        restored.RequestId.Should().Be(originalEnvelope.RequestId);
+        restored.RetryAttempt.Should().Be(3);
+        restored.UserIdentity.Should().Be("user_456");
+    }
+
+    [Fact]
+    public void Deserialize_ShouldThrowOnNullInput()
+    {
+        var act = () => _serializer.Deserialize(null!);
+
+        act.Should().Throw<StaleTenantRestoreException>();
+    }
+
+    [Fact]
+    public void Deserialize_ShouldThrowOnEmptyInput()
+    {
+        var act = () => _serializer.Deserialize(string.Empty);
+
+        act.Should().Throw<StaleTenantRestoreException>();
+    }
+
+    [Fact]
+    public void Deserialize_ShouldThrowOnInvalidBase64()
+    {
+        var act = () => _serializer.Deserialize("not-valid-base64!!!");
+
+        act.Should().Throw<StaleTenantRestoreException>();
+    }
+
+    [Fact]
+    public void TryDeserialize_ShouldReturnTrueForValidInput()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var serialized = _serializer.Serialize(envelope);
+        var act = _serializer.TryDeserialize(serialized, out var restored);
+
+        act.Should().BeTrue();
+        restored.Should().NotBeNull();
+        restored!.TenantId.Should().Be("acme");
+    }
+
+    [Fact]
+    public void TryDeserialize_ShouldReturnFalseForInvalidInput()
+    {
+        var act = _serializer.TryDeserialize("invalid", out var restored);
+
+        act.Should().BeFalse();
+        restored.Should().BeNull();
+    }
+
+    [Fact]
+    public void IsStale_ShouldReturnFalseForFreshContext()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "initech",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var serialized = _serializer.Serialize(envelope);
+        var act = _serializer.IsStale(serialized, TimeSpan.FromHours(24));
+
+        act.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsStale_ShouldReturnTrueForOldContext()
+    {
+        var isStale = _serializer.IsStale(string.Empty, TimeSpan.FromHours(24));
+
+        isStale.Should().BeTrue();
+    }
+
+    [Fact]
+    public void RoundTrip_ShouldPreserveAllData()
+    {
+        var tenants = new[] { "acme", "globex", "initech" };
+
+        foreach (var tenant in tenants)
+        {
+            var envelope = new TenantExecutionEnvelope(
+                tenant,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                ExecutionSource.BackgroundJob)
+            {
+                RetryAttempt = 5,
+                UserIdentity = $"user_for_{tenant}",
+                ReplayMetadata = new Dictionary<string, string>
+                {
+                    { "source", "background_job" },
+                    { "tenant", tenant }
+                }
+            };
+
+            var serialized = _serializer.Serialize(envelope);
+            var restored = _serializer.Deserialize(serialized);
+
+            restored.TenantId.Should().Be(tenant);
+            restored.RetryAttempt.Should().Be(5);
+            restored.UserIdentity.Should().Be($"user_for_{tenant}");
+            restored.ReplayMetadata.Should().ContainKey("source");
+        }
+    }
+
+    public void Dispose()
+    {
+        _contextA.Dispose();
+        _contextB.Dispose();
+    }
+}
+
+public sealed class TenantJobExecutionScopeTests : IDisposable
+{
+    private readonly Mock<ITenantJobContextSerializer> _serializerMock;
+    private readonly Mock<ITenantProvider> _tenantProviderMock;
+    private readonly Mock<ILogger<TenantJobExecutionScope>> _loggerMock;
+    private readonly TenantTestContext _context;
+
+    public TenantJobExecutionScopeTests()
+    {
+        _serializerMock = new Mock<ITenantJobContextSerializer>();
+        _tenantProviderMock = new Mock<ITenantProvider>();
+        _loggerMock = new Mock<ILogger<TenantJobExecutionScope>>();
+        _context = TenantTestContext.Create("acme", Karamchari.Core.Caching.Tenant.TenantSource.Background);
+
+        _serializerMock.Setup(s => s.Serialize(It.IsAny<TenantExecutionEnvelope>()))
+            .Returns("serialized_context");
+        _serializerMock.Setup(s => s.IsStale(It.IsAny<string>(), It.IsAny<TimeSpan>()))
+            .Returns(false);
+    }
+
+    [Fact]
+    public void FromEnvelope_ShouldCreateScope()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var scope = TenantJobExecutionScope.FromEnvelope(
+            envelope,
+            _serializerMock.Object,
+            _tenantProviderMock.Object,
+            _loggerMock.Object);
+
+        scope.Should().NotBeNull();
+        scope.CurrentTenantId.Should().Be("acme");
+        scope.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetCurrentEnvelope_ShouldReturnEnvelope()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "globex",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var scope = TenantJobExecutionScope.FromEnvelope(
+            envelope,
+            _serializerMock.Object,
+            _tenantProviderMock.Object,
+            _loggerMock.Object);
+
+        var result = scope.GetCurrentEnvelope();
+
+        result.TenantId.Should().Be("globex");
+    }
+
+    [Fact]
+    public async Task GetEnvelopeAsync_ShouldReturnEnvelope()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "initech",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var scope = TenantJobExecutionScope.FromEnvelope(
+            envelope,
+            _serializerMock.Object,
+            _tenantProviderMock.Object,
+            _loggerMock.Object);
+
+        var result = await scope.GetEnvelopeAsync(CancellationToken.None);
+
+        result.TenantId.Should().Be("initech");
+    }
+
+    [Fact]
+    public void ValidateTenantId_ShouldPassForMatchingTenant()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var scope = TenantJobExecutionScope.FromEnvelope(
+            envelope,
+            _serializerMock.Object,
+            _tenantProviderMock.Object,
+            _loggerMock.Object);
+
+        var act = () => scope.ValidateTenantId("acme");
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void ValidateTenantId_ShouldThrowForMismatchedTenant()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var scope = TenantJobExecutionScope.FromEnvelope(
+            envelope,
+            _serializerMock.Object,
+            _tenantProviderMock.Object,
+            _loggerMock.Object);
+
+        var act = () => scope.ValidateTenantId("globex");
+
+        act.Should().Throw<StaleTenantRestoreException>();
+    }
+
+    [Fact]
+    public void GetEnvelopeWithIncrementedRetry_ShouldIncrementRetryCount()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob)
+        {
+            RetryAttempt = 0
+        };
+
+        var scope = TenantJobExecutionScope.FromEnvelope(
+            envelope,
+            _serializerMock.Object,
+            _tenantProviderMock.Object,
+            _loggerMock.Object);
+
+        var updated = scope.GetEnvelopeWithIncrementedRetry();
+
+        updated.RetryAttempt.Should().Be(1);
+    }
+
+    [Fact]
+    public void Dispose_ShouldMarkScopeAsInvalid()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var scope = TenantJobExecutionScope.FromEnvelope(
+            envelope,
+            _serializerMock.Object,
+            _tenantProviderMock.Object,
+            _loggerMock.Object);
+
+        scope.Dispose();
+
+        scope.IsValid.Should().BeFalse();
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
+}
+
+public sealed class StaleTenantRestoreExceptionTests
+{
+    [Fact]
+    public void Constructor_ShouldSetIsSecurityRelevant()
+    {
+        var exception = new StaleTenantRestoreException("Test message");
+
+        exception.Message.Should().Be("Test message");
+        exception.IsSecurityRelevant.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Constructor_WithTenantId_ShouldSetTenantId()
+    {
+        var exception = new StaleTenantRestoreException("Test message", "acme");
+
+        exception.Message.Should().Be("Test message");
+        exception.TenantId.Should().Be("acme");
+        exception.IsSecurityRelevant.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Constructor_WithInnerException_ShouldSetInnerException()
+    {
+        var inner = new InvalidOperationException("Inner");
+        var exception = new StaleTenantRestoreException("Test message", inner);
+
+        exception.InnerException.Should().Be(inner);
+        exception.IsSecurityRelevant.Should().BeTrue();
+    }
+}
+
+public sealed class BackgroundJobTenantMiddlewareTests : IDisposable
+{
+    private readonly Mock<ILogger<BackgroundJobTenantMiddleware>> _loggerMock;
+    private readonly Mock<ILogger<TenantJobContextSerializer>> _serializerLoggerMock;
+    private readonly TenantJobContextSerializer _serializer;
+    private readonly BackgroundJobTenantMiddleware _middleware;
+    private readonly TenantTestContext _context;
+
+    public BackgroundJobTenantMiddlewareTests()
+    {
+        _loggerMock = new Mock<ILogger<BackgroundJobTenantMiddleware>>();
+        _serializerLoggerMock = new Mock<ILogger<TenantJobContextSerializer>>();
+        _serializer = new TenantJobContextSerializer(_serializerLoggerMock.Object);
+        _middleware = new BackgroundJobTenantMiddleware(_loggerMock.Object, _serializer);
+        _context = TenantTestContext.Create("acme", Karamchari.Core.Caching.Tenant.TenantSource.Background);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldRestoreTenantContext()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var serialized = _serializer.Serialize(envelope);
+        TenantExecutionEnvelope? capturedEnvelope = null;
+
+        await _middleware.ExecuteAsync(serialized, async (e) =>
+        {
+            await Task.Yield();
+            capturedEnvelope = e;
+        });
+
+        capturedEnvelope.Should().NotBeNull();
+        capturedEnvelope!.TenantId.Should().Be("acme");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldReturnResultFromJobExecutor()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "globex",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var serialized = _serializer.Serialize(envelope);
+
+        var result = await _middleware.ExecuteAsync(serialized, async (e) =>
+        {
+            await Task.Yield();
+            return $"Processed for {e.TenantId}";
+        });
+
+        result.Should().Be("Processed for globex");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldThrowOnStaleContext()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "initech",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob)
+        {
+            Timestamp = DateTime.UtcNow.AddHours(-48)
+        };
+
+        var serialized = _serializer.Serialize(envelope);
+
+        var act = async () => await _middleware.ExecuteAsync(serialized, async (e) =>
+        {
+            await Task.Yield();
+        });
+
+        await act.Should().ThrowAsync<StaleTenantRestoreException>();
+    }
+
+    [Fact]
+    public void ValidateAndRestore_ShouldThrowOnEmptyContext()
+    {
+        var act = () => _middleware.ValidateAndRestore(string.Empty);
+
+        act.Should().Throw<StaleTenantRestoreException>();
+    }
+
+    [Fact]
+    public void ValidateAndRestore_ShouldReturnEnvelope()
+    {
+        var envelope = new TenantExecutionEnvelope(
+            "acme",
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob);
+
+        var serialized = _serializer.Serialize(envelope);
+        var result = _middleware.ValidateAndRestore(serialized);
+
+        result.TenantId.Should().Be("acme");
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
+}
+
+public sealed class ConcurrentTenantJobIsolationTests
+{
+    [Fact]
+    public async Task ConcurrentJobs_MustNotInterfere()
+    {
+        var tenants = new[] { "acme", "globex", "initech", "umbrella" };
+        var processedTenants = new System.Collections.Concurrent.ConcurrentBag<string>();
+        var barrier = new Barrier(tenants.Length);
+
+        var tasks = tenants.Select(tenant => Task.Run(() =>
+        {
+            barrier.SignalAndWait();
+            var envelope = new TenantExecutionEnvelope(
+                tenant,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                ExecutionSource.BackgroundJob);
+
+            processedTenants.Add(envelope.TenantId);
+            return envelope.TenantId;
+        })).ToArray();
+
+        await Task.WhenAll(tasks);
+
+        var uniqueTenants = processedTenants.Distinct().ToList();
+        uniqueTenants.Should().HaveCount(tenants.Length);
+        tenants.All(t => uniqueTenants.Contains(t)).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RetryStorm_MustPreserveTenant()
+    {
+        var originalTenant = "acme";
+        var retryAttempts = new List<TenantExecutionEnvelope>();
+
+        for (int attempt = 0; attempt < 10; attempt++)
+        {
+            var envelope = new TenantExecutionEnvelope(
+                originalTenant,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                ExecutionSource.BackgroundJob)
+            {
+                RetryAttempt = attempt
+            };
+            retryAttempts.Add(envelope);
+        }
+
+        retryAttempts.All(e => e.TenantId == originalTenant).Should().BeTrue();
+        retryAttempts.Select(e => e.RetryAttempt).Should().BeEquivalentTo(Enumerable.Range(0, 10));
+    }
+
+    [Fact]
+    public async Task DelayedRetry_MustNotLoseContext()
+    {
+        var originalTenant = "globex";
+        var envelope = new TenantExecutionEnvelope(
+            originalTenant,
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ExecutionSource.BackgroundJob)
+        {
+            Timestamp = DateTime.UtcNow.AddMinutes(-5)
+        };
+
+        envelope.TenantId.Should().Be(originalTenant);
+    }
+}

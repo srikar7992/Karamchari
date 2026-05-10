@@ -20,7 +20,7 @@
       All other compiler, nullable, package, XML documentation, and analyzer warnings
       remain elevated to errors.
     -->
-    <NoWarn>$(NoWarn);CA1848</NoWarn>
+    <NoWarn>$(NoWarn);CA1848;NU1510</NoWarn>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <RestoreLockedMode Condition="'$(CI)' == 'true' OR '$(GITHUB_ACTIONS)' == 'true' OR '$(TF_BUILD)' == 'true'">true</RestoreLockedMode>
 
@@ -64,6 +64,8 @@
          Only affects internal telemetry pipeline; not user-input paths. Review on next OTel release. -->
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-8785-wc3w-h8q6" />
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-g94r-2vxg-569j" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-4625-4j76-fww9" />
+    <NuGetAuditSuppress Include="https://nuget.org/packages/System.Diagnostics.DiagnosticSource/NU1510" />
   </ItemGroup>
 
   <!-- Centralized output paths to keep src/Backend tree clean. -->

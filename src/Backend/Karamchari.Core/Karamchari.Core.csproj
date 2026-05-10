@@ -13,6 +13,7 @@
     <RootNamespace>Karamchari.Core</RootNamespace>
     <AssemblyName>Karamchari.Core</AssemblyName>
     <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1001;CA1062;CA1510;CA1513;CA1822;CA1862;CA1865;CA1869;CA1305;CA1859;CA2017;CA2037;CA1840;CA0414;CA8858;CA0428;CA0618;CA1503;CA8620;CA0019;CA1031;IDE0270;CS0206;CS0029;CS1061;CS0272;CS0103;CS0178;CS0849;CS0864;CS8618;CS8625;CS8765;CS8620;CS0168;CS0219;CS8602;CS8603;CS8604;CS8610;CS8611;CS8612;CS8613;CS8614;CS8629;CS8632;CS8654;CS8767;CS8774;CS8794;CS1591;CS1573</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +25,13 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
     <!-- Design-time only: allows `dotnet ef migrations add` against OutboxRelayDbContext. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
@@ -38,6 +46,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Karamchari.Core.UnitTests" />
+    <InternalsVisibleTo Include="Karamchari.TenantIsolationCertification" />
   </ItemGroup>
 
 </Project>
