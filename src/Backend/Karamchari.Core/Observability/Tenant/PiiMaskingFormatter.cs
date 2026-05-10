@@ -122,7 +122,7 @@ public sealed class PiiMaskingFormatter
         var result = text;
 
         result = EmailRegex.Replace(result, MatchEmail);
-        result = PhoneRegex.Replace(result, "***-***-XXXX");
+        result = PhoneRegex.Replace(result, MatchPhone);
         result = EmployeeIdRegex.Replace(result, "***-EMP-***");
 
         return result;
@@ -133,11 +133,11 @@ public sealed class PiiMaskingFormatter
         var result = text;
 
         result = EmailRegex.Replace(result, MatchEmail);
-        result = PhoneRegex.Replace(result, "***-***-XXXX");
+        result = PhoneRegex.Replace(result, MatchPhone);
         result = EmployeeIdRegex.Replace(result, "***-EMP-***");
         result = SalaryRegex.Replace(result, $"salary: {MaskValue}");
-        result = SsnRegex.Replace(result, "***-**-XXXX");
-        result = CreditCardRegex.Replace(result, "****-****-****-XXXX");
+        result = SsnRegex.Replace(result, MatchSsn);
+        result = CreditCardRegex.Replace(result, MatchCreditCard);
 
         return result;
     }
@@ -147,15 +147,42 @@ public sealed class PiiMaskingFormatter
         var result = text;
 
         result = EmailRegex.Replace(result, MatchEmail);
-        result = PhoneRegex.Replace(result, "***-***-XXXX");
+        result = PhoneRegex.Replace(result, MatchPhone);
         result = EmployeeIdRegex.Replace(result, "***-EMP-***");
         result = SalaryRegex.Replace(result, MaskValue);
-        result = SsnRegex.Replace(result, "***-**-XXXX");
-        result = CreditCardRegex.Replace(result, "****-****-****-XXXX");
+        result = SsnRegex.Replace(result, MatchSsn);
+        result = CreditCardRegex.Replace(result, MatchCreditCard);
         result = BankAccountRegex.Replace(result, $"{MaskValue}");
         result = PasswordRegex.Replace(result, $"$1: {MaskValue}");
 
         return result;
+    }
+
+    private static string MatchPhone(Match match)
+    {
+        var phone = match.Value;
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+        return digits.Length >= 4
+            ? $"***-***-{digits[^4..]}"
+            : "***-***-XXXX";
+    }
+
+    private static string MatchSsn(Match match)
+    {
+        var ssn = match.Value;
+        var digits = new string(ssn.Where(char.IsDigit).ToArray());
+        return digits.Length >= 4
+            ? $"***-**-{digits[^4..]}"
+            : "***-**-XXXX";
+    }
+
+    private static string MatchCreditCard(Match match)
+    {
+        var cc = match.Value;
+        var digits = new string(cc.Where(char.IsDigit).ToArray());
+        return digits.Length >= 4
+            ? $"****-****-****-{digits[^4..]}"
+            : "****-****-****-XXXX";
     }
 
     private static string MatchEmail(Match match)

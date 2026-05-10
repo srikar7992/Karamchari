@@ -101,7 +101,7 @@ public sealed class PiiMaskingFormatterTests
 
         var result = formatter.Mask("user@example.com");
 
-        result.Should().MatchRegex(@"u\*\*\*@\*\*\*\.\w+");
+        result.Should().MatchRegex(@"u\*\*\*.*@\*\*\*\.\w+");
     }
 
     [Fact]

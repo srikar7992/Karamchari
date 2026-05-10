@@ -4,7 +4,25 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Persistence.Migrations.Tenant;
 
-public sealed class TenantMigrationCoordinator
+public interface ITenantMigrationCoordinator
+{
+    Task<MigrationResult> ExecuteMigrationAsync(
+        string tenantId,
+        string migrationId,
+        Func<CancellationToken, Task<MigrationStep[]>> migrationStepsFactory,
+        CancellationToken cancellationToken = default);
+
+    Task<RollbackResult> RollbackMigrationAsync(
+        string tenantId,
+        string migrationId,
+        CancellationToken cancellationToken = default);
+
+    MigrationState? GetActiveMigrationState(string tenantId);
+
+    Task<bool> HasActiveMigrationAsync(string tenantId);
+}
+
+public sealed class TenantMigrationCoordinator : ITenantMigrationCoordinator
 {
     private readonly IMigrationsInvoker _migrationsInvoker;
     private readonly MigrationLeaseManager _leaseManager;

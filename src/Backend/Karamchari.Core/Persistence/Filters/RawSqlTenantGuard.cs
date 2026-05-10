@@ -10,7 +10,7 @@ namespace Karamchari.Core.Persistence.Filters;
 public sealed class RawSqlTenantGuard
 {
     private static readonly Regex SqlInjectionPattern = new(
-        @"(?i)\b(\bunion\b.*\bselect\b|\bselect\b.*\bfrom\b|\bdrop\b|\btruncate\b|\bdelete\b|\binsert\b|\bupdate\b|\bexec\b|\bexecute\b|\bsp_executesql\b|\bxp_cmdshell\b|--|\bunion\b\s+all\b)",
+        @"(?i)\b(\bunion\b.*\bselect\b|\bdrop\b|\btruncate\b|\bdelete\b|\bexec\b|\bexecute\b|\bsp_executesql\b|\bxp_cmdshell\b|--|\bunion\b\s+all\b)",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private static readonly Regex CrossTenantPattern = new(

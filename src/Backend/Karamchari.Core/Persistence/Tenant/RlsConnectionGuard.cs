@@ -64,6 +64,11 @@ public sealed class RlsConnectionGuard : IDisposable
     {
         ThrowIfDisposed();
 
+        if (_connection.State != ConnectionState.Open)
+        {
+            throw new InvalidOperationException("Cannot validate SESSION_CONTEXT on a closed connection.");
+        }
+
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = "SELECT SESSION_CONTEXT(N'TenantId') AS TenantId;";
         cmd.CommandType = CommandType.Text;
@@ -106,6 +111,15 @@ public sealed class RlsConnectionGuard : IDisposable
 
     private static void ClearSessionContext(SqlConnection connection, ILogger<RlsConnectionGuard> logger)
     {
+        if (connection.State != ConnectionState.Open)
+        {
+            if (logger.IsEnabled(LogLevel.Trace))
+            {
+                logger.LogTrace("Skipping SESSION_CONTEXT clear: Connection state is {ConnectionState}.", connection.State);
+            }
+            return;
+        }
+
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "EXEC sp_set_session_context @key = @key, @value = NULL;";
         cmd.CommandType = CommandType.Text;
@@ -126,6 +140,11 @@ public sealed class RlsConnectionGuard : IDisposable
 
     private static void SetSessionContext(SqlConnection connection, string tenantId, ILogger<RlsConnectionGuard> logger)
     {
+        if (connection.State != ConnectionState.Open)
+        {
+            throw new InvalidOperationException("Cannot set SESSION_CONTEXT on a closed connection.");
+        }
+
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "EXEC sp_set_session_context @key = @key, @value = @value;";
         cmd.CommandType = CommandType.Text;
@@ -152,6 +171,11 @@ public sealed class RlsConnectionGuard : IDisposable
 
     private static void ValidateSessionContext(SqlConnection connection, string expectedTenantId, ILogger<RlsConnectionGuard> logger)
     {
+        if (connection.State != ConnectionState.Open)
+        {
+            throw new InvalidOperationException("Cannot verify SESSION_CONTEXT on a closed connection.");
+        }
+
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "SELECT SESSION_CONTEXT(N'TenantId') AS TenantId;";
         cmd.CommandType = CommandType.Text;

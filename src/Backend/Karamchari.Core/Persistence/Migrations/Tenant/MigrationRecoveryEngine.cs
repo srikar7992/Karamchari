@@ -6,14 +6,14 @@ public sealed class MigrationRecoveryEngine
 {
     private readonly TenantMigrationCheckpoint _checkpoint;
     private readonly MigrationLeaseManager _leaseManager;
-    private readonly TenantMigrationCoordinator _coordinator;
+    private readonly ITenantMigrationCoordinator _coordinator;
     private readonly ILogger<MigrationRecoveryEngine> _logger;
     private readonly List<IRecoveryValidator> _validators = new();
 
     public MigrationRecoveryEngine(
         TenantMigrationCheckpoint checkpoint,
         MigrationLeaseManager leaseManager,
-        TenantMigrationCoordinator coordinator,
+        ITenantMigrationCoordinator coordinator,
         ILogger<MigrationRecoveryEngine> logger)
     {
         _checkpoint = checkpoint ?? throw new ArgumentNullException(nameof(checkpoint));

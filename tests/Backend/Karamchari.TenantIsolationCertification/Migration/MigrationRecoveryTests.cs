@@ -11,7 +11,7 @@ public sealed class MigrationRecoveryEngineTests
     private readonly Mock<ILogger<MigrationRecoveryEngine>> _loggerMock;
     private readonly TenantMigrationCheckpoint _checkpoint;
     private readonly MigrationLeaseManager _leaseManager;
-    private readonly Mock<TenantMigrationCoordinator> _coordinatorMock;
+    private readonly Mock<ITenantMigrationCoordinator> _coordinatorMock;
     private readonly MigrationRecoveryEngine _engine;
 
     public MigrationRecoveryEngineTests()
@@ -24,11 +24,7 @@ public sealed class MigrationRecoveryEngineTests
         var leaseLogger = new Mock<ILogger<MigrationLeaseManager>>();
         _leaseManager = new MigrationLeaseManager(leaseLogger.Object);
 
-        _coordinatorMock = new Mock<TenantMigrationCoordinator>(
-            Mock.Of<IMigrationsInvoker>(),
-            _leaseManager,
-            _checkpoint,
-            Mock.Of<ILogger<TenantMigrationCoordinator>>());
+        _coordinatorMock = new Mock<ITenantMigrationCoordinator>();
 
         _engine = new MigrationRecoveryEngine(
             _checkpoint,
