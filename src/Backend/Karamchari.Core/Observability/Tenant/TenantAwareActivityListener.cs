@@ -1,0 +1,124 @@
+using System.Diagnostics;
+using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Multitenancy.Execution;
+
+namespace Karamchari.Core.Observability.Tenant;
+
+public sealed class TenantAwareActivityListener : IDisposable
+{
+    private readonly ITenantProvider _tenantProvider;
+    private readonly TenantActivitySource _activitySource;
+    private readonly List<ActivityListener> _listeners = new();
+
+    public TenantAwareActivityListener(
+        ITenantProvider tenantProvider,
+        TenantActivitySource activitySource)
+    {
+        _tenantProvider = tenantProvider ?? throw new ArgumentNullException(nameof(tenantProvider));
+        _activitySource = activitySource ?? throw new ArgumentNullException(nameof(activitySource));
+
+        var listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            ActivityStarted = EnrichActivityWithTenantContext
+        };
+        _listeners.Add(listener);
+        ActivitySource.AddActivityListener(listener);
+    }
+
+    private void EnrichActivityWithTenantContext(Activity activity)
+    {
+        if (activity == null)
+        {
+            return;
+        }
+
+        TenantContext? tenantContext = null;
+
+        if (_tenantProvider.TryGetTenant(out var tenantCtx) && tenantCtx != null)
+        {
+            tenantContext = tenantCtx;
+
+            activity.SetTag(TenantTelemetryTags.TenantId, tenantContext.TenantId);
+
+            var executionSource = GetExecutionSourceFromActivity(activity);
+            if (!string.IsNullOrEmpty(executionSource))
+            {
+                activity.SetTag(TenantTelemetryTags.ExecutionSource, executionSource);
+            }
+        }
+        else
+        {
+            activity.SetTag("tenant.resolution", "failed");
+        }
+    }
+
+    private static string GetExecutionSourceFromActivity(Activity activity)
+    {
+        var sourceKind = activity.Kind switch
+        {
+            ActivityKind.Client => ExecutionSource.HttpRequest.ToString(),
+            ActivityKind.Server => ExecutionSource.HttpRequest.ToString(),
+            ActivityKind.Producer => ExecutionSource.BackgroundJob.ToString(),
+            ActivityKind.Consumer => ExecutionSource.MessageConsumer.ToString(),
+            _ => ExecutionSource.Manual.ToString()
+        };
+
+        return sourceKind;
+    }
+
+    public Activity? StartMessageActivity(string operationName, IDictionary<string, object?>? messageHeaders)
+    {
+        _tenantProvider.TryGetTenant(out var tenantContext);
+
+        var activity = _activitySource.StartActivity(
+            operationName,
+            tenantContext ?? new TenantContext("unknown", TenantSource.JwtClaim),
+            ExecutionSource.MessageConsumer,
+            ExtractCorrelationId(messageHeaders));
+
+        return activity;
+    }
+
+    public Activity? StartBackgroundJobActivity(string operationName, string jobId)
+    {
+        _tenantProvider.TryGetTenant(out var tenantContext);
+
+        var activity = _activitySource.StartActivity(
+            operationName,
+            tenantContext ?? new TenantContext("unknown", TenantSource.JwtClaim),
+            ExecutionSource.BackgroundJob,
+            jobId);
+
+        return activity;
+    }
+
+    private static string? ExtractCorrelationId(IDictionary<string, object?>? headers)
+    {
+        if (headers == null)
+        {
+            return null;
+        }
+
+        if (headers.TryGetValue("correlation-id", out var correlationId) && correlationId is string correlationIdString)
+        {
+            return correlationIdString;
+        }
+
+        if (headers.TryGetValue("x-correlation-id", out var xCorrelationId) && xCorrelationId is string xCorrelationIdString)
+        {
+            return xCorrelationIdString;
+        }
+
+        return null;
+    }
+
+    public void Dispose()
+    {
+        foreach (var listener in _listeners)
+        {
+            listener.ShouldListenTo = _ => false;
+        }
+        _listeners.Clear();
+    }
+}
