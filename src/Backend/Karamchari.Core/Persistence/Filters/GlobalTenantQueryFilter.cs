@@ -17,7 +17,7 @@ public static class GlobalTenantQueryFilter
         ArgumentException.ThrowIfNullOrWhiteSpace(currentTenantId);
 
         var entityTypes = modelBuilder.Model.GetEntityTypes()
-            .Where(e => e.ClrType.GetInterfaces().Any(i => i == typeof(ITenantOwned)))
+            .Where(e => typeof(ITenantOwned).IsAssignableFrom(e.ClrType))
             .ToList();
 
         foreach (var entityType in entityTypes)
@@ -46,7 +46,16 @@ public static class GlobalTenantQueryFilter
             return false;
         }
 
-        return entityTypeBase.ClrType.GetInterfaces().Any(i => i == typeof(ITenantOwned));
+        // Check if it implements ITenantOwned AND has a query filter defined
+        var implementsInterface = typeof(ITenantOwned).IsAssignableFrom(entityTypeBase.ClrType);
+
+        // Use the modern API for checking query filters if available, 
+        // otherwise fall back to obsolete one with suppression.
+#pragma warning disable CS0618
+        var hasFilter = entityTypeBase.GetQueryFilter() != null;
+#pragma warning restore CS0618
+
+        return implementsInterface && hasFilter;
     }
 
     public static IEnumerable<Type> GetTenantFilteredEntities(IModel model)
@@ -54,7 +63,13 @@ public static class GlobalTenantQueryFilter
         ArgumentNullException.ThrowIfNull(model);
 
         return model.GetEntityTypes()
-            .Where(e => e.ClrType.GetInterfaces().Any(i => i == typeof(ITenantOwned)))
+            .Where(e => typeof(ITenantOwned).IsAssignableFrom(e.ClrType))
+            .Where(e =>
+            {
+#pragma warning disable CS0618
+                return e.GetQueryFilter() != null;
+#pragma warning restore CS0618
+            })
             .Select(e => e.ClrType);
     }
 
@@ -63,7 +78,7 @@ public static class GlobalTenantQueryFilter
         ArgumentNullException.ThrowIfNull(modelBuilder);
 
         var entityTypes = modelBuilder.Model.GetEntityTypes()
-            .Where(e => e.ClrType.GetInterfaces().Any(i => i == typeof(ITenantOwned)))
+            .Where(e => typeof(ITenantOwned).IsAssignableFrom(e.ClrType))
             .ToList();
 
         foreach (var entityType in entityTypes)

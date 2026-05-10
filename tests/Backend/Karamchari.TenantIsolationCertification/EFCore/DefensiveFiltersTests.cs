@@ -4,6 +4,7 @@ using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence.Filters;
 using Karamchari.TenantIsolationCertification.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
@@ -155,71 +156,62 @@ public sealed class GlobalTenantQueryFilterTests : IDisposable
     [Fact]
     public void ApplyGlobalFilters_WithTenantOwnedEntity_ShouldApplyFilter()
     {
-        var options = new DbContextOptionsBuilder<FilterTestDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new FilterTestDbContext(options, "acme");
         var modelBuilder = new ModelBuilder();
+        modelBuilder.Entity<TestTenantOwnedEntity>();
 
         GlobalTenantQueryFilter.ApplyGlobalFilters(modelBuilder, "acme");
 
-        var filterExists = GlobalTenantQueryFilter.IsEntityTenantFiltered(
-            typeof(TestTenantOwnedEntity), context.Model);
-
-        filterExists.Should().BeTrue("TenantOwned entity should have a global filter");
+        var entityType = modelBuilder.Model.FindEntityType(typeof(TestTenantOwnedEntity));
+#pragma warning disable CS0618
+        entityType!.GetQueryFilter().Should().NotBeNull();
+#pragma warning restore CS0618
     }
 
     [Fact]
     public void IsEntityTenantFiltered_WithNonTenantEntity_ShouldReturnFalse()
     {
-        var options = new DbContextOptionsBuilder<FilterTestDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new FilterTestDbContext(options, "acme");
         var modelBuilder = new ModelBuilder();
+        modelBuilder.Entity<TestNonTenantEntity>();
+
+        // IMutableModel inherits from IReadOnlyModel, and so does IModel.
+        // Finalize the model to get an IModel.
+        var model = modelBuilder.FinalizeModel();
 
         var isFiltered = GlobalTenantQueryFilter.IsEntityTenantFiltered(
-            typeof(string), context.Model);
+            typeof(TestNonTenantEntity), model);
 
-        isFiltered.Should().BeFalse("Non-tenant entity should not have a filter");
+        isFiltered.Should().BeFalse();
     }
 
     [Fact]
     public void GetTenantFilteredEntities_ShouldReturnOnlyTenantEntities()
     {
-        var options = new DbContextOptionsBuilder<FilterTestDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new FilterTestDbContext(options, "acme");
         var modelBuilder = new ModelBuilder();
+        modelBuilder.Entity<TestTenantOwnedEntity>();
+        modelBuilder.Entity<TestNonTenantEntity>();
 
         GlobalTenantQueryFilter.ApplyGlobalFilters(modelBuilder, "acme");
 
-        var entities = GlobalTenantQueryFilter.GetTenantFilteredEntities(context.Model).ToList();
+        var model = modelBuilder.FinalizeModel();
+        var filteredEntities = GlobalTenantQueryFilter.GetTenantFilteredEntities(model).ToList();
 
-        entities.Should().Contain(typeof(TestTenantOwnedEntity));
+        filteredEntities.Should().Contain(typeof(TestTenantOwnedEntity));
+        filteredEntities.Should().NotContain(typeof(TestNonTenantEntity));
     }
 
     [Fact]
     public void RemoveGlobalFilters_ShouldClearAllFilters()
     {
-        var options = new DbContextOptionsBuilder<FilterTestDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new FilterTestDbContext(options, "acme");
         var modelBuilder = new ModelBuilder();
+        modelBuilder.Entity<TestTenantOwnedEntity>();
 
         GlobalTenantQueryFilter.ApplyGlobalFilters(modelBuilder, "acme");
         GlobalTenantQueryFilter.RemoveGlobalFilters(modelBuilder);
 
-        var filterExists = GlobalTenantQueryFilter.IsEntityTenantFiltered(
-            typeof(TestTenantOwnedEntity), context.Model);
-
-        filterExists.Should().BeFalse("Filter should be removed");
+        var entityType = modelBuilder.Model.FindEntityType(typeof(TestTenantOwnedEntity));
+#pragma warning disable CS0618
+        entityType!.GetQueryFilter().Should().BeNull();
+#pragma warning restore CS0618
     }
 
     public void Dispose()
@@ -231,8 +223,8 @@ public sealed class GlobalTenantQueryFilterTests : IDisposable
 public sealed class QueryFilterBypassDetectorTests : IDisposable
 {
     private readonly TenantTestContext _context;
-    private readonly MockTenantProvider _tenantProvider;
     private readonly QueryFilterBypassDetector _detector;
+    private readonly MockTenantProvider _tenantProvider;
 
     public QueryFilterBypassDetectorTests()
     {
@@ -243,10 +235,10 @@ public sealed class QueryFilterBypassDetectorTests : IDisposable
     }
 
     [Fact]
-    public void DetectBypassAttempt_ShouldLogAndTriggerEvent()
+    public void DetectBypassAttempt_WithIgnoreQueryFilters_ShouldRaiseEvent()
     {
-        var eventRaised = false;
-        _detector.BypassDetected += (_, _) => eventRaised = true;
+        bool eventRaised = false;
+        _detector.BypassDetected += (s, e) => eventRaised = true;
 
         _detector.DetectBypassAttempt("IgnoreQueryFilters", "Test query");
 
@@ -339,27 +331,10 @@ internal class TestTenantOwnedEntity : ITenantOwned
     public string Name { get; set; } = string.Empty;
 }
 
-internal class FilterTestDbContext : DbContext
+internal class TestNonTenantEntity
 {
-    private readonly string _tenantId;
-
-    public FilterTestDbContext(DbContextOptions options, string tenantId)
-        : base(options)
-    {
-        _tenantId = tenantId;
-    }
-
-    public DbSet<TestTenantOwnedEntity> TestEntities => Set<TestTenantOwnedEntity>();
-    public DbSet<string> NonTenantEntities => Set<string>();
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<TestTenantOwnedEntity>(e =>
-        {
-            e.HasKey(x => x.Id);
-            e.Property(x => x.TenantId).IsRequired();
-        });
-    }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Name { get; set; } = string.Empty;
 }
 
 internal class MockTenantProvider : ITenantProvider
