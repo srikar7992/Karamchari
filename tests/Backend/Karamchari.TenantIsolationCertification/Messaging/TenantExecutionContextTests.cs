@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using Xunit;
 
@@ -13,7 +14,7 @@ public sealed class TenantExecutionEnvelopeTests
             "acme",
             "correlation-123",
             "request-456",
-            ExecutionSource.HttpRequest)
+            ExecutionSource.HttpRequest, TenantSource.JwtClaim)
         {
             TraceId = "trace-456",
             SpanId = "span-789",
@@ -37,7 +38,7 @@ public sealed class TenantExecutionEnvelopeTests
             "globex",
             "correlation-456",
             "request-789",
-            ExecutionSource.BackgroundJob)
+            ExecutionSource.BackgroundJob, TenantSource.AdminOverride)
         {
             TraceId = "trace-789",
             SpanId = "span-012",
@@ -92,7 +93,7 @@ public sealed class TenantExecutionEnvelopeTests
             "init",
             "corr-123",
             "req-abc",
-            ExecutionSource.MessageConsumer)
+            ExecutionSource.MessageConsumer, TenantSource.AdminOverride)
         {
             TraceId = "trace-abc",
             SpanId = "span-def",
@@ -127,7 +128,7 @@ public sealed class TenantExecutionContextTests
             "test",
             "corr-1",
             "req-1",
-            ExecutionSource.Manual);
+            ExecutionSource.Manual, TenantSource.AdminOverride);
 
         var context = new TenantExecutionContext(envelope);
         using var scope = context.Establish();
@@ -143,7 +144,7 @@ public sealed class TenantExecutionContextTests
             "clear",
             "corr-2",
             "req-2",
-            ExecutionSource.Manual);
+            ExecutionSource.Manual, TenantSource.AdminOverride);
 
         var context = new TenantExecutionContext(envelope);
         using (context.Establish())
@@ -160,7 +161,7 @@ public sealed class TenantExecutionContextTests
             "current",
             "corr-current",
             "req-current",
-            ExecutionSource.Manual);
+            ExecutionSource.Manual, TenantSource.AdminOverride);
 
         var context = new TenantExecutionContext(envelope);
         using (context.Establish())
@@ -174,8 +175,8 @@ public sealed class TenantExecutionContextTests
     [Fact]
     public void MultipleContexts_ShouldNotInterfere()
     {
-        var envelope1 = new TenantExecutionEnvelope("tenant_a", "corr-a", "req-a", ExecutionSource.Manual);
-        var envelope2 = new TenantExecutionEnvelope("tenant_b", "corr-b", "req-b", ExecutionSource.Manual);
+        var envelope1 = new TenantExecutionEnvelope("tenant_a", "corr-a", "req-a", ExecutionSource.Manual, TenantSource.AdminOverride);
+        var envelope2 = new TenantExecutionEnvelope("tenant_b", "corr-b", "req-b", ExecutionSource.Manual, TenantSource.AdminOverride);
 
         var context1 = new TenantExecutionContext(envelope1);
         var context2 = new TenantExecutionContext(envelope2);

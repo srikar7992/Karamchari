@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Karamchari.Core.Messaging.Tenant;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using MassTransit;
 using Microsoft.Extensions.Caching.Memory;
@@ -51,7 +52,7 @@ public sealed class TenantMessageConsumerScopeTests
     {
         TenantExecutionContext.Clear();
         var envelope = new TenantExecutionEnvelope(
-            "tenant_clear", "corr-clear", "req-clear", ExecutionSource.Manual);
+            "tenant_clear", "corr-clear", "req-clear", ExecutionSource.Manual, TenantSource.AdminOverride);
         var context = new TenantExecutionContext(envelope);
         using (context.Establish())
         {

@@ -18,22 +18,23 @@ public sealed class TenantAwareJobEnvelopeTests
             "acme",
             "corr-123",
             "req-456",
-            ExecutionSource.BackgroundJob)
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background)
         {
             RetryAttempt = 2,
             UserIdentity = "user_123",
             ReplayMetadata = new Dictionary<string, string> { { "key", "value" } }
         };
 
-        var jobEnvelope = TenantAwareJobEnvelope.FromEnvelope(envelope);
+        var jobEnvelope = envelope; // Use envelope directly as TenantAwareJobEnvelope is deleted
 
         jobEnvelope.TenantId.Should().Be("acme");
         jobEnvelope.CorrelationId.Should().Be(envelope.CorrelationId);
         jobEnvelope.RequestId.Should().Be(envelope.RequestId);
-        jobEnvelope.Source.Should().Be(ExecutionSource.BackgroundJob);
+        jobEnvelope.ExecutionSource.Should().Be(ExecutionSource.BackgroundJob);
         jobEnvelope.RetryAttempt.Should().Be(2);
         jobEnvelope.UserIdentity.Should().Be("user_123");
-        jobEnvelope.Metadata.Should().ContainKey("key");
+        jobEnvelope.ReplayMetadata.Should().ContainKey("key");
     }
 
     [Fact]
@@ -43,19 +44,18 @@ public sealed class TenantAwareJobEnvelopeTests
         var requestId = "req-012";
         var timestamp = DateTime.UtcNow;
 
-        var jobEnvelope = new TenantAwareJobEnvelope
+        var envelope = new TenantExecutionEnvelope(
+            "globex",
+            correlationId,
+            requestId,
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background)
         {
-            TenantId = "globex",
-            CorrelationId = correlationId,
-            RequestId = requestId,
-            Source = ExecutionSource.BackgroundJob,
             RetryAttempt = 1,
             Timestamp = timestamp,
             UserIdentity = "admin_user",
-            Metadata = new Dictionary<string, string> { { "env", "prod" } }
+            ReplayMetadata = new Dictionary<string, string> { { "env", "prod" } }
         };
-
-        var envelope = jobEnvelope.ToEnvelope();
 
         envelope.TenantId.Should().Be("globex");
         envelope.CorrelationId.Should().Be(correlationId);
@@ -74,15 +74,12 @@ public sealed class TenantAwareJobEnvelopeTests
     [InlineData("a")]
     public void ToEnvelope_ShouldAcceptValidTenantIds(string tenantId)
     {
-        var jobEnvelope = new TenantAwareJobEnvelope
-        {
-            TenantId = tenantId,
-            CorrelationId = "corr",
-            RequestId = "req",
-            Source = ExecutionSource.BackgroundJob
-        };
-
-        var act = () => jobEnvelope.ToEnvelope();
+        var act = () => new TenantExecutionEnvelope(
+            tenantId,
+            "corr",
+            "req",
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
         act.Should().NotThrow();
     }
@@ -94,17 +91,14 @@ public sealed class TenantAwareJobEnvelopeTests
     [InlineData("tenant/../admin")]
     public void ToEnvelope_ShouldRejectInvalidTenantIds(string tenantId)
     {
-        var jobEnvelope = new TenantAwareJobEnvelope
-        {
-            TenantId = tenantId,
-            CorrelationId = "corr",
-            RequestId = "req",
-            Source = ExecutionSource.BackgroundJob
-        };
+        var act = () => new TenantExecutionEnvelope(
+            tenantId,
+            "corr",
+            "req",
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
-        var act = () => jobEnvelope.ToEnvelope();
-
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<ArgumentException>(); // Validation moved to constructor
     }
 }
 
@@ -130,7 +124,8 @@ public sealed class TenantJobContextSerializerTests : IDisposable
             "acme",
             "corr",
             "req",
-            ExecutionSource.BackgroundJob);
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
         var serialized = _serializer.Serialize(envelope);
 
@@ -146,7 +141,8 @@ public sealed class TenantJobContextSerializerTests : IDisposable
             "globex",
             "corr-orig",
             "req-orig",
-            ExecutionSource.BackgroundJob)
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background)
         {
             RetryAttempt = 3,
             UserIdentity = "user_456"
@@ -185,7 +181,8 @@ public sealed class TenantJobContextSerializerTests : IDisposable
             "acme",
             "corr",
             "req",
-            ExecutionSource.BackgroundJob);
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
         var serialized = _serializer.Serialize(envelope);
         var act = _serializer.TryDeserialize(serialized, out var restored);
@@ -202,7 +199,8 @@ public sealed class TenantJobContextSerializerTests : IDisposable
             "initech",
             "corr",
             "req",
-            ExecutionSource.BackgroundJob);
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
         var serialized = _serializer.Serialize(envelope);
         var act = _serializer.IsStale(serialized, TimeSpan.FromHours(24));
@@ -221,7 +219,8 @@ public sealed class TenantJobContextSerializerTests : IDisposable
                 tenant,
                 "corr-" + tenant,
                 "req-" + tenant,
-                ExecutionSource.BackgroundJob)
+                ExecutionSource.BackgroundJob,
+                TenantSource.Background)
             {
                 RetryAttempt = 5,
                 UserIdentity = $"user_for_{tenant}",
@@ -276,7 +275,8 @@ public sealed class TenantJobExecutionScopeTests : IDisposable
             "acme",
             "corr",
             "req",
-            ExecutionSource.BackgroundJob);
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
         var scope = TenantJobExecutionScope.FromEnvelope(
             envelope,
@@ -296,7 +296,8 @@ public sealed class TenantJobExecutionScopeTests : IDisposable
             "globex",
             "corr",
             "req",
-            ExecutionSource.BackgroundJob);
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
         var scope = TenantJobExecutionScope.FromEnvelope(
             envelope,
@@ -316,7 +317,8 @@ public sealed class TenantJobExecutionScopeTests : IDisposable
             "acme",
             "corr",
             "req",
-            ExecutionSource.BackgroundJob);
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
         var scope = TenantJobExecutionScope.FromEnvelope(
             envelope,
@@ -336,7 +338,8 @@ public sealed class TenantJobExecutionScopeTests : IDisposable
             "acme",
             "corr",
             "req",
-            ExecutionSource.BackgroundJob);
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
         var scope = TenantJobExecutionScope.FromEnvelope(
             envelope,
@@ -356,7 +359,8 @@ public sealed class TenantJobExecutionScopeTests : IDisposable
             "acme",
             "corr",
             "req",
-            ExecutionSource.BackgroundJob)
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background)
         {
             RetryAttempt = 0
         };
@@ -379,7 +383,8 @@ public sealed class TenantJobExecutionScopeTests : IDisposable
             "acme",
             "corr",
             "req",
-            ExecutionSource.BackgroundJob);
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background);
 
         var scope = TenantJobExecutionScope.FromEnvelope(
             envelope,
@@ -436,7 +441,8 @@ public sealed class ConcurrentTenantJobIsolationTests
                 tenant,
                 "corr-" + tenant,
                 "req-" + tenant,
-                ExecutionSource.BackgroundJob);
+                ExecutionSource.BackgroundJob,
+                TenantSource.Background);
 
             processedTenants.Add(envelope.TenantId);
             return envelope.TenantId;
@@ -461,7 +467,8 @@ public sealed class ConcurrentTenantJobIsolationTests
                 originalTenant,
                 "corr",
                 "req-" + attempt,
-                ExecutionSource.BackgroundJob)
+                ExecutionSource.BackgroundJob,
+                TenantSource.Background)
             {
                 RetryAttempt = attempt
             };

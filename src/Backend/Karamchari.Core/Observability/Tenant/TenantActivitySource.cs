@@ -41,7 +41,7 @@ public sealed class TenantActivitySource
     /// <returns>A new <see cref="Activity"/> instance with tenant tags, or null if tracing is not active.</returns>
     public Activity? StartActivity(
         string operationName,
-        TenantContext tenantContext,
+        TenantExecutionEnvelope tenantContext,
         ExecutionSource executionSource,
         string? correlationId = null)
     {
@@ -70,7 +70,7 @@ public sealed class TenantActivitySource
     /// <returns>A new <see cref="Activity"/> instance with tenant tags.</returns>
     public Activity? StartExternalActivity(
         string operationName,
-        TenantContext tenantContext,
+        TenantExecutionEnvelope tenantContext,
         ExecutionSource executionSource,
         ActivityKind kind,
         string? correlationId = null)
@@ -100,7 +100,7 @@ public sealed class TenantActivitySource
     /// <returns>A new activity with retry tracking tags.</returns>
     public Activity? StartRetryActivity(
         string operationName,
-        TenantContext tenantContext,
+        TenantExecutionEnvelope tenantContext,
         ExecutionSource executionSource,
         int retryAttempt,
         string? correlationId = null)
@@ -131,7 +131,7 @@ public sealed class TenantActivitySource
     /// <returns>A new activity with replay tracking tags.</returns>
     public Activity? StartReplayActivity(
         string operationName,
-        TenantContext tenantContext,
+        TenantExecutionEnvelope tenantContext,
         ExecutionSource executionSource,
         int replayCount,
         string? correlationId = null)
@@ -153,7 +153,7 @@ public sealed class TenantActivitySource
 
     private static void SetTenantTags(
         Activity activity,
-        TenantContext tenantContext,
+        TenantExecutionEnvelope tenantContext,
         ExecutionSource executionSource,
         string? correlationId)
     {

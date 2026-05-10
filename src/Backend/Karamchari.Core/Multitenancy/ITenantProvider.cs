@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
@@ -15,12 +17,23 @@ namespace Karamchari.Core.Multitenancy;
 public interface ITenantProvider
 {
     /// <summary>
-    /// Returns the current request's tenant context.
+    /// Returns the active tenant identifier. Business logic should use this
+    /// rather than interacting with the full execution envelope.
+    /// </summary>
+    string GetCurrentTenantId();
+
+    /// <summary>
+    /// Indicates whether <see cref="GetCurrentTenantId"/> would succeed without throwing.
+    /// </summary>
+    bool TryGetCurrentTenantId([NotNullWhen(true)] out string? tenantId);
+
+    /// <summary>
+    /// Returns the current request's tenant execution envelope.
     /// </summary>
     /// <exception cref="TenantResolutionException">
     /// Thrown when no tenant can be resolved, or when multiple sources disagree.
     /// </exception>
-    TenantContext GetTenant();
+    TenantExecutionEnvelope GetTenant();
 
     /// <summary>
     /// Indicates whether <see cref="GetTenant"/> would succeed without throwing.
@@ -28,5 +41,5 @@ public interface ITenantProvider
     /// edges (health checks, anonymous metadata endpoints) that legitimately
     /// run without a tenant. Business logic must call <see cref="GetTenant"/>.
     /// </summary>
-    bool TryGetTenant(out TenantContext? tenant);
+    bool TryGetTenant(out TenantExecutionEnvelope? tenant);
 }

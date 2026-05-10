@@ -25,7 +25,7 @@ internal sealed class EmployeeService(
     /// </remarks>
     public async Task<Guid> OnboardEmployeeAsync(OnboardEmployeeCommand command, CancellationToken cancellationToken = default)
     {
-        var tenantId = tenantProvider.GetTenant().TenantId;
+        var tenantId = tenantProvider.GetCurrentTenantId();
 
         var employee = Employee.Hire(
             command.EmployeeNumber,

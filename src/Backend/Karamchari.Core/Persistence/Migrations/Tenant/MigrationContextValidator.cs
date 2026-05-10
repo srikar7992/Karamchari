@@ -27,14 +27,14 @@ public sealed class MigrationContextValidator
         {
             return MigrationContextValidationResult.Failed(
                 "Tenant ID is required",
-                TenantContextValidationError.MissingTenantId);
+                TenantExecutionEnvelopeValidationError.MissingTenantId);
         }
 
         if (string.IsNullOrWhiteSpace(expectedTenantId))
         {
             return MigrationContextValidationResult.Failed(
                 "Expected tenant ID is required",
-                TenantContextValidationError.MissingTenantId);
+                TenantExecutionEnvelopeValidationError.MissingTenantId);
         }
 
         if (!isCrossTenantOperation &&
@@ -46,7 +46,7 @@ public sealed class MigrationContextValidator
 
             return MigrationContextValidationResult.Failed(
                 $"Cross-tenant migration blocked: source={tenantId}, expected={expectedTenantId}",
-                TenantContextValidationError.CrossTenantViolation,
+                TenantExecutionEnvelopeValidationError.CrossTenantViolation,
                 tenantId);
         }
 
@@ -61,7 +61,7 @@ public sealed class MigrationContextValidator
         {
             return MigrationContextValidationResult.Failed(
                 "Tenant ID is required",
-                TenantContextValidationError.MissingTenantId);
+                TenantExecutionEnvelopeValidationError.MissingTenantId);
         }
 
         var tenantIdList = migrationTenantIds.ToList();
@@ -70,7 +70,7 @@ public sealed class MigrationContextValidator
         {
             return MigrationContextValidationResult.Failed(
                 "No migration tenant IDs provided",
-                TenantContextValidationError.InvalidMigrationContext);
+                TenantExecutionEnvelopeValidationError.InvalidMigrationContext);
         }
 
         if (tenantIdList.Count > 1)
@@ -81,7 +81,7 @@ public sealed class MigrationContextValidator
 
             return MigrationContextValidationResult.Failed(
                 "Migration spans multiple tenants - not allowed for single-tenant operation",
-                TenantContextValidationError.InvalidMigrationContext,
+                TenantExecutionEnvelopeValidationError.InvalidMigrationContext,
                 tenantId);
         }
 
@@ -91,7 +91,7 @@ public sealed class MigrationContextValidator
         {
             return MigrationContextValidationResult.Failed(
                 $"Migration {migrationTenantId} does not belong to tenant {tenantId}",
-                TenantContextValidationError.TenantMismatch,
+                TenantExecutionEnvelopeValidationError.TenantMismatch,
                 tenantId);
         }
 
@@ -201,21 +201,21 @@ public sealed class MigrationContextValidator
         {
             return MigrationContextValidationResult.Failed(
                 "Migration tenant ID is required",
-                TenantContextValidationError.MissingTenantId);
+                TenantExecutionEnvelopeValidationError.MissingTenantId);
         }
 
         if (string.IsNullOrWhiteSpace(migrationId))
         {
             return MigrationContextValidationResult.Failed(
                 "Migration ID is required",
-                TenantContextValidationError.InvalidMigrationContext);
+                TenantExecutionEnvelopeValidationError.InvalidMigrationContext);
         }
 
         if (!string.Equals(tenantId, expectedTenantId, StringComparison.OrdinalIgnoreCase))
         {
             return MigrationContextValidationResult.Failed(
                 $"Migration {migrationId} belongs to tenant {tenantId} but expected {expectedTenantId}",
-                TenantContextValidationError.TenantMismatch,
+                TenantExecutionEnvelopeValidationError.TenantMismatch,
                 tenantId);
         }
 
@@ -227,17 +227,17 @@ public sealed class MigrationContextValidationResult
 {
     public bool IsValid { get; private set; }
     public string? ValidatedTenantId { get; private set; }
-    public TenantContextValidationError Error { get; private set; }
+    public TenantExecutionEnvelopeValidationError Error { get; private set; }
     public string? ErrorMessage { get; private set; }
 
     public static MigrationContextValidationResult Succeeded(string tenantId) => new()
     {
         IsValid = true,
         ValidatedTenantId = tenantId,
-        Error = TenantContextValidationError.None
+        Error = TenantExecutionEnvelopeValidationError.None
     };
 
-    public static MigrationContextValidationResult Failed(string errorMessage, TenantContextValidationError error, string? tenantId = null) => new()
+    public static MigrationContextValidationResult Failed(string errorMessage, TenantExecutionEnvelopeValidationError error, string? tenantId = null) => new()
     {
         IsValid = false,
         ErrorMessage = errorMessage,
@@ -256,7 +256,7 @@ public sealed class MigrationContextValidationResult
     }
 }
 
-public enum TenantContextValidationError
+public enum TenantExecutionEnvelopeValidationError
 {
     None,
     MissingTenantId,

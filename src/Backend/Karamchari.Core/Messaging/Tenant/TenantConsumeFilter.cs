@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
@@ -96,7 +97,7 @@ public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
                 var correlationId = correlationIdObj as string ?? context.ConversationId?.ToString() ?? Guid.NewGuid().ToString();
                 var requestId = context.MessageId?.ToString() ?? Guid.NewGuid().ToString();
 
-                envelope = new TenantExecutionEnvelope(tenantId, correlationId, requestId, ExecutionSource.MessageConsumer)
+                envelope = new TenantExecutionEnvelope(tenantId, correlationId, requestId, ExecutionSource.MessageConsumer, TenantSource.Messaging)
                 {
                     TraceId = traceIdObj as string,
                     SpanId = spanIdObj as string,
@@ -107,7 +108,7 @@ public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
                 };
             }
 
-            var executionContext = new TenantExecutionContext(envelope);
+            var executionContext = new TenantExecutionContext(envelope!);
             using var scope = executionContext.Establish();
 
             _logger.LogInformation(

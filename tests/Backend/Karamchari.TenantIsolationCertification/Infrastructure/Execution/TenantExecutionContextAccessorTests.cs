@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using Xunit;
 
@@ -40,7 +41,8 @@ public class TenantExecutionContextAccessorTests : IDisposable
             "acme",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var context = new TenantExecutionContext(envelope);
 
         using var scope = _accessor.Establish(context);
@@ -65,7 +67,8 @@ public class TenantExecutionContextAccessorTests : IDisposable
             "acme",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var context = new TenantExecutionContext(envelope);
 
         using (var scope = _accessor.Establish(context))
@@ -85,7 +88,8 @@ public class TenantExecutionContextAccessorTests : IDisposable
             "acme",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var context = new TenantExecutionContext(envelope);
 
         using var scope = _accessor.Establish(context);
@@ -102,7 +106,8 @@ public class TenantExecutionContextAccessorTests : IDisposable
             "acme",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var context = new TenantExecutionContext(envelope);
 
         using (var scope = _accessor.Establish(context))
@@ -122,14 +127,16 @@ public class TenantExecutionContextAccessorTests : IDisposable
             "tenant1",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var context1 = new TenantExecutionContext(envelope1);
 
         var envelope2 = new TenantExecutionEnvelope(
             "tenant2",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.MessageConsumer);
+            ExecutionSource.MessageConsumer,
+            TenantSource.AdminOverride);
         var context2 = new TenantExecutionContext(envelope2);
 
         using var scope1 = _accessor.Establish(context1);

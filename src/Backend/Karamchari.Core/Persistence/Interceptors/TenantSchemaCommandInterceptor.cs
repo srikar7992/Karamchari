@@ -18,7 +18,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// Invariants this interceptor enforces (failing fast on any breach):
 /// <list type="bullet">
 ///   <item>An active tenant <b>must</b> be resolvable. No default fallback.</item>
-///   <item>The tenant schema name must match the validated format defined on <see cref="TenantContext"/>.</item>
+///   <item>The tenant schema name must match the validated format defined on <see cref="TenantExecutionEnvelope"/>.</item>
 ///   <item>The placeholder must be unambiguous in the SQL Ã¢â‚¬â€ see <see cref="PlaceholderRegex"/>.</item>
 /// </list>
 /// </summary>
@@ -35,7 +35,7 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
         RegexOptions.CultureInvariant | RegexOptions.Compiled)]
     private static partial Regex PlaceholderRegex();
 
-    /// <summary>Validates that the substituted schema is itself safe to embed in SQL Ã¢â‚¬â€ defence-in-depth, since the value already came from a validated <see cref="TenantContext"/>.</summary>
+    /// <summary>Validates that the substituted schema is itself safe to embed in SQL Ã¢â‚¬â€ defence-in-depth, since the value already came from a validated <see cref="TenantExecutionEnvelope"/>.</summary>
     [GeneratedRegex(@"^tenant_[a-z0-9_]{1,64}$", RegexOptions.CultureInvariant | RegexOptions.Compiled)]
     private static partial Regex SchemaNameRegex();
 
@@ -141,8 +141,8 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
 
         if (!SchemaNameRegex().IsMatch(tenant.SchemaName))
         {
-            // TenantContext already validates this, but we re-check at the boundary
-            // because the value is about to be embedded in raw SQL.
+            // TenantExecutionEnvelope already validates this via TenantId format, 
+            // but we re-check at the boundary because the value is about to be embedded in raw SQL.
             throw new InvalidOperationException(
                 $"Refusing to execute SQL: tenant schema '{tenant.SchemaName}' does not match the safe-identifier pattern.");
         }

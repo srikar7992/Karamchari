@@ -38,19 +38,35 @@ internal sealed class HttpTenantProvider : ITenantProvider
         _logger = logger;
     }
 
+    public string GetCurrentTenantId()
+    {
+        return GetTenant().TenantId;
+    }
+
+    public bool TryGetCurrentTenantId([NotNullWhen(true)] out string? tenantId)
+    {
+        if (TryGetTenant(out var tenant) && tenant != null)
+        {
+            tenantId = tenant.TenantId;
+            return true;
+        }
+        tenantId = null;
+        return false;
+    }
+
     /// <summary>
     /// Resolves the current request tenant or throws when tenant context is invalid or missing.
     /// </summary>
-    public TenantContext GetTenant()
+    public TenantExecutionEnvelope GetTenant()
     {
         var httpContext = _httpContextAccessor.HttpContext
             ?? throw new TenantResolutionException(
-                "No HttpContext is available. Background work must use IBackgroundTenantScope, not ITenantProvider.");
+                "No HttpContext is available. Background work must use TenantExecutionContext, not ITenantProvider.");
 
-        // Cache the resolved tenant on HttpContext.Items so we resolve at most once per request.
-        if (httpContext.Items.TryGetValue(HttpItemsKey, out var cached) && cached is TenantContext c)
+        // Cache the resolved envelope on HttpContext.Items so we resolve at most once per request.
+        if (httpContext.Items.TryGetValue(HttpItemsKey, out var cached) && cached is TenantExecutionEnvelope e)
         {
-            return c;
+            return e;
         }
 
         var resolved = ResolveCore(httpContext);
@@ -61,7 +77,7 @@ internal sealed class HttpTenantProvider : ITenantProvider
     /// <summary>
     /// Attempts to resolve the current request tenant without throwing tenant-resolution failures.
     /// </summary>
-    public bool TryGetTenant([NotNullWhen(true)] out TenantContext? tenant)
+    public bool TryGetTenant([NotNullWhen(true)] out TenantExecutionEnvelope? tenant)
     {
         try
         {
@@ -75,31 +91,44 @@ internal sealed class HttpTenantProvider : ITenantProvider
         }
     }
 
-    private TenantContext ResolveCore(HttpContext httpContext)
+    private TenantExecutionEnvelope ResolveCore(HttpContext httpContext)
     {
         var fromJwt = ReadJwtTenant(httpContext.User);
         var fromHeader = ReadTrustedHeaderTenant(httpContext);
         var fromHost = ReadSubdomainTenant(httpContext);
 
+        string tenantId;
+        TenantSource source;
         // For user requests (JWT present), the JWT is authoritative.
         if (fromJwt is not null)
         {
             EnforceAgreement(fromJwt, fromHeader, "trusted gateway header");
             EnforceAgreement(fromJwt, fromHost, "host subdomain");
-            return new TenantContext(fromJwt, TenantSource.JwtClaim);
+            tenantId = fromJwt;
+            source = TenantSource.JwtClaim;
         }
-
         // For service-to-service calls without a JWT, only a *trusted* header is acceptable.
-        if (fromHeader is not null)
+        else if (fromHeader is not null)
         {
             EnforceAgreement(fromHeader, fromHost, "host subdomain");
-            return new TenantContext(fromHeader, TenantSource.TrustedHeader);
+            tenantId = fromHeader;
+            source = TenantSource.TrustedHeader;
+        }
+        else
+        {
+            // Subdomain alone is never sufficient.
+            throw new TenantResolutionException(
+                "No tenant could be resolved from the request. JWT tenant claim or trusted gateway header is required.",
+                TenantResolutionFailureReason.MissingJwtClaim);
         }
 
-        // Subdomain alone is never sufficient.
-        throw new TenantResolutionException(
-            "No tenant could be resolved from the request. JWT tenant claim or trusted gateway header is required.",
-            TenantResolutionFailureReason.MissingJwtClaim);
+        var correlationId = httpContext.Request.Headers[TenantConstants.CorrelationIdHeader].FirstOrDefault()
+            ?? httpContext.TraceIdentifier
+            ?? Guid.NewGuid().ToString("N");
+
+        var requestId = httpContext.TraceIdentifier;
+
+        return new TenantExecutionEnvelope(tenantId, correlationId, requestId, ExecutionSource.HttpRequest, source);
     }
 
     private static string? ReadJwtTenant(ClaimsPrincipal user)
@@ -214,8 +243,8 @@ internal sealed class HttpTenantProvider : ITenantProvider
     {
         try
         {
-            // Constructing a TenantContext validates the format; we discard the result here.
-            _ = new TenantContext(candidate, TenantSource.JwtClaim);
+            // Constructing a TenantExecutionEnvelope validates the format; we discard the result here.
+            _ = new TenantExecutionEnvelope(candidate, "validation", "validation", ExecutionSource.HttpRequest, TenantSource.JwtClaim);
         }
         catch (ArgumentException ex)
         {

@@ -37,7 +37,8 @@ public sealed partial class TenantExecutionContextFactory
             tenantId,
             correlationId,
             requestId,
-            ExecutionSource.HttpRequest)
+            ExecutionSource.HttpRequest,
+            TenantSource.JwtClaim)
         {
             TraceId = traceId,
             SpanId = spanId,
@@ -65,7 +66,8 @@ public sealed partial class TenantExecutionContextFactory
             tenantId,
             correlationId,
             requestId,
-            ExecutionSource.MessageConsumer)
+            ExecutionSource.MessageConsumer,
+            TenantSource.Messaging)
         {
             MessageId = messageId,
             ContentHash = contentHash,
@@ -97,7 +99,8 @@ public sealed partial class TenantExecutionContextFactory
             tenantId,
             correlationId,
             requestId,
-            ExecutionSource.BackgroundJob)
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background)
         {
             ReplayMetadata = metadata,
             TraceId = GetTraceId(),
@@ -129,7 +132,8 @@ public sealed partial class TenantExecutionContextFactory
             tenantId,
             correlationId,
             requestId,
-            ExecutionSource.SagaOrchestration)
+            ExecutionSource.SagaOrchestration,
+            TenantSource.Messaging)
         {
             ReplayMetadata = metadata,
             TraceId = GetTraceId(),
@@ -159,7 +163,8 @@ public sealed partial class TenantExecutionContextFactory
             tenantId,
             correlationId,
             requestId,
-            ExecutionSource.Migration)
+            ExecutionSource.Migration,
+            TenantSource.Provisioning)
         {
             ReplayMetadata = metadata,
             TraceId = GetTraceId(),
@@ -190,10 +195,10 @@ public sealed partial class TenantExecutionContextFactory
         metadata["RetryAttempt"] = attempt.ToString(CultureInfo.InvariantCulture);
 
         return original.With(
-            RequestId: requestId,
-            RetryAttempt: attempt,
-            ReplayCount: original.ReplayCount + 1,
-            ReplayMetadata: metadata);
+            requestId: requestId,
+            retryAttempt: attempt,
+            replayCount: original.ReplayCount + 1,
+            replayMetadata: metadata);
     }
 
     private static void ValidateTenantId(string tenantId)

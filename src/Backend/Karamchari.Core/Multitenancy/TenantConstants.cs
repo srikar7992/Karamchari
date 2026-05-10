@@ -25,4 +25,9 @@ public static class TenantConstants
     /// The HTTP header name used for tenant identification in service-to-service calls.
     /// </summary>
     public const string HeaderName = "X-Tenant-Id";
+
+    /// <summary>
+    /// The HTTP header name used for correlation identification.
+    /// </summary>
+    public const string CorrelationIdHeader = "X-Correlation-Id";
 }

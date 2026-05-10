@@ -54,6 +54,11 @@ public abstract class KaramchariDbContext : DbContext
     internal ITenantProvider TenantProvider => _tenantProvider;
 
     /// <summary>
+    /// Gets the current tenant execution envelope.
+    /// </summary>
+    protected TenantExecutionEnvelope TenantEnvelope => _tenantProvider.GetTenant();
+
+    /// <summary>
     /// Configures the default schema and applies domain model configurations.
     /// </summary>
     /// <param name="modelBuilder">The builder being used to construct the model for this context.</param>

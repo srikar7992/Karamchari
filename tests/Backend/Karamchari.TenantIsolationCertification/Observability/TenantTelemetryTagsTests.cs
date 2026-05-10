@@ -57,12 +57,12 @@ public sealed class TenantActivitySourceTests : IDisposable
     public void StartActivity_ShouldReturnActivityWithTenantTags()
     {
         var source = new TenantActivitySource();
-        var tenantContext = new TenantContext("acme", TenantSource.TrustedHeader);
+        var tenantContext = new TenantExecutionEnvelope("acme", "corr-123", "req-123", ExecutionSource.HttpRequest, TenantSource.TrustedHeader);
 
         using var activity = source.StartActivity(
             "TestOperation",
             tenantContext,
-            Core.Multitenancy.Execution.ExecutionSource.HttpRequest,
+            ExecutionSource.HttpRequest,
             "correlation-123");
 
         activity.Should().NotBeNull();
@@ -75,12 +75,12 @@ public sealed class TenantActivitySourceTests : IDisposable
     public void StartRetryActivity_ShouldIncludeRetryAttemptTag()
     {
         var source = new TenantActivitySource();
-        var tenantContext = new TenantContext("globex", TenantSource.TrustedHeader);
+        var tenantContext = new TenantExecutionEnvelope("globex", "corr-456", "req-456", ExecutionSource.HttpRequest, TenantSource.TrustedHeader);
 
         using var activity = source.StartRetryActivity(
             "RetryOperation",
             tenantContext,
-            Core.Multitenancy.Execution.ExecutionSource.HttpRequest,
+            ExecutionSource.HttpRequest,
             3,
             "retry-correlation");
 
@@ -92,12 +92,12 @@ public sealed class TenantActivitySourceTests : IDisposable
     public void StartReplayActivity_ShouldIncludeReplayCountTag()
     {
         var source = new TenantActivitySource();
-        var tenantContext = new TenantContext("initech", TenantSource.TrustedHeader);
+        var tenantContext = new TenantExecutionEnvelope("initech", "corr-789", "req-789", ExecutionSource.MessageConsumer, TenantSource.TrustedHeader);
 
         using var activity = source.StartReplayActivity(
             "ReplayOperation",
             tenantContext,
-            Core.Multitenancy.Execution.ExecutionSource.MessageConsumer,
+            ExecutionSource.MessageConsumer,
             2);
 
         activity.Should().NotBeNull();
@@ -236,7 +236,7 @@ public sealed class TenantCorrelationPropagatorTests
         var source = new TenantActivitySource();
         var propagator = new TenantCorrelationPropagator(source);
 
-        var tenantContext = new TenantContext("globex", TenantSource.TrustedHeader);
+        var tenantContext = new TenantExecutionEnvelope("globex", "corr-123", "req-123", ExecutionSource.HttpRequest, TenantSource.TrustedHeader);
         var headers = new Dictionary<string, string?>();
 
         propagator.InjectIntoHttpHeaders(headers, tenantContext, "test-correlation");
@@ -270,7 +270,7 @@ public sealed class TenantCorrelationPropagatorTests
         var source = new TenantActivitySource();
         var propagator = new TenantCorrelationPropagator(source);
 
-        var tenantContext = new TenantContext("acme", TenantSource.TrustedHeader);
+        var tenantContext = new TenantExecutionEnvelope("acme", "corr-123", "req-123", ExecutionSource.MessageConsumer, TenantSource.TrustedHeader);
         var headers = new Dictionary<string, object?>();
 
         propagator.InjectIntoMessageHeaders(headers, tenantContext, "msg-corr");

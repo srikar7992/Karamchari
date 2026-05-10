@@ -1,3 +1,4 @@
+using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using MassTransit;
 using Microsoft.Extensions.Caching.Memory;
@@ -80,7 +81,7 @@ public sealed class TenantMessageConsumerScope : IDisposable
             var correlationId = correlationIdObj as string ?? consumeContext.ConversationId?.ToString() ?? Guid.NewGuid().ToString();
             var requestId = consumeContext.MessageId?.ToString() ?? Guid.NewGuid().ToString();
 
-            envelope = new TenantExecutionEnvelope(tenantId, correlationId, requestId, ExecutionSource.MessageConsumer);
+            envelope = new TenantExecutionEnvelope(tenantId, correlationId, requestId, ExecutionSource.MessageConsumer, TenantSource.Messaging);
         }
 
         _executionContext = new TenantExecutionContext(envelope);

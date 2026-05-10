@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using Xunit;
 
@@ -13,7 +14,8 @@ public class TenantExecutionEnvelopeTests
             "acme",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.JwtClaim);
 
         envelope.TenantId.Should().Be("acme");
         envelope.ExecutionSource.Should().Be(ExecutionSource.HttpRequest);
@@ -33,7 +35,8 @@ public class TenantExecutionEnvelopeTests
             tenantId,
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.Manual);
+            ExecutionSource.Manual,
+            TenantSource.AdminOverride);
 
         act.Should().NotThrow();
     }
@@ -48,7 +51,8 @@ public class TenantExecutionEnvelopeTests
             tenantId!,
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.Manual);
+            ExecutionSource.Manual,
+            TenantSource.AdminOverride);
 
         act.Should().Throw<ArgumentException>()
             .WithParameterName("tenantId");
@@ -65,7 +69,8 @@ public class TenantExecutionEnvelopeTests
             tenantId,
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.Manual);
+            ExecutionSource.Manual,
+            TenantSource.AdminOverride);
 
         act.Should().Throw<ArgumentException>()
             .WithParameterName("tenantId");
@@ -118,11 +123,12 @@ public class TenantExecutionEnvelopeTests
             "acme",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.JwtClaim);
 
         var modified = original.With(
-            TenantId: "newtenant",
-            RetryAttempt: 3);
+            tenantId: "newtenant",
+            retryAttempt: 3);
 
         modified.TenantId.Should().Be("newtenant");
         modified.RetryAttempt.Should().Be(3);
@@ -142,7 +148,8 @@ public class TenantExecutionEnvelopeTests
             "testtenant",
             correlationId,
             requestId,
-            ExecutionSource.MessageConsumer)
+            ExecutionSource.MessageConsumer,
+            TenantSource.Messaging)
         {
             RetryAttempt = 2,
             ReplayCount = 1,

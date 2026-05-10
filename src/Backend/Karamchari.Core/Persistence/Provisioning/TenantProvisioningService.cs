@@ -88,8 +88,8 @@ public sealed class TenantProvisioningService
         // 4. Apply RLS Policies.
         // This ensures the new schema is immediately protected by the centralized security function.
         // RLS is applied last so that FILTER and BLOCK predicates cover fully-indexed tables.
-        var tenantContext = new TenantContext(tenantId, TenantSource.Provisioning);
-        var rlsScript = _rlsGenerator.BuildTenantPolicyScript(tenantContext);
+        var tenantEnvelope = new TenantExecutionEnvelope(tenantId, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), ExecutionSource.Manual, TenantSource.Provisioning);
+        var rlsScript = _rlsGenerator.BuildTenantPolicyScript(tenantEnvelope);
 
         await _dbContext.Database.ExecuteSqlRawAsync(rlsScript);
 

@@ -71,7 +71,7 @@ public sealed class TenantCorrelationPropagator
     /// <param name="activity">Optional current activity for trace propagation.</param>
     public void InjectIntoHttpHeaders(
         IDictionary<string, string?> headers,
-        TenantContext tenantContext,
+        TenantExecutionEnvelope tenantContext,
         string? correlationId = null,
         Activity? activity = null)
     {
@@ -147,7 +147,7 @@ public sealed class TenantCorrelationPropagator
     /// <param name="activity">Optional current activity.</param>
     public void InjectIntoMessageHeaders(
         IDictionary<string, object?> headers,
-        TenantContext tenantContext,
+        TenantExecutionEnvelope tenantContext,
         string? correlationId = null,
         Activity? activity = null)
     {
@@ -188,7 +188,7 @@ public sealed class TenantCorrelationPropagator
     /// <param name="jobId">The job identifier.</param>
     public void PropagateForBackgroundJob(
         IDictionary<string, object?> headers,
-        TenantContext tenantContext,
+        TenantExecutionEnvelope tenantContext,
         string jobId)
     {
         if (headers == null)
@@ -209,14 +209,14 @@ public sealed class TenantCorrelationPropagator
     /// <param name="operationName">The operation name.</param>
     /// <returns>A correlation context with trace and tenant information.</returns>
     public TenantCorrelationContext CreateCorrelationContext(
-        TenantContext tenantContext,
+        TenantExecutionEnvelope tenantContext,
         string operationName)
     {
         var correlationId = Guid.NewGuid().ToString("N");
         var activity = _activitySource.StartActivity(
             operationName,
             tenantContext,
-            Karamchari.Core.Multitenancy.Execution.ExecutionSource.Manual,
+            ExecutionSource.Manual,
             correlationId);
 
         return new TenantCorrelationContext(

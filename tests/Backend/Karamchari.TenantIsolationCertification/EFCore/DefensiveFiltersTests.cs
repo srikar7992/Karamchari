@@ -339,19 +339,30 @@ internal class TestNonTenantEntity
 
 internal class MockTenantProvider : ITenantProvider
 {
-    private TenantContext? _tenantContext;
+    private TenantExecutionEnvelope? _tenantContext;
 
     public MockTenantProvider(string tenantId)
     {
-        _tenantContext = new TenantContext(tenantId, TenantSource.JwtClaim);
+        _tenantContext = new TenantExecutionEnvelope(tenantId, "test-corr", "test-req", ExecutionSource.Test, TenantSource.JwtClaim);
     }
 
-    public void SetTenantContext(TenantContext? context)
+    public void SetTenantContext(TenantExecutionEnvelope? context)
     {
         _tenantContext = context;
     }
 
-    public TenantContext GetTenant()
+    public string GetCurrentTenantId()
+    {
+        return GetTenant().TenantId;
+    }
+
+    public bool TryGetCurrentTenantId([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? tenantId)
+    {
+        tenantId = _tenantContext?.TenantId;
+        return tenantId != null;
+    }
+
+    public TenantExecutionEnvelope GetTenant()
     {
         if (_tenantContext is null)
         {
@@ -360,7 +371,7 @@ internal class MockTenantProvider : ITenantProvider
         return _tenantContext;
     }
 
-    public bool TryGetTenant(out TenantContext? tenant)
+    public bool TryGetTenant(out TenantExecutionEnvelope? tenant)
     {
         tenant = _tenantContext;
         return _tenantContext is not null;

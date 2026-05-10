@@ -13,11 +13,6 @@ namespace Karamchari.Core.BackgroundJobs.Tenant;
 public sealed class TenantJobExecutionScope : IBackgroundTenantScope
 {
     /// <summary>
-    /// Thread-local storage slots for tenant execution envelopes, keyed by managed thread ID.
-    /// </summary>
-    private static readonly ConcurrentDictionary<string, AsyncLocal<TenantExecutionEnvelope>> _asyncLocalSlots = new();
-
-    /// <summary>
     /// Default maximum age for tenant context before it is considered stale.
     /// </summary>
     private static readonly TimeSpan DefaultMaxContextAge = TimeSpan.FromHours(24);
@@ -27,7 +22,7 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
     private readonly ITenantJobContextSerializer _serializer;
     private readonly ITenantProvider _tenantProvider;
     private readonly ILogger<TenantJobExecutionScope> _logger;
-    private readonly bool _ownsContext;
+    private readonly IDisposable? _scope;
     private bool _disposed;
 
     private TenantJobExecutionScope(
@@ -43,11 +38,12 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         _tenantProvider = tenantProvider ?? throw new ArgumentNullException(nameof(tenantProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _ownsContext = ownsContext;
 
-        if (_ownsContext)
+        if (ownsContext)
         {
-            SetAsyncLocal(_envelope);
+            var context = new TenantExecutionContext(_envelope);
+            _scope = context.Establish();
+
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug(
@@ -75,7 +71,8 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
             tenant.TenantId,
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.BackgroundJob)
+            ExecutionSource.BackgroundJob,
+            TenantSource.Background)
         {
             Timestamp = DateTime.UtcNow
         };
@@ -196,28 +193,7 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
             throw new ObjectDisposedException(nameof(TenantJobExecutionScope));
         }
 
-        return _envelope.With(RetryAttempt: _envelope.RetryAttempt + 1);
-    }
-
-    private static void SetAsyncLocal(TenantExecutionEnvelope envelope)
-    {
-        var slot = _asyncLocalSlots.GetOrAdd(
-            Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture),
-            _ => new AsyncLocal<TenantExecutionEnvelope>());
-
-        slot.Value = envelope;
-    }
-
-    private static TenantExecutionEnvelope? GetAsyncLocal()
-    {
-        if (_asyncLocalSlots.TryGetValue(
-            Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture),
-            out var slot))
-        {
-            return slot.Value;
-        }
-
-        return null;
+        return _envelope.With(retryAttempt: _envelope.RetryAttempt + 1, source: TenantSource.Background);
     }
 
     /// <inheritdoc/>
@@ -229,8 +205,9 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         }
 
         _disposed = true;
+        _scope?.Dispose();
 
-        if (_ownsContext && _logger.IsEnabled(LogLevel.Debug))
+        if (_logger.IsEnabled(LogLevel.Debug))
         {
             _logger.LogDebug(
                 "Disposing tenant scope for {TenantId}",

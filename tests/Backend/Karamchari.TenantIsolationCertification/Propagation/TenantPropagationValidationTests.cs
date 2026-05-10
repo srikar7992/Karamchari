@@ -28,7 +28,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
 
         await Task.Run(() =>
         {
-            var envelope = new TenantExecutionEnvelope(tenantA, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var envelope = new TenantExecutionEnvelope(tenantA, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var context = new TenantExecutionContext(envelope);
             using (context.Establish())
             {
@@ -40,7 +40,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
 
         await Task.Run(() =>
         {
-            var envelope = new TenantExecutionEnvelope(tenantB, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var envelope = new TenantExecutionEnvelope(tenantB, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var context = new TenantExecutionContext(envelope);
             using (context.Establish())
             {
@@ -58,7 +58,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
         var tenantId = _tenantA.ActiveTenantId;
         var collector = new TenantContextCollector();
 
-        var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+        var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
         var context = new TenantExecutionContext(envelope);
         using (context.Establish())
         {
@@ -99,7 +99,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
             var localTenant = i % 2 == 0 ? "alpha" : "beta";
             var task = Task.Run(() =>
             {
-                var envelope = new TenantExecutionEnvelope(localTenant, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+                var envelope = new TenantExecutionEnvelope(localTenant, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
                 var context = new TenantExecutionContext(envelope);
                 using (context.Establish())
                 {
@@ -126,7 +126,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
             return Enumerable.Range(0, 10).Select(i =>
                 Task.Run(() =>
                 {
-                    var envelope = new TenantExecutionEnvelope(tenant, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+                    var envelope = new TenantExecutionEnvelope(tenant, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
                     var context = new TenantExecutionContext(envelope);
                     using (context.Establish())
                     {
@@ -149,7 +149,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
         var tenantId = _tenantA.ActiveTenantId;
         var collector = new TenantContextCollector();
 
-        var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+        var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
         var context = new TenantExecutionContext(envelope);
         using (context.Establish())
         {
@@ -186,7 +186,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
 
         _ = Task.Run(() =>
         {
-            var envelope = new TenantExecutionEnvelope(tenantAId, collectorA.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var envelope = new TenantExecutionEnvelope(tenantAId, collectorA.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var context = new TenantExecutionContext(envelope);
             using (context.Establish())
             {
@@ -196,7 +196,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
 
         _ = Task.Run(() =>
         {
-            var envelope = new TenantExecutionEnvelope(tenantBId, collectorB.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var envelope = new TenantExecutionEnvelope(tenantBId, collectorB.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var context = new TenantExecutionContext(envelope);
             using (context.Establish())
             {
@@ -222,7 +222,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
 
         await factory.StartNew(() =>
         {
-            var envelope = new TenantExecutionEnvelope(tenant1, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var envelope = new TenantExecutionEnvelope(tenant1, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var context = new TenantExecutionContext(envelope);
             using (context.Establish())
             {
@@ -232,7 +232,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
 
         await factory.StartNew(() =>
         {
-            var envelope = new TenantExecutionEnvelope(tenant2, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var envelope = new TenantExecutionEnvelope(tenant2, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var context = new TenantExecutionContext(envelope);
             using (context.Establish())
             {
@@ -253,7 +253,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
         var tasks = tenants.Select(t =>
             Task.Run(() =>
             {
-                var envelope = new TenantExecutionEnvelope(t, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+                var envelope = new TenantExecutionEnvelope(t, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
                 var context = new TenantExecutionContext(envelope);
                 using (context.Establish())
                 {
@@ -279,7 +279,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
 
         var task1 = Task.Run(() =>
         {
-            var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var context = new TenantExecutionContext(envelope);
             using (context.Establish())
             {
@@ -299,7 +299,7 @@ public sealed class AsyncLocalContaminationTests : IDisposable
         var cts2 = new CancellationTokenSource();
         var task2 = Task.Run(() =>
         {
-            var envelope = new TenantExecutionEnvelope("globex", collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var envelope = new TenantExecutionEnvelope("globex", collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var context = new TenantExecutionContext(envelope);
             using (context.Establish())
             {
@@ -339,14 +339,14 @@ public sealed class NestedScopeCorruptionTests : IDisposable
         var parentTenant = _context.ActiveTenantId;
         var collector = new TenantContextCollector();
 
-        var pEnv = new TenantExecutionEnvelope(parentTenant, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+        var pEnv = new TenantExecutionEnvelope(parentTenant, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
         var pCtx = new TenantExecutionContext(pEnv);
         using (pCtx.Establish())
         {
             collector.Record(parentTenant, "Parent_Start");
 
             var childTenant = "globex";
-            var cEnv = new TenantExecutionEnvelope(childTenant, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var cEnv = new TenantExecutionEnvelope(childTenant, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var cCtx = new TenantExecutionContext(cEnv);
             using (cCtx.Establish())
             {
@@ -368,7 +368,7 @@ public sealed class NestedScopeCorruptionTests : IDisposable
         var tenantId = _context.ActiveTenantId;
         var collector = new TenantContextCollector();
 
-        var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+        var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
         var context = new TenantExecutionContext(envelope);
         using (context.Establish())
         {
@@ -396,13 +396,13 @@ public sealed class NestedScopeCorruptionTests : IDisposable
         var tenantA = "acme";
         var tenantB = "globex";
 
-        var envA = new TenantExecutionEnvelope(tenantA, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+        var envA = new TenantExecutionEnvelope(tenantA, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
         var ctxA = new TenantExecutionContext(envA);
         using (ctxA.Establish())
         {
             collector.Record(tenantA, "Original");
 
-            var envB = new TenantExecutionEnvelope(tenantB, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+            var envB = new TenantExecutionEnvelope(tenantB, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
             var ctxB = new TenantExecutionContext(envB);
             using (ctxB.Establish())
             {
@@ -456,7 +456,7 @@ public sealed class TelemetryBasedValidationTests : IDisposable
         var tenantId = _context.ActiveTenantId;
         var correlationId = Guid.NewGuid().ToString("N");
 
-        var envelope = new TenantExecutionEnvelope(tenantId, correlationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+        var envelope = new TenantExecutionEnvelope(tenantId, correlationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
         var context = new TenantExecutionContext(envelope);
         var tasks = new List<Task>();
 
@@ -467,7 +467,8 @@ public sealed class TelemetryBasedValidationTests : IDisposable
                 var iteration = i;
                 tasks.Add(Task.Run(async () =>
                 {
-                    await Task.Delay(10);
+                    await Task.Yield();
+                    await Task.Delay(50);
                     PropagationTrace.Record(new PropagationTrace(tenantId, $"ThreadSwitch_{iteration}", correlationId));
                 }));
             }
@@ -502,7 +503,7 @@ public sealed class TenantPropagationIntegrityMatrix
     {
         var collector = new TenantContextCollector();
 
-        var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Manual);
+        var envelope = new TenantExecutionEnvelope(tenantId, collector.CorrelationId, Guid.NewGuid().ToString("N"), ExecutionSource.Test, TenantSource.JwtClaim);
         var context = new TenantExecutionContext(envelope);
         using (context.Establish())
         {

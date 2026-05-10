@@ -51,22 +51,21 @@ public sealed class TimeAttendanceDbContextDesignTimeFactory : IDesignTimeDbCont
 
     private sealed class DesignTimeTenantProvider : ITenantProvider
     {
-        /// <summary>
-        /// Provides required documentation for this member.
-        /// </summary>
         public static readonly DesignTimeTenantProvider Instance = new();
-        private static readonly TenantContext DesignTimeTenant =
-            new("design_time", TenantSource.Provisioning);
+        private static readonly TenantExecutionEnvelope DesignTimeTenant =
+            new("design_time", "design-time-correlation", "design-time-request", ExecutionSource.Migration, TenantSource.Provisioning);
 
-        /// <summary>
-        /// Provides required documentation for this member.
-        /// </summary>
-        public TenantContext GetTenant() => DesignTimeTenant;
+        public string GetCurrentTenantId() => DesignTimeTenant.TenantId;
 
-        /// <summary>
-        /// Provides required documentation for this member.
-        /// </summary>
-        public bool TryGetTenant(out TenantContext? tenant)
+        public bool TryGetCurrentTenantId([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? tenantId)
+        {
+            tenantId = DesignTimeTenant.TenantId;
+            return true;
+        }
+
+        public TenantExecutionEnvelope GetTenant() => DesignTimeTenant;
+
+        public bool TryGetTenant(out TenantExecutionEnvelope? tenant)
         {
             tenant = DesignTimeTenant;
             return true;

@@ -53,8 +53,8 @@ public sealed partial class RlsScriptGenerator
     /// Returns a single batch string containing the full policy DDL with all
     /// registered tables' FILTER + BLOCK predicates.
     /// </summary>
-    /// <param name="tenant">The tenant whose policy should be generated.</param>
-    public string BuildTenantPolicyScript(TenantContext tenant)
+    /// <param name="tenant">The tenant execution envelope whose policy should be generated.</param>
+    public string BuildTenantPolicyScript(TenantExecutionEnvelope tenant)
     {
         ArgumentNullException.ThrowIfNull(tenant);
 

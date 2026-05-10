@@ -34,7 +34,7 @@ public sealed class LocalFilePayslipStorage : IPayslipStorage
     private string BuildFilePath(string employeeId, string periodName)
     {
         // Scope the path by tenant to enforce isolation between tenants on the local filesystem.
-        var tenantId = _tenantProvider.GetTenant().TenantId;
+        var tenantId = _tenantProvider.GetCurrentTenantId();
         var safePeriod = periodName.Replace(" ", "_");
         return Path.Combine(_basePath, tenantId, employeeId, $"{safePeriod}.pdf");
     }

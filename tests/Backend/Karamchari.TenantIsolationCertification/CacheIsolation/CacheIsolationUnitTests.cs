@@ -19,7 +19,7 @@ public sealed class TenantCacheGuardTests : IDisposable
     {
         _context = TenantTestContext.Create("acme");
         _tenantProviderMock = new Mock<ITenantProvider>();
-        _tenantProviderMock.Setup(p => p.GetTenant()).Returns(new TenantContext("acme", TenantSource.JwtClaim));
+        _tenantProviderMock.Setup(p => p.GetTenant()).Returns(new TenantExecutionEnvelope("acme", "corr-123", "req-123", ExecutionSource.Test, TenantSource.JwtClaim));
 
         _guard = new TenantCacheGuard(_tenantProviderMock.Object);
     }

@@ -1,4 +1,4 @@
-using Karamchari.Core.Multitenancy.Execution;
+using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Core.BackgroundJobs.Tenant;
 

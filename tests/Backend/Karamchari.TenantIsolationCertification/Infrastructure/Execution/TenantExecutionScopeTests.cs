@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using Xunit;
 
@@ -33,7 +34,8 @@ public class TenantExecutionScopeTests : IDisposable
             "child",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
 
         using var scope = new TenantExecutionScope(_accessor, childEnvelope);
 
@@ -47,7 +49,8 @@ public class TenantExecutionScopeTests : IDisposable
             "parent",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var context = new TenantExecutionContext(envelope);
         using var scopeEstablish = _accessor.Establish(context);
 
@@ -71,7 +74,8 @@ public class TenantExecutionScopeTests : IDisposable
             "parent",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var parentContext = new TenantExecutionContext(parentEnvelope);
         using var scopeEstablish = _accessor.Establish(parentContext);
 
@@ -79,7 +83,8 @@ public class TenantExecutionScopeTests : IDisposable
             "child",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.MessageConsumer);
+            ExecutionSource.MessageConsumer,
+            TenantSource.AdminOverride);
 
         using (var scope = new TenantExecutionScope(_accessor, childEnvelope))
         {
@@ -96,7 +101,8 @@ public class TenantExecutionScopeTests : IDisposable
             "child",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.MessageConsumer);
+            ExecutionSource.MessageConsumer,
+            TenantSource.AdminOverride);
 
         using (var scope = new TenantExecutionScope(_accessor, childEnvelope))
         {
@@ -113,7 +119,8 @@ public class TenantExecutionScopeTests : IDisposable
             "parent",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var parentContext = new TenantExecutionContext(parentEnvelope);
         using var scopeEstablish = _accessor.Establish(parentContext);
 
@@ -132,7 +139,8 @@ public class TenantExecutionScopeTests : IDisposable
             "parent",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var parentContext = new TenantExecutionContext(parentEnvelope);
         using var scopeEstablish = _accessor.Establish(parentContext);
 
@@ -156,7 +164,8 @@ public class TenantExecutionScopeTests : IDisposable
             "parent",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var parentContext = new TenantExecutionContext(parentEnvelope);
         using var scopeEstablish = _accessor.Establish(parentContext);
 
@@ -164,7 +173,8 @@ public class TenantExecutionScopeTests : IDisposable
             "child",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.MessageConsumer);
+            ExecutionSource.MessageConsumer,
+            TenantSource.AdminOverride);
 
         using var scope = new TenantExecutionScope(_accessor, childEnvelope);
 
@@ -176,22 +186,12 @@ public class TenantExecutionScopeTests : IDisposable
     [Fact]
     public void Constructor_WithInvalidChildTenantId_ShouldThrowArgumentException()
     {
-        // We bypass the constructor of TenantExecutionEnvelope to test TenantExecutionScope validation
-        // But TenantExecutionEnvelope also validates in constructor.
-        // Let's use Reflection or just a valid envelope then try to pass an invalid one if possible.
-        // Actually, TenantExecutionEnvelope.With can't bypass validation either.
-
-        // Let's just assume we can't create an invalid envelope easily, 
-        // but TenantExecutionScope.ValidateTenantId is public/internal? No, it's private.
-
-        // Wait, Constructor of TenantExecutionEnvelope throws if tenantId is invalid.
-        // So we might not even get to TenantExecutionScope.ValidateTenantId if we pass an envelope.
-
         var act = () => new TenantExecutionEnvelope(
             "INVALID",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
 
         act.Should().Throw<ArgumentException>();
     }
@@ -213,14 +213,16 @@ public class TenantExecutionScopeTests : IDisposable
             "tenant1",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
         var context1 = new TenantExecutionContext(envelope1);
 
         var envelope2 = new TenantExecutionEnvelope(
             "tenant2",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
 
         using var scopeEstablish = _accessor.Establish(context1);
 

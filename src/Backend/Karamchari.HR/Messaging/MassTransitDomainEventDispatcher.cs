@@ -35,7 +35,7 @@ public sealed class MassTransitDomainEventDispatcher : IDomainEventDispatcher
             return;
         }
 
-        var tenantId = _tenantProvider.TryGetTenant(out var t) ? t!.TenantId : "system";
+        var tenantId = _tenantProvider.TryGetCurrentTenantId(out var tId) ? tId : "system";
 
         foreach (var @event in events)
         {

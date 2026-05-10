@@ -16,8 +16,8 @@ namespace Karamchari.Core.IntegrationTests.Persistence;
 [Collection(nameof(SqlServerRlsCollection))]
 public sealed class RlsSqlServerIntegrationTests(SqlServerRlsFixture fixture)
 {
-    private static readonly TenantContext TenantA = new("contoso", TenantSource.JwtClaim);
-    private static readonly TenantContext TenantB = new("fabrikam", TenantSource.JwtClaim);
+    private static readonly TenantExecutionEnvelope TenantA = new("contoso", "corr-a", "req-a", ExecutionSource.Test, TenantSource.JwtClaim);
+    private static readonly TenantExecutionEnvelope TenantB = new("fabrikam", "corr-b", "req-b", ExecutionSource.Test, TenantSource.JwtClaim);
 
     [DockerRequiredFact]
     public async Task Query_UnderTenantSessionContext_ReturnsOnlyRowsOwnedByThatTenant()
@@ -110,17 +110,18 @@ public sealed class SqlServerRlsFixture : IAsyncLifetime
         _connectionString = builder.ConnectionString;
 
         await ApplyRlsBootstrapAsync();
-        await ProvisionTenantAsync(new TenantContext("contoso", TenantSource.JwtClaim));
-        await ProvisionTenantAsync(new TenantContext("fabrikam", TenantSource.JwtClaim));
+        await ProvisionTenantAsync(new TenantExecutionEnvelope("contoso", "test-corr", "test-req", ExecutionSource.Test, TenantSource.JwtClaim));
+        await ProvisionTenantAsync(new TenantExecutionEnvelope("fabrikam", "test-corr", "test-req", ExecutionSource.Test, TenantSource.JwtClaim));
         await SeedRowsBeforePoliciesAsync();
-        await ApplyTenantPolicyAsync(new TenantContext("contoso", TenantSource.JwtClaim));
-        await ApplyTenantPolicyAsync(new TenantContext("fabrikam", TenantSource.JwtClaim));
+        await ApplyTenantPolicyAsync(new TenantExecutionEnvelope("contoso", "test-corr", "test-req", ExecutionSource.Test, TenantSource.JwtClaim));
+        await ApplyTenantPolicyAsync(new TenantExecutionEnvelope("fabrikam", "test-corr", "test-req", ExecutionSource.Test, TenantSource.JwtClaim));
     }
 
     public Task DisposeAsync() => _container.DisposeAsync().AsTask();
 
-    public RlsTestDbContext CreateDbContext(TenantContext tenant)
+    public RlsTestDbContext CreateDbContext(TenantExecutionEnvelope tenant)
     {
+        ArgumentNullException.ThrowIfNull(tenant);
         var tenantProvider = new FixedTenantProvider(tenant);
         var options = new DbContextOptionsBuilder<RlsTestDbContext>()
             .UseSqlServer(_connectionString)
@@ -146,7 +147,7 @@ public sealed class SqlServerRlsFixture : IAsyncLifetime
         }
     }
 
-    private async Task ProvisionTenantAsync(TenantContext tenant)
+    private async Task ProvisionTenantAsync(TenantExecutionEnvelope tenant)
     {
         await ExecuteScriptAsync(
             $$"""
@@ -183,7 +184,7 @@ public sealed class SqlServerRlsFixture : IAsyncLifetime
             """);
     }
 
-    private async Task ApplyTenantPolicyAsync(TenantContext tenant)
+    private async Task ApplyTenantPolicyAsync(TenantExecutionEnvelope tenant)
     {
         var generator = CreateRlsScriptGenerator();
         await ExecuteScriptAsync(generator.BuildTenantPolicyScript(tenant));
@@ -236,11 +237,19 @@ public sealed class SqlServerRlsFixture : IAsyncLifetime
         }
     }
 
-    private sealed class FixedTenantProvider(TenantContext tenant) : ITenantProvider
+    private sealed class FixedTenantProvider(TenantExecutionEnvelope tenant) : ITenantProvider
     {
-        public TenantContext GetTenant() => tenant;
+        public string GetCurrentTenantId() => tenant.TenantId;
 
-        public bool TryGetTenant(out TenantContext? resolvedTenant)
+        public bool TryGetCurrentTenantId([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? tenantId)
+        {
+            tenantId = tenant.TenantId;
+            return true;
+        }
+
+        public TenantExecutionEnvelope GetTenant() => tenant;
+
+        public bool TryGetTenant(out TenantExecutionEnvelope? resolvedTenant)
         {
             resolvedTenant = tenant;
             return true;

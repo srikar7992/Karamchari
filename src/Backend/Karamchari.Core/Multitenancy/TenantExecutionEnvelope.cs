@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Karamchari.Core.Multitenancy.Execution;
+namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Immutable snapshot containing all execution metadata for a tenant-scoped operation.
@@ -14,6 +14,9 @@ namespace Karamchari.Core.Multitenancy.Execution;
 /// </summary>
 public sealed partial class TenantExecutionEnvelope
 {
+    /// <summary>Schema prefix used in storage. Combined with <see cref="TenantId"/> -> <c>tenant_acme</c>.</summary>
+    public const string SchemaPrefix = "tenant_";
+
     [GeneratedRegex(TenantConstants.TenantIdPattern, RegexOptions.CultureInvariant | RegexOptions.Singleline)]
     private static partial Regex TenantIdRegex();
 
@@ -21,6 +24,9 @@ public sealed partial class TenantExecutionEnvelope
     /// The validated tenant identifier for this execution (e.g., <c>acme</c>).
     /// </summary>
     public string TenantId { get; init; }
+
+    /// <summary>The fully-qualified DB schema name for this tenant (e.g. <c>tenant_acme</c>).</summary>
+    public string SchemaName => SchemaPrefix + TenantId.Replace('-', '_');
 
     /// <summary>
     /// A correlation ID that chains related operations across services.
@@ -36,6 +42,11 @@ public sealed partial class TenantExecutionEnvelope
     /// Indicates where this execution originated (HTTP, message, job, etc.).
     /// </summary>
     public ExecutionSource ExecutionSource { get; init; }
+
+    /// <summary>
+    /// Indicates the source of the tenant resolution (JWT, Header, etc.).
+    /// </summary>
+    public TenantSource Source { get; init; }
 
     /// <summary>
     /// The current retry attempt number (0 for first attempt).
@@ -89,12 +100,14 @@ public sealed partial class TenantExecutionEnvelope
     /// <param name="correlationId">The correlation ID for tracing.</param>
     /// <param name="requestId">The unique request ID for this execution.</param>
     /// <param name="executionSource">The source of this execution.</param>
+    /// <param name="source">The source of the tenant resolution.</param>
     /// <exception cref="ArgumentException">Thrown when tenantId is null, whitespace, or invalid.</exception>
     public TenantExecutionEnvelope(
         string tenantId,
         string correlationId,
         string requestId,
-        ExecutionSource executionSource)
+        ExecutionSource executionSource,
+        TenantSource source)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(correlationId);
@@ -112,42 +125,42 @@ public sealed partial class TenantExecutionEnvelope
         CorrelationId = correlationId;
         RequestId = requestId;
         ExecutionSource = executionSource;
+        Source = source;
         Timestamp = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Creates a copy of this envelope with updated properties.
-    /// </summary>
     public TenantExecutionEnvelope With(
-        string? TenantId = null,
-        string? CorrelationId = null,
-        string? RequestId = null,
-        ExecutionSource? ExecutionSource = null,
-        int? RetryAttempt = null,
-        int? ReplayCount = null,
-        string? UserIdentity = null,
-        string? TraceId = null,
-        string? SpanId = null,
-        DateTime? Timestamp = null,
-        Dictionary<string, string>? ReplayMetadata = null,
-        string? MessageId = null,
-        string? ContentHash = null)
+        string? tenantId = null,
+        string? correlationId = null,
+        string? requestId = null,
+        ExecutionSource? executionSource = null,
+        TenantSource? source = null,
+        int? retryAttempt = null,
+        int? replayCount = null,
+        string? userIdentity = null,
+        string? traceId = null,
+        string? spanId = null,
+        DateTime? timestamp = null,
+        Dictionary<string, string>? replayMetadata = null,
+        string? messageId = null,
+        string? contentHash = null)
     {
         return new TenantExecutionEnvelope(
-            TenantId ?? this.TenantId,
-            CorrelationId ?? this.CorrelationId,
-            RequestId ?? this.RequestId,
-            ExecutionSource ?? this.ExecutionSource)
+            tenantId ?? this.TenantId,
+            correlationId ?? this.CorrelationId,
+            requestId ?? this.RequestId,
+            executionSource ?? this.ExecutionSource,
+            source ?? this.Source)
         {
-            RetryAttempt = RetryAttempt ?? this.RetryAttempt,
-            ReplayCount = ReplayCount ?? this.ReplayCount,
-            UserIdentity = UserIdentity ?? this.UserIdentity,
-            TraceId = TraceId ?? this.TraceId,
-            SpanId = SpanId ?? this.SpanId,
-            Timestamp = Timestamp ?? this.Timestamp,
-            ReplayMetadata = ReplayMetadata ?? this.ReplayMetadata,
-            MessageId = MessageId ?? this.MessageId,
-            ContentHash = ContentHash ?? this.ContentHash
+            RetryAttempt = retryAttempt ?? this.RetryAttempt,
+            ReplayCount = replayCount ?? this.ReplayCount,
+            UserIdentity = userIdentity ?? this.UserIdentity,
+            TraceId = traceId ?? this.TraceId,
+            SpanId = spanId ?? this.SpanId,
+            Timestamp = timestamp ?? this.Timestamp,
+            ReplayMetadata = replayMetadata ?? this.ReplayMetadata,
+            MessageId = messageId ?? this.MessageId,
+            ContentHash = contentHash ?? this.ContentHash
         };
     }
 

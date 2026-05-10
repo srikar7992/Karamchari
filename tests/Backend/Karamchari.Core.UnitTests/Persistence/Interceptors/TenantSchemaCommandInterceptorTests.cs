@@ -70,14 +70,22 @@ public sealed class TenantSchemaCommandInterceptorTests
 
     private static TenantSchemaCommandInterceptor CreateInterceptor(string tenantId) =>
         new(
-            new FixedTenantProvider(new TenantContext(tenantId, TenantSource.JwtClaim)),
+            new FixedTenantProvider(new TenantExecutionEnvelope(tenantId, "test-corr", "test-req", ExecutionSource.HttpRequest, TenantSource.JwtClaim)),
             NullLogger<TenantSchemaCommandInterceptor>.Instance);
 
-    private sealed class FixedTenantProvider(TenantContext tenant) : ITenantProvider
+    private sealed class FixedTenantProvider(TenantExecutionEnvelope tenant) : ITenantProvider
     {
-        public TenantContext GetTenant() => tenant;
+        public string GetCurrentTenantId() => tenant.TenantId;
 
-        public bool TryGetTenant(out TenantContext? resolvedTenant)
+        public bool TryGetCurrentTenantId([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? tenantId)
+        {
+            tenantId = tenant.TenantId;
+            return true;
+        }
+
+        public TenantExecutionEnvelope GetTenant() => tenant;
+
+        public bool TryGetTenant(out TenantExecutionEnvelope? resolvedTenant)
         {
             resolvedTenant = tenant;
             return true;
@@ -86,10 +94,18 @@ public sealed class TenantSchemaCommandInterceptorTests
 
     private sealed class ThrowingTenantProvider : ITenantProvider
     {
-        public TenantContext GetTenant() =>
+        public string GetCurrentTenantId() => GetTenant().TenantId;
+
+        public bool TryGetCurrentTenantId([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? tenantId)
+        {
+            tenantId = null;
+            return false;
+        }
+
+        public TenantExecutionEnvelope GetTenant() =>
             throw new TenantResolutionException("No tenant.", TenantResolutionFailureReason.MissingJwtClaim);
 
-        public bool TryGetTenant(out TenantContext? tenant)
+        public bool TryGetTenant(out TenantExecutionEnvelope? tenant)
         {
             tenant = null;
             return false;

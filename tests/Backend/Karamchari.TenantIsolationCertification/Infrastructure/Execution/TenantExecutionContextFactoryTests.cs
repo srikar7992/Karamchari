@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FluentAssertions;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
@@ -168,7 +169,8 @@ public class TenantExecutionContextFactoryTests
             "acme",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
 
         var replay = _factory.CreateReplayContext(original, 3);
 
@@ -188,7 +190,8 @@ public class TenantExecutionContextFactoryTests
             "acme",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
 
         var replay1 = _factory.CreateReplayContext(original, 1);
         var replay2 = _factory.CreateReplayContext(replay1, 2);
@@ -214,7 +217,8 @@ public class TenantExecutionContextFactoryTests
             "acme",
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
-            ExecutionSource.HttpRequest);
+            ExecutionSource.HttpRequest,
+            TenantSource.AdminOverride);
 
         var act = () => _factory.CreateReplayContext(original, -1);
 

@@ -204,7 +204,7 @@ public static class TenantMetricsExtensions
     /// Creates a metric tags struct from a tenant context.
     /// </summary>
     public static TenantMetricTags CreateMetricTags(
-        this TenantContext context,
+        this TenantExecutionEnvelope context,
         string operationType,
         string executionSource)
     {

@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using Karamchari.Core.Multitenancy.Execution;
+using Karamchari.Core.Multitenancy;
 using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Observability.Tenant;
@@ -11,7 +11,7 @@ namespace Karamchari.Core.Observability.Tenant;
 /// </summary>
 public static class TenantStructuredLogger
 {
-    private const string TenantContextKey = "TenantContext";
+    private const string TenantExecutionEnvelopeKey = "TenantExecutionEnvelope";
 
     /// <summary>
     /// Logs a tenant operation with structured parameters.
@@ -207,7 +207,7 @@ public static class TenantStructuredLogger
     /// <param name="fromTenantId">Previous tenant ID.</param>
     /// <param name="toTenantId">New tenant ID.</param>
     /// <param name="operation">The operation causing the switch.</param>
-    public static void LogTenantContextSwitch(
+    public static void LogTenantExecutionEnvelopeSwitch(
         this ILogger logger,
         string fromTenantId,
         string toTenantId,

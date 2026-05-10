@@ -15,37 +15,20 @@ namespace Karamchari.Core.BackgroundJobs.Tenant;
 /// </summary>
 public sealed class TenantJobContextSerializer : ITenantJobContextSerializer
 {
-    private static readonly Regex TenantIdRegex = new(TenantConstants.TenantIdPattern, RegexOptions.Compiled);
     private readonly ILogger<TenantJobContextSerializer> _logger;
-    private const int CurrentSchemaVersion = 1;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TenantJobContextSerializer"/> class.
-    /// </summary>
-    /// <param name="logger">The logger instance for diagnostic tracing.</param>
     public TenantJobContextSerializer(ILogger<TenantJobContextSerializer> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    /// <inheritdoc/>
     public string Serialize(TenantExecutionEnvelope envelope)
     {
         ArgumentNullException.ThrowIfNull(envelope);
-
-        var jobEnvelope = TenantAwareJobEnvelope.FromEnvelope(envelope);
-        var payload = new JobContextPayload
-        {
-            SchemaVersion = CurrentSchemaVersion,
-            Envelope = jobEnvelope,
-            SerializedAt = DateTime.UtcNow
-        };
-
-        var json = JsonSerializer.Serialize(payload);
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+        var json = envelope.ToJson();
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
     }
 
-    /// <inheritdoc/>
     public TenantExecutionEnvelope Deserialize(string serialized)
     {
         if (string.IsNullOrWhiteSpace(serialized))
@@ -55,26 +38,21 @@ public sealed class TenantJobContextSerializer : ITenantJobContextSerializer
 
         try
         {
-            var json = Encoding.UTF8.GetString(Convert.FromBase64String(serialized));
-            var payload = JsonSerializer.Deserialize<JobContextPayload>(json);
-
-            if (payload == null || payload.Envelope == null)
+            var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(serialized));
+            var envelope = TenantExecutionEnvelope.FromJson(json);
+            if (envelope == null)
             {
-                throw new StaleTenantRestoreException("Deserialized tenant context payload is null.");
+                throw new StaleTenantRestoreException("Failed to deserialize tenant execution envelope.");
             }
 
-            ValidatePayload(payload);
-
-            return payload.Envelope.ToEnvelope();
+            return envelope;
         }
         catch (Exception ex) when (ex is not StaleTenantRestoreException)
         {
-            _logger.LogError(ex, "Failed to deserialize tenant job context.");
             throw new StaleTenantRestoreException("Invalid serialized tenant context format.", ex);
         }
     }
 
-    /// <inheritdoc/>
     public bool TryDeserialize(string serialized, out TenantExecutionEnvelope? envelope)
     {
         envelope = null;
@@ -82,8 +60,9 @@ public sealed class TenantJobContextSerializer : ITenantJobContextSerializer
 
         try
         {
-            envelope = Deserialize(serialized);
-            return true;
+            var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(serialized));
+            envelope = TenantExecutionEnvelope.FromJson(json);
+            return envelope != null;
         }
         catch
         {
@@ -91,65 +70,12 @@ public sealed class TenantJobContextSerializer : ITenantJobContextSerializer
         }
     }
 
-    /// <inheritdoc/>
     public bool IsStale(string serializedContext, TimeSpan maxAge)
     {
-        if (string.IsNullOrWhiteSpace(serializedContext)) return true;
+        if (!TryDeserialize(serializedContext, out var envelope)) return true;
 
-        try
-        {
-            var json = Encoding.UTF8.GetString(Convert.FromBase64String(serializedContext));
-            var payload = JsonSerializer.Deserialize<JobContextPayload>(json);
-
-            if (payload == null) return true;
-
-            var age = DateTime.UtcNow - payload.SerializedAt;
-            return age > maxAge;
-        }
-        catch
-        {
-            return true;
-        }
-    }
-
-    private static void ValidatePayload(JobContextPayload payload)
-    {
-        if (payload.SchemaVersion != CurrentSchemaVersion)
-        {
-            throw new StaleTenantRestoreException(
-                $"Unsupported tenant job context schema version: {payload.SchemaVersion}");
-        }
-
-        var envelope = payload.Envelope;
-
-        if (string.IsNullOrWhiteSpace(envelope.TenantId))
-        {
-            throw new StaleTenantRestoreException("TenantId in envelope is null or empty.");
-        }
-
-        if (!TenantIdRegex.IsMatch(envelope.TenantId))
-        {
-            throw new StaleTenantRestoreException(
-                string.Create(CultureInfo.InvariantCulture,
-                    $"TenantId '{envelope.TenantId}' does not match expected pattern."));
-        }
-
-        if (string.IsNullOrWhiteSpace(envelope.CorrelationId))
-        {
-            throw new StaleTenantRestoreException("CorrelationId in envelope is empty.");
-        }
-
-        if (string.IsNullOrWhiteSpace(envelope.RequestId))
-        {
-            throw new StaleTenantRestoreException("RequestId in envelope is empty.");
-        }
-    }
-
-    private sealed class JobContextPayload
-    {
-        public int SchemaVersion { get; set; }
-        public TenantAwareJobEnvelope Envelope { get; set; } = new();
-        public DateTime SerializedAt { get; set; }
+        var age = DateTime.UtcNow - envelope!.Timestamp;
+        return age > maxAge;
     }
 }
 

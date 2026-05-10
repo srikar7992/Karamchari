@@ -244,7 +244,7 @@ public sealed class MigrationContextValidatorTests
         var result = _validator.Validate("acme", "globex");
 
         result.IsValid.Should().BeFalse();
-        result.Error.Should().Be(TenantContextValidationError.CrossTenantViolation);
+        result.Error.Should().Be(TenantExecutionEnvelopeValidationError.CrossTenantViolation);
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public sealed class MigrationContextValidatorTests
         var result = _validator.Validate("", "acme");
 
         result.IsValid.Should().BeFalse();
-        result.Error.Should().Be(TenantContextValidationError.MissingTenantId);
+        result.Error.Should().Be(TenantExecutionEnvelopeValidationError.MissingTenantId);
     }
 
     [Fact]
@@ -307,7 +307,7 @@ public sealed class MigrationContextValidatorTests
         var result = _validator.ValidateBelongsToTenant("acme", new[] { "acme", "globex" });
 
         result.IsValid.Should().BeFalse();
-        result.Error.Should().Be(TenantContextValidationError.InvalidMigrationContext);
+        result.Error.Should().Be(TenantExecutionEnvelopeValidationError.InvalidMigrationContext);
     }
 }
 

@@ -64,8 +64,7 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
         var employeeIds = message.EmployeeIds;
 
         // Resolve tenant once per batch â€” scoped to this HTTP/message context.
-        var tenant = _tenantProvider.GetTenant();
-        var tenantId = tenant.TenantId;
+        var tenantId = _tenantProvider.GetCurrentTenantId();
 
         if (_logger.IsEnabled(LogLevel.Information))
         {

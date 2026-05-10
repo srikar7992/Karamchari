@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -207,13 +208,25 @@ internal sealed class NullTenantProvider : Karamchari.Core.Multitenancy.ITenantP
 
     private NullTenantProvider() { }
 
-    public Karamchari.Core.Multitenancy.TenantContext GetTenant()
+    public string GetCurrentTenantId()
     {
         throw new InvalidOperationException(
             "NullTenantProvider should not be used to resolve tenant in background job context.");
     }
 
-    public bool TryGetTenant(out Karamchari.Core.Multitenancy.TenantContext? tenant)
+    public bool TryGetCurrentTenantId([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? tenantId)
+    {
+        tenantId = null;
+        return false;
+    }
+
+    public Karamchari.Core.Multitenancy.TenantExecutionEnvelope GetTenant()
+    {
+        throw new InvalidOperationException(
+            "NullTenantProvider should not be used to resolve tenant in background job context.");
+    }
+
+    public bool TryGetTenant(out Karamchari.Core.Multitenancy.TenantExecutionEnvelope? tenant)
     {
         tenant = null;
         return false;

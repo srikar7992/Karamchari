@@ -81,9 +81,11 @@ public sealed class TenantAwareActivityListener : IDisposable
     {
         _tenantProvider.TryGetTenant(out var tenantContext);
 
+        var fallbackEnvelope = new TenantExecutionEnvelope("unknown", Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), ExecutionSource.Manual, TenantSource.JwtClaim);
+
         var activity = _activitySource.StartActivity(
             operationName,
-            tenantContext ?? new TenantContext("unknown", TenantSource.JwtClaim),
+            tenantContext ?? fallbackEnvelope,
             ExecutionSource.MessageConsumer,
             ExtractCorrelationId(messageHeaders));
 
@@ -100,9 +102,11 @@ public sealed class TenantAwareActivityListener : IDisposable
     {
         _tenantProvider.TryGetTenant(out var tenantContext);
 
+        var fallbackEnvelope = new TenantExecutionEnvelope("unknown", Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), ExecutionSource.Manual, TenantSource.JwtClaim);
+
         var activity = _activitySource.StartActivity(
             operationName,
-            tenantContext ?? new TenantContext("unknown", TenantSource.JwtClaim),
+            tenantContext ?? fallbackEnvelope,
             ExecutionSource.BackgroundJob,
             jobId);
 

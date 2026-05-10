@@ -1,6 +1,4 @@
-using Karamchari.Core.Multitenancy;
-
-namespace Karamchari.Core.Multitenancy.Execution;
+namespace Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Indicates the origin of a tenant execution, used for diagnostics, auditing,
