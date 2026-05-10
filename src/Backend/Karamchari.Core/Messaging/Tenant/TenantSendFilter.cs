@@ -53,6 +53,11 @@ public sealed class TenantSendFilter : IFilter<SendContext>
         context.CreateScope("tenant-send-filter");
     }
 
+    /// <summary>
+    /// Injects tenant-specific headers into the message send context.
+    /// </summary>
+    /// <param name="context">The send context where headers will be injected.</param>
+    /// <param name="executionContext">The current tenant execution context.</param>
     private static void InjectTenantHeaders(SendContext context, TenantExecutionContext executionContext)
     {
         var envelope = executionContext.Envelope;
@@ -84,6 +89,21 @@ public sealed class TenantSendFilter : IFilter<SendContext>
         if (!string.IsNullOrWhiteSpace(envelope.ContentHash))
         {
             context.Headers.Set(TenantMessageHeaderKeys.ContentHash, envelope.ContentHash);
+        }
+
+        if (!string.IsNullOrWhiteSpace(envelope.WorkflowInstanceId))
+        {
+            context.Headers.Set(TenantMessageHeaderKeys.WorkflowInstanceId, envelope.WorkflowInstanceId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(envelope.WorkflowStepId))
+        {
+            context.Headers.Set(TenantMessageHeaderKeys.WorkflowStepId, envelope.WorkflowStepId);
+        }
+
+        if (envelope.SlaDeadline.HasValue)
+        {
+            context.Headers.Set(TenantMessageHeaderKeys.WorkflowSlaDeadline, envelope.SlaDeadline.Value.ToString("O"));
         }
     }
 }

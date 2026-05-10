@@ -5,6 +5,7 @@ using Karamchari.Compensation.DependencyInjection;
 using Karamchari.Compensation.Persistence;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Messaging.Outbox;
+using Karamchari.Core.Messaging.Tenant;
 using Karamchari.Forecasting.DependencyInjection;
 using Karamchari.Governance.DependencyInjection;
 using Karamchari.Governance.Persistence;
@@ -23,18 +24,21 @@ using Karamchari.Recruitment.DependencyInjection;
 using Karamchari.Recruitment.Persistence;
 using Karamchari.TimeAttendance.DependencyInjection;
 using Karamchari.TimeAttendance.Persistence;
+using Karamchari.Workflow.DependencyInjection;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Api.DependencyInjection;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Contains extension methods for configuring MassTransit with bounded contexts,
+/// outbox support, and tenant-aware messaging filters.
 /// </summary>
 public static class MassTransitExtensions
 {
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Configures MassTransit for the platform, registering bounded context consumers,
+    /// persistence outboxes, and cross-cutting tenant observability filters.
     /// </summary>
     public static IServiceCollection AddKaramchariMassTransit(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
@@ -42,6 +46,7 @@ public static class MassTransitExtensions
         {
             // Add Bounded Contexts
             services.AddKaramchariHR(configuration, x);
+            services.AddKaramchariWorkflow(x);
             services.AddKaramchariTimeAttendance(configuration, x);
             services.AddKaramchariPayroll(configuration, x);
             services.AddKaramchariPerformance(configuration, x);
@@ -123,6 +128,9 @@ public static class MassTransitExtensions
                 x.UsingInMemory((context, cfg) =>
                 {
                     cfg.ConfigureEndpoints(context);
+                    cfg.UseConsumeFilter<TenantConsumeFilter>(context);
+                    cfg.UsePublishFilter<TenantPublishFilter>(context);
+                    cfg.UseSendFilter<TenantSendFilter>(context);
                     cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                     cfg.ConcurrentMessageLimit = 8;
                 });
@@ -146,6 +154,9 @@ public static class MassTransitExtensions
                     {
                         cfg.Host(configuration.GetConnectionString("AzureServiceBus"));
                         cfg.ConfigureEndpoints(context);
+                        cfg.UseConsumeFilter<TenantConsumeFilter>(context);
+                        cfg.UsePublishFilter<TenantPublishFilter>(context);
+                        cfg.UseSendFilter<TenantSendFilter>(context);
                         cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                         cfg.ConcurrentMessageLimit = 8;
                     });

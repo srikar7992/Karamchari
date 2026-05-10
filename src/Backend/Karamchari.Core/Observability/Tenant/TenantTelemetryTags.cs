@@ -36,4 +36,39 @@ public static class TenantTelemetryTags
     /// Helps detect and diagnose replay attacks or excessive reprocessing.
     /// </summary>
     public const string ReplayCount = "tenant.replay_count";
+
+    /// <summary>
+    /// The unique identifier of the user who initiated the operation.
+    /// Enables user-centric observability and audit trails within a tenant.
+    /// </summary>
+    public const string UserId = "tenant.user_id";
+
+    /// <summary>
+    /// The unique identifier for the current logical request.
+    /// Helps distinguish between multiple requests within the same correlation.
+    /// </summary>
+    public const string RequestId = "tenant.request_id";
+
+    /// <summary>
+    /// The unique identifier for a workflow instance.
+    /// Links all activities, logs, and events belonging to a specific business workflow.
+    /// </summary>
+    public const string WorkflowInstanceId = "workflow.instance_id";
+
+    /// <summary>
+    /// The identifier for the current step within a workflow.
+    /// Useful for visualizing workflow progression and identifying bottlenecks.
+    /// </summary>
+    public const string WorkflowStepId = "workflow.step_id";
+
+    /// <summary>
+    /// The SLA deadline for the current workflow operation.
+    /// Expressed as a UTC timestamp in ISO 8601 format.
+    /// </summary>
+    public const string SlaDeadline = "workflow.sla_deadline";
+
+    /// <summary>
+    /// Indicates whether an SLA breach has occurred for the current operation.
+    /// </summary>
+    public const string SlaBreach = "workflow.sla_breach";
 }

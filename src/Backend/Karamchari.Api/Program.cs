@@ -1,6 +1,7 @@
 using Karamchari.Api.DependencyInjection;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Identity.Infrastructure;
+using Karamchari.Workflow.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,7 @@ if (app.Environment.IsDevelopment())
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseKaramchariTenantObservability();
 
 // 6. Endpoints & Health
 app.MapKaramchariHealthChecks();
@@ -91,4 +93,3 @@ app.Run();
 /// Provides required documentation for this member.
 /// </summary>
 public partial class Program { }
-

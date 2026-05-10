@@ -14,13 +14,18 @@ using OpenTelemetry.Trace;
 namespace Karamchari.Api.DependencyInjection;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Contains extension methods for registering foundational platform infrastructure, 
+/// including exception handling, validation, rate limiting, and observability.
 /// </summary>
 public static class InfrastructureExtensions
 {
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Registers cross-cutting infrastructure services, OpenTelemetry instrumentation, 
+    /// persistence contexts, and background workers required for platform operation.
     /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddKaramchariInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // Exception Handling
@@ -65,6 +70,7 @@ public static class InfrastructureExtensions
                         }
                     };
                 })
+                .AddHttpClientInstrumentation()
                 .AddEntityFrameworkCoreInstrumentation(o =>
                 {
                     o.SetDbStatementForText = true;
@@ -72,7 +78,10 @@ public static class InfrastructureExtensions
                 .AddSource("MassTransit")
                 .AddSource("Karamchari.*"))
             .WithMetrics(metrics => metrics
-                .AddAspNetCoreInstrumentation());
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddMeter("Karamchari.*"));
 
         // PSA context services (moved from Program.cs)
         services.AddDbContext<PSADbContext>(o =>

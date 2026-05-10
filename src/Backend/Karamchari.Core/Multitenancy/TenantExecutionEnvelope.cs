@@ -94,6 +94,21 @@ public sealed partial class TenantExecutionEnvelope
     public string? ContentHash { get; init; }
 
     /// <summary>
+    /// The unique identifier for a workflow instance, if applicable.
+    /// </summary>
+    public string? WorkflowInstanceId { get; init; }
+
+    /// <summary>
+    /// The current step identifier within a workflow.
+    /// </summary>
+    public string? WorkflowStepId { get; init; }
+
+    /// <summary>
+    /// The SLA deadline for the current workflow operation.
+    /// </summary>
+    public DateTime? SlaDeadline { get; init; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="TenantExecutionEnvelope"/> class.
     /// </summary>
     /// <param name="tenantId">The validated tenant identifier.</param>
@@ -129,6 +144,27 @@ public sealed partial class TenantExecutionEnvelope
         Timestamp = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="TenantExecutionEnvelope"/> with updated values.
+    /// </summary>
+    /// <param name="tenantId">The new tenant identifier.</param>
+    /// <param name="correlationId">The new correlation identifier.</param>
+    /// <param name="requestId">The new request identifier.</param>
+    /// <param name="executionSource">The new execution source.</param>
+    /// <param name="source">The new tenant source.</param>
+    /// <param name="retryAttempt">The new retry attempt count.</param>
+    /// <param name="replayCount">The new replay count.</param>
+    /// <param name="userIdentity">The new user identity.</param>
+    /// <param name="traceId">The new distributed trace identifier.</param>
+    /// <param name="spanId">The new distributed span identifier.</param>
+    /// <param name="timestamp">The new creation timestamp.</param>
+    /// <param name="replayMetadata">The new replay metadata dictionary.</param>
+    /// <param name="messageId">The new originating message identifier.</param>
+    /// <param name="contentHash">The new content hash for replay detection.</param>
+    /// <param name="workflowInstanceId">The new workflow instance identifier.</param>
+    /// <param name="workflowStepId">The new workflow step identifier.</param>
+    /// <param name="slaDeadline">The new SLA deadline timestamp.</param>
+    /// <returns>A new <see cref="TenantExecutionEnvelope"/> instance with the specified modifications.</returns>
     public TenantExecutionEnvelope With(
         string? tenantId = null,
         string? correlationId = null,
@@ -143,7 +179,10 @@ public sealed partial class TenantExecutionEnvelope
         DateTime? timestamp = null,
         Dictionary<string, string>? replayMetadata = null,
         string? messageId = null,
-        string? contentHash = null)
+        string? contentHash = null,
+        string? workflowInstanceId = null,
+        string? workflowStepId = null,
+        DateTime? slaDeadline = null)
     {
         return new TenantExecutionEnvelope(
             tenantId ?? this.TenantId,
@@ -160,7 +199,10 @@ public sealed partial class TenantExecutionEnvelope
             Timestamp = timestamp ?? this.Timestamp,
             ReplayMetadata = replayMetadata ?? this.ReplayMetadata,
             MessageId = messageId ?? this.MessageId,
-            ContentHash = contentHash ?? this.ContentHash
+            ContentHash = contentHash ?? this.ContentHash,
+            WorkflowInstanceId = workflowInstanceId ?? this.WorkflowInstanceId,
+            WorkflowStepId = workflowStepId ?? this.WorkflowStepId,
+            SlaDeadline = slaDeadline ?? this.SlaDeadline
         };
     }
 

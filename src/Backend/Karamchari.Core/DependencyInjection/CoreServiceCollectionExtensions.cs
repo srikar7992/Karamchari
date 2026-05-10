@@ -1,9 +1,11 @@
 using Karamchari.Core.Messaging;
 using Karamchari.Core.Messaging.Outbox;
+using Karamchari.Core.Middleware;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Core.Persistence.Interceptors;
 using Karamchari.Core.Persistence.Provisioning;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -53,11 +55,27 @@ public static class CoreServiceCollectionExtensions
 
         // Interceptors are stateless w.r.t. EF, but they depend on the scoped
         // ITenantProvider, so they must themselves be Scoped.
-        services.AddScoped<TenantSchemaCommandInterceptor>();
         services.AddScoped<RlsSessionContextInterceptor>();
         services.AddScoped<TenantStampingInterceptor>();
         services.AddScoped<AuditInterceptor>();
         services.AddScoped<DomainEventDispatchInterceptor>();
+
+        // Observability & Traceability Foundations
+        services.AddSingleton<Karamchari.Core.Observability.Tenant.TenantActivitySource>();
+        services.AddSingleton<Karamchari.Core.Observability.Tenant.TenantCorrelationPropagator>();
+        services.AddSingleton<Karamchari.Core.Observability.Tenant.TenantMetricsCollector>();
+        services.AddSingleton<Karamchari.Core.Messaging.Tenant.ReplayProtectionService>();
+
+        // Messaging Context & Filters
+        services.AddScoped<Karamchari.Core.Messaging.Tenant.TenantMessageConsumerScope>();
+        services.AddScoped<Karamchari.Core.Messaging.Tenant.ITenantMessageConsumerScopeFactory, Karamchari.Core.Messaging.Tenant.TenantMessageConsumerScopeFactory>();
+        services.AddSingleton<Karamchari.Core.Messaging.Tenant.TenantConsumeFilter>();
+        services.AddSingleton<Karamchari.Core.Messaging.Tenant.TenantPublishFilter>();
+        services.AddSingleton<Karamchari.Core.Messaging.Tenant.TenantSendFilter>();
+
+        // Background Job Infrastructure
+        services.AddSingleton<Karamchari.Core.BackgroundJobs.Tenant.ITenantJobContextSerializer, Karamchari.Core.BackgroundJobs.Tenant.TenantJobContextSerializer>();
+        services.AddScoped<Karamchari.Core.BackgroundJobs.Tenant.BackgroundJobTenantMiddleware>();
 
         // Default no-op dispatcher: a bounded context (or the API host) MUST
         // override this with a real implementation (e.g. MassTransitDomainEventDispatcher
@@ -132,7 +150,6 @@ public static class CoreServiceCollectionExtensions
         // before domain events are dispatched, so any cross-tenant write attempt
         // fails *before* its events would be published to the bus.
         builder.AddInterceptors(
-            serviceProvider.GetRequiredService<TenantSchemaCommandInterceptor>(),
             serviceProvider.GetRequiredService<RlsSessionContextInterceptor>(),
             serviceProvider.GetRequiredService<TenantStampingInterceptor>(),
             serviceProvider.GetRequiredService<DomainEventDispatchInterceptor>());
@@ -172,6 +189,15 @@ public static class CoreServiceCollectionExtensions
         services.AddHostedService<OutboxRelayService>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Adds the tenant observability middleware to the request pipeline.
+    /// Should be called after UseAuthentication and UseAuthorization.
+    /// </summary>
+    public static IApplicationBuilder UseKaramchariTenantObservability(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<TenantObservabilityMiddleware>();
     }
 
     private static IServiceCollection TryAddSingletonTimeProvider(this IServiceCollection services)

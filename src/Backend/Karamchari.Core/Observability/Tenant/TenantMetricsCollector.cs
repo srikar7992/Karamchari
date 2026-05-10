@@ -20,6 +20,9 @@ public sealed class TenantMetricsCollector : IDisposable
     private readonly Counter<long> _retryStormCounter;
     private readonly Counter<long> _tenantContextResolutionCounter;
     private readonly Histogram<double> _tenantOperationDurationHistogram;
+    private readonly Histogram<double> _workflowDurationHistogram;
+    private readonly Counter<long> _workflowSlaBreachCounter;
+    private readonly Counter<long> _workflowTransitionFailureCounter;
 
     public TenantMetricsCollector()
     {
@@ -54,6 +57,63 @@ public sealed class TenantMetricsCollector : IDisposable
             "tenant.operation.duration.ms",
             unit: "ms",
             description: "Tenant-aware operation duration in milliseconds");
+
+        _workflowDurationHistogram = _meter.CreateHistogram<double>(
+            "workflow.duration.sec",
+            unit: "s",
+            description: "Total duration of a business workflow instance");
+
+        _workflowSlaBreachCounter = _meter.CreateCounter<long>(
+            "workflow.sla.breach.count",
+            description: "Number of workflow SLA breaches detected");
+
+        _workflowTransitionFailureCounter = _meter.CreateCounter<long>(
+            "workflow.transition.failure.count",
+            description: "Number of failed workflow state transitions");
+    }
+
+    /// <summary>
+    /// Records total workflow duration.
+    /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="workflowType">The type of workflow.</param>
+    /// <param name="durationSec">Duration in seconds.</param>
+    public void RecordWorkflowDuration(string tenantId, string workflowType, double durationSec)
+    {
+        _workflowDurationHistogram.Record(
+            durationSec,
+            new KeyValuePair<string, object?>("tenant.id", tenantId),
+            new KeyValuePair<string, object?>("workflow.type", workflowType));
+    }
+
+    /// <summary>
+    /// Records a workflow SLA breach.
+    /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="workflowType">The type of workflow.</param>
+    /// <param name="stepId">The step where the breach occurred.</param>
+    public void RecordWorkflowSlaBreach(string tenantId, string workflowType, string stepId)
+    {
+        _workflowSlaBreachCounter.Add(
+            1,
+            new KeyValuePair<string, object?>("tenant.id", tenantId),
+            new KeyValuePair<string, object?>("workflow.type", workflowType),
+            new KeyValuePair<string, object?>("workflow.step", stepId));
+    }
+
+    /// <summary>
+    /// Records a failed workflow state transition.
+    /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="workflowType">The type of workflow.</param>
+    /// <param name="errorType">The type of error causing the failure.</param>
+    public void RecordWorkflowTransitionFailure(string tenantId, string workflowType, string errorType)
+    {
+        _workflowTransitionFailureCounter.Add(
+            1,
+            new KeyValuePair<string, object?>("tenant.id", tenantId),
+            new KeyValuePair<string, object?>("workflow.type", workflowType),
+            new KeyValuePair<string, object?>("error.type", errorType));
     }
 
     /// <summary>

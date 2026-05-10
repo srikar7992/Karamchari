@@ -36,6 +36,10 @@ public sealed class TenantAwareActivityListener : IDisposable
         ActivitySource.AddActivityListener(listener);
     }
 
+    /// <summary>
+    /// Enriches the started activity with tenant context metadata if available.
+    /// </summary>
+    /// <param name="activity">The activity to enrich.</param>
     private void EnrichActivityWithTenantContext(Activity activity)
     {
         if (activity == null)
@@ -46,6 +50,13 @@ public sealed class TenantAwareActivityListener : IDisposable
         if (_tenantProvider.TryGetTenant(out var tenantCtx) && tenantCtx != null)
         {
             activity.SetTag(TenantTelemetryTags.TenantId, tenantCtx.TenantId);
+            activity.SetTag(TenantTelemetryTags.CorrelationId, tenantCtx.CorrelationId);
+            activity.SetTag(TenantTelemetryTags.RequestId, tenantCtx.RequestId);
+
+            if (!string.IsNullOrEmpty(tenantCtx.UserIdentity))
+            {
+                activity.SetTag(TenantTelemetryTags.UserId, tenantCtx.UserIdentity);
+            }
 
             var executionSource = GetExecutionSourceFromActivity(activity);
             if (!string.IsNullOrEmpty(executionSource))
@@ -59,6 +70,11 @@ public sealed class TenantAwareActivityListener : IDisposable
         }
     }
 
+    /// <summary>
+    /// Maps the activity kind to a tenant execution source string.
+    /// </summary>
+    /// <param name="activity">The activity to analyze.</param>
+    /// <returns>A string representation of the <see cref="ExecutionSource"/>.</returns>
     private static string GetExecutionSourceFromActivity(Activity activity)
     {
         return activity.Kind switch
@@ -113,6 +129,11 @@ public sealed class TenantAwareActivityListener : IDisposable
         return activity;
     }
 
+    /// <summary>
+    /// Extracts the correlation ID from a dictionary of message headers.
+    /// </summary>
+    /// <param name="headers">The message headers.</param>
+    /// <returns>The correlation ID if found; otherwise null.</returns>
     private static string? ExtractCorrelationId(IDictionary<string, object?>? headers)
     {
         if (headers == null)
@@ -133,7 +154,9 @@ public sealed class TenantAwareActivityListener : IDisposable
         return null;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Releases the activity listeners and disposes of resources.
+    /// </summary>
     public void Dispose()
     {
         foreach (var listener in _listeners)

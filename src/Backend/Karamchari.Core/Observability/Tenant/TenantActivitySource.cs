@@ -151,6 +151,42 @@ public sealed class TenantActivitySource
         return activity;
     }
 
+    /// <summary>
+    /// Creates an activity for a business workflow operation with tenant and workflow context.
+    /// </summary>
+    /// <param name="operationName">The name of the workflow operation.</param>
+    /// <param name="tenantContext">The tenant context.</param>
+    /// <param name="workflowInstanceId">The unique identifier for the workflow instance.</param>
+    /// <param name="workflowStepId">Optional identifier for the current workflow step.</param>
+    /// <param name="correlationId">Optional correlation ID.</param>
+    /// <returns>A new activity with workflow tracking tags.</returns>
+    public Activity? StartWorkflowActivity(
+        string operationName,
+        TenantExecutionEnvelope tenantContext,
+        string workflowInstanceId,
+        string? workflowStepId = null,
+        string? correlationId = null)
+    {
+        var activity = _activitySource.StartActivity(
+            operationName,
+            ActivityKind.Internal);
+
+        if (activity == null)
+        {
+            return null;
+        }
+
+        SetTenantTags(activity, tenantContext, ExecutionSource.SagaOrchestration, correlationId);
+        activity.SetTag(TenantTelemetryTags.WorkflowInstanceId, workflowInstanceId);
+
+        if (!string.IsNullOrEmpty(workflowStepId))
+        {
+            activity.SetTag(TenantTelemetryTags.WorkflowStepId, workflowStepId);
+        }
+
+        return activity;
+    }
+
     private static void SetTenantTags(
         Activity activity,
         TenantExecutionEnvelope tenantContext,
@@ -159,10 +195,20 @@ public sealed class TenantActivitySource
     {
         activity.SetTag(TenantTelemetryTags.TenantId, tenantContext.TenantId);
         activity.SetTag(TenantTelemetryTags.ExecutionSource, executionSource.ToString());
+        activity.SetTag(TenantTelemetryTags.RequestId, tenantContext.RequestId);
+
+        if (!string.IsNullOrEmpty(tenantContext.UserIdentity))
+        {
+            activity.SetTag(TenantTelemetryTags.UserId, tenantContext.UserIdentity);
+        }
 
         if (!string.IsNullOrEmpty(correlationId))
         {
             activity.SetTag(TenantTelemetryTags.CorrelationId, correlationId);
+        }
+        else if (!string.IsNullOrEmpty(tenantContext.CorrelationId))
+        {
+            activity.SetTag(TenantTelemetryTags.CorrelationId, tenantContext.CorrelationId);
         }
     }
 }

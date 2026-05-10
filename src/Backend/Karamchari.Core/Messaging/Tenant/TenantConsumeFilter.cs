@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
+using Karamchari.Core.Observability.Tenant;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -9,12 +10,13 @@ namespace Karamchari.Core.Messaging.Tenant;
 
 /// <summary>
 /// MassTransit consume filter that extracts, validates, and establishes the tenant execution context
-/// from incoming message headers. Enforces replay protection and stale message detection.
+/// from incoming message headers. Enforces replay protection, stale message detection, and SLA monitoring.
 /// </summary>
 public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
 {
     private readonly ILogger<TenantConsumeFilter> _logger;
     private readonly ReplayProtectionService _replayProtection;
+    private readonly TenantMetricsCollector _metrics;
     private readonly TimeSpan _staleMessageThreshold;
 
     /// <summary>
@@ -22,18 +24,27 @@ public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
     /// </summary>
     /// <param name="logger">The logger for diagnostic output.</param>
     /// <param name="replayProtection">The service used to detect message replays.</param>
+    /// <param name="metrics">The collector for tenant-specific metrics.</param>
     /// <param name="staleMessageThreshold">The maximum age allowed for a message before it's rejected.</param>
     public TenantConsumeFilter(
         ILogger<TenantConsumeFilter> logger,
         ReplayProtectionService replayProtection,
+        TenantMetricsCollector metrics,
         TimeSpan? staleMessageThreshold = null)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _replayProtection = replayProtection ?? throw new ArgumentNullException(nameof(replayProtection));
+        _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
         _staleMessageThreshold = staleMessageThreshold ?? TimeSpan.FromMinutes(5);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Executes the filter to extract tenant context and validate the message.
+    /// </summary>
+    /// <param name="context">The consume context for the message.</param>
+    /// <param name="next">The next pipe to execute.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <exception cref="MalformedTenantMessageException">Thrown when message validation fails.</exception>
     public async Task Send(ConsumeContext context, IPipe<ConsumeContext> next)
     {
         _logger.LogInformation(
@@ -93,9 +104,16 @@ public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
                 context.Headers.TryGetHeader(TenantMessageHeaderKeys.SpanId, out var spanIdObj);
                 context.Headers.TryGetHeader(TenantMessageHeaderKeys.UserIdentity, out var userIdentityObj);
                 context.Headers.TryGetHeader(TenantMessageHeaderKeys.RetryAttempt, out var retryAttemptObj);
+                context.Headers.TryGetHeader(TenantMessageHeaderKeys.WorkflowInstanceId, out var workflowInstanceIdObj);
+                context.Headers.TryGetHeader(TenantMessageHeaderKeys.WorkflowStepId, out var workflowStepIdObj);
+                context.Headers.TryGetHeader(TenantMessageHeaderKeys.WorkflowSlaDeadline, out var workflowSlaDeadlineObj);
 
                 var correlationId = correlationIdObj as string ?? context.ConversationId?.ToString() ?? Guid.NewGuid().ToString();
                 var requestId = context.MessageId?.ToString() ?? Guid.NewGuid().ToString();
+
+                DateTime? slaDeadline = null;
+                if (workflowSlaDeadlineObj is DateTime dt) slaDeadline = dt;
+                else if (workflowSlaDeadlineObj is string s && DateTime.TryParse(s, out var p)) slaDeadline = p;
 
                 envelope = new TenantExecutionEnvelope(tenantId, correlationId, requestId, ExecutionSource.MessageConsumer, TenantSource.Messaging)
                 {
@@ -104,20 +122,41 @@ public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
                     UserIdentity = userIdentityObj as string,
                     RetryAttempt = retryAttemptObj is int ra ? ra : 0,
                     MessageId = originalMessageId,
-                    ContentHash = contentHash
+                    ContentHash = contentHash,
+                    WorkflowInstanceId = workflowInstanceIdObj as string,
+                    WorkflowStepId = workflowStepIdObj as string,
+                    SlaDeadline = slaDeadline
                 };
             }
 
             var executionContext = new TenantExecutionContext(envelope!);
             using var scope = executionContext.Establish();
 
+            // 5. SLA Monitoring
+            if (envelope.SlaDeadline.HasValue && envelope.SlaDeadline.Value < DateTime.UtcNow)
+            {
+                _metrics.RecordWorkflowSlaBreach(envelope.TenantId, "Messaging", context.SupportedMessageTypes.FirstOrDefault() ?? "Unknown");
+                _logger.LogWarning("SLA Breach detected for Tenant {TenantId}, Message {MessageId}, Deadline {Deadline}",
+                    envelope.TenantId, originalMessageId, envelope.SlaDeadline.Value);
+            }
+
             _logger.LogInformation(
                 "Tenant context established for Tenant {TenantId}, CorrelationId {CorrelationId}",
                 tenantId, executionContext.CorrelationId);
 
-            await next.Send(context);
+            try
+            {
+                await next.Send(context);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Consumer execution failed for Tenant {TenantId}, CorrelationId {CorrelationId}, MessageType {MessageType}",
+                    tenantId, executionContext.CorrelationId, context.SupportedMessageTypes.FirstOrDefault() ?? "Unknown");
+                throw;
+            }
 
-            // 5. Record successful processing for replay prevention
+            // 6. Record successful processing for replay prevention
             if (!string.IsNullOrWhiteSpace(originalMessageId))
             {
                 _replayProtection.RecordProcessed(originalMessageId, contentHash);
@@ -136,12 +175,20 @@ public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Probes the filter for diagnostic information.
+    /// </summary>
+    /// <param name="context">The probe context.</param>
     public void Probe(ProbeContext context)
     {
         context.CreateScope("tenant-consume-filter");
     }
 
+    /// <summary>
+    /// Validates the message timestamp against the stale message threshold.
+    /// </summary>
+    /// <param name="timestampObj">The timestamp object from headers.</param>
+    /// <returns>True if the timestamp is valid or missing; false if it exceeds the threshold.</returns>
     private bool ValidateTimestamp(object? timestampObj)
     {
         DateTime? timestamp = null;
@@ -179,6 +226,7 @@ public static class TenantConsumeFilterExtensions
             new TenantConsumeFilter(
                 sp.GetRequiredService<ILogger<TenantConsumeFilter>>(),
                 sp.GetRequiredService<ReplayProtectionService>(),
+                sp.GetRequiredService<TenantMetricsCollector>(),
                 staleMessageThreshold));
 
         return services;

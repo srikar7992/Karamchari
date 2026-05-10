@@ -219,4 +219,46 @@ public static class TenantStructuredLogger
             toTenantId,
             operation);
     }
+
+    /// <summary>
+    /// Logs a business workflow transition with full state and SLA context.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="workflowInstanceId">The unique workflow identifier.</param>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="sourceState">The current state before transition.</param>
+    /// <param name="targetState">The target state after transition.</param>
+    /// <param name="actor">The entity or user that triggered the transition.</param>
+    /// <param name="slaDeadline">Optional SLA deadline for the new state.</param>
+    public static void LogWorkflowTransition(
+        this ILogger logger,
+        string workflowInstanceId,
+        string tenantId,
+        string sourceState,
+        string targetState,
+        string actor,
+        DateTime? slaDeadline = null)
+    {
+        var properties = new List<KeyValuePair<string, object?>>
+        {
+            new(TenantTelemetryTags.WorkflowInstanceId, workflowInstanceId),
+            new(TenantTelemetryTags.TenantId, tenantId),
+            new("workflow.source_state", sourceState),
+            new("workflow.target_state", targetState),
+            new("workflow.actor", actor)
+        };
+
+        if (slaDeadline.HasValue)
+        {
+            properties.Add(new KeyValuePair<string, object?>(TenantTelemetryTags.SlaDeadline, slaDeadline.Value.ToString("O")));
+        }
+
+        logger.LogInformation(
+            "Workflow Transition: [{WorkflowInstanceId}] {SourceState} -> {TargetState} by {Actor}. Tenant: {TenantId}",
+            workflowInstanceId,
+            sourceState,
+            targetState,
+            actor,
+            tenantId);
+    }
 }

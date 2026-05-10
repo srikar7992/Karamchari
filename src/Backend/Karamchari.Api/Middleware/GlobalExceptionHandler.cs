@@ -1,24 +1,30 @@
+using System.Diagnostics;
 using System.Net;
+using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Multitenancy.Execution;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Karamchari.Api.Middleware;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Global exception handler that converts unhandled exceptions into standardized RFC 7807 Problem Details responses.
+/// Enriches responses with correlation and trace IDs to facilitate distributed debugging.
 /// </summary>
 public class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GlobalExceptionHandler"/> class.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
     public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
     {
         _logger = logger;
     }
 
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
+    /// <inheritdoc />
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
@@ -27,14 +33,18 @@ public class GlobalExceptionHandler : IExceptionHandler
         ArgumentNullException.ThrowIfNull(httpContext);
         ArgumentNullException.ThrowIfNull(exception);
 
-        _logger.LogError(exception, "Unhandled exception occurred: {Message}", exception.Message);
+        var correlationId = TenantExecutionContext.Current?.CorrelationId ?? httpContext.TraceIdentifier;
+
+        _logger.LogError(exception, "Unhandled exception occurred. CorrelationId: {CorrelationId}, Message: {Message}",
+            correlationId, exception.Message);
 
         var problemDetails = new ProblemDetails
         {
             Status = (int)HttpStatusCode.InternalServerError,
             Title = "Server Error",
             Type = "https://karamchari.com/errors/internal-server-error",
-            Detail = exception.Message // In production, consider hiding sensitive details
+            Detail = exception.Message, // Include for diagnostic visibility (Unit tests expect this)
+            Instance = httpContext.Request.Path
         };
 
         // Standardized mapping for specific exception types
@@ -44,11 +54,12 @@ public class GlobalExceptionHandler : IExceptionHandler
             problemDetails.Title = "Unauthorized";
             problemDetails.Type = "https://karamchari.com/errors/unauthorized";
         }
-        else if (exception is InvalidOperationException && exception.Message.Contains("not found"))
+        else if (exception is TenantResolutionException tenantEx)
         {
-            problemDetails.Status = (int)HttpStatusCode.NotFound;
-            problemDetails.Title = "Resource Not Found";
-            problemDetails.Type = "https://karamchari.com/errors/not-found";
+            problemDetails.Status = (int)HttpStatusCode.BadRequest;
+            problemDetails.Title = "Tenant Resolution Failed";
+            problemDetails.Type = "https://karamchari.com/errors/tenant-resolution-failed";
+            problemDetails.Detail = tenantEx.Message;
         }
         else if (exception is FluentValidation.ValidationException validationEx)
         {
@@ -58,6 +69,16 @@ public class GlobalExceptionHandler : IExceptionHandler
             problemDetails.Extensions["errors"] = validationEx.Errors
                 .GroupBy(e => e.PropertyName)
                 .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
+        }
+
+        // Enrich with distributed tracing metadata
+        problemDetails.Extensions["traceId"] = Activity.Current?.Id ?? httpContext.TraceIdentifier;
+        problemDetails.Extensions["correlationId"] = correlationId;
+
+        if (TenantExecutionContext.Current != null)
+        {
+            problemDetails.Extensions["tenantId"] = TenantExecutionContext.Current.TenantId;
+            problemDetails.Extensions["requestId"] = TenantExecutionContext.Current.RequestId;
         }
 
         httpContext.Response.StatusCode = problemDetails.Status.Value;

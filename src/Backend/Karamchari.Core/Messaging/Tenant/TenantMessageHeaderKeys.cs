@@ -44,4 +44,13 @@ public static class TenantMessageHeaderKeys
 
     /// <summary>The execution envelope header key containing serialized tenant execution context.</summary>
     public const string ExecutionEnvelope = "X-Execution-Envelope";
+
+    /// <summary>The workflow instance identifier header key.</summary>
+    public const string WorkflowInstanceId = "X-Workflow-Instance-Id";
+
+    /// <summary>The workflow step identifier header key.</summary>
+    public const string WorkflowStepId = "X-Workflow-Step-Id";
+
+    /// <summary>The workflow SLA deadline header key.</summary>
+    public const string WorkflowSlaDeadline = "X-Workflow-Sla-Deadline";
 }

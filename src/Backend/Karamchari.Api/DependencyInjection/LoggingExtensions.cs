@@ -1,3 +1,4 @@
+using Karamchari.Core.Observability.Tenant;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.OpenTelemetry;
@@ -5,13 +6,15 @@ using Serilog.Sinks.OpenTelemetry;
 namespace Karamchari.Api.DependencyInjection;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Contains extension methods for configuring Serilog and OpenTelemetry logging in the Karamchari platform.
 /// </summary>
 public static class LoggingExtensions
 {
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Configures Serilog as the primary logging provider, enriches log events with tenant and environment context,
+    /// and sets up sinks for Console and OpenTelemetry.
     /// </summary>
+    /// <param name="builder">The WebApplicationBuilder instance.</param>
     public static void AddKaramchariLogging(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -21,6 +24,7 @@ public static class LoggingExtensions
                 .ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
+                .Enrich.With<TenantLogEnricher>()
                 .Enrich.WithEnvironmentName()
                 .Enrich.WithProcessId()
                 .Enrich.WithProperty("Application", "Karamchari.Api")

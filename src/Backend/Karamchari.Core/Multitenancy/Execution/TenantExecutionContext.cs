@@ -37,6 +37,16 @@ public sealed class TenantExecutionContext
     public string CorrelationId => Envelope.CorrelationId;
 
     /// <summary>
+    /// The unique ID for this specific request or execution attempt.
+    /// </summary>
+    public string RequestId => Envelope.RequestId;
+
+    /// <summary>
+    /// The unique identifier for a business workflow instance, if applicable.
+    /// </summary>
+    public string? WorkflowInstanceId => Envelope.WorkflowInstanceId;
+
+    /// <summary>
     /// The source of this execution (API, Consumer, Job, etc.).
     /// </summary>
     public ExecutionSource Source => Envelope.ExecutionSource;
@@ -69,15 +79,25 @@ public sealed class TenantExecutionContext
         _current.Value = null;
     }
 
+    /// <summary>
+    /// Private class responsible for restoring the previous tenant context when a scope is disposed.
+    /// </summary>
     private sealed class ScopeRemover : IDisposable
     {
         private readonly TenantExecutionContext? _previous;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScopeRemover"/> class.
+        /// </summary>
+        /// <param name="previous">The previous context to restore.</param>
         public ScopeRemover(TenantExecutionContext? previous)
         {
             _previous = previous;
         }
 
+        /// <summary>
+        /// Restores the previous context for the current async flow.
+        /// </summary>
         public void Dispose()
         {
             _current.Value = _previous;
