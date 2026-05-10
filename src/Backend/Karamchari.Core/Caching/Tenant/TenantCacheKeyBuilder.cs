@@ -4,12 +4,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Caching.Tenant;
 
+/// <summary>
+/// Builder for constructing secure, normalized, and tenant-namespaced cache keys.
+/// Enforces character validation, length limits, and Unicode normalization to prevent
+/// collision attacks and key injection.
+/// </summary>
 public sealed class TenantCacheKeyBuilder
 {
     private const int MaxKeyLength = 256;
     private const int MaxTenantIdLength = 64;
     private static readonly char[] InvalidKeyChars = { '\0', '\n', '\r', '\t', '\v' };
-    private static readonly char[] KeySeparators = { ':', '_', '/', '\\', '.', '[', ']' };
     private readonly ILogger<TenantCacheKeyBuilder>? _logger;
 
     private static readonly HashSet<string> ConfusableTenants = new(StringComparer.OrdinalIgnoreCase)
@@ -20,23 +24,47 @@ public sealed class TenantCacheKeyBuilder
         "\ufeff"
     };
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantCacheKeyBuilder"/> class.
+    /// </summary>
     public TenantCacheKeyBuilder()
     {
         _logger = null;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantCacheKeyBuilder"/> class with logging.
+    /// </summary>
+    /// <param name="logger">The logger for validation warnings.</param>
     public TenantCacheKeyBuilder(ILogger<TenantCacheKeyBuilder> logger)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Builds a tenant-namespaced cache key.
+    /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="key">The base cache key.</param>
+    /// <returns>A formatted tenant-namespaced key.</returns>
     public string Build(string tenantId, string key)
     {
         return Build(tenantId, null, key);
     }
 
+    /// <summary>
+    /// Builds a tenant-namespaced cache key with a category.
+    /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="category">The category (namespace within tenant).</param>
+    /// <param name="key">The base cache key.</param>
+    /// <returns>A formatted tenant-namespaced key.</returns>
     public string Build(string tenantId, string? category, string key)
     {
+        tenantId = tenantId?.Trim() ?? string.Empty;
+        key = key?.Trim() ?? string.Empty;
+        category = category?.Trim();
+
         ValidateTenantId(tenantId);
         ValidateKey(key);
 
@@ -57,6 +85,11 @@ public sealed class TenantCacheKeyBuilder
         return $"tenant_{normalizedTenantId}:{normalizedCategory}:{normalizedKey}";
     }
 
+    /// <summary>
+    /// Validates a tenant identifier for use in cache keys.
+    /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <exception cref="ArgumentException">Thrown when validation fails.</exception>
     public void ValidateTenantId(string tenantId)
     {
         if (string.IsNullOrWhiteSpace(tenantId))
@@ -83,13 +116,10 @@ public sealed class TenantCacheKeyBuilder
         var normalized = NormalizeUnicode(trimmed.ToLowerInvariant());
         if (normalized != trimmed.ToLowerInvariant())
         {
-            if (_logger?.IsEnabled(LogLevel.Warning) == true)
-            {
-                _logger.LogWarning(
-                    "Tenant ID '{TenantId}' contains Unicode characters that normalize differently. Original: {Normalized}",
-                    tenantId,
-                    normalized);
-            }
+            _logger?.LogWarning(
+                "Tenant ID '{TenantId}' contains Unicode characters that normalize differently. Original: {Normalized}",
+                tenantId,
+                normalized);
         }
 
         foreach (var confusable in ConfusableTenants)
@@ -103,6 +133,10 @@ public sealed class TenantCacheKeyBuilder
         }
     }
 
+    /// <summary>
+    /// Validates a cache key part for length and invalid characters.
+    /// </summary>
+    /// <param name="key">The key part to validate.</param>
     public void ValidateKey(string key)
     {
         if (string.IsNullOrWhiteSpace(key))
@@ -135,15 +169,13 @@ public sealed class TenantCacheKeyBuilder
         var normalized = NormalizeUnicode(key);
         if (normalized != key)
         {
-            if (_logger?.IsEnabled(LogLevel.Warning) == true)
-            {
-                _logger.LogWarning(
-                    "Key '{Key}' contains Unicode characters that normalize differently.",
-                    key);
-            }
+            _logger?.LogWarning("Key '{Key}' contains Unicode characters that normalize differently.", key);
         }
     }
 
+    /// <summary>
+    /// Attempts to build a key without throwing exceptions.
+    /// </summary>
     public bool TryBuild(string tenantId, string key, out string? result)
     {
         try
@@ -158,6 +190,9 @@ public sealed class TenantCacheKeyBuilder
         }
     }
 
+    /// <summary>
+    /// Attempts to build a key with category without throwing exceptions.
+    /// </summary>
     public bool TryBuild(string tenantId, string category, string key, out string? result)
     {
         try

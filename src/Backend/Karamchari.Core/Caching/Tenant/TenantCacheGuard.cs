@@ -1,43 +1,52 @@
+using Karamchari.Core.Multitenancy;
 using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Caching.Tenant;
 
+/// <summary>
+/// Defensive guard for cache operations that ensures all cache keys are correctly namespaced
+/// by tenant and prevents cross-tenant cache poisoning or data leakage.
+/// </summary>
 public sealed class TenantCacheGuard
 {
-    private readonly ITenantContextAccessor _tenantContextAccessor;
+    private readonly ITenantProvider _tenantProvider;
     private readonly ILogger<TenantCacheGuard>? _logger;
 
-    public TenantCacheGuard(ITenantContextAccessor tenantContextAccessor)
-        : this(tenantContextAccessor, null)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantCacheGuard"/> class.
+    /// </summary>
+    /// <param name="tenantProvider">The tenant provider to resolve active tenant context.</param>
+    public TenantCacheGuard(ITenantProvider tenantProvider)
+        : this(tenantProvider, null)
     {
     }
 
-    public TenantCacheGuard(ITenantContextAccessor tenantContextAccessor, ILogger<TenantCacheGuard>? logger)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantCacheGuard"/> class with logging.
+    /// </summary>
+    /// <param name="tenantProvider">The tenant provider.</param>
+    /// <param name="logger">The logger for security events.</param>
+    public TenantCacheGuard(ITenantProvider tenantProvider, ILogger<TenantCacheGuard>? logger)
     {
-        _tenantContextAccessor = tenantContextAccessor ?? throw new ArgumentNullException(nameof(tenantContextAccessor));
+        _tenantProvider = tenantProvider ?? throw new ArgumentNullException(nameof(tenantProvider));
         _logger = logger;
     }
 
+    /// <summary>
+    /// Validates a cache key for a GET operation, ensuring it belongs to the current tenant.
+    /// </summary>
+    /// <param name="cacheKey">The cache key to validate.</param>
+    /// <exception cref="CachePoisoningDetectionException">Thrown when a cross-tenant access attempt is detected.</exception>
     public void ValidateGet(string cacheKey)
     {
-        var tenantContext = _tenantContextAccessor.TenantContext;
-
-        if (tenantContext == null || string.IsNullOrEmpty(tenantContext.TenantId))
-        {
-            throw new InvalidOperationException("Tenant context is not set. Cannot perform cache get operation.");
-        }
+        var tenantContext = _tenantProvider.GetTenant();
 
         if (!TenantCacheNamespace.IsTenantKey(cacheKey))
         {
-            if (_logger?.IsEnabled(LogLevel.Warning) == true)
-            {
-                _logger.LogWarning(
-                    "Cache get attempted with non-tenant key: {CacheKey}",
-                    cacheKey);
-            }
+            _logger?.LogWarning("Cache get attempted with non-tenant key: {CacheKey}", cacheKey);
 
             throw new ArgumentException(
-                $"Cache key '{cacheKey}' does not match tenant namespace pattern. Cross-tenant cache access may be attempted.",
+                $"Cache key '{cacheKey}' does not match tenant namespace pattern.",
                 nameof(cacheKey));
         }
 
@@ -45,48 +54,33 @@ public sealed class TenantCacheGuard
 
         if (!string.Equals(keyTenantId, tenantContext.TenantId, StringComparison.OrdinalIgnoreCase))
         {
-            if (_logger?.IsEnabled(LogLevel.Error) == true)
-            {
-                _logger.LogError(
-                    "CROSS-TENANT CACHE ACCESS DETECTED - Key tenant: {KeyTenantId}, Current tenant: {CurrentTenant}, Key: {CacheKey}",
-                    keyTenantId,
-                    tenantContext.TenantId,
-                    cacheKey);
-            }
+            _logger?.LogError(
+                "CROSS-TENANT CACHE ACCESS DETECTED - Key tenant: {KeyTenantId}, Current tenant: {CurrentTenant}, Key: {CacheKey}",
+                keyTenantId,
+                tenantContext.TenantId,
+                cacheKey);
 
             throw new CachePoisoningDetectionException(
                 $"Cross-tenant cache access blocked. Key tenant '{keyTenantId}' does not match current tenant '{tenantContext.TenantId}'.");
         }
 
-        if (_logger?.IsEnabled(LogLevel.Debug) == true)
-        {
-            _logger.LogDebug(
-                "Cache get validated for tenant {TenantId}, key {CacheKey}",
-                tenantContext.TenantId,
-                cacheKey);
-        }
+        _logger?.LogDebug("Cache get validated for tenant {TenantId}, key {CacheKey}", tenantContext.TenantId, cacheKey);
     }
 
+    /// <summary>
+    /// Validates a cache key for a SET operation.
+    /// </summary>
+    /// <param name="cacheKey">The cache key to validate.</param>
     public void ValidateSet(string cacheKey)
     {
-        var tenantContext = _tenantContextAccessor.TenantContext;
-
-        if (tenantContext == null || string.IsNullOrEmpty(tenantContext.TenantId))
-        {
-            throw new InvalidOperationException("Tenant context is not set. Cannot perform cache set operation.");
-        }
+        var tenantContext = _tenantProvider.GetTenant();
 
         if (!TenantCacheNamespace.IsTenantKey(cacheKey))
         {
-            if (_logger?.IsEnabled(LogLevel.Warning) == true)
-            {
-                _logger.LogWarning(
-                    "Cache set attempted with non-tenant key: {CacheKey}",
-                    cacheKey);
-            }
+            _logger?.LogWarning("Cache set attempted with non-tenant key: {CacheKey}", cacheKey);
 
             throw new ArgumentException(
-                $"Cache key '{cacheKey}' does not match tenant namespace pattern. Cross-tenant cache access may be attempted.",
+                $"Cache key '{cacheKey}' does not match tenant namespace pattern.",
                 nameof(cacheKey));
         }
 
@@ -94,28 +88,22 @@ public sealed class TenantCacheGuard
 
         if (!string.Equals(keyTenantId, tenantContext.TenantId, StringComparison.OrdinalIgnoreCase))
         {
-            if (_logger?.IsEnabled(LogLevel.Error) == true)
-            {
-                _logger.LogError(
-                    "CROSS-TENANT CACHE SET ATTEMPT DETECTED - Key tenant: {KeyTenantId}, Current tenant: {CurrentTenant}, Key: {CacheKey}",
-                    keyTenantId,
-                    tenantContext.TenantId,
-                    cacheKey);
-            }
+            _logger?.LogError(
+                "CROSS-TENANT CACHE SET ATTEMPT DETECTED - Key tenant: {KeyTenantId}, Current tenant: {CurrentTenant}, Key: {CacheKey}",
+                keyTenantId,
+                tenantContext.TenantId,
+                cacheKey);
 
             throw new CachePoisoningDetectionException(
                 $"Cross-tenant cache set blocked. Key tenant '{keyTenantId}' does not match current tenant '{tenantContext.TenantId}'.");
         }
 
-        if (_logger?.IsEnabled(LogLevel.Debug) == true)
-        {
-            _logger.LogDebug(
-                "Cache set validated for tenant {TenantId}, key {CacheKey}",
-                tenantContext.TenantId,
-                cacheKey);
-        }
+        _logger?.LogDebug("Cache set validated for tenant {TenantId}, key {CacheKey}", tenantContext.TenantId, cacheKey);
     }
 
+    /// <summary>
+    /// Attempts to validate a GET operation without throwing, returning the result as a boolean.
+    /// </summary>
     public bool TryValidateGet(string cacheKey)
     {
         try
@@ -125,17 +113,14 @@ public sealed class TenantCacheGuard
         }
         catch (Exception ex) when (ex is CachePoisoningDetectionException || ex is ArgumentException)
         {
-            if (_logger?.IsEnabled(LogLevel.Debug) == true)
-            {
-                _logger.LogDebug(
-                    "Cache get validation failed for key {CacheKey}: {Error}",
-                    cacheKey,
-                    ex.Message);
-            }
+            _logger?.LogDebug("Cache get validation failed for key {CacheKey}: {Error}", cacheKey, ex.Message);
             return false;
         }
     }
 
+    /// <summary>
+    /// Attempts to validate a SET operation without throwing.
+    /// </summary>
     public bool TryValidateSet(string cacheKey)
     {
         try
@@ -145,38 +130,26 @@ public sealed class TenantCacheGuard
         }
         catch (Exception ex) when (ex is CachePoisoningDetectionException || ex is ArgumentException)
         {
-            if (_logger?.IsEnabled(LogLevel.Debug) == true)
-            {
-                _logger.LogDebug(
-                    "Cache set validation failed for key {CacheKey}: {Error}",
-                    cacheKey,
-                    ex.Message);
-            }
+            _logger?.LogDebug("Cache set validation failed for key {CacheKey}: {Error}", cacheKey, ex.Message);
             return false;
         }
     }
 
+    /// <summary>
+    /// Builds a valid tenant-namespaced cache key for the current tenant.
+    /// </summary>
     public string BuildValidKey(string key)
     {
-        var tenantContext = _tenantContextAccessor.TenantContext;
-
-        if (tenantContext == null || string.IsNullOrEmpty(tenantContext.TenantId))
-        {
-            throw new InvalidOperationException("Tenant context is not set. Cannot build cache key.");
-        }
-
+        var tenantContext = _tenantProvider.GetTenant();
         return TenantCacheNamespace.Build(tenantContext.TenantId, key);
     }
 
+    /// <summary>
+    /// Builds a valid tenant-namespaced cache key with a category.
+    /// </summary>
     public string BuildValidKey(string category, string key)
     {
-        var tenantContext = _tenantContextAccessor.TenantContext;
-
-        if (tenantContext == null || string.IsNullOrEmpty(tenantContext.TenantId))
-        {
-            throw new InvalidOperationException("Tenant context is not set. Cannot build cache key.");
-        }
-
+        var tenantContext = _tenantProvider.GetTenant();
         return TenantCacheNamespace.Build(tenantContext.TenantId, category, key);
     }
 }

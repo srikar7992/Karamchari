@@ -1,51 +1,101 @@
 namespace TenantChaos;
 
+/// <summary>
+/// Defines a specific chaos scenario to be injected into the tenant runtime.
+/// </summary>
 public sealed class TenantChaosScenario
 {
+    /// <summary>Gets the unique name of the chaos scenario.</summary>
     public required string Name { get; init; }
+    
+    /// <summary>Gets the category of chaos (e.g., Latency, ConnectionFailure).</summary>
     public required ChaosCategory Category { get; init; }
+    
+    /// <summary>Gets the severity level of the injected chaos.</summary>
     public required ChaosSeverity Severity { get; init; }
+    
+    /// <summary>Gets a description of the chaos being injected.</summary>
     public required string Description { get; init; }
+    
+    /// <summary>Gets how long the chaos should persist.</summary>
     public required TimeSpan Duration { get; init; }
+    
+    /// <summary>Gets specific parameters for the chaos injection.</summary>
     public Dictionary<string, string> Parameters { get; init; } = new();
+    
+    /// <summary>Gets the targets affected by this chaos scenario.</summary>
     public List<ChaosTarget> Targets { get; init; } = new();
 }
 
+/// <summary>
+/// Categories of chaos that can be injected.
+/// </summary>
 public enum ChaosCategory
 {
+    /// <summary>Inject random network or processing latency.</summary>
     Latency,
+    /// <summary>Inject database or network connection failures.</summary>
     ConnectionFailure,
+    /// <summary>Inject malicious or corrupt data into cache.</summary>
     CachePoisoning,
+    /// <summary>Simulate loss of TenantContext in an async flow.</summary>
     TenantContextLoss,
+    /// <summary>Simulate a storm of message retries.</summary>
     RetryStorm,
+    /// <summary>Simulate failure during database migration.</summary>
     MigrationInterruption,
+    /// <summary>Simulate race conditions during schema provisioning.</summary>
     SchemaRace,
+    /// <summary>Attempt to bypass Row Level Security via chaos.</summary>
     RlsBypass,
+    /// <summary>Simulate connection pool contamination scenarios.</summary>
     ConnectionPoolContamination,
+    /// <summary>Simulate tenant context drift in background jobs.</summary>
     BackgroundDrift
 }
 
+/// <summary>
+/// Severity levels for chaos injection.
+/// </summary>
 public enum ChaosSeverity
 {
+    /// <summary>Minimal impact.</summary>
     Low,
+    /// <summary>Noticeable performance degradation.</summary>
     Medium,
+    /// <summary>Service instability for affected tenants.</summary>
     High,
+    /// <summary>Complete service failure or isolation breach.</summary>
     Critical
 }
 
+/// <summary>
+/// Represents a specific component or resource targeted by chaos injection.
+/// </summary>
 public sealed class ChaosTarget
 {
+    /// <summary>Gets the type of target (e.g., Database, Cache, Tenant).</summary>
     public required string TargetType { get; init; }
+    
+    /// <summary>Gets the specific identifier of the target.</summary>
     public required string TargetId { get; init; }
+    
+    /// <summary>Gets the list of tenants affected by targeting this resource.</summary>
     public required string[] AffectedTenants { get; init; }
 }
 
+/// <summary>
+/// Component responsible for injecting various types of chaos into the tenant runtime
+/// to verify isolation and resilience guarantees.
+/// </summary>
 public sealed class TenantChaosInjector
 {
-    private readonly List<ChaosScenario> _activeScenarios = new();
-    private readonly Random _random = new();
+    private readonly List<TenantChaosScenario> _activeScenarios = new();
     private bool _isRunning;
 
+    /// <summary>
+    /// Injects random latency into operations for a specific tenant.
+    /// </summary>
     public void InjectLatency(string tenantId, int minMs, int maxMs, TimeSpan duration)
     {
         var scenario = new TenantChaosScenario
@@ -71,6 +121,9 @@ public sealed class TenantChaosInjector
         LogChaosEvent("LATENCY_INJECTED", scenario);
     }
 
+    /// <summary>
+    /// Injects database connection failures for a specific tenant.
+    /// </summary>
     public void InjectConnectionFailure(string tenantId, double failureRate, TimeSpan duration)
     {
         var scenario = new TenantChaosScenario
@@ -95,6 +148,9 @@ public sealed class TenantChaosInjector
         LogChaosEvent("CONNECTION_FAILURE_INJECTED", scenario);
     }
 
+    /// <summary>
+    /// Injects corrupt data into the cache for a specific tenant.
+    /// </summary>
     public void InjectCachePoisoning(string tenantId, string cacheKey, string maliciousValue, TimeSpan duration)
     {
         var scenario = new TenantChaosScenario
@@ -120,6 +176,9 @@ public sealed class TenantChaosInjector
         LogChaosEvent("CACHE_POISONING_INJECTED", scenario);
     }
 
+    /// <summary>
+    /// Simulates sudden loss of tenant execution context during an async operation.
+    /// </summary>
     public void SimulateTenantContextLoss(string tenantId, TimeSpan duration)
     {
         var scenario = new TenantChaosScenario
@@ -144,6 +203,9 @@ public sealed class TenantChaosInjector
         LogChaosEvent("TENANT_CONTEXT_LOSS_INJECTED", scenario);
     }
 
+    /// <summary>
+    /// Simulates a retry storm for a specific tenant's messages.
+    /// </summary>
     public void SimulateRetryStorm(string tenantId, int stormIntensity, TimeSpan duration)
     {
         var scenario = new TenantChaosScenario
@@ -168,6 +230,9 @@ public sealed class TenantChaosInjector
         LogChaosEvent("RETRY_STORM_INJECTED", scenario);
     }
 
+    /// <summary>
+    /// Simulates race conditions during schema provisioning.
+    /// </summary>
     public void SimulateSchemaRace(string tenantId, int raceParticipantCount, TimeSpan duration)
     {
         var scenario = new TenantChaosScenario
@@ -192,6 +257,9 @@ public sealed class TenantChaosInjector
         LogChaosEvent("SCHEMA_RACE_INJECTED", scenario);
     }
 
+    /// <summary>
+    /// Simulates connection pool contamination across multiple tenants.
+    /// </summary>
     public void SimulateConnectionPoolContamination(string[] tenantIds, TimeSpan duration)
     {
         var scenario = new TenantChaosScenario
@@ -218,6 +286,9 @@ public sealed class TenantChaosInjector
         LogChaosEvent("POOL_CONTAMINATION_INJECTED", scenario);
     }
 
+    /// <summary>
+    /// Simulates tenant context drift in background job processing.
+    /// </summary>
     public void SimulateBackgroundDrift(string tenantId, TimeSpan duration)
     {
         var scenario = new TenantChaosScenario
@@ -242,6 +313,9 @@ public sealed class TenantChaosInjector
         LogChaosEvent("BACKGROUND_DRIFT_INJECTED", scenario);
     }
 
+    /// <summary>
+    /// Attempts to bypass RLS via chaos manipulation.
+    /// </summary>
     public void InjectRlsBypass(string tenantId, string bypassType, TimeSpan duration)
     {
         var scenario = new TenantChaosScenario
@@ -266,7 +340,10 @@ public sealed class TenantChaosInjector
         LogChaosEvent("RLS_BYPASS_ATTEMPTED", scenario);
     }
 
-    public async Task RunChaosScenarioAsync(ChaosScenario scenario, CancellationToken ct = default)
+    /// <summary>
+    /// Asynchronously runs a specific chaos scenario.
+    /// </summary>
+    public async Task RunChaosScenarioAsync(TenantChaosScenario scenario, CancellationToken ct = default)
     {
         _isRunning = true;
         LogChaosEvent("CHAOS_SCENARIO_STARTED", scenario);
@@ -281,6 +358,9 @@ public sealed class TenantChaosInjector
         StopChaosScenario(scenario.Name);
     }
 
+    /// <summary>
+    /// Stops a specific active chaos scenario by name.
+    /// </summary>
     public void StopChaosScenario(string scenarioName)
     {
         var scenario = _activeScenarios.FirstOrDefault(s => s.Name == scenarioName);
@@ -291,6 +371,9 @@ public sealed class TenantChaosInjector
         }
     }
 
+    /// <summary>
+    /// Stops all currently active chaos scenarios.
+    /// </summary>
     public void StopAllChaos()
     {
         _isRunning = false;
@@ -302,49 +385,88 @@ public sealed class TenantChaosInjector
         LogChaosEvent("ALL_CHAOS_STOPPED", null!);
     }
 
-    public IReadOnlyList<ChaosScenario> GetActiveScenarios() => _activeScenarios.AsReadOnly();
+    /// <summary>
+    /// Gets the collection of currently active chaos scenarios.
+    /// </summary>
+    public IReadOnlyList<TenantChaosScenario> GetActiveScenarios() => _activeScenarios.AsReadOnly();
 
-    private void LogChaosEvent(string eventType, TenantChaosScenario scenario)
+    private void LogChaosEvent(string eventType, TenantChaosScenario? scenario)
     {
         var timestamp = DateTime.UtcNow.ToString("O");
-        var targetInfo = scenario.Targets.Any()
+        var targetInfo = (scenario?.Targets != null && scenario.Targets.Any())
             ? string.Join(",", scenario.Targets.Select(t => $"{t.TargetType}:{t.TargetId}"))
             : "N/A";
 
         Console.WriteLine($"[{timestamp}] CHAOS_EVENT [{eventType}] " +
-            $"Scenario={scenario.Name} " +
-            $"Category={scenario.Category} " +
-            $"Severity={scenario.Severity} " +
+            $"Scenario={scenario?.Name ?? "N/A"} " +
+            $"Category={scenario?.Category.ToString() ?? "N/A"} " +
+            $"Severity={scenario?.Severity.ToString() ?? "N/A"} " +
             $"Targets={targetInfo}");
     }
 }
 
+/// <summary>
+/// Comprehensive report detailing the execution and impact of a chaos scenario.
+/// </summary>
 public sealed class ChaosReport
 {
+    /// <summary>Gets the name of the scenario.</summary>
     public required string ScenarioName { get; init; }
+    
+    /// <summary>Gets the actual start time.</summary>
     public DateTime StartTime { get; init; }
+    
+    /// <summary>Gets the actual end time.</summary>
     public DateTime EndTime { get; init; }
+    
+    /// <summary>Gets the actual duration.</summary>
     public TimeSpan Duration => EndTime - StartTime;
+    
+    /// <summary>Gets the category of chaos.</summary>
     public ChaosCategory Category { get; init; }
+    
+    /// <summary>Gets the severity level.</summary>
     public ChaosSeverity Severity { get; init; }
+    
+    /// <summary>Gets the collection of pulses recorded during the scenario.</summary>
     public List<ChaosPulse> Pulses { get; init; } = new();
+    
+    /// <summary>Gets whether the scenario completed successfully.</summary>
     public bool Completed { get; init; }
+    
+    /// <summary>Gets whether the scenario failed unexpectedly.</summary>
     public bool Failed { get; init; }
+    
+    /// <summary>Gets the failure reason, if any.</summary>
     public string? FailureReason { get; init; }
 }
 
+/// <summary>
+/// A single diagnostic point recorded during a chaos scenario.
+/// </summary>
 public sealed class ChaosPulse
 {
+    /// <summary>Gets the pulse timestamp.</summary>
     public DateTime Timestamp { get; init; }
+    
+    /// <summary>Gets the sequence count.</summary>
     public int PulseCount { get; init; }
+    
+    /// <summary>Gets metrics captured at the time of the pulse.</summary>
     public Dictionary<string, string> Metrics { get; init; } = new();
 }
 
+/// <summary>
+/// Orchestrates complex chaos campaigns involving multiple scenarios and tenants.
+/// </summary>
 public sealed class TenantChaosOrchestrator
 {
     private readonly TenantChaosInjector _injector = new();
     private readonly List<ChaosReport> _reports = new();
 
+    /// <summary>
+    /// Asynchronously executes a defined chaos campaign.
+    /// </summary>
     public async Task RunChaosCampaignAsync(ChaosCampaignConfig config, CancellationToken ct = default)
     {
         Console.WriteLine($"Starting Chaos Campaign: {config.Name}");
@@ -353,7 +475,6 @@ public sealed class TenantChaosOrchestrator
 
         var startTime = DateTime.UtcNow;
         var endTime = startTime.Add(config.Duration);
-        var scenariosExecuted = 0;
 
         while (DateTime.UtcNow < endTime && !ct.IsCancellationRequested)
         {
@@ -366,8 +487,6 @@ public sealed class TenantChaosOrchestrator
                     scenarioConfig.MinLatencyMs,
                     scenarioConfig.MaxLatencyMs,
                     TimeSpan.FromSeconds(10));
-
-                scenariosExecuted++;
             }
 
             await Task.Delay(TimeSpan.FromSeconds(config.Intensity), ct);
@@ -389,22 +508,47 @@ public sealed class TenantChaosOrchestrator
         _reports.Add(report);
     }
 
+    /// <summary>
+    /// Gets all reports from previously executed campaigns.
+    /// </summary>
     public IReadOnlyList<ChaosReport> GetReports() => _reports.AsReadOnly();
 }
 
+/// <summary>
+/// Configuration for a chaos campaign.
+/// </summary>
 public sealed class ChaosCampaignConfig
 {
+    /// <summary>Gets the unique name of the campaign.</summary>
     public required string Name { get; init; }
+    
+    /// <summary>Gets the total duration of the campaign.</summary>
     public required TimeSpan Duration { get; init; }
+    
+    /// <summary>Gets the frequency/intensity of chaos pulses in seconds.</summary>
     public required int Intensity { get; init; }
+    
+    /// <summary>Gets the collection of scenario configurations.</summary>
     public List<ChaosScenarioConfig> Scenarios { get; init; } = new();
 }
 
+/// <summary>
+/// Configuration for an individual chaos scenario within a campaign.
+/// </summary>
 public sealed class ChaosScenarioConfig
 {
+    /// <summary>Gets the target tenant ID.</summary>
     public required string TenantId { get; init; }
+    
+    /// <summary>Gets the category of chaos.</summary>
     public required ChaosCategory Category { get; init; }
+    
+    /// <summary>Gets the minimum latency to inject.</summary>
     public int MinLatencyMs { get; init; } = 100;
+    
+    /// <summary>Gets the maximum latency to inject.</summary>
     public int MaxLatencyMs { get; init; } = 500;
+    
+    /// <summary>Gets the injected failure rate.</summary>
     public double FailureRate { get; init; } = 0.1;
 }

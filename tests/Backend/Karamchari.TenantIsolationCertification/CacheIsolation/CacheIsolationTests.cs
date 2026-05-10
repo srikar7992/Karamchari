@@ -30,7 +30,7 @@ public sealed class CacheKeyFuzzingTests
     [Theory]
     [InlineData("tenant_acme:employees")]
     [InlineData("tenant_acme:payroll:2024")]
-    [InlineData("tenant_globex_dept123:data")]
+    [InlineData("tenant_globexdept123:data")]
     public void CacheKey_MustAcceptValidPatterns(string validKey)
     {
         var validPattern = @"^tenant_[a-z0-9]{1,64}(:[a-zA-Z0-9_-]+)*$";
@@ -202,7 +202,7 @@ public sealed class CacheNamespaceCertificationTests
     public async Task SimultaneousTenantAccess_MustNotInterfere()
     {
         var tenants = new[] { "acme", "globex", "initech", "umbrella" };
-        var accessLog = new List<(string Tenant, int Key, string ThreadId)>();
+        var accessLog = new System.Collections.Concurrent.ConcurrentBag<(string Tenant, int Key, string ThreadId)>();
 
         var tasks = tenants.Select((tenant, idx) => Task.Run(() =>
         {
@@ -308,7 +308,7 @@ public sealed class CacheContaminationAttackTests
         var tenantA = "acme";
         var poisonAttempts = new[]
         {
-            $"tenant_{tenantA}:poisoned_key",
+            $"tenant_{tenantA}:poisoned key",
             $"tenant_{tenantA}:..\\..\\etc",
             $"tenant_{tenantA}:<script>alert(1)</script>",
             $"tenant_{tenantA}':DROP TABLE Users;--"

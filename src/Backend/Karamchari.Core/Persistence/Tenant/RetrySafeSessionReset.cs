@@ -6,53 +6,78 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Persistence.Tenant;
 
+/// <summary>
+/// Provides retry-aware mechanisms for resetting and re-establishing SQL SESSION_CONTEXT,
+/// specifically designed to handle transaction rollbacks and connection reuse scenarios.
+/// </summary>
 public sealed class RetrySafeSessionReset
 {
     private const string SessionContextKey = "TenantId";
     private readonly ILogger<RetrySafeSessionReset> _logger;
     private int _retryCount;
-    private int _maxRetries;
+    private readonly int _maxRetries;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RetrySafeSessionReset"/> class.
+    /// </summary>
+    /// <param name="logger">The logger for reset events.</param>
+    /// <param name="maxRetries">Maximum number of retry attempts allowed.</param>
     public RetrySafeSessionReset(ILogger<RetrySafeSessionReset> logger, int maxRetries = 3)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _maxRetries = maxRetries;
     }
 
+    /// <summary>Gets the number of retries attempted so far.</summary>
     public int RetryCount => _retryCount;
+
+    /// <summary>Gets the maximum number of retries allowed.</summary>
     public int MaxRetries => _maxRetries;
+
+    /// <summary>Gets a value indicating whether more retries are possible.</summary>
     public bool CanRetry => _retryCount < _maxRetries;
 
+    /// <summary>
+    /// Resets the session context by clearing and then setting it to the provided tenant ID.
+    /// </summary>
+    /// <param name="connection">The SQL connection to reset.</param>
+    /// <param name="tenantId">The tenant ID to establish.</param>
     public void ResetAndEstablishContext(SqlConnection connection, string tenantId)
     {
         ClearSessionContext(connection);
         SetSessionContext(connection, tenantId);
         VerifySessionContext(connection, tenantId);
 
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug(
-                "Session context reset and re-established for tenant {TenantId}. Retry count: {RetryCount}",
-                tenantId,
-                _retryCount);
-        }
+        _logger.LogDebug(
+            "Session context reset and re-established for tenant {TenantId}. Retry count: {RetryCount}",
+            tenantId,
+            _retryCount);
     }
 
+    /// <summary>
+    /// Asynchronously resets the session context.
+    /// </summary>
+    /// <param name="connection">The SQL connection to reset.</param>
+    /// <param name="tenantId">The tenant ID to establish.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     public async Task ResetAndEstablishContextAsync(SqlConnection connection, string tenantId, CancellationToken cancellationToken = default)
     {
         await ClearSessionContextAsync(connection, cancellationToken).ConfigureAwait(false);
         await SetSessionContextAsync(connection, tenantId, cancellationToken).ConfigureAwait(false);
         await VerifySessionContextAsync(connection, tenantId, cancellationToken).ConfigureAwait(false);
 
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug(
-                "Session context reset and re-established for tenant {TenantId} (async). Retry count: {RetryCount}",
-                tenantId,
-                _retryCount);
-        }
+        _logger.LogDebug(
+            "Session context reset and re-established for tenant {TenantId} (async). Retry count: {RetryCount}",
+            tenantId,
+            _retryCount);
     }
 
+    /// <summary>
+    /// Handles a retry attempt after a transaction rollback, ensuring the session context is restored.
+    /// </summary>
+    /// <param name="connection">The SQL connection.</param>
+    /// <param name="transaction">The transaction that was rolled back.</param>
+    /// <param name="tenantId">The tenant ID to re-establish.</param>
     public void HandleRetryAfterRollback(SqlConnection connection, SqlTransaction? transaction, string tenantId)
     {
         if (transaction != null)
@@ -60,17 +85,11 @@ public sealed class RetrySafeSessionReset
             try
             {
                 transaction.Rollback();
-                if (_logger.IsEnabled(LogLevel.Debug))
-                {
-                    _logger.LogDebug("Transaction rolled back for retry.");
-                }
+                _logger.LogDebug("Transaction rolled back for retry.");
             }
             catch (Exception ex)
             {
-                if (_logger.IsEnabled(LogLevel.Warning))
-                {
-                    _logger.LogWarning(ex, "Failed to rollback transaction during retry handling.");
-                }
+                _logger.LogWarning(ex, "Failed to rollback transaction during retry handling.");
             }
         }
 
@@ -86,15 +105,15 @@ public sealed class RetrySafeSessionReset
 
         ResetAndEstablishContext(connection, tenantId);
 
-        if (_logger.IsEnabled(LogLevel.Information))
-        {
-            _logger.LogInformation(
-                "Retrying after rollback. Attempt {RetryCount} of {MaxRetries}",
-                _retryCount,
-                _maxRetries);
-        }
+        _logger.LogInformation(
+            "Retrying after rollback. Attempt {RetryCount} of {MaxRetries}",
+            _retryCount,
+            _maxRetries);
     }
 
+    /// <summary>
+    /// Asynchronously handles a retry attempt after a transaction rollback.
+    /// </summary>
     public async Task HandleRetryAfterRollbackAsync(
         SqlConnection connection,
         SqlTransaction? transaction,
@@ -106,17 +125,11 @@ public sealed class RetrySafeSessionReset
             try
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                if (_logger.IsEnabled(LogLevel.Debug))
-                {
-                    _logger.LogDebug("Transaction rolled back for retry (async).");
-                }
+                _logger.LogDebug("Transaction rolled back for retry (async).");
             }
             catch (Exception ex)
             {
-                if (_logger.IsEnabled(LogLevel.Warning))
-                {
-                    _logger.LogWarning(ex, "Failed to rollback transaction during retry handling (async).");
-                }
+                _logger.LogWarning(ex, "Failed to rollback transaction during retry handling (async).");
             }
         }
 
@@ -132,15 +145,15 @@ public sealed class RetrySafeSessionReset
 
         await ResetAndEstablishContextAsync(connection, tenantId, cancellationToken).ConfigureAwait(false);
 
-        if (_logger.IsEnabled(LogLevel.Information))
-        {
-            _logger.LogInformation(
-                "Retrying after rollback (async). Attempt {RetryCount} of {MaxRetries}",
-                _retryCount,
-                _maxRetries);
-        }
+        _logger.LogInformation(
+            "Retrying after rollback (async). Attempt {RetryCount} of {MaxRetries}",
+            _retryCount,
+            _maxRetries);
     }
 
+    /// <summary>
+    /// Handles re-establishing context after a nested transaction rollback.
+    /// </summary>
     public void HandleNestedTransactionRollback(SqlConnection connection, string tenantId)
     {
         ClearSessionContext(connection);
@@ -157,22 +170,16 @@ public sealed class RetrySafeSessionReset
 
         SetSessionContext(connection, tenantId);
 
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug(
-                "Session context re-established after nested transaction rollback. Attempt: {RetryCount}",
-                _retryCount);
-        }
+        _logger.LogDebug(
+            "Session context re-established after nested transaction rollback. Attempt: {RetryCount}",
+            _retryCount);
     }
 
+    /// <summary>Resets the retry counter.</summary>
     public void ResetRetryCount()
     {
         _retryCount = 0;
-
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug("Retry count reset to 0.");
-        }
+        _logger.LogDebug("Retry count reset to 0.");
     }
 
     private static void ClearSessionContext(SqlConnection connection)
@@ -288,11 +295,20 @@ public sealed class RetrySafeSessionReset
     }
 }
 
+/// <summary>
+/// Exception thrown when all retry attempts for resetting session context have been exhausted.
+/// </summary>
 public sealed class RetryExhaustedException : Exception
 {
+    /// <summary>Gets the number of retries attempted.</summary>
     public int RetryCount { get; }
+
+    /// <summary>Gets the maximum allowed retries.</summary>
     public int MaxRetries { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RetryExhaustedException"/> class.
+    /// </summary>
     public RetryExhaustedException(int retryCount, int maxRetries, string message)
         : base(message)
     {

@@ -4,12 +4,22 @@ using Karamchari.Core.Multitenancy.Execution;
 
 namespace Karamchari.Core.Observability.Tenant;
 
+/// <summary>
+/// A diagnostic activity listener that automatically enriches all activities
+/// with tenant context, ensuring distributed traces carry tenant information
+/// without requiring manual instrumentation in every component.
+/// </summary>
 public sealed class TenantAwareActivityListener : IDisposable
 {
     private readonly ITenantProvider _tenantProvider;
     private readonly TenantActivitySource _activitySource;
     private readonly List<ActivityListener> _listeners = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantAwareActivityListener"/> class.
+    /// </summary>
+    /// <param name="tenantProvider">The tenant provider to resolve active tenant context.</param>
+    /// <param name="activitySource">The tenant-aware activity source.</param>
     public TenantAwareActivityListener(
         ITenantProvider tenantProvider,
         TenantActivitySource activitySource)
@@ -33,13 +43,9 @@ public sealed class TenantAwareActivityListener : IDisposable
             return;
         }
 
-        TenantContext? tenantContext = null;
-
         if (_tenantProvider.TryGetTenant(out var tenantCtx) && tenantCtx != null)
         {
-            tenantContext = tenantCtx;
-
-            activity.SetTag(TenantTelemetryTags.TenantId, tenantContext.TenantId);
+            activity.SetTag(TenantTelemetryTags.TenantId, tenantCtx.TenantId);
 
             var executionSource = GetExecutionSourceFromActivity(activity);
             if (!string.IsNullOrEmpty(executionSource))
@@ -55,7 +61,7 @@ public sealed class TenantAwareActivityListener : IDisposable
 
     private static string GetExecutionSourceFromActivity(Activity activity)
     {
-        var sourceKind = activity.Kind switch
+        return activity.Kind switch
         {
             ActivityKind.Client => ExecutionSource.HttpRequest.ToString(),
             ActivityKind.Server => ExecutionSource.HttpRequest.ToString(),
@@ -63,10 +69,14 @@ public sealed class TenantAwareActivityListener : IDisposable
             ActivityKind.Consumer => ExecutionSource.MessageConsumer.ToString(),
             _ => ExecutionSource.Manual.ToString()
         };
-
-        return sourceKind;
     }
 
+    /// <summary>
+    /// Manually starts a message-based activity with correlation tracking.
+    /// </summary>
+    /// <param name="operationName">The operation name.</param>
+    /// <param name="messageHeaders">Headers from the incoming message.</param>
+    /// <returns>A new activity enriched with tenant context and correlation.</returns>
     public Activity? StartMessageActivity(string operationName, IDictionary<string, object?>? messageHeaders)
     {
         _tenantProvider.TryGetTenant(out var tenantContext);
@@ -80,6 +90,12 @@ public sealed class TenantAwareActivityListener : IDisposable
         return activity;
     }
 
+    /// <summary>
+    /// Manually starts a background job activity.
+    /// </summary>
+    /// <param name="operationName">The operation name.</param>
+    /// <param name="jobId">The unique job identifier.</param>
+    /// <returns>A new activity enriched with tenant context.</returns>
     public Activity? StartBackgroundJobActivity(string operationName, string jobId)
     {
         _tenantProvider.TryGetTenant(out var tenantContext);
@@ -113,6 +129,7 @@ public sealed class TenantAwareActivityListener : IDisposable
         return null;
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         foreach (var listener in _listeners)

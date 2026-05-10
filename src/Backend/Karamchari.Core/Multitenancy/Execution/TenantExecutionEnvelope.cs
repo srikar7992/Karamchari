@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Karamchari.Core.Multitenancy.Execution;
@@ -24,12 +25,12 @@ public sealed partial class TenantExecutionEnvelope
     /// <summary>
     /// A correlation ID that chains related operations across services.
     /// </summary>
-    public Guid CorrelationId { get; init; }
+    public string CorrelationId { get; init; }
 
     /// <summary>
     /// A unique identifier for this specific execution attempt.
     /// </summary>
-    public Guid RequestId { get; init; }
+    public string RequestId { get; init; }
 
     /// <summary>
     /// Indicates where this execution originated (HTTP, message, job, etc.).
@@ -74,7 +75,7 @@ public sealed partial class TenantExecutionEnvelope
     /// <summary>
     /// The message ID, if this execution originated from a message.
     /// </summary>
-    public Guid? MessageId { get; init; }
+    public string? MessageId { get; init; }
 
     /// <summary>
     /// SHA256 hash of the message content for replay detection.
@@ -91,11 +92,14 @@ public sealed partial class TenantExecutionEnvelope
     /// <exception cref="ArgumentException">Thrown when tenantId is null, whitespace, or invalid.</exception>
     public TenantExecutionEnvelope(
         string tenantId,
-        Guid correlationId,
-        Guid requestId,
+        string correlationId,
+        string requestId,
         ExecutionSource executionSource)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(correlationId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
+
         if (!TenantIdRegex().IsMatch(tenantId))
         {
             throw new ArgumentException(
@@ -116,8 +120,8 @@ public sealed partial class TenantExecutionEnvelope
     /// </summary>
     public TenantExecutionEnvelope With(
         string? TenantId = null,
-        Guid? CorrelationId = null,
-        Guid? RequestId = null,
+        string? CorrelationId = null,
+        string? RequestId = null,
         ExecutionSource? ExecutionSource = null,
         int? RetryAttempt = null,
         int? ReplayCount = null,
@@ -126,7 +130,7 @@ public sealed partial class TenantExecutionEnvelope
         string? SpanId = null,
         DateTime? Timestamp = null,
         Dictionary<string, string>? ReplayMetadata = null,
-        Guid? MessageId = null,
+        string? MessageId = null,
         string? ContentHash = null)
     {
         return new TenantExecutionEnvelope(
@@ -145,6 +149,30 @@ public sealed partial class TenantExecutionEnvelope
             MessageId = MessageId ?? this.MessageId,
             ContentHash = ContentHash ?? this.ContentHash
         };
+    }
+
+    /// <summary>
+    /// Serializes this envelope to a JSON string for transport.
+    /// </summary>
+    /// <returns>A JSON representation of the envelope.</returns>
+    public string ToJson() => JsonSerializer.Serialize(this);
+
+    /// <summary>
+    /// Deserializes a <see cref="TenantExecutionEnvelope"/> from JSON.
+    /// </summary>
+    /// <param name="json">The JSON string.</param>
+    /// <returns>The deserialized envelope, or null if invalid.</returns>
+    public static TenantExecutionEnvelope? FromJson(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try
+        {
+            return JsonSerializer.Deserialize<TenantExecutionEnvelope>(json);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     /// <summary>

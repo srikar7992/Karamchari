@@ -30,6 +30,42 @@ public sealed class ReplayProtectionService
     }
 
     /// <summary>
+    /// Checks if the message is a replay and records it if it's new.
+    /// This is an atomic operation to prevent race conditions during duplicate processing.
+    /// </summary>
+    /// <param name="messageId">The message identifier.</param>
+    /// <param name="contentHash">The content hash.</param>
+    /// <returns>True if recording succeeded (new message); false if it's a replay.</returns>
+    public bool TryRecord(string messageId, string? contentHash = null)
+    {
+        if (string.IsNullOrWhiteSpace(messageId)) return false;
+
+        var key = BuildCacheKey(messageId, contentHash);
+        var entry = new ReplayEntry(DateTime.UtcNow, contentHash);
+
+        // TryAdd only succeeds if the key doesn't exist
+        if (_idempotencyCache.TryAdd(key, entry))
+        {
+            return true;
+        }
+
+        // If it exists, check if it's stale
+        if (_idempotencyCache.TryGetValue(key, out var existing))
+        {
+            if (DateTime.UtcNow - existing.Timestamp > _replayWindow)
+            {
+                // Stale, so we can replace it atomicaly if still there
+                if (_idempotencyCache.TryUpdate(key, entry, existing))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Checks if the message is a replay (has already been processed within the replay window).
     /// </summary>
     /// <param name="messageId">The original message identifier.</param>

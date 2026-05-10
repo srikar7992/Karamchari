@@ -514,6 +514,11 @@
           "Polly": "7.1.0"
         }
       },
+      "RabbitMQ.Client": {
+        "type": "Transitive",
+        "resolved": "7.2.0",
+        "contentHash": "PPQ7cF7lwbhqC4up6en1bTUZlz06YqQwJecOJzsguTtyhNA7oL5uNDZIx/h6ZfcyPZV4V3DYKSCxfm4RUFLcbA=="
+      },
       "RBush": {
         "type": "Transitive",
         "resolved": "4.0.0",
@@ -712,6 +717,7 @@
           "MassTransit": "[8.3.6, )",
           "MassTransit.Azure.ServiceBus.Core": "[8.3.6, )",
           "MassTransit.EntityFrameworkCore": "[8.3.6, )",
+          "MassTransit.RabbitMQ": "[9.1.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.7, )",
           "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore": "[10.0.7, )",
@@ -1055,6 +1061,16 @@
         "dependencies": {
           "MassTransit": "8.3.6",
           "Microsoft.EntityFrameworkCore.Relational": "9.0.0"
+        }
+      },
+      "MassTransit.RabbitMQ": {
+        "type": "CentralTransitive",
+        "requested": "[9.1.0, )",
+        "resolved": "9.1.0",
+        "contentHash": "zogPx+Tt/7niqksMijaPZSn+S88eS0OD+VqW2PvjPBGS+JXF6xttmxtS527/rHKILI1Em8GzyiP/oASMaN6M4A==",
+        "dependencies": {
+          "MassTransit": "9.1.0",
+          "RabbitMQ.Client": "7.2.0"
         }
       },
       "Microsoft.AspNetCore.Authentication.JwtBearer": {

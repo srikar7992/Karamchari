@@ -47,17 +47,18 @@ public sealed class PropagationTrace
 {
     private static readonly ConcurrentDictionary<string, List<PropagationEntry>> _traces = new();
 
-    public string CorrelationId { get; } = Guid.NewGuid().ToString("N");
+    public string CorrelationId { get; init; } = Guid.NewGuid().ToString("N");
     public string TenantId { get; }
     public string Operation { get; }
     public DateTime Timestamp { get; }
     public string ThreadId { get; }
     public string? ContinuityPoint { get; }
 
-    public PropagationTrace(string tenantId, string operation, string? continuityPoint = null)
+    public PropagationTrace(string tenantId, string operation, string? correlationId = null, string? continuityPoint = null)
     {
         TenantId = tenantId;
         Operation = operation;
+        if (correlationId != null) CorrelationId = correlationId;
         Timestamp = DateTime.UtcNow;
         ThreadId = Environment.CurrentManagedThreadId.ToString();
         ContinuityPoint = continuityPoint;
@@ -109,9 +110,16 @@ public sealed class TenantContextCollector
 
     public void Record(string tenantId, string operation, string? continuityPoint = null)
     {
-        var trace = new PropagationTrace(tenantId, operation, continuityPoint);
+        // Try to verify against actual AsyncLocal context if available
+        var context = Karamchari.Core.Multitenancy.Execution.TenantExecutionContext.Current;
+        var actualTenantId = context?.TenantId;
+        var reportedTenantId = tenantId;
+
+        var trace = new PropagationTrace(reportedTenantId, operation, context?.CorrelationId ?? this.CorrelationId, continuityPoint);
         PropagationTrace.Record(trace);
-        _operations.Enqueue($"[{operation}] {tenantId} @ {DateTime.UtcNow:O}");
+
+        // We log BOTH the reported (expected) and actual (AsyncLocal) tenant IDs
+        _operations.Enqueue($"[{operation}] Expected={reportedTenantId} Actual={actualTenantId ?? "NULL"} @ {DateTime.UtcNow:O}");
     }
 
     public string[] GetOperations() => _operations.ToArray();
@@ -119,17 +127,33 @@ public sealed class TenantContextCollector
     public bool HasContamination()
     {
         var ops = _operations.ToArray();
-        if (ops.Length < 2) return false;
+        if (ops.Length < 1) return false;
 
-        var tenants = ops.Select(o => ExtractTenant(o)).Distinct().ToList();
-        return tenants.Count > 1;
+        // Contamination occurs if ANY operation has an Actual tenant that doesn't match its Expected tenant
+        foreach (var op in ops)
+        {
+            var expected = ExtractValue(op, "Expected=");
+            var actual = ExtractValue(op, "Actual=");
+
+            if (!string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    private static string ExtractTenant(string op)
+    private static string ExtractValue(string op, string prefix)
     {
-        var start = op.IndexOf('[') + 1;
-        var end = op.IndexOf(']');
-        return start < end ? op.Substring(start, end - start) : "unknown";
+        var start = op.IndexOf(prefix, StringComparison.Ordinal);
+        if (start < 0) return "unknown";
+
+        start += prefix.Length;
+        var end = op.IndexOf(' ', start);
+        if (end < 0) end = op.Length;
+
+        return op.Substring(start, end - start);
     }
 }
 

@@ -1,4 +1,4 @@
-using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Multitenancy.Execution;
 using MassTransit;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +15,7 @@ public sealed class TenantMessageConsumerScope : IDisposable
     private readonly ILogger<TenantMessageConsumerScope> _logger;
     private readonly IMemoryCache _telemetryCache;
     private TenantExecutionContext? _executionContext;
+    private IDisposable? _scope;
     private bool _disposed;
 
     private record TelemetryEntry(string ConsumerName, DateTime StartTime, string TenantId, int AttemptCount);
@@ -28,11 +29,8 @@ public sealed class TenantMessageConsumerScope : IDisposable
         ILogger<TenantMessageConsumerScope> logger,
         IMemoryCache telemetryCache)
     {
-        ArgumentNullException.ThrowIfNull(logger);
-        ArgumentNullException.ThrowIfNull(telemetryCache);
-
-        _logger = logger;
-        _telemetryCache = telemetryCache;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _telemetryCache = telemetryCache ?? throw new ArgumentNullException(nameof(telemetryCache));
     }
 
     /// <summary>
@@ -56,71 +54,55 @@ public sealed class TenantMessageConsumerScope : IDisposable
     {
         ThrowIfDisposed();
 
-        if (_logger.IsEnabled(LogLevel.Information))
+        _logger.LogInformation(
+            "Recreating tenant context from message {MessageId}, ConversationId {ConversationId}",
+            consumeContext.MessageId, consumeContext.ConversationId);
+
+        if (!consumeContext.Headers.TryGetHeader(TenantMessageHeaderKeys.TenantId, out var tenantIdObj) ||
+            tenantIdObj is not string tenantId || string.IsNullOrWhiteSpace(tenantId))
         {
-            _logger.LogInformation(
-                "Recreating tenant context from message {MessageId}, ConversationId {ConversationId}",
-                consumeContext.MessageId, consumeContext.ConversationId);
-        }
-
-        consumeContext.Headers.TryGetHeader(TenantMessageHeaderKeys.TenantId, out var tenantIdObj);
-        var tenantId = tenantIdObj as string;
-
-        if (string.IsNullOrWhiteSpace(tenantId))
-        {
-            if (_logger.IsEnabled(LogLevel.Warning))
-            {
-                _logger.LogWarning(
-                    "Failed to recreate tenant context: Missing tenant identifier in message {MessageId}",
-                    consumeContext.MessageId);
-            }
-
+            _logger.LogWarning("Failed to recreate tenant context: Missing TenantId in message {MessageId}", consumeContext.MessageId);
             throw new MalformedTenantMessageException(
                 "Cannot recreate tenant context: message is missing tenant identifier",
                 null, TenantMessageFailureReason.MissingTenantId);
         }
 
-        _executionContext = TenantExecutionContext.CreateFromHeaders(null, consumeContext);
-
-        if (_executionContext == null)
+        TenantExecutionEnvelope? envelope = null;
+        if (consumeContext.Headers.TryGetHeader(TenantMessageHeaderKeys.ExecutionEnvelope, out var envelopeObj) &&
+            envelopeObj is string envelopeJson)
         {
-            if (_logger.IsEnabled(LogLevel.Warning))
-            {
-                _logger.LogWarning(
-                    "Failed to recreate tenant context: Unable to construct context from headers for Tenant {TenantId}",
-                    tenantId);
-            }
-
-            throw new MalformedTenantMessageException(
-                "Cannot recreate tenant context: unable to construct context from headers",
-                tenantId, TenantMessageFailureReason.MalformedEnvelope);
+            envelope = TenantExecutionEnvelope.FromJson(envelopeJson);
         }
+
+        if (envelope == null)
+        {
+            consumeContext.Headers.TryGetHeader(TenantMessageHeaderKeys.CorrelationId, out var correlationIdObj);
+            var correlationId = correlationIdObj as string ?? consumeContext.ConversationId?.ToString() ?? Guid.NewGuid().ToString();
+            var requestId = consumeContext.MessageId?.ToString() ?? Guid.NewGuid().ToString();
+
+            envelope = new TenantExecutionEnvelope(tenantId, correlationId, requestId, ExecutionSource.MessageConsumer);
+        }
+
+        _executionContext = new TenantExecutionContext(envelope);
 
         if (!string.IsNullOrWhiteSpace(expectedTenantId) &&
             !string.Equals(_executionContext.TenantId, expectedTenantId, StringComparison.OrdinalIgnoreCase))
         {
-            if (_logger.IsEnabled(LogLevel.Warning))
-            {
-                _logger.LogWarning(
-                    "Tenant mismatch detected: expected {ExpectedTenantId}, got {ActualTenantId}",
-                    expectedTenantId, _executionContext.TenantId);
-            }
+            _logger.LogWarning("Tenant mismatch detected: expected {ExpectedTenantId}, got {ActualTenantId}",
+                expectedTenantId, _executionContext.TenantId);
 
             throw new MalformedTenantMessageException(
                 $"Tenant identifier mismatch: expected '{expectedTenantId}', got '{_executionContext.TenantId}'",
                 _executionContext.TenantId, TenantMessageFailureReason.TenantMismatch);
         }
 
-        _executionContext.SetAsCurrent();
+        _scope = _executionContext.Establish();
 
         RecordTelemetry(consumeContext);
 
-        if (_logger.IsEnabled(LogLevel.Information))
-        {
-            _logger.LogInformation(
-                "Tenant context recreated successfully for Tenant {TenantId}, CorrelationId {CorrelationId}, Source {Source}",
-                _executionContext.TenantId, _executionContext.CorrelationId, _executionContext.ExecutionSource ?? "Unknown");
-        }
+        _logger.LogInformation(
+            "Tenant context recreated successfully for Tenant {TenantId}, CorrelationId {CorrelationId}, Source {Source}",
+            _executionContext.TenantId, _executionContext.CorrelationId, _executionContext.Source);
 
         return _executionContext;
     }
@@ -142,10 +124,7 @@ public sealed class TenantMessageConsumerScope : IDisposable
 
         if (_executionContext == null)
         {
-            if (_logger.IsEnabled(LogLevel.Warning))
-            {
-                _logger.LogWarning("Cannot validate tenant: no execution context available");
-            }
+            _logger.LogWarning("Cannot validate tenant: no execution context available");
 
             if (throwOnMismatch)
             {
@@ -159,12 +138,8 @@ public sealed class TenantMessageConsumerScope : IDisposable
 
         if (!string.Equals(_executionContext.TenantId, expectedTenantId, StringComparison.OrdinalIgnoreCase))
         {
-            if (_logger.IsEnabled(LogLevel.Warning))
-            {
-                _logger.LogWarning(
-                    "Tenant validation failed: expected {ExpectedTenantId}, actual {ActualTenantId}",
-                    expectedTenantId, _executionContext.TenantId);
-            }
+            _logger.LogWarning("Tenant validation failed: expected {ExpectedTenantId}, actual {ActualTenantId}",
+                expectedTenantId, _executionContext.TenantId);
 
             if (throwOnMismatch)
             {
@@ -180,20 +155,21 @@ public sealed class TenantMessageConsumerScope : IDisposable
     }
 
     /// <summary>
-    /// Clears the current execution context.
+    /// Clears the current execution context and restores the previous scope.
     /// </summary>
     public void ClearContext()
     {
         ThrowIfDisposed();
 
-        if (_executionContext != null)
+        if (_scope != null)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("Clearing tenant execution context for Tenant {TenantId}", _executionContext.TenantId);
+                _logger.LogDebug("Restoring previous tenant execution scope");
             }
 
-            TenantExecutionContext.ClearCurrent();
+            _scope.Dispose();
+            _scope = null;
             _executionContext = null;
         }
     }
@@ -201,12 +177,12 @@ public sealed class TenantMessageConsumerScope : IDisposable
     /// <summary>
     /// Gets the current retry attempt count from the execution context.
     /// </summary>
-    public int CurrentRetryAttempt => _executionContext?.RetryAttempt ?? 0;
+    public int CurrentRetryAttempt => _executionContext?.Envelope.RetryAttempt ?? 0;
 
     /// <summary>
     /// Checks if the current message is a retry attempt.
     /// </summary>
-    public bool IsRetryAttempt => _executionContext?.RetryAttempt > 0;
+    public bool IsRetryAttempt => CurrentRetryAttempt > 0;
 
     /// <summary>
     /// Records telemetry for the current consumer operation.
@@ -220,9 +196,9 @@ public sealed class TenantMessageConsumerScope : IDisposable
             consumerName,
             DateTime.UtcNow,
             _executionContext?.TenantId ?? "Unknown",
-            _executionContext?.RetryAttempt ?? 0);
+            CurrentRetryAttempt);
 
-        var cacheKey = $"telemetry:{Guid.NewGuid()}";
+        var cacheKey = $"telemetry:consumer:{Guid.NewGuid()}";
         _telemetryCache.Set(cacheKey, entry, TimeSpan.FromMinutes(30));
     }
 
@@ -273,11 +249,8 @@ public sealed class TenantMessageConsumerScopeFactory : ITenantMessageConsumerSc
         ILogger<TenantMessageConsumerScope> logger,
         IMemoryCache cache)
     {
-        ArgumentNullException.ThrowIfNull(logger);
-        ArgumentNullException.ThrowIfNull(cache);
-
-        _logger = logger;
-        _cache = cache;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
     /// <inheritdoc />

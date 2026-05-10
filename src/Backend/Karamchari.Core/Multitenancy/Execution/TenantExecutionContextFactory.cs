@@ -7,11 +7,21 @@ using Microsoft.AspNetCore.Http;
 
 namespace Karamchari.Core.Multitenancy.Execution;
 
+/// <summary>
+/// Factory for creating <see cref="TenantExecutionEnvelope"/> and <see cref="TenantExecutionContext"/>
+/// from various runtime sources like HTTP requests, message consumers, and background jobs.
+/// </summary>
 public sealed partial class TenantExecutionContextFactory
 {
     [GeneratedRegex(TenantConstants.TenantIdPattern, RegexOptions.CultureInvariant | RegexOptions.Singleline)]
     private static partial Regex TenantIdRegex();
 
+    /// <summary>
+    /// Creates a tenant execution envelope from an HTTP context.
+    /// </summary>
+    /// <param name="httpContext">The current HTTP context.</param>
+    /// <param name="tenantId">The validated tenant identifier.</param>
+    /// <returns>A new tenant execution envelope.</returns>
     public TenantExecutionEnvelope CreateFromHttpContext(HttpContext httpContext, string tenantId)
     {
         ArgumentNullException.ThrowIfNull(httpContext);
@@ -35,14 +45,20 @@ public sealed partial class TenantExecutionContextFactory
         };
     }
 
+    /// <summary>
+    /// Creates a tenant execution envelope from a MassTransit consume context.
+    /// </summary>
+    /// <param name="consumeContext">The MassTransit consume context.</param>
+    /// <param name="tenantId">The validated tenant identifier.</param>
+    /// <returns>A new tenant execution envelope.</returns>
     public TenantExecutionEnvelope CreateFromConsumeContext(ConsumeContext consumeContext, string tenantId)
     {
         ArgumentNullException.ThrowIfNull(consumeContext);
         ValidateTenantId(tenantId);
 
-        var correlationId = consumeContext.CorrelationId ?? Guid.NewGuid();
-        var requestId = Guid.NewGuid();
-        var messageId = consumeContext.MessageId ?? Guid.NewGuid();
+        var correlationId = consumeContext.CorrelationId?.ToString() ?? Guid.NewGuid().ToString();
+        var requestId = consumeContext.MessageId?.ToString() ?? Guid.NewGuid().ToString();
+        var messageId = consumeContext.MessageId?.ToString();
         var contentHash = ComputeContentHash(consumeContext);
 
         return new TenantExecutionEnvelope(
@@ -52,17 +68,25 @@ public sealed partial class TenantExecutionContextFactory
             ExecutionSource.MessageConsumer)
         {
             MessageId = messageId,
-            ContentHash = contentHash
+            ContentHash = contentHash,
+            TraceId = GetTraceId(),
+            SpanId = GetSpanId()
         };
     }
 
+    /// <summary>
+    /// Creates a tenant execution envelope for a background job.
+    /// </summary>
+    /// <param name="tenantId">The validated tenant identifier.</param>
+    /// <param name="jobId">The unique job identifier.</param>
+    /// <returns>A new tenant execution envelope.</returns>
     public TenantExecutionEnvelope CreateForBackgroundJob(string tenantId, string jobId)
     {
         ValidateTenantId(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(jobId);
 
-        var correlationId = Guid.NewGuid();
-        var requestId = Guid.NewGuid();
+        var correlationId = Guid.NewGuid().ToString();
+        var requestId = Guid.NewGuid().ToString();
 
         var metadata = new Dictionary<string, string>
         {
@@ -75,16 +99,26 @@ public sealed partial class TenantExecutionContextFactory
             requestId,
             ExecutionSource.BackgroundJob)
         {
-            ReplayMetadata = metadata
+            ReplayMetadata = metadata,
+            TraceId = GetTraceId(),
+            SpanId = GetSpanId()
         };
     }
 
-    public TenantExecutionEnvelope CreateForSaga(string tenantId, string sagaId, Guid correlationId)
+    /// <summary>
+    /// Creates a tenant execution envelope for a saga orchestration.
+    /// </summary>
+    /// <param name="tenantId">The validated tenant identifier.</param>
+    /// <param name="sagaId">The unique saga identifier.</param>
+    /// <param name="correlationId">The correlation ID associated with the saga.</param>
+    /// <returns>A new tenant execution envelope.</returns>
+    public TenantExecutionEnvelope CreateForSaga(string tenantId, string sagaId, string correlationId)
     {
         ValidateTenantId(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(sagaId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(correlationId);
 
-        var requestId = Guid.NewGuid();
+        var requestId = Guid.NewGuid().ToString();
 
         var metadata = new Dictionary<string, string>
         {
@@ -97,16 +131,24 @@ public sealed partial class TenantExecutionContextFactory
             requestId,
             ExecutionSource.SagaOrchestration)
         {
-            ReplayMetadata = metadata
+            ReplayMetadata = metadata,
+            TraceId = GetTraceId(),
+            SpanId = GetSpanId()
         };
     }
 
+    /// <summary>
+    /// Creates a tenant execution envelope for a database migration.
+    /// </summary>
+    /// <param name="tenantId">The validated tenant identifier.</param>
+    /// <param name="version">The migration version being applied.</param>
+    /// <returns>A new tenant execution envelope.</returns>
     public TenantExecutionEnvelope CreateForMigration(string tenantId, long version)
     {
         ValidateTenantId(tenantId);
 
-        var correlationId = Guid.NewGuid();
-        var requestId = Guid.NewGuid();
+        var correlationId = Guid.NewGuid().ToString();
+        var requestId = Guid.NewGuid().ToString();
 
         var metadata = new Dictionary<string, string>
         {
@@ -119,10 +161,18 @@ public sealed partial class TenantExecutionContextFactory
             requestId,
             ExecutionSource.Migration)
         {
-            ReplayMetadata = metadata
+            ReplayMetadata = metadata,
+            TraceId = GetTraceId(),
+            SpanId = GetSpanId()
         };
     }
 
+    /// <summary>
+    /// Creates a replay context from an original envelope, incrementing attempt counts.
+    /// </summary>
+    /// <param name="original">The original execution envelope.</param>
+    /// <param name="attempt">The current retry/replay attempt number.</param>
+    /// <returns>A new tenant execution envelope for the replay attempt.</returns>
     public TenantExecutionEnvelope CreateReplayContext(TenantExecutionEnvelope original, int attempt)
     {
         ArgumentNullException.ThrowIfNull(original);
@@ -132,13 +182,12 @@ public sealed partial class TenantExecutionContextFactory
             throw new ArgumentOutOfRangeException(nameof(attempt), "Attempt must be non-negative.");
         }
 
-        var requestId = Guid.NewGuid();
-        var metadata = new Dictionary<string, string>(original.ReplayMetadata)
-        {
-            { "OriginalRequestId", original.RequestId.ToString() },
-            { "OriginalTimestamp", original.Timestamp.ToString("O", CultureInfo.InvariantCulture) },
-            { "RetryAttempt", attempt.ToString(CultureInfo.InvariantCulture) }
-        };
+        var requestId = Guid.NewGuid().ToString();
+        var metadata = new Dictionary<string, string>(original.ReplayMetadata);
+
+        metadata["OriginalRequestId"] = original.RequestId;
+        metadata["OriginalTimestamp"] = original.Timestamp.ToString("O", CultureInfo.InvariantCulture);
+        metadata["RetryAttempt"] = attempt.ToString(CultureInfo.InvariantCulture);
 
         return original.With(
             RequestId: requestId,
@@ -162,28 +211,20 @@ public sealed partial class TenantExecutionContextFactory
         }
     }
 
-    private static Guid GetCorrelationId(HttpContext httpContext)
+    private static string GetCorrelationId(HttpContext httpContext)
     {
         var correlationIdHeader = httpContext.Request.Headers["X-Correlation-ID"].FirstOrDefault();
-        if (!string.IsNullOrWhiteSpace(correlationIdHeader)
-            && Guid.TryParse(correlationIdHeader, out var correlationId))
-        {
-            return correlationId;
-        }
-
-        return Guid.NewGuid();
+        return !string.IsNullOrWhiteSpace(correlationIdHeader)
+            ? correlationIdHeader
+            : Guid.NewGuid().ToString();
     }
 
-    private static Guid GetRequestId(HttpContext httpContext)
+    private static string GetRequestId(HttpContext httpContext)
     {
         var requestIdHeader = httpContext.Request.Headers["X-Request-ID"].FirstOrDefault();
-        if (!string.IsNullOrWhiteSpace(requestIdHeader)
-            && Guid.TryParse(requestIdHeader, out var requestId))
-        {
-            return requestId;
-        }
-
-        return Guid.NewGuid();
+        return !string.IsNullOrWhiteSpace(requestIdHeader)
+            ? requestIdHeader
+            : Guid.NewGuid().ToString();
     }
 
     private static string? GetTraceId()
@@ -211,8 +252,8 @@ public sealed partial class TenantExecutionContextFactory
     {
         try
         {
-            var messageId = consumeContext.MessageId ?? Guid.NewGuid();
-            var messageBytes = System.Text.Encoding.UTF8.GetBytes(messageId.ToString());
+            var messageId = consumeContext.MessageId?.ToString() ?? Guid.NewGuid().ToString();
+            var messageBytes = System.Text.Encoding.UTF8.GetBytes(messageId);
             return TenantExecutionEnvelope.ComputeContentHash(messageBytes);
         }
         catch

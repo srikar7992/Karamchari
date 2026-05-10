@@ -175,7 +175,7 @@ public sealed class RetryStormGenerator
 
                 await Task.Delay(delay);
 
-                var backoffViolated = delay < baseDelay * Math.Pow(2, attempt - 2);
+                var backoffViolated = immediateRetry || delay < baseDelay * Math.Pow(2, attempt - 2);
                 if (backoffViolated && attempt > 1)
                 {
                     state.TotalBackoffViolations++;

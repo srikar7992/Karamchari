@@ -5,24 +5,35 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Persistence.Tenant;
 
+/// <summary>
+/// Provides validation and diagnostic capabilities for SQL SESSION_CONTEXT,
+/// ensuring that the connection is correctly scoped to the expected tenant.
+/// </summary>
 public sealed class TenantSessionContextValidator
 {
     private const string SessionContextKey = "TenantId";
     private readonly ILogger<TenantSessionContextValidator> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantSessionContextValidator"/> class.
+    /// </summary>
+    /// <param name="logger">The logger for validation events.</param>
     public TenantSessionContextValidator(ILogger<TenantSessionContextValidator> logger)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Validates that the provided connection has the expected tenant ID set in its SESSION_CONTEXT.
+    /// </summary>
+    /// <param name="connection">The SQL connection to validate.</param>
+    /// <param name="expectedTenantId">The expected tenant identifier.</param>
+    /// <returns>A validation result indicating success or failure with details.</returns>
     public TenantSessionContextValidationResult Validate(SqlConnection connection, string expectedTenantId)
     {
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug(
-                "Validating SESSION_CONTEXT for expected tenant {ExpectedTenantId}",
-                expectedTenantId);
-        }
+        _logger.LogDebug(
+            "Validating SESSION_CONTEXT for expected tenant {ExpectedTenantId}",
+            expectedTenantId);
 
         var result = new TenantSessionContextValidationResult();
 
@@ -57,12 +68,9 @@ public sealed class TenantSessionContextValidator
                 return result;
             }
 
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug(
-                    "SESSION_CONTEXT validation succeeded for tenant {TenantId}",
-                    expectedTenantId);
-            }
+            _logger.LogDebug(
+                "SESSION_CONTEXT validation succeeded for tenant {TenantId}",
+                expectedTenantId);
         }
         catch (Exception ex)
         {
@@ -74,15 +82,18 @@ public sealed class TenantSessionContextValidator
                     ex.Message));
             result.Exception = ex;
 
-            if (_logger.IsEnabled(LogLevel.Error))
-            {
-                _logger.LogError(ex, "Error validating SESSION_CONTEXT");
-            }
+            _logger.LogError(ex, "Error validating SESSION_CONTEXT");
         }
 
         return result;
     }
 
+    /// <summary>
+    /// Validates the connection and performs additional checks for connection pool contamination.
+    /// </summary>
+    /// <param name="connection">The SQL connection.</param>
+    /// <param name="expectedTenantId">The expected tenant ID.</param>
+    /// <returns>A validation result with diagnostic information.</returns>
     public TenantSessionContextValidationResult ValidateWithContaminationCheck(SqlConnection connection, string expectedTenantId)
     {
         var result = Validate(connection, expectedTenantId);
@@ -162,6 +173,9 @@ public sealed class TenantSessionContextValidator
         return connection.ConnectionString.Contains("Pooling=true", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Generates a human-readable diagnostic report for a connection's session context state.
+    /// </summary>
     public string GenerateDiagnosticsReport(SqlConnection connection, string expectedTenantId)
     {
         var result = ValidateWithContaminationCheck(connection, expectedTenantId);
@@ -204,28 +218,60 @@ public sealed class TenantSessionContextValidator
     }
 }
 
+/// <summary>
+/// Possible error types during session context validation.
+/// </summary>
 public enum TenantSessionContextError
 {
+    /// <summary>No error occurred.</summary>
     None,
+    /// <summary>The session context was not set on the connection.</summary>
     SessionContextNotSet,
+    /// <summary>The tenant ID in session context does not match expected ID.</summary>
     TenantMismatch,
+    /// <summary>An unexpected error occurred during validation.</summary>
     UnexpectedError
 }
 
+/// <summary>
+/// Result of a tenant session context validation attempt.
+/// </summary>
 public sealed class TenantSessionContextValidationResult
 {
+    /// <summary>Gets whether the validation passed.</summary>
     public bool IsValid { get; private set; } = true;
+
+    /// <summary>Gets whether an error occurred.</summary>
     public bool HasError => Error != TenantSessionContextError.None;
+
+    /// <summary>Gets the specific error type.</summary>
     public TenantSessionContextError Error { get; private set; }
+
+    /// <summary>Gets the error message, if any.</summary>
     public string? ErrorMessage { get; private set; }
+
+    /// <summary>Gets or sets the expected tenant ID.</summary>
     public string? ExpectedTenantId { get; set; }
+
+    /// <summary>Gets or sets the actual tenant ID found.</summary>
     public string? ActualTenantId { get; set; }
+
+    /// <summary>Gets or sets the query execution time in milliseconds.</summary>
     public int? QueryExecutionTimeMs { get; set; }
+
+    /// <summary>Gets or sets the SQL error number if a database error occurred.</summary>
     public int? SqlErrorNumber { get; set; }
+
+    /// <summary>Gets or sets the SQL error message.</summary>
     public string? SqlErrorMessage { get; set; }
+
+    /// <summary>Gets or sets the exception that occurred during validation.</summary>
     public Exception? Exception { get; set; }
+
+    /// <summary>Gets the collection of diagnostic messages.</summary>
     public List<string> Diagnostics { get; } = new();
 
+    /// <summary>Marks the result as an error.</summary>
     public void MarkError(TenantSessionContextError error, string message)
     {
         Error = error;
@@ -233,11 +279,13 @@ public sealed class TenantSessionContextValidationResult
         IsValid = false;
     }
 
+    /// <summary>Adds a diagnostic message.</summary>
     public void AddDiagnostic(string diagnostic)
     {
         Diagnostics.Add(diagnostic);
     }
 
+    /// <summary>Throws a <see cref="TenantSessionContextValidationException"/> if the result is invalid.</summary>
     public void ThrowIfInvalid()
     {
         if (!IsValid)
@@ -247,10 +295,17 @@ public sealed class TenantSessionContextValidationResult
     }
 }
 
+/// <summary>
+/// Exception thrown when tenant session context validation fails.
+/// </summary>
 public sealed class TenantSessionContextValidationException : Exception
 {
+    /// <summary>Gets the detailed validation result.</summary>
     public TenantSessionContextValidationResult ValidationResult { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantSessionContextValidationException"/> class.
+    /// </summary>
     public TenantSessionContextValidationException(TenantSessionContextValidationResult result)
         : base(result.ErrorMessage)
     {

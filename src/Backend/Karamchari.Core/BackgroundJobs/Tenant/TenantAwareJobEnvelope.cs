@@ -25,12 +25,12 @@ public sealed partial record TenantAwareJobEnvelope
     /// <summary>
     /// Gets or sets the correlation identifier for tracking related operations across services.
     /// </summary>
-    public Guid CorrelationId { get; init; }
+    public string CorrelationId { get; init; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the request identifier that originated the job.
     /// </summary>
-    public Guid RequestId { get; init; }
+    public string RequestId { get; init; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the execution source that indicates how the job was initiated.

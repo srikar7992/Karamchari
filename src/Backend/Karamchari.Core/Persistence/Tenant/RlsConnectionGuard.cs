@@ -1,18 +1,21 @@
 using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Karamchari.Core.Persistence.Tenant;
 
+/// <summary>
+/// Defensive guard for database connections that ensures SESSION_CONTEXT is correctly established
+/// for the current tenant. Provides protection against connection pool contamination.
+/// </summary>
 public sealed class RlsConnectionGuard : IDisposable
 {
     private const string SessionContextKey = "TenantId";
     private static readonly ConcurrentDictionary<int, TrackedConnection> _trackedConnections = new();
 
-    private readonly SqlConnection _connection;
+    private readonly DbConnection _connection;
     private readonly string _tenantId;
     private readonly ILogger<RlsConnectionGuard> _logger;
     private bool _disposed;
@@ -23,23 +26,28 @@ public sealed class RlsConnectionGuard : IDisposable
         public int AcquireCount { get; set; }
     }
 
-    private RlsConnectionGuard(SqlConnection connection, string tenantId, ILogger<RlsConnectionGuard> logger)
+    private RlsConnectionGuard(DbConnection connection, string tenantId, ILogger<RlsConnectionGuard> logger)
     {
         _connection = connection;
         _tenantId = tenantId;
         _logger = logger;
     }
 
-    public static RlsConnectionGuard Acquire(SqlConnection connection, string tenantId)
+    /// <summary>
+    /// Acquires a guard for the provided connection, establishing tenant session context.
+    /// </summary>
+    /// <param name="connection">The database connection.</param>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <returns>A new <see cref="RlsConnectionGuard"/> instance.</returns>
+    public static RlsConnectionGuard Acquire(DbConnection connection, string tenantId)
     {
         var logger = GetLogger(connection);
         ClearSessionContext(connection, logger);
         SetSessionContext(connection, tenantId, logger);
         ValidateSessionContext(connection, tenantId, logger);
 
-        var trackedConnections = _trackedConnections;
         var connectionHash = connection.GetHashCode();
-        trackedConnections.AddOrUpdate(
+        _trackedConnections.AddOrUpdate(
             connectionHash,
             _ => new TrackedConnection { TenantId = tenantId, AcquireCount = 1 },
             (_, existing) =>
@@ -60,6 +68,11 @@ public sealed class RlsConnectionGuard : IDisposable
         return new RlsConnectionGuard(connection, tenantId, logger);
     }
 
+    /// <summary>
+    /// Validates that the connection's session context matches the expected tenant.
+    /// </summary>
+    /// <param name="expectedTenantId">The expected tenant identifier.</param>
+    /// <exception cref="TenantSessionContextMismatchException">Thrown when a mismatch is detected.</exception>
     public void ValidateSessionContext(string expectedTenantId)
     {
         ThrowIfDisposed();
@@ -93,6 +106,9 @@ public sealed class RlsConnectionGuard : IDisposable
         }
     }
 
+    /// <summary>
+    /// Manually clears the session context from the connection.
+    /// </summary>
     public void ClearSessionContext()
     {
         ThrowIfDisposed();
@@ -109,8 +125,11 @@ public sealed class RlsConnectionGuard : IDisposable
         }
     }
 
-    private static void ClearSessionContext(SqlConnection connection, ILogger<RlsConnectionGuard> logger)
+    private static void ClearSessionContext(DbConnection connection, ILogger<RlsConnectionGuard>? logger)
     {
+        ArgumentNullException.ThrowIfNull(connection);
+        logger ??= NullLogger<RlsConnectionGuard>.Instance;
+
         if (connection.State != ConnectionState.Open)
         {
             if (logger.IsEnabled(LogLevel.Trace))
@@ -121,6 +140,8 @@ public sealed class RlsConnectionGuard : IDisposable
         }
 
         using var cmd = connection.CreateCommand();
+        if (cmd == null) return;
+
         cmd.CommandText = "EXEC sp_set_session_context @key = @key, @value = NULL;";
         cmd.CommandType = CommandType.Text;
 
@@ -138,14 +159,19 @@ public sealed class RlsConnectionGuard : IDisposable
         }
     }
 
-    private static void SetSessionContext(SqlConnection connection, string tenantId, ILogger<RlsConnectionGuard> logger)
+    private static void SetSessionContext(DbConnection connection, string tenantId, ILogger<RlsConnectionGuard>? logger)
     {
+        ArgumentNullException.ThrowIfNull(connection);
+        logger ??= NullLogger<RlsConnectionGuard>.Instance;
+
         if (connection.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Cannot set SESSION_CONTEXT on a closed connection.");
         }
 
         using var cmd = connection.CreateCommand();
+        if (cmd == null) throw new InvalidOperationException("Failed to create database command.");
+
         cmd.CommandText = "EXEC sp_set_session_context @key = @key, @value = @value;";
         cmd.CommandType = CommandType.Text;
 
@@ -169,14 +195,19 @@ public sealed class RlsConnectionGuard : IDisposable
         }
     }
 
-    private static void ValidateSessionContext(SqlConnection connection, string expectedTenantId, ILogger<RlsConnectionGuard> logger)
+    private static void ValidateSessionContext(DbConnection connection, string expectedTenantId, ILogger<RlsConnectionGuard>? logger)
     {
+        ArgumentNullException.ThrowIfNull(connection);
+        logger ??= NullLogger<RlsConnectionGuard>.Instance;
+
         if (connection.State != ConnectionState.Open)
         {
             throw new InvalidOperationException("Cannot verify SESSION_CONTEXT on a closed connection.");
         }
 
         using var cmd = connection.CreateCommand();
+        if (cmd == null) throw new InvalidOperationException("Failed to create database command.");
+
         cmd.CommandText = "SELECT SESSION_CONTEXT(N'TenantId') AS TenantId;";
         cmd.CommandType = CommandType.Text;
 
@@ -199,7 +230,7 @@ public sealed class RlsConnectionGuard : IDisposable
         }
     }
 
-    private static ILogger<RlsConnectionGuard> GetLogger(SqlConnection connection)
+    private static ILogger<RlsConnectionGuard> GetLogger(DbConnection connection)
     {
         return NullLogger<RlsConnectionGuard>.Instance;
     }
@@ -212,6 +243,7 @@ public sealed class RlsConnectionGuard : IDisposable
         }
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         if (_disposed)
@@ -229,11 +261,20 @@ public sealed class RlsConnectionGuard : IDisposable
     }
 }
 
+/// <summary>
+/// Exception thrown when the session context tenant ID does not match the expected identifier.
+/// </summary>
 public sealed class TenantSessionContextMismatchException : Exception
 {
+    /// <summary>Gets the expected tenant identifier.</summary>
     public string ExpectedTenantId { get; }
+
+    /// <summary>Gets the actual tenant identifier found in session context.</summary>
     public string? ActualTenantId { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantSessionContextMismatchException"/> class.
+    /// </summary>
     public TenantSessionContextMismatchException(string expectedTenantId, string? actualTenantId, string message)
         : base(message)
     {

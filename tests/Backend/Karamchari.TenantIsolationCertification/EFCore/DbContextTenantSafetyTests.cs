@@ -73,7 +73,7 @@ public sealed class DbContextTenantSafetyTests : IDisposable
     public async Task DbContext_ConcurrentSaveChanges_MustNotCorrupt()
     {
         var tenants = new[] { "acme", "globex", "initech" };
-        var saveResults = new List<(string Tenant, int SaveCount, bool Success)>();
+        var saveResults = new System.Collections.Concurrent.ConcurrentBag<(string Tenant, int SaveCount, bool Success)>();
 
         var tasks = tenants.Select(async tenant =>
         {

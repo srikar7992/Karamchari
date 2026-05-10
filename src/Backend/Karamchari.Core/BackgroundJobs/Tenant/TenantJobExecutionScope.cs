@@ -7,9 +7,8 @@ using Microsoft.Extensions.Logging;
 namespace Karamchari.Core.BackgroundJobs.Tenant;
 
 /// <summary>
-/// Represents a scoped tenant execution context for background jobs.
-/// Manages tenant context lifecycle including creation, validation, and disposal.
-/// Implements IBackgroundTenantScope to provide tenant isolation for background job processing.
+/// A scoped container for tenant background job execution.
+/// Manages the restoration and validation of tenant execution context for jobs.
 /// </summary>
 public sealed class TenantJobExecutionScope : IBackgroundTenantScope
 {
@@ -23,61 +22,14 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
     /// </summary>
     private static readonly TimeSpan DefaultMaxContextAge = TimeSpan.FromHours(24);
 
-    /// <summary>
-    /// Serializer used to convert tenant envelopes to and from serialized format.
-    /// </summary>
-    private readonly ITenantJobContextSerializer _serializer;
-
-    /// <summary>
-    /// Provider used to resolve tenant information when needed.
-    /// </summary>
-    private readonly ITenantProvider _tenantProvider;
-
-    /// <summary>
-    /// Logger instance for logging scope operations.
-    /// </summary>
-    private readonly ILogger<TenantJobExecutionScope> _logger;
-
-    /// <summary>
-    /// The tenant execution envelope managed by this scope.
-    /// </summary>
     private readonly TenantExecutionEnvelope _envelope;
-
-    /// <summary>
-    /// The serialized context string used for persistence or transmission.
-    /// </summary>
     private readonly string _serializedContext;
-
-    /// <summary>
-    /// Indicates whether this scope owns the tenant context and should dispose of it.
-    /// </summary>
+    private readonly ITenantJobContextSerializer _serializer;
+    private readonly ITenantProvider _tenantProvider;
+    private readonly ILogger<TenantJobExecutionScope> _logger;
     private readonly bool _ownsContext;
-
-    /// <summary>
-    /// Tracks whether the scope has been disposed.
-    /// </summary>
     private bool _disposed;
 
-    /// <summary>
-    /// Gets the current tenant identifier from the managed envelope.
-    /// </summary>
-    public string CurrentTenantId => _envelope.TenantId;
-
-    /// <summary>
-    /// Gets a value indicating whether the current tenant context is valid and not disposed.
-    /// </summary>
-    public bool IsValid => _envelope != null && !_disposed;
-
-    /// <summary>
-    /// Initializes a new instance of the TenantJobExecutionScope class.
-    /// </summary>
-    /// <param name="envelope">The tenant execution envelope to manage.</param>
-    /// <param name="serializedContext">The serialized context string for persistence.</param>
-    /// <param name="serializer">The tenant job context serializer for serialization operations.</param>
-    /// <param name="tenantProvider">The tenant provider for resolving tenant information.</param>
-    /// <param name="logger">The logger instance for logging operations.</param>
-    /// <param name="ownsContext">Indicates whether this scope owns the context and should dispose of it.</param>
-    /// <exception cref="ArgumentNullException">Thrown when any required parameter is null.</exception>
     private TenantJobExecutionScope(
         TenantExecutionEnvelope envelope,
         string serializedContext,
@@ -87,13 +39,23 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         bool ownsContext = true)
     {
         _envelope = envelope ?? throw new ArgumentNullException(nameof(envelope));
+        _serializedContext = serializedContext ?? throw new ArgumentNullException(nameof(serializedContext));
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         _tenantProvider = tenantProvider ?? throw new ArgumentNullException(nameof(tenantProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _serializedContext = serializedContext ?? throw new ArgumentNullException(nameof(serializedContext));
         _ownsContext = ownsContext;
 
-        SetAsyncLocal(envelope);
+        if (_ownsContext)
+        {
+            SetAsyncLocal(_envelope);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(
+                    "Established tenant job execution scope for {TenantId}, CorrelationId {CorrelationId}",
+                    _envelope.TenantId,
+                    _envelope.CorrelationId);
+            }
+        }
     }
 
     /// <summary>
@@ -111,8 +73,8 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         var tenant = tenantProvider.GetTenant();
         var envelope = new TenantExecutionEnvelope(
             tenant.TenantId,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.BackgroundJob)
         {
             Timestamp = DateTime.UtcNow
@@ -154,6 +116,9 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         return new TenantJobExecutionScope(envelope, serialized, serializer, tenantProvider, logger);
     }
 
+    /// <summary>
+    /// Creates a scope from a serialized context string.
+    /// </summary>
     public static TenantJobExecutionScope FromSerialized(
         string serializedContext,
         ITenantJobContextSerializer serializer,
@@ -170,6 +135,13 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         return new TenantJobExecutionScope(envelope, serializedContext, serializer, tenantProvider, logger);
     }
 
+    /// <inheritdoc/>
+    public string CurrentTenantId => _envelope.TenantId;
+
+    /// <inheritdoc/>
+    public bool IsValid => !_disposed && !string.IsNullOrWhiteSpace(_envelope.TenantId);
+
+    /// <inheritdoc/>
     public TenantExecutionEnvelope GetCurrentEnvelope()
     {
         if (_disposed)
@@ -180,6 +152,7 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         return _envelope;
     }
 
+    /// <inheritdoc/>
     public Task<TenantExecutionEnvelope> GetEnvelopeAsync(CancellationToken ct)
     {
         if (_disposed)
@@ -190,8 +163,10 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         return Task.FromResult(_envelope);
     }
 
+    /// <inheritdoc/>
     public string GetSerializedContext() => _serializedContext;
 
+    /// <inheritdoc/>
     public void ValidateTenantId(string expectedTenantId)
     {
         if (_disposed)
@@ -213,6 +188,7 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         }
     }
 
+    /// <inheritdoc/>
     public TenantExecutionEnvelope GetEnvelopeWithIncrementedRetry()
     {
         if (_disposed)
@@ -244,6 +220,7 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         return null;
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         if (_disposed)

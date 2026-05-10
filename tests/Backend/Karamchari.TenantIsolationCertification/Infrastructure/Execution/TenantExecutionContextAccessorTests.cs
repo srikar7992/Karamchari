@@ -34,24 +34,26 @@ public class TenantExecutionContextAccessorTests : IDisposable
     }
 
     [Fact]
-    public void SetCurrent_ShouldUpdateCurrentContext()
+    public void Establish_ShouldUpdateCurrentContext()
     {
         var envelope = new TenantExecutionEnvelope(
             "acme",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.HttpRequest);
+        var context = new TenantExecutionContext(envelope);
 
-        _accessor.SetCurrent(envelope);
+        using var scope = _accessor.Establish(context);
 
-        _accessor.Current.Should().Be(envelope);
-        _accessor.GetCurrent().Should().Be(envelope);
+        _accessor.Current.Should().Be(context);
+        _accessor.GetCurrent().Should().Be(context);
+        _accessor.Current?.Envelope.Should().Be(envelope);
     }
 
     [Fact]
-    public void SetCurrent_WithNull_ShouldThrowArgumentNullException()
+    public void Establish_WithNull_ShouldThrowArgumentNullException()
     {
-        var act = () => _accessor.SetCurrent(null!);
+        var act = () => _accessor.Establish(null!);
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -61,62 +63,36 @@ public class TenantExecutionContextAccessorTests : IDisposable
     {
         var envelope = new TenantExecutionEnvelope(
             "acme",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.HttpRequest);
+        var context = new TenantExecutionContext(envelope);
 
-        _accessor.SetCurrent(envelope);
+        using (var scope = _accessor.Establish(context))
+        {
+            _accessor.Current.Should().NotBeNull();
+        }
+
         _accessor.Clear();
 
         _accessor.Current.Should().BeNull();
     }
 
     [Fact]
-    public void SetCurrent_ShouldIncrementNestingDepth()
+    public async Task Establish_ShouldPropagateAcrossAsyncBoundary()
     {
         var envelope = new TenantExecutionEnvelope(
             "acme",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.HttpRequest);
+        var context = new TenantExecutionContext(envelope);
 
-        _accessor.SetCurrent(envelope);
-        _accessor.SetCurrent(envelope);
-        _accessor.SetCurrent(envelope);
-
-        _accessor.NestingDepth.Should().Be(3);
-    }
-
-    [Fact]
-    public void Clear_ShouldDecrementNestingDepth()
-    {
-        var envelope = new TenantExecutionEnvelope(
-            "acme",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            ExecutionSource.HttpRequest);
-
-        _accessor.SetCurrent(envelope);
-        _accessor.SetCurrent(envelope);
-        _accessor.Clear();
-
-        _accessor.NestingDepth.Should().Be(1);
-    }
-
-    [Fact]
-    public async Task SetCurrent_ShouldPropagateAcrossAsyncBoundary()
-    {
-        var envelope = new TenantExecutionEnvelope(
-            "acme",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            ExecutionSource.HttpRequest);
-
-        _accessor.SetCurrent(envelope);
+        using var scope = _accessor.Establish(context);
 
         await Task.Delay(1);
 
-        _accessor.Current.Should().Be(envelope);
+        _accessor.Current.Should().Be(context);
     }
 
     [Fact]
@@ -124,13 +100,15 @@ public class TenantExecutionContextAccessorTests : IDisposable
     {
         var envelope = new TenantExecutionEnvelope(
             "acme",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.HttpRequest);
+        var context = new TenantExecutionContext(envelope);
 
-        _accessor.SetCurrent(envelope);
-
-        _accessor.Clear();
+        using (var scope = _accessor.Establish(context))
+        {
+            _accessor.Clear();
+        }
 
         await Task.Delay(1);
 
@@ -142,21 +120,23 @@ public class TenantExecutionContextAccessorTests : IDisposable
     {
         var envelope1 = new TenantExecutionEnvelope(
             "tenant1",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.HttpRequest);
+        var context1 = new TenantExecutionContext(envelope1);
 
         var envelope2 = new TenantExecutionEnvelope(
             "tenant2",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.MessageConsumer);
+        var context2 = new TenantExecutionContext(envelope2);
 
-        _accessor.SetCurrent(envelope1);
+        using var scope1 = _accessor.Establish(context1);
 
         var task1 = Task.Run(() =>
         {
-            _accessor.SetCurrent(envelope2);
+            using var scope2 = _accessor.Establish(context2);
             return _accessor.Current;
         });
 
@@ -170,7 +150,7 @@ public class TenantExecutionContextAccessorTests : IDisposable
         var result1 = await task1;
         var result2 = await task2;
 
-        result1.Should().Be(envelope2);
-        result2.Should().Be(envelope1);
+        result1.Should().Be(context2);
+        result2.Should().Be(context1);
     }
 }

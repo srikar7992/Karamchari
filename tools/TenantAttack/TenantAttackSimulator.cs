@@ -1,45 +1,91 @@
 namespace TenantAttack;
 
+/// <summary>
+/// Represents a specific security attack vector identified or simulated during tenant isolation testing.
+/// </summary>
 public sealed class AttackVector
 {
+    /// <summary>Gets the unique name of the attack vector.</summary>
     public required string Name { get; init; }
+    
+    /// <summary>Gets the security category of the attack.</summary>
     public required AttackCategory Category { get; init; }
+    
+    /// <summary>Gets the severity level of the attack vector.</summary>
     public required AttackSeverity Severity { get; init; }
+    
+    /// <summary>Gets a detailed description of the attack and its potential impact.</summary>
     public required string Description { get; init; }
+    
+    /// <summary>Gets the path or mechanism used to attempt the exploit.</summary>
     public required string ExploitPath { get; init; }
+    
+    /// <summary>Gets a value indicating whether the attack was successful (vulnerability exists).</summary>
     public required bool Exploitable { get; init; }
+    
+    /// <summary>Gets an optional proof of concept for the attack.</summary>
     public string? ProofOfConcept { get; init; }
+    
+    /// <summary>Gets details on how the attack was mitigated or should be mitigated.</summary>
     public string? Mitigation { get; init; }
 }
 
+/// <summary>
+/// Categories of tenant isolation attacks.
+/// </summary>
 public enum AttackCategory
 {
+    /// <summary>Attempt to discover existing tenants.</summary>
     TenantEnumeration,
+    /// <summary>Attempt to reuse an expired or captured message.</summary>
     ReplayAttack,
-    JWT tampering,
+    /// <summary>Attempt to modify JWT claims.</summary>
+    JWTTampering,
+    /// <summary>Attempt to gain unauthorized permissions within or across tenants.</summary>
     PrivilegeEscalation,
+    /// <summary>Attempt to execute unauthorized SQL.</summary>
     SQLInjection,
+    /// <summary>Attempt to act as another user or tenant.</summary>
     ImpersonationAbuse,
+    /// <summary>Attempt to forge message headers.</summary>
     MassTransitHeaderManipulation,
+    /// <summary>Attempt to corrupt or leak cache data.</summary>
     CachePoisoning,
+    /// <summary>Attempt to leak context through database connections.</summary>
     ConnectionPoolContamination,
+    /// <summary>Attempt to inject malicious schema names.</summary>
     SchemaInjection,
+    /// <summary>Attempt to bypass Row Level Security.</summary>
     RLSSessionBypass
 }
 
+/// <summary>
+/// Severity levels for tenant isolation vulnerabilities.
+/// </summary>
 public enum AttackSeverity
 {
+    /// <summary>Low risk, limited impact.</summary>
     Low,
+    /// <summary>Medium risk, potential data exposure.</summary>
     Medium,
+    /// <summary>High risk, cross-tenant exposure.</summary>
     High,
+    /// <summary>Critical risk, total isolation breakdown.</summary>
     Critical
 }
 
+/// <summary>
+/// Simulator for executing and recording various tenant isolation attack vectors.
+/// Used for red-teaming and security certification.
+/// </summary>
 public sealed class TenantAttackSimulator
 {
     private readonly List<AttackVector> _discoveredVectors = new();
     private readonly List<string> _attackLog = new();
 
+    /// <summary>
+    /// Simulates an attempt to enumerate all tenants in the system.
+    /// </summary>
     public void SimulateTenantEnumeration()
     {
         var vector = new AttackVector
@@ -57,6 +103,11 @@ public sealed class TenantAttackSimulator
         LogAttack("TENANT_ENUMERATION_ATTEMPT", vector);
     }
 
+    /// <summary>
+    /// Simulates a replay attack using a captured token.
+    /// </summary>
+    /// <param name="tenantId">The target tenant ID.</param>
+    /// <param name="tokenSignature">The signature of the token being replayed.</param>
     public void SimulateReplayAttack(string tenantId, string tokenSignature)
     {
         var vector = new AttackVector
@@ -74,15 +125,20 @@ public sealed class TenantAttackSimulator
         LogAttack("REPLAY_ATTEMPT", vector);
     }
 
-    public void SimulateJWT tampering(string tenantId, string maliciousClaim)
+    /// <summary>
+    /// Simulates an attempt to tamper with JWT claims.
+    /// </summary>
+    /// <param name="tenantId">The target tenant ID.</param>
+    /// <param name="maliciousClaim">The claim being injected.</param>
+    public void SimulateJWTTampering(string tenantId, string maliciousClaim)
     {
         var vector = new AttackVector
         {
             Name = "JWTTampering",
-            Category = AttackCategory.JWT tampering,
+            Category = AttackCategory.JWTTampering,
             Severity = AttackSeverity.Critical,
             Description = $"Inject malicious claim {maliciousClaim} into JWT for tenant {tenantId}",
-            ExploitPath = $"Modify JWT claims to escalate privileges",
+            ExploitPath = "Modify JWT claims to escalate privileges",
             Exploitable = false,
             Mitigation = "JWT signature validated, tampered tokens rejected"
         };
@@ -91,6 +147,10 @@ public sealed class TenantAttackSimulator
         LogAttack("JWT_TAMPERING_ATTEMPT", vector);
     }
 
+    /// <summary>
+    /// Simulates various SQL injection patterns.
+    /// </summary>
+    /// <param name="tenantId">The tenant ID context.</param>
     public void SimulateSQLInjection(string tenantId)
     {
         var payloads = new[]
@@ -120,6 +180,10 @@ public sealed class TenantAttackSimulator
         LogAttack("SQL_INJECTION_ATTEMPTS", null!);
     }
 
+    /// <summary>
+    /// Simulates connection pool contamination scenarios.
+    /// </summary>
+    /// <param name="tenantIds">Array of tenant IDs to use in the simulation.</param>
     public void SimulateConnectionPoolContamination(string[] tenantIds)
     {
         var vector = new AttackVector
@@ -137,6 +201,10 @@ public sealed class TenantAttackSimulator
         LogAttack("POOL_CONTAMINATION_ATTEMPT", vector);
     }
 
+    /// <summary>
+    /// Simulates an attempt to bypass RLS session context.
+    /// </summary>
+    /// <param name="tenantId">The target tenant ID.</param>
     public void SimulateRLSSessionBypass(string tenantId)
     {
         var vector = new AttackVector
@@ -154,6 +222,10 @@ public sealed class TenantAttackSimulator
         LogAttack("RLS_BYPASS_ATTEMPT", vector);
     }
 
+    /// <summary>
+    /// Simulates a schema name injection attempt.
+    /// </summary>
+    /// <param name="maliciousSchema">The malicious schema name string.</param>
     public void SimulateSchemaInjection(string maliciousSchema)
     {
         var vector = new AttackVector
@@ -171,6 +243,11 @@ public sealed class TenantAttackSimulator
         LogAttack("SCHEMA_INJECTION_ATTEMPT", vector);
     }
 
+    /// <summary>
+    /// Simulates manipulation of MassTransit tenant headers.
+    /// </summary>
+    /// <param name="originalTenant">The original tenant ID.</param>
+    /// <param name="forgedTenant">The forged tenant ID.</param>
     public void SimulateMassTransitHeaderManipulation(string originalTenant, string forgedTenant)
     {
         var vector = new AttackVector
@@ -188,6 +265,12 @@ public sealed class TenantAttackSimulator
         LogAttack("MASSTRANSIT_HEADER_MANIPULATION_ATTEMPT", vector);
     }
 
+    /// <summary>
+    /// Simulates a cache poisoning attempt.
+    /// </summary>
+    /// <param name="tenantId">The target tenant ID.</param>
+    /// <param name="maliciousKey">The key being poisoned.</param>
+    /// <param name="maliciousValue">The malicious value being injected.</param>
     public void SimulateCachePoisoning(string tenantId, string maliciousKey, string maliciousValue)
     {
         var vector = new AttackVector
@@ -205,6 +288,11 @@ public sealed class TenantAttackSimulator
         LogAttack("CACHE_POISONING_ATTEMPT", vector);
     }
 
+    /// <summary>
+    /// Simulates abuse of impersonation capabilities.
+    /// </summary>
+    /// <param name="sourceTenant">The source tenant ID.</param>
+    /// <param name="targetTenant">The target tenant ID being accessed.</param>
     public void SimulateImpersonationAbuse(string sourceTenant, string targetTenant)
     {
         var vector = new AttackVector
@@ -213,7 +301,7 @@ public sealed class TenantAttackSimulator
             Category = AttackCategory.ImpersonationAbuse,
             Severity = AttackSeverity.High,
             Description = $"Attempt impersonation from {sourceTenant} to access {targetTenant}",
-            ExploitPath = $"Use elevated privileges to access cross-tenant resources",
+            ExploitPath = "Use elevated privileges to access cross-tenant resources",
             Exploitable = false,
             Mitigation = "Ownership validation enforced, cross-tenant access blocked"
         };
@@ -222,8 +310,14 @@ public sealed class TenantAttackSimulator
         LogAttack("IMPERSONATION_ABUSE_ATTEMPT", vector);
     }
 
+    /// <summary>
+    /// Gets the collection of simulated attack vectors.
+    /// </summary>
     public IReadOnlyList<AttackVector> GetResults() => _discoveredVectors.AsReadOnly();
 
+    /// <summary>
+    /// Generates a comprehensive attack simulation report.
+    /// </summary>
     public string GenerateAttackReport()
     {
         var sb = new System.Text.StringBuilder();
@@ -253,18 +347,27 @@ public sealed class TenantAttackSimulator
         return sb.ToString();
     }
 
-    private void LogAttack(string attackType, AttackVector vector)
+    private void LogAttack(string attackType, AttackVector? vector)
     {
         var timestamp = DateTime.UtcNow.ToString("O");
         var vectorInfo = vector != null ? $"Vector={vector.Name} Severity={vector.Severity}" : "Multiple vectors";
         _attackLog.Add($"[{timestamp}] {attackType}: {vectorInfo}");
     }
 
+    /// <summary>
+    /// Gets the raw log of simulated attacks.
+    /// </summary>
     public IReadOnlyList<string> GetAttackLog() => _attackLog.AsReadOnly();
 }
 
+/// <summary>
+/// Matrix of potential attack surfaces for tenant isolation.
+/// </summary>
 public sealed class PenetrationTestMatrix
 {
+    /// <summary>
+    /// Generates and prints the penetration test matrix to the console.
+    /// </summary>
     public void GenerateMatrix()
     {
         var attackSurface = new[]

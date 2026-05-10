@@ -1,51 +1,110 @@
 namespace TenantLoad;
 
+/// <summary>
+/// Configuration for a tenant load test campaign.
+/// </summary>
 public sealed class TenantLoadConfig
 {
+    /// <summary>Gets the collection of tenant identifiers to include in the load test.</summary>
     public required string[] TenantIds { get; init; }
+    
+    /// <summary>Gets the number of requests to execute per tenant.</summary>
     public int RequestsPerTenant { get; init; } = 100;
+    
+    /// <summary>Gets the number of tenants to simulate concurrently.</summary>
     public int ConcurrentTenants { get; init; } = 10;
+    
+    /// <summary>Gets the size of request bursts for spike testing.</summary>
     public int BurstSize { get; init; } = 50;
+    
+    /// <summary>Gets the total duration of the load test.</summary>
     public TimeSpan TestDuration { get; init; } = TimeSpan.FromMinutes(5);
+    
+    /// <summary>Gets the load pattern to apply (e.g., Sustained, Spike).</summary>
     public LoadPattern Pattern { get; init; } = LoadPattern.Sustained;
 }
 
+/// <summary>
+/// Load patterns for tenant performance and isolation testing.
+/// </summary>
 public enum LoadPattern
 {
+    /// <summary>Steady stream of requests.</summary>
     Sustained,
+    /// <summary>Periodic bursts of high-volume requests.</summary>
     Burst,
+    /// <summary>Sudden, extreme volume increases.</summary>
     Spike,
+    /// <summary>Long-duration sustained load to detect resource leaks.</summary>
     Soak,
+    /// <summary>Randomly varying load levels.</summary>
     Variable
 }
 
+/// <summary>
+/// Performance and isolation metrics captured for a single tenant during load testing.
+/// </summary>
 public sealed class LoadMetrics
 {
+    /// <summary>Gets the tenant identifier.</summary>
     public required string TenantId { get; init; }
+    
+    /// <summary>Gets total requests executed.</summary>
     public int TotalRequests { get; init; }
+    
+    /// <summary>Gets successfully completed requests.</summary>
     public int SuccessfulRequests { get; init; }
+    
+    /// <summary>Gets failed requests.</summary>
     public int FailedRequests { get; init; }
+    
+    /// <summary>Gets average latency in milliseconds.</summary>
     public double AverageLatencyMs { get; init; }
+    
+    /// <summary>Gets 50th percentile latency.</summary>
     public double P50LatencyMs { get; init; }
+    
+    /// <summary>Gets 95th percentile latency.</summary>
     public double P95LatencyMs { get; init; }
+    
+    /// <summary>Gets 99th percentile latency.</summary>
     public double P99LatencyMs { get; init; }
+    
+    /// <summary>Gets maximum recorded latency.</summary>
     public double MaxLatencyMs { get; init; }
+    
+    /// <summary>Gets throughput in requests per second.</summary>
     public double ThroughputRps { get; init; }
+    
+    /// <summary>Gets the ratio of failed requests to total requests.</summary>
     public double ErrorRate { get; init; }
+    
+    /// <summary>Gets whether isolation was maintained (e.g., no cross-tenant data found).</summary>
     public bool IsolationMaintained { get; init; }
 }
 
+/// <summary>
+/// High-volume load generator for tenant isolation and performance verification.
+/// Simulates hundreds of concurrent tenants to detect "noisy neighbor" effects and race conditions.
+/// </summary>
 public sealed class TenantLoadGenerator
 {
     private readonly TenantLoadConfig _config;
     private readonly List<LoadMetrics> _metrics = new();
     private bool _isRunning;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantLoadGenerator"/> class.
+    /// </summary>
+    /// <param name="config">The load test configuration.</param>
     public TenantLoadGenerator(TenantLoadConfig config)
     {
-        _config = config;
+        _config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
+    /// <summary>
+    /// Asynchronously executes the load test campaign.
+    /// </summary>
     public async Task RunLoadTestAsync(CancellationToken ct = default)
     {
         _isRunning = true;
@@ -59,7 +118,7 @@ public sealed class TenantLoadGenerator
             {
                 _metrics.Add(tenantMetrics);
             }
-        }));
+        }, ct));
 
         await Task.WhenAll(tasks);
 
@@ -95,11 +154,11 @@ public sealed class TenantLoadGenerator
             TotalRequests = _config.RequestsPerTenant,
             SuccessfulRequests = successCount,
             FailedRequests = failCount,
-            AverageLatencyMs = requestLatencies.Average(),
+            AverageLatencyMs = requestLatencies.Any() ? requestLatencies.Average() : 0,
             P50LatencyMs = Percentile(requestLatencies, 0.50),
             P95LatencyMs = Percentile(requestLatencies, 0.95),
             P99LatencyMs = Percentile(requestLatencies, 0.99),
-            MaxLatencyMs = requestLatencies.Max(),
+            MaxLatencyMs = requestLatencies.Any() ? requestLatencies.Max() : 0,
             ThroughputRps = successCount / (_config.RequestsPerTenant * 0.1),
             ErrorRate = failCount / (double)_config.RequestsPerTenant,
             IsolationMaintained = failCount < _config.RequestsPerTenant * 0.01
@@ -108,11 +167,9 @@ public sealed class TenantLoadGenerator
 
     private bool SimulateRequest(string tenantId, int requestId)
     {
-        var simulatedLatency = Random.Shared.NextDouble() * 100;
+        // Placeholder for actual API/Service request
         Thread.SpinWait(Random.Shared.Next(1000, 5000));
-
-        var shouldSucceed = Random.Shared.NextDouble() > 0.001;
-        return shouldSucceed;
+        return Random.Shared.NextDouble() > 0.001;
     }
 
     private static double Percentile(List<double> sortedValues, double percentile)
@@ -128,14 +185,14 @@ public sealed class TenantLoadGenerator
         var totalRequests = _metrics.Sum(m => m.TotalRequests);
         var totalSuccess = _metrics.Sum(m => m.SuccessfulRequests);
         var totalFail = _metrics.Sum(m => m.FailedRequests);
-        var avgLatency = _metrics.Average(m => m.AverageLatencyMs);
-        var maxP99 = _metrics.Max(m => m.P99LatencyMs);
+        var avgLatency = _metrics.Any() ? _metrics.Average(m => m.AverageLatencyMs) : 0;
+        var maxP99 = _metrics.Any() ? _metrics.Max(m => m.P99LatencyMs) : 0;
         var isolationViolations = _metrics.Count(m => !m.IsolationMaintained);
 
         Console.WriteLine("\n=== AGGREGATE LOAD TEST RESULTS ===");
         Console.WriteLine($"Total Requests: {totalRequests:N0}");
-        Console.WriteLine($"Successful: {totalSuccess:N0} ({(totalSuccess / (double)totalRequests):P2})");
-        Console.WriteLine($"Failed: {totalFail:N0} ({(totalFail / (double)totalRequests):P2})");
+        Console.WriteLine($"Successful: {totalSuccess:N0} ({(totalRequests > 0 ? totalSuccess / (double)totalRequests : 0):P2})");
+        Console.WriteLine($"Failed: {totalFail:N0} ({(totalRequests > 0 ? totalFail / (double)totalRequests : 0):P2})");
         Console.WriteLine($"Average Latency: {avgLatency:F2}ms");
         Console.WriteLine($"Max P99 Latency: {maxP99:F2}ms");
         Console.WriteLine($"Isolation Violations: {isolationViolations}");
@@ -146,13 +203,23 @@ public sealed class TenantLoadGenerator
         }
     }
 
+    /// <summary>
+    /// Gets the detailed metrics for all tenants.
+    /// </summary>
     public IReadOnlyList<LoadMetrics> GetMetrics() => _metrics.AsReadOnly();
 }
 
+/// <summary>
+/// Simulator for noisy neighbor scenarios, where one tenant's excessive resource usage
+/// might impact others.
+/// </summary>
 public sealed class NoisyNeighborSimulation
 {
     private readonly List<NoiseProfile> _noiseProfiles = new();
 
+    /// <summary>
+    /// Adds a profile for a tenant that will generate noise during the simulation.
+    /// </summary>
     public void AddNoisyTenant(string tenantId, double noiseLevel, int burstFrequency)
     {
         _noiseProfiles.Add(new NoiseProfile
@@ -163,6 +230,9 @@ public sealed class NoisyNeighborSimulation
         });
     }
 
+    /// <summary>
+    /// Asynchronously executes the noisy neighbor simulation.
+    /// </summary>
     public async Task SimulateNoisyNeighborAsync(string targetTenantId, TimeSpan duration, CancellationToken ct = default)
     {
         Console.WriteLine($"Simulating noisy neighbor affecting {targetTenantId}");
@@ -174,9 +244,7 @@ public sealed class NoisyNeighborSimulation
             {
                 if (profile.TenantId == targetTenantId) continue;
 
-                var noiseLevel = profile.NoiseLevel;
-                var requestCount = (int)(noiseLevel * 100);
-
+                var requestCount = (int)(profile.NoiseLevel * 100);
                 for (int i = 0; i < requestCount; i++)
                 {
                     Thread.SpinWait(Random.Shared.Next(100, 1000));
@@ -188,18 +256,33 @@ public sealed class NoisyNeighborSimulation
     }
 }
 
+/// <summary>
+/// Profile defining the noise generation characteristics of a tenant.
+/// </summary>
 public sealed class NoiseProfile
 {
+    /// <summary>Gets the tenant ID.</summary>
     public required string TenantId { get; init; }
+    
+    /// <summary>Gets the intensity level of the noise.</summary>
     public double NoiseLevel { get; init; }
+    
+    /// <summary>Gets how often bursts occur.</summary>
     public int BurstFrequency { get; init; }
 }
 
+/// <summary>
+/// Detector for tenant resource starvation, identifying if a tenant is not receiving its
+/// fair share of processing time.
+/// </summary>
 public sealed class TenantStarvationDetector
 {
     private readonly Dictionary<string, int> _requestCounts = new();
     private readonly object _lock = new();
 
+    /// <summary>
+    /// Records a processed request for a tenant.
+    /// </summary>
     public void RecordRequest(string tenantId)
     {
         lock (_lock)
@@ -209,6 +292,9 @@ public sealed class TenantStarvationDetector
         }
     }
 
+    /// <summary>
+    /// Checks if a tenant is currently being starved of resources.
+    /// </summary>
     public bool IsStarved(string tenantId, int expectedRequests, TimeSpan elapsed, TimeSpan expectedDuration)
     {
         lock (_lock)
@@ -223,6 +309,9 @@ public sealed class TenantStarvationDetector
         }
     }
 
+    /// <summary>
+    /// Gets the current request count for each tenant.
+    /// </summary>
     public Dictionary<string, int> GetRequestCounts()
     {
         lock (_lock)

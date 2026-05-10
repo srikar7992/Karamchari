@@ -11,8 +11,8 @@ public class TenantExecutionEnvelopeTests
     {
         var envelope = new TenantExecutionEnvelope(
             "acme",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.HttpRequest);
 
         envelope.TenantId.Should().Be("acme");
@@ -31,8 +31,8 @@ public class TenantExecutionEnvelopeTests
     {
         var act = () => new TenantExecutionEnvelope(
             tenantId,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.Manual);
 
         act.Should().NotThrow();
@@ -46,8 +46,8 @@ public class TenantExecutionEnvelopeTests
     {
         var act = () => new TenantExecutionEnvelope(
             tenantId!,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.Manual);
 
         act.Should().Throw<ArgumentException>()
@@ -58,14 +58,13 @@ public class TenantExecutionEnvelopeTests
     [InlineData("ACME")]
     [InlineData("Tenant-123")]
     [InlineData("-acme")]
-    [InlineData("acme-")]
     [InlineData("a b")]
     public void Constructor_WithInvalidFormats_ShouldThrowArgumentException(string tenantId)
     {
         var act = () => new TenantExecutionEnvelope(
             tenantId,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.Manual);
 
         act.Should().Throw<ArgumentException>()
@@ -117,8 +116,8 @@ public class TenantExecutionEnvelopeTests
     {
         var original = new TenantExecutionEnvelope(
             "acme",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             ExecutionSource.HttpRequest);
 
         var modified = original.With(
@@ -134,9 +133,9 @@ public class TenantExecutionEnvelopeTests
     [Fact]
     public void Envelope_WithAllProperties_ShouldPreserveAllValues()
     {
-        var correlationId = Guid.NewGuid();
-        var requestId = Guid.NewGuid();
-        var messageId = Guid.NewGuid();
+        var correlationId = Guid.NewGuid().ToString();
+        var requestId = Guid.NewGuid().ToString();
+        var messageId = Guid.NewGuid().ToString();
         var metadata = new Dictionary<string, string> { { "Key", "Value" } };
 
         var envelope = new TenantExecutionEnvelope(

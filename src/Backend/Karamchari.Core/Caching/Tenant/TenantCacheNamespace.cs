@@ -4,8 +4,13 @@ using System.Text.RegularExpressions;
 
 namespace Karamchari.Core.Caching.Tenant;
 
+/// <summary>
+/// Defines the structure and naming conventions for tenant-scoped cache keys.
+/// Provides mechanisms for building, parsing, and validating tenant namespaces in cache storage.
+/// </summary>
 public static class TenantCacheNamespace
 {
+    /// <summary>The default prefix for all tenant-scoped cache keys.</summary>
     public const string DefaultPrefix = "tenant";
     private const char Separator = ':';
     private static readonly char[] Separators = { ':', '_', '/', '\\' };
@@ -13,11 +18,24 @@ public static class TenantCacheNamespace
         @"^tenant_[a-z0-9]{1,64}(:[a-zA-Z0-9_-]+)*$",
         RegexOptions.Compiled);
 
+    /// <summary>
+    /// Builds a namespaced cache key for a specific tenant.
+    /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="key">The base cache key.</param>
+    /// <returns>A formatted namespaced key.</returns>
     public static string Build(string tenantId, string key)
     {
         return Build(tenantId, null, key);
     }
 
+    /// <summary>
+    /// Builds a namespaced cache key with a category for a specific tenant.
+    /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="category">The category identifier.</param>
+    /// <param name="key">The base cache key.</param>
+    /// <returns>A formatted namespaced key.</returns>
     public static string Build(string tenantId, string? category, string key)
     {
         var normalizedTenantId = NormalizeTenantId(tenantId);
@@ -32,6 +50,12 @@ public static class TenantCacheNamespace
         return $"{DefaultPrefix}_{normalizedTenantId}{Separator}{normalizedCategory}{Separator}{normalizedKey}";
     }
 
+    /// <summary>
+    /// Parses a namespaced key back into its tenant ID and original key components.
+    /// </summary>
+    /// <param name="namespacedKey">The full namespaced key to parse.</param>
+    /// <returns>A tuple containing the tenant ID and the original key.</returns>
+    /// <exception cref="ArgumentException">Thrown when the key is not in a valid tenant namespace format.</exception>
     public static (string TenantId, string Key) Parse(string namespacedKey)
     {
         if (!IsTenantKey(namespacedKey))
@@ -55,6 +79,11 @@ public static class TenantCacheNamespace
         return (tenantId, key);
     }
 
+    /// <summary>
+    /// Validates whether a string matches the required tenant cache key pattern.
+    /// </summary>
+    /// <param name="key">The key to check.</param>
+    /// <returns>True if the key is a valid tenant-scoped key.</returns>
     public static bool IsTenantKey(string key)
     {
         if (string.IsNullOrEmpty(key))

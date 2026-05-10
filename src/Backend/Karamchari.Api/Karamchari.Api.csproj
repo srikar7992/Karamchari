@@ -22,6 +22,7 @@
     <PackageReference Include="MassTransit" />
     <PackageReference Include="MassTransit.Azure.ServiceBus.Core" />
     <PackageReference Include="MassTransit.EntityFrameworkCore" />
+    <PackageReference Include="MassTransit.RabbitMQ" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <!-- Required by `dotnet ef` CLI tooling (design-time only; not bundled in publish output). -->

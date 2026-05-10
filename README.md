@@ -70,16 +70,61 @@ See `docs/adr/0001-multi-tenancy-model.md` for the full rationale.
 
 ## Getting started
 
-> Once a `dotnet` SDK is available locally:
+The Karamchari platform is a fully reproducible local execution environment. To onboard:
 
-```bash
-cd src/Backend
-dotnet restore
-dotnet build
-dotnet run --project Karamchari.Api
+1. **Install Prerequisites:**
+   - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+   - [Node.js](https://nodejs.org/) (for frontend/mobile)
+
+2. **Run One-Command Setup:**
+   ```powershell
+   ./setup.ps1
+   ```
+   This script validates your environment, restores packages, pulls infrastructure, provisions the database, and seeds dev tenants (`dev`, `acme`, `contoso`).
+
+3. **Start the Local Runtime:**
+   ```powershell
+   ./scripts/runtime/run-local.ps1
+   ```
+   Starts the core infrastructure and the API with hot-reload enabled.
+
+4. **Validate Your Changes:**
+   ```powershell
+   ./scripts/validation/validate-runtime.ps1
+   ```
+   Runs unit tests, integration tests, and the **Tenant Isolation Certification** suite.
+
+## Local Runtime & Observability
+
+The local environment mirrors production topology to ensure deterministic behavior.
+
+### Infrastructure Stack (Docker)
+- **SQL Server 2022:** Primary persistence with RLS and multi-schema isolation.
+- **Redis 7:** Distributed caching and lock management.
+- **RabbitMQ:** Asynchronous messaging backbone (MassTransit).
+- **Seq:** Structured log ingestion and visualization.
+- **OpenTelemetry Collector:** Centralized trace/metric collection.
+- **Prometheus & Grafana:** Infrastructure and application metrics.
+- **Azurite:** Local Azure Storage (Blob/Queue/Table) simulation.
+- **Mailpit:** Local SMTP capture for notification testing.
+
+### Developer Dashboards
+Once the runtime is started, the following dashboards are available:
+- **API Gateway:** [http://localhost:8080](http://localhost:8080)
+- **Seq (Logs & Traces):** [http://localhost:8081](http://localhost:8081)
+- **RabbitMQ Management:** [http://localhost:15672](http://localhost:15672) (guest/guest)
+- **Grafana (Metrics):** [http://localhost:3000](http://localhost:3000)
+- **Prometheus:** [http://localhost:9090](http://localhost:9090)
+- **Mailpit (Inbox):** [http://localhost:8025](http://localhost:8025)
+
+### Chaos Engineering
+Run local chaos injection to verify platform resilience:
+```powershell
+./scripts/chaos/run-chaos.ps1
 ```
+This suite injects database outages, network latency, and retry storms while verifying that tenant isolation and replay safety remain intact.
 
-The frontend Nx workspace under `src/Frontend/` will be initialized in a later milestone.
 
 ## Conventions
 

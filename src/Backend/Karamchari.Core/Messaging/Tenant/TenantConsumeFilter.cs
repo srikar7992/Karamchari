@@ -1,88 +1,67 @@
 using System.Diagnostics;
-using System.Text.Json;
-using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Multitenancy.Execution;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Messaging.Tenant;
 
+/// <summary>
+/// MassTransit consume filter that extracts, validates, and establishes the tenant execution context
+/// from incoming message headers. Enforces replay protection and stale message detection.
+/// </summary>
 public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
 {
     private readonly ILogger<TenantConsumeFilter> _logger;
     private readonly ReplayProtectionService _replayProtection;
     private readonly TimeSpan _staleMessageThreshold;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantConsumeFilter"/> class.
+    /// </summary>
+    /// <param name="logger">The logger for diagnostic output.</param>
+    /// <param name="replayProtection">The service used to detect message replays.</param>
+    /// <param name="staleMessageThreshold">The maximum age allowed for a message before it's rejected.</param>
     public TenantConsumeFilter(
         ILogger<TenantConsumeFilter> logger,
         ReplayProtectionService replayProtection,
         TimeSpan? staleMessageThreshold = null)
     {
-        ArgumentNullException.ThrowIfNull(logger);
-        ArgumentNullException.ThrowIfNull(replayProtection);
-
-        _logger = logger;
-        _replayProtection = replayProtection;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _replayProtection = replayProtection ?? throw new ArgumentNullException(nameof(replayProtection));
         _staleMessageThreshold = staleMessageThreshold ?? TimeSpan.FromMinutes(5);
     }
 
+    /// <inheritdoc/>
     public async Task Send(ConsumeContext context, IPipe<ConsumeContext> next)
     {
-        if (_logger.IsEnabled(LogLevel.Information))
-        {
-            _logger.LogInformation(
-                "Processing message with ConversationId {ConversationId}",
-                context.ConversationId);
-        }
+        _logger.LogInformation(
+            "Processing message {MessageId} with ConversationId {ConversationId}",
+            context.MessageId, context.ConversationId);
 
         try
         {
-            context.Headers.TryGetHeader(TenantMessageHeaderKeys.TenantId, out var tenantIdObj);
-            var tenantId = tenantIdObj as string;
-
-            if (string.IsNullOrWhiteSpace(tenantId))
+            // 1. Extract tenant identity
+            if (!context.Headers.TryGetHeader(TenantMessageHeaderKeys.TenantId, out var tenantIdObj) ||
+                tenantIdObj is not string tenantId || string.IsNullOrWhiteSpace(tenantId))
             {
-                if (_logger.IsEnabled(LogLevel.Warning))
-                {
-                    _logger.LogWarning(
-                        "Message rejected: Missing tenant identifier in message, ConversationId {ConversationId}",
-                        context.ConversationId);
-                }
-
+                _logger.LogWarning("Message rejected: Missing TenantId. ConversationId: {ConversationId}", context.ConversationId);
                 throw new MalformedTenantMessageException(
                     "Message is missing required tenant identifier",
                     null, TenantMessageFailureReason.MissingTenantId);
             }
 
-            if (!IsValidTenantIdFormat(tenantId))
-            {
-                if (_logger.IsEnabled(LogLevel.Warning))
-                {
-                    _logger.LogWarning(
-                        "Message rejected: Invalid tenant identifier format '{TenantId}' in message",
-                        tenantId);
-                }
-
-                throw new MalformedTenantMessageException(
-                    $"Tenant identifier '{tenantId}' has invalid format",
-                    tenantId, TenantMessageFailureReason.InvalidTenantIdFormat);
-            }
-
+            // 2. Validate timestamp (stale message detection)
             context.Headers.TryGetHeader(TenantMessageHeaderKeys.Timestamp, out var timestampObj);
             if (!ValidateTimestamp(timestampObj))
             {
-                if (_logger.IsEnabled(LogLevel.Warning))
-                {
-                    _logger.LogWarning(
-                        "Message rejected: Stale message detected for Tenant {TenantId}",
-                        tenantId);
-                }
-
+                _logger.LogWarning("Message rejected: Stale message for Tenant {TenantId}", tenantId);
                 throw new MalformedTenantMessageException(
-                    "Message timestamp is stale (older than 5 minutes)",
+                    "Message timestamp is stale",
                     tenantId, TenantMessageFailureReason.StaleMessage);
             }
 
+            // 3. Replay protection
             context.Headers.TryGetHeader(TenantMessageHeaderKeys.OriginalMessageId, out var originalMessageIdObj);
             context.Headers.TryGetHeader(TenantMessageHeaderKeys.ContentHash, out var contentHashObj);
             var originalMessageId = originalMessageIdObj as string ?? context.MessageId?.ToString();
@@ -90,30 +69,54 @@ public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
 
             if (!string.IsNullOrWhiteSpace(originalMessageId) && _replayProtection.IsReplay(originalMessageId, contentHash))
             {
-                if (_logger.IsEnabled(LogLevel.Warning))
-                {
-                    _logger.LogWarning(
-                        "Message rejected: Replay attack detected for Tenant {TenantId}, MessageId {MessageId}",
-                        tenantId, originalMessageId);
-                }
-
+                _logger.LogWarning("Message rejected: Replay attack detected for Tenant {TenantId}, MessageId {MessageId}",
+                    tenantId, originalMessageId);
                 throw new MalformedTenantMessageException(
                     "Message appears to be a replay and will be rejected",
                     tenantId, TenantMessageFailureReason.ReplayAttack);
             }
 
-            var executionContext = TenantExecutionContext.CreateFromHeaders(null, context);
-            executionContext?.SetAsCurrent();
-
-            if (_logger.IsEnabled(LogLevel.Information))
+            // 4. Rehydrate execution context
+            TenantExecutionEnvelope? envelope = null;
+            if (context.Headers.TryGetHeader(TenantMessageHeaderKeys.ExecutionEnvelope, out var envelopeObj) &&
+                envelopeObj is string envelopeJson)
             {
-                _logger.LogInformation(
-                    "Tenant context validated for Tenant {TenantId}, CorrelationId {CorrelationId}",
-                    tenantId, executionContext?.CorrelationId);
+                envelope = TenantExecutionEnvelope.FromJson(envelopeJson);
             }
+
+            if (envelope == null)
+            {
+                // Fallback for messages without full envelopes
+                context.Headers.TryGetHeader(TenantMessageHeaderKeys.CorrelationId, out var correlationIdObj);
+                context.Headers.TryGetHeader(TenantMessageHeaderKeys.TraceId, out var traceIdObj);
+                context.Headers.TryGetHeader(TenantMessageHeaderKeys.SpanId, out var spanIdObj);
+                context.Headers.TryGetHeader(TenantMessageHeaderKeys.UserIdentity, out var userIdentityObj);
+                context.Headers.TryGetHeader(TenantMessageHeaderKeys.RetryAttempt, out var retryAttemptObj);
+
+                var correlationId = correlationIdObj as string ?? context.ConversationId?.ToString() ?? Guid.NewGuid().ToString();
+                var requestId = context.MessageId?.ToString() ?? Guid.NewGuid().ToString();
+
+                envelope = new TenantExecutionEnvelope(tenantId, correlationId, requestId, ExecutionSource.MessageConsumer)
+                {
+                    TraceId = traceIdObj as string,
+                    SpanId = spanIdObj as string,
+                    UserIdentity = userIdentityObj as string,
+                    RetryAttempt = retryAttemptObj is int ra ? ra : 0,
+                    MessageId = originalMessageId,
+                    ContentHash = contentHash
+                };
+            }
+
+            var executionContext = new TenantExecutionContext(envelope);
+            using var scope = executionContext.Establish();
+
+            _logger.LogInformation(
+                "Tenant context established for Tenant {TenantId}, CorrelationId {CorrelationId}",
+                tenantId, executionContext.CorrelationId);
 
             await next.Send(context);
 
+            // 5. Record successful processing for replay prevention
             if (!string.IsNullOrWhiteSpace(originalMessageId))
             {
                 _replayProtection.RecordProcessed(originalMessageId, contentHash);
@@ -123,36 +126,19 @@ public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
         {
             throw;
         }
-        catch (Exception ex) when (ex is not MalformedTenantMessageException)
+        catch (Exception ex)
         {
-            if (_logger.IsEnabled(LogLevel.Error))
-            {
-                _logger.LogError(ex,
-                    "Unexpected error processing tenant context for message");
-            }
-
+            _logger.LogError(ex, "Unexpected error establishing tenant context for message");
             throw new MalformedTenantMessageException(
                 "Unexpected error during tenant context validation",
                 null, TenantMessageFailureReason.MalformedEnvelope);
         }
     }
 
+    /// <inheritdoc/>
     public void Probe(ProbeContext context)
     {
         context.CreateScope("tenant-consume-filter");
-    }
-
-    private static bool IsValidTenantIdFormat(string tenantId)
-    {
-        if (string.IsNullOrWhiteSpace(tenantId)) return false;
-        if (tenantId.Length > 50) return false;
-
-        foreach (char c in tenantId)
-        {
-            if (!char.IsLetterOrDigit(c) && c != '-' && c != '_') return false;
-        }
-
-        return true;
     }
 
     private bool ValidateTimestamp(object? timestampObj)
@@ -178,13 +164,14 @@ public sealed class TenantConsumeFilter : IFilter<ConsumeContext>
     }
 }
 
+/// <summary>
+/// Extension methods for registering tenant consume filters.
+/// </summary>
 public static class TenantConsumeFilterExtensions
 {
-    public static void UseTenantConsumeFilter<T>(this IConsumerFactory<T> factory, IServiceProvider services)
-        where T : class
-    {
-    }
-
+    /// <summary>
+    /// Adds the tenant consume filter to the service collection.
+    /// </summary>
     public static IServiceCollection AddTenantConsumeFilter(this IServiceCollection services, TimeSpan? staleMessageThreshold = null)
     {
         services.AddSingleton(sp =>

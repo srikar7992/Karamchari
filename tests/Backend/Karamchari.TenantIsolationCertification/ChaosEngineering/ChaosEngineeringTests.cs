@@ -248,7 +248,7 @@ public sealed class ChaosEngineeringReport
             ("Deadlocks", "Critical", 0.30, true),
             ("StaleRetry", "Critical", 0.28, true),
             ("DBRestart", "Critical", 0.35, true),
-            ("RedisRestart", "High", 0.20, true),
+            ("RedisRestart", "Critical", 0.20, true),
             ("BrokerRestart", "High", 0.25, true),
             ("DeploymentInterrupt", "High", 0.23, true)
         };

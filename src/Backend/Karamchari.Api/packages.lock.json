@@ -60,6 +60,16 @@
           "Microsoft.EntityFrameworkCore.Relational": "9.0.0"
         }
       },
+      "MassTransit.RabbitMQ": {
+        "type": "Direct",
+        "requested": "[9.1.0, )",
+        "resolved": "9.1.0",
+        "contentHash": "zogPx+Tt/7niqksMijaPZSn+S88eS0OD+VqW2PvjPBGS+JXF6xttmxtS527/rHKILI1Em8GzyiP/oASMaN6M4A==",
+        "dependencies": {
+          "MassTransit": "9.1.0",
+          "RabbitMQ.Client": "7.2.0"
+        }
+      },
       "Microsoft.AspNetCore.Authentication.JwtBearer": {
         "type": "Direct",
         "requested": "[10.0.0, )",
@@ -695,6 +705,11 @@
         "dependencies": {
           "Polly": "7.1.0"
         }
+      },
+      "RabbitMQ.Client": {
+        "type": "Transitive",
+        "resolved": "7.2.0",
+        "contentHash": "PPQ7cF7lwbhqC4up6en1bTUZlz06YqQwJecOJzsguTtyhNA7oL5uNDZIx/h6ZfcyPZV4V3DYKSCxfm4RUFLcbA=="
       },
       "RBush": {
         "type": "Transitive",

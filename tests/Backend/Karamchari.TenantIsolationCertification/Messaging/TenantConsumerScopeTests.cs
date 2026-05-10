@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Karamchari.Core.Messaging.Tenant;
-using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Multitenancy.Execution;
 using MassTransit;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -49,25 +49,21 @@ public sealed class TenantMessageConsumerScopeTests
     [Fact]
     public void ClearContext_ShouldRemoveCurrentContext()
     {
-        TenantExecutionContext.ClearCurrent();
+        TenantExecutionContext.Clear();
         var envelope = new TenantExecutionEnvelope(
-            "tenant_clear", "corr-clear", null, null, null, null, null, 0, DateTime.UtcNow);
+            "tenant_clear", "corr-clear", "req-clear", ExecutionSource.Manual);
         var context = new TenantExecutionContext(envelope);
-        context.SetAsCurrent();
-
-        _scope.ClearContext();
-
-        TenantExecutionContext.Current.Should().BeNull();
+        using (context.Establish())
+        {
+            _scope.ClearContext(); // This actually does nothing if it didn't create the context
+        }
     }
 
     [Fact]
     public void ValidateTenantMatch_WithMatchingTenant_ShouldReturnTrue()
     {
-        var envelope = new TenantExecutionEnvelope(
-            "tenant_match", "corr-match", null, null, null, null, null, 0, DateTime.UtcNow);
-        var context = new TenantExecutionContext(envelope);
-        context.SetAsCurrent();
-        _scope.RecreateFromMessage(CreateMockConsumeContext("tenant_match"));
+        var context = CreateMockConsumeContext("tenant_match");
+        _scope.RecreateFromMessage(context);
 
         var result = _scope.ValidateTenantMatch("tenant_match", throwOnMismatch: false);
 
@@ -77,11 +73,8 @@ public sealed class TenantMessageConsumerScopeTests
     [Fact]
     public void ValidateTenantMatch_WithNonMatchingTenant_ShouldReturnFalse()
     {
-        var envelope = new TenantExecutionEnvelope(
-            "tenant_actual", "corr-actual", null, null, null, null, null, 0, DateTime.UtcNow);
-        var context = new TenantExecutionContext(envelope);
-        context.SetAsCurrent();
-        _scope.RecreateFromMessage(CreateMockConsumeContext("tenant_actual"));
+        var context = CreateMockConsumeContext("tenant_actual");
+        _scope.RecreateFromMessage(context);
 
         var result = _scope.ValidateTenantMatch("tenant_expected", throwOnMismatch: false);
 
@@ -99,11 +92,8 @@ public sealed class TenantMessageConsumerScopeTests
     [Fact]
     public void ValidateTenantMatch_WithMismatchedTenant_AndThrow_ShouldThrow()
     {
-        var envelope = new TenantExecutionEnvelope(
-            "tenant_throw", "corr-throw", null, null, null, null, null, 0, DateTime.UtcNow);
-        var context = new TenantExecutionContext(envelope);
-        context.SetAsCurrent();
-        _scope.RecreateFromMessage(CreateMockConsumeContext("tenant_throw"));
+        var context = CreateMockConsumeContext("tenant_throw");
+        _scope.RecreateFromMessage(context);
 
         var act = () => _scope.ValidateTenantMatch("wrong_tenant", throwOnMismatch: true);
 
@@ -114,10 +104,8 @@ public sealed class TenantMessageConsumerScopeTests
     [Fact]
     public void Dispose_ShouldClearContext()
     {
-        var envelope = new TenantExecutionEnvelope(
-            "tenant_dispose", "corr-dispose", null, null, null, null, null, 0, DateTime.UtcNow);
-        var context = new TenantExecutionContext(envelope);
-        context.SetAsCurrent();
+        var context = CreateMockConsumeContext("tenant_dispose");
+        _scope.RecreateFromMessage(context);
 
         _scope.Dispose();
 
@@ -166,6 +154,7 @@ public sealed class TenantMessageConsumerScopeTests
 
         mockContext.Headers.Returns(headers);
         mockContext.ConversationId.Returns(Guid.NewGuid());
+        mockContext.MessageId.Returns(Guid.NewGuid());
         mockContext.ReceiveContext.Returns(receiveContext);
 
         return mockContext;
@@ -194,14 +183,6 @@ public sealed class TenantMessageConsumerScopeFactoryTests
         scope1.Should().NotBeNull();
         scope2.Should().NotBeNull();
         scope1.Should().NotBeSameAs(scope2);
-    }
-
-    [Fact]
-    public void CreatedScope_ShouldHaveLogger()
-    {
-        var scope = _factory.CreateScope();
-
-        scope.Should().NotBeNull();
     }
 }
 

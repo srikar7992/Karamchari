@@ -29,7 +29,7 @@
 -- Dev auth header     : X-Tenant-Id: dev  +  X-Karamchari-Gateway: local-dev-gateway
 -- =============================================================================
 
-USE [Karamchari_Local];
+USE [Karamchari];
 GO
 
 SET NOCOUNT ON;

@@ -118,7 +118,7 @@ public static class MassTransitExtensions
             x.AddConsumer<Karamchari.Billing.Consumers.CollectionCaseConsumer>();
             x.AddConsumer<Karamchari.Forecasting.Consumers.ForecastUpdateConsumer>();
 
-            if (isDev)
+            if (isDev && string.IsNullOrEmpty(configuration.GetConnectionString("RabbitMQ")))
             {
                 x.UsingInMemory((context, cfg) =>
                 {
@@ -129,13 +129,27 @@ public static class MassTransitExtensions
             }
             else
             {
-                x.UsingAzureServiceBus((context, cfg) =>
+                var rabbitMqConnection = configuration.GetConnectionString("RabbitMQ");
+                if (!string.IsNullOrEmpty(rabbitMqConnection))
                 {
-                    cfg.Host(configuration.GetConnectionString("AzureServiceBus"));
-                    cfg.ConfigureEndpoints(context);
-                    cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
-                    cfg.ConcurrentMessageLimit = 8;
-                });
+                    x.UsingRabbitMq((context, cfg) =>
+                    {
+                        cfg.Host(rabbitMqConnection);
+                        cfg.ConfigureEndpoints(context);
+                        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+                        cfg.ConcurrentMessageLimit = 8;
+                    });
+                }
+                else
+                {
+                    x.UsingAzureServiceBus((context, cfg) =>
+                    {
+                        cfg.Host(configuration.GetConnectionString("AzureServiceBus"));
+                        cfg.ConfigureEndpoints(context);
+                        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+                        cfg.ConcurrentMessageLimit = 8;
+                    });
+                }
             }
         });
 

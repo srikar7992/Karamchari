@@ -4,6 +4,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Caching.Tenant;
 
+/// <summary>
+/// Validator for tenant cache keys that performs deep inspection for security violations,
+/// including Unicode homograph attacks, key injection, and format inconsistencies.
+/// </summary>
 public sealed class TenantCacheValidator
 {
     private readonly ILogger<TenantCacheValidator>? _logger;
@@ -16,16 +20,28 @@ public sealed class TenantCacheValidator
         "\ufeff"
     };
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantCacheValidator"/> class.
+    /// </summary>
     public TenantCacheValidator()
     {
         _logger = null;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantCacheValidator"/> class with logging.
+    /// </summary>
+    /// <param name="logger">The logger for diagnostic output.</param>
     public TenantCacheValidator(ILogger<TenantCacheValidator> logger)
     {
         _logger = logger;
     }
 
+    /// <summary>
+    /// Validates a namespaced cache key against strict security and format rules.
+    /// </summary>
+    /// <param name="cacheKey">The namespaced cache key to validate.</param>
+    /// <returns>A validation result indicating success or failure with detailed errors.</returns>
     public TenantCacheValidationResult Validate(string cacheKey)
     {
         var result = new TenantCacheValidationResult();
@@ -45,7 +61,17 @@ public sealed class TenantCacheValidator
             return result;
         }
 
-        var (tenantId, key) = TenantCacheNamespace.Parse(cacheKey);
+        string tenantId;
+        string key;
+        try
+        {
+            (tenantId, key) = TenantCacheNamespace.Parse(cacheKey);
+        }
+        catch (ArgumentException ex)
+        {
+            result.MarkInvalid(TenantCacheValidationError.InvalidTenantIdFormat, ex.Message);
+            return result;
+        }
 
         if (string.IsNullOrEmpty(tenantId))
         {
@@ -106,29 +132,21 @@ public sealed class TenantCacheValidator
             return result;
         }
 
-        if (_logger?.IsEnabled(LogLevel.Debug) == true)
-        {
-            _logger.LogDebug(
-                "Cache key validation succeeded for tenant {TenantId}",
-                tenantId);
-        }
+        _logger?.LogDebug("Cache key validation succeeded for tenant {TenantId}", tenantId);
 
         return result;
     }
 
+    /// <summary>
+    /// Validates the key and adds diagnostic information if it's invalid.
+    /// </summary>
     public TenantCacheValidationResult ValidateWithDiagnostics(string cacheKey)
     {
         var result = Validate(cacheKey);
 
         if (!result.IsValid)
         {
-            if (_logger?.IsEnabled(LogLevel.Warning) == true)
-            {
-                _logger.LogWarning(
-                    "Cache key validation failed for key {CacheKey}: {Error}",
-                    cacheKey,
-                    result.ErrorMessage);
-            }
+            _logger?.LogWarning("Cache key validation failed for key {CacheKey}: {Error}", cacheKey, result.ErrorMessage);
 
             result.AddDiagnostic($"Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff} UTC");
             result.AddDiagnostic($"Raw key: {cacheKey}");
@@ -138,6 +156,9 @@ public sealed class TenantCacheValidator
         return result;
     }
 
+    /// <summary>
+    /// Generates a human-readable diagnostics report for a cache key.
+    /// </summary>
     public string GenerateDiagnosticsReport(string cacheKey)
     {
         var result = ValidateWithDiagnostics(cacheKey);
@@ -176,38 +197,37 @@ public sealed class TenantCacheValidator
         collidingForm = null;
 
         var normalized = tenantId.Normalize(NormalizationForm.FormC);
-        var forms = new[]
+        var filteredForms = new[]
         {
-            normalized.ToLowerInvariant(),
-            normalized.ToUpperInvariant(),
             normalized.Replace("\ufeff", ""),
             normalized.Replace("\u200b", ""),
             normalized.Replace("\u200c", ""),
             normalized.Replace("\u200d", "")
         };
 
-        var uniqueForms = forms.Distinct().ToList();
-        if (uniqueForms.Count < forms.Length)
+        // Check if any filtered form is different from the normalized one
+        foreach (var form in filteredForms)
         {
-            collidingForm = tenantId;
-            return true;
+            if (form != normalized)
+            {
+                collidingForm = form;
+                return true;
+            }
         }
 
+        // Also check for case folding collisions if needed, but tenant IDs are lowercase alphanumeric
         return false;
     }
 
     private static bool DetectKeyInjection(string cacheKey)
     {
-        foreach (var sep in Separators)
+        var firstSepIdx = cacheKey.IndexOfAny(Separators);
+        if (firstSepIdx > 0)
         {
-            var idx = cacheKey.IndexOf(sep);
-            if (idx > 0)
+            var keyPart = cacheKey.Substring(firstSepIdx + 1);
+            if (keyPart.Contains("tenant_", StringComparison.OrdinalIgnoreCase))
             {
-                var afterPrefix = cacheKey.Substring(idx + 1);
-                if (afterPrefix.StartsWith("tenant_", StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -215,28 +235,54 @@ public sealed class TenantCacheValidator
     }
 }
 
+/// <summary>
+/// Possible validation errors for tenant cache keys.
+/// </summary>
 public enum TenantCacheValidationError
 {
+    /// <summary>No error.</summary>
     None,
+    /// <summary>The key is null or empty.</summary>
     NullOrEmpty,
+    /// <summary>The key is missing the mandatory 'tenant_' prefix.</summary>
     MissingTenantPrefix,
+    /// <summary>The tenant identifier is missing or empty.</summary>
     MissingTenantId,
+    /// <summary>The tenant identifier exceeds the maximum allowed length.</summary>
     TenantIdTooLong,
+    /// <summary>The tenant identifier format is invalid.</summary>
     InvalidTenantIdFormat,
+    /// <summary>The tenant identifier contains confusable Unicode characters.</summary>
     UnicodeConfusable,
+    /// <summary>The tenant identifier has multiple Unicode representations.</summary>
     UnicodeCollision,
+    /// <summary>The base cache key part is missing.</summary>
     MissingKey,
+    /// <summary>The key contains a potential injection pattern.</summary>
     KeyInjection
 }
 
+/// <summary>
+/// Result of a tenant cache key validation attempt.
+/// </summary>
 public sealed class TenantCacheValidationResult
 {
+    /// <summary>Gets whether the validation passed.</summary>
     public bool IsValid { get; private set; } = true;
+
+    /// <summary>Gets whether any error occurred.</summary>
     public bool HasError => Error != TenantCacheValidationError.None;
+
+    /// <summary>Gets the specific validation error type.</summary>
     public TenantCacheValidationError Error { get; private set; }
+
+    /// <summary>Gets the human-readable error message.</summary>
     public string? ErrorMessage { get; private set; }
+
+    /// <summary>Gets the collection of diagnostic messages.</summary>
     public List<string> Diagnostics { get; } = new();
 
+    /// <summary>Marks the result as invalid with an error and message.</summary>
     public void MarkInvalid(TenantCacheValidationError error, string message)
     {
         Error = error;
@@ -244,11 +290,13 @@ public sealed class TenantCacheValidationResult
         IsValid = false;
     }
 
+    /// <summary>Adds a diagnostic message to the result.</summary>
     public void AddDiagnostic(string diagnostic)
     {
         Diagnostics.Add(diagnostic);
     }
 
+    /// <summary>Throws a <see cref="TenantCacheValidationException"/> if the result is invalid.</summary>
     public void ThrowIfInvalid()
     {
         if (!IsValid)
@@ -258,10 +306,17 @@ public sealed class TenantCacheValidationResult
     }
 }
 
+/// <summary>
+/// Exception thrown when a tenant cache key validation fails.
+/// </summary>
 public sealed class TenantCacheValidationException : Exception
 {
+    /// <summary>Gets the detailed validation result.</summary>
     public TenantCacheValidationResult ValidationResult { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantCacheValidationException"/> class.
+    /// </summary>
     public TenantCacheValidationException(TenantCacheValidationResult result)
         : base(result.ErrorMessage)
     {

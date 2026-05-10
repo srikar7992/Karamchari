@@ -8,32 +8,32 @@ namespace Karamchari.Core.Persistence.Tenant;
 
 public sealed class TenantSqlConnectionScope : IDisposable
 {
-    private readonly SqlConnection _connection;
+    private readonly DbConnection _connection;
     private readonly RlsConnectionGuard _guard;
     private readonly ILogger<TenantSqlConnectionScope> _logger;
-    private SqlTransaction? _transaction;
+    private DbTransaction? _transaction;
     private bool _disposed;
     private bool _transactionRolledBack;
 
-    private TenantSqlConnectionScope(SqlConnection connection, string tenantId, ILogger<TenantSqlConnectionScope> logger)
+    private TenantSqlConnectionScope(DbConnection connection, string tenantId, ILogger<TenantSqlConnectionScope> logger)
     {
         _connection = connection;
         _guard = RlsConnectionGuard.Acquire(connection, tenantId);
         _logger = logger;
     }
 
-    public static TenantSqlConnectionScope Acquire(SqlConnection connection, string tenantId)
+    public static TenantSqlConnectionScope Acquire(DbConnection connection, string tenantId)
     {
         var logger = NullLogger<TenantSqlConnectionScope>.Instance;
         return new TenantSqlConnectionScope(connection, tenantId, logger);
     }
 
-    public static TenantSqlConnectionScope Acquire(SqlConnection connection, string tenantId, ILogger<TenantSqlConnectionScope> logger)
+    public static TenantSqlConnectionScope Acquire(DbConnection connection, string tenantId, ILogger<TenantSqlConnectionScope> logger)
     {
         return new TenantSqlConnectionScope(connection, tenantId, logger);
     }
 
-    public SqlConnection Connection => _connection;
+    public DbConnection Connection => _connection;
 
     public void BeginTransaction()
     {
@@ -73,7 +73,7 @@ public sealed class TenantSqlConnectionScope : IDisposable
         }
     }
 
-    public SqlTransaction? GetTransaction() => _transaction;
+    public DbTransaction? GetTransaction() => _transaction;
 
     public void Commit()
     {

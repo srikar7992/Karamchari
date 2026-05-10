@@ -13,15 +13,15 @@ public sealed class BackgroundJobIsolationTests : IDisposable
 
     public BackgroundJobIsolationTests()
     {
-        _contextA = TenantTestContext.Create("acme", Karamchari.Core.Caching.Tenant.TenantSource.Background);
-        _contextB = TenantTestContext.Create("globex", Karamchari.Core.Caching.Tenant.TenantSource.Background);
+        _contextA = TenantTestContext.Create("acme", TenantSource.Background);
+        _contextB = TenantTestContext.Create("globex", TenantSource.Background);
     }
 
     [Fact]
     public async Task ConcurrentTenantJobs_MustNotInterfere()
     {
         var tenants = new[] { "acme", "globex", "initech", "umbrella" };
-        var jobLog = new List<(string Tenant, string JobId, bool Processed)>();
+        var jobLog = new System.Collections.Concurrent.ConcurrentBag<(string Tenant, string JobId, bool Processed)>();
 
         var tasks = tenants.Select((tenant, idx) => Task.Run(() =>
         {

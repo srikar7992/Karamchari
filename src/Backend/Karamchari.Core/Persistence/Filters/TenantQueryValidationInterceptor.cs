@@ -8,6 +8,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Persistence.Filters;
 
+/// <summary>
+/// EF Core interceptor that validates database commands to ensure tenant isolation,
+/// blocking unsafe patterns and ensuring tenant context is present for all queries.
+/// </summary>
 public sealed class TenantQueryValidationInterceptor : DbCommandInterceptor
 {
     private readonly ITenantProvider _tenantProvider;
@@ -18,6 +22,11 @@ public sealed class TenantQueryValidationInterceptor : DbCommandInterceptor
         RegexOptions.IgnoreCase | RegexOptions.Compiled,
         TimeSpan.FromMilliseconds(100));
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TenantQueryValidationInterceptor"/> class.
+    /// </summary>
+    /// <param name="tenantProvider">The tenant provider to resolve current tenant context.</param>
+    /// <param name="logger">The logger for validation events.</param>
     public TenantQueryValidationInterceptor(
         ITenantProvider tenantProvider,
         ILogger<TenantQueryValidationInterceptor> logger)
@@ -26,6 +35,7 @@ public sealed class TenantQueryValidationInterceptor : DbCommandInterceptor
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <inheritdoc/>
     public override InterceptionResult<DbDataReader> ReaderExecuting(
         DbCommand command,
         CommandEventData eventData,
@@ -35,6 +45,7 @@ public sealed class TenantQueryValidationInterceptor : DbCommandInterceptor
         return result;
     }
 
+    /// <inheritdoc/>
     public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
         DbCommand command,
         CommandEventData eventData,
@@ -45,6 +56,7 @@ public sealed class TenantQueryValidationInterceptor : DbCommandInterceptor
         return new ValueTask<InterceptionResult<DbDataReader>>(result);
     }
 
+    /// <inheritdoc/>
     public override InterceptionResult<int> NonQueryExecuting(
         DbCommand command,
         CommandEventData eventData,
@@ -54,6 +66,7 @@ public sealed class TenantQueryValidationInterceptor : DbCommandInterceptor
         return result;
     }
 
+    /// <inheritdoc/>
     public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
         DbCommand command,
         CommandEventData eventData,
@@ -64,6 +77,7 @@ public sealed class TenantQueryValidationInterceptor : DbCommandInterceptor
         return new ValueTask<InterceptionResult<int>>(result);
     }
 
+    /// <inheritdoc/>
     public override InterceptionResult<object> ScalarExecuting(
         DbCommand command,
         CommandEventData eventData,
@@ -73,6 +87,7 @@ public sealed class TenantQueryValidationInterceptor : DbCommandInterceptor
         return result;
     }
 
+    /// <inheritdoc/>
     public override ValueTask<InterceptionResult<object>> ScalarExecutingAsync(
         DbCommand command,
         CommandEventData eventData,

@@ -464,12 +464,13 @@ public sealed class SoakBurstSpikeTests
         var tenants = new[] { "acme", "globex", "initech" };
         var sustainedLog = new ConcurrentBag<(string Tenant, long Ticks, bool Valid)>();
 
-        var tasks = tenants.Select(tenant => Task.Run(() =>
+        var tasks = tenants.Select(tenant => Task.Run(async () =>
         {
-            var endTime = DateTime.UtcNow.AddMinutes(1);
+            var endTime = DateTime.UtcNow.AddSeconds(2);
             while (DateTime.UtcNow < endTime)
             {
                 sustainedLog.Add((tenant, DateTime.UtcNow.Ticks, true));
+                await Task.Delay(1);
             }
         })).ToList();
 

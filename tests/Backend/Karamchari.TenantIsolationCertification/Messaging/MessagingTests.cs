@@ -1,125 +1,61 @@
+using System.Diagnostics;
 using FluentAssertions;
+using Karamchari.Core.Messaging.Tenant;
 using Karamchari.Core.Multitenancy;
 using Karamchari.TenantIsolationCertification.Infrastructure;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit;
 
 namespace Karamchari.TenantIsolationCertification.Messaging;
 
-public sealed class EventIntegrityValidationTests
+public sealed class ReplayStormValidationTests : IDisposable
 {
-    [Fact]
-    public void EveryEvent_MustCarryTenantId()
+    private readonly TenantTestContext _context;
+
+    public ReplayStormValidationTests()
     {
-        var events = new[]
-        {
-            ("EmployeeCreated", "acme", true),
-            ("EmployeeUpdated", "acme", true),
-            ("LeaveRequested", "globex", true),
-            ("PayrollProcessed", "initech", true),
-            ("NotificationSent", null, false)
-        };
-
-        var eventsWithTenant = events.Where(e => e.Item3).ToList();
-        var eventsWithoutTenant = events.Where(e => !e.Item3).ToList();
-
-        eventsWithTenant.Should().HaveCount(4,
-            "Only events with tenant ID should be allowed");
-        eventsWithoutTenant.Should().HaveCount(1,
-            "Events without tenant ID must be rejected");
+        _context = TenantTestContext.Create("acme");
     }
 
-    [Fact]
-    public void EveryConsumer_MustValidateTenant()
-    {
-        var consumers = new[]
-        {
-            ("EmployeeConsumer", "acme", true),
-            ("PayrollConsumer", "globex", true),
-            ("NotificationConsumer", "acme", true),
-            ("AuditConsumer", null, false)
-        };
-
-        consumers.Where(c => c.Item3).Should().HaveCount(3,
-            "All consumers except audit should validate tenant");
-    }
-
-    [Fact]
-    public async Task EventRetry_MustPreserveTenant()
-    {
-        var originalTenant = "acme";
-        var retryLog = new List<(string Tenant, int Attempt, bool Preserved)>();
-
-        for (int attempt = 1; attempt <= 5; attempt++)
-        {
-            retryLog.Add((originalTenant, attempt, true));
-            await Task.Delay(10);
-        }
-
-        retryLog.All(r => r.Tenant == originalTenant && r.Preserved).Should().BeTrue(
-            "All retry attempts must preserve original tenant");
-    }
-
-    [Fact]
-    public async Task EventReplay_MustMaintainIsolation()
-    {
-        var events = new[]
-        {
-            ("tenant_acme", "EmployeeCreated", DateTime.UtcNow.AddHours(-2)),
-            ("tenant_globex", "EmployeeCreated", DateTime.UtcNow.AddHours(-1)),
-            ("tenant_acme", "EmployeeUpdated", DateTime.UtcNow.AddMinutes(-30)),
-            ("tenant_globex", "LeaveRequested", DateTime.UtcNow.AddMinutes(-15))
-        };
-
-        var replayLog = new List<(string Tenant, string Event, bool Isolated)>();
-
-        foreach (var evt in events)
-        {
-            replayLog.Add((evt.Item1, evt.Item2, true));
-        }
-
-        var groupedByTenant = replayLog.GroupBy(r => r.Tenant).ToList();
-        groupedByTenant.Should().HaveCount(2,
-            "Replay should maintain separation between tenants");
-
-        groupedByTenant.All(g => g.All(e => e.Isolated)).Should().BeTrue(
-            "All replayed events must remain isolated by tenant");
-    }
-}
-
-public sealed class ReplayStormValidationTests
-{
     [Fact]
     public async Task DuplicateDelivery_MustNotCorrupt()
     {
-        var tenant = "acme";
-        var originalEventId = Guid.NewGuid();
-        var deliveryLog = new List<(Guid EventId, string Tenant, int DeliveryCount, bool Processed)>();
+        var replayService = new ReplayProtectionService(Mock.Of<ILogger<ReplayProtectionService>>());
+        var originalEventId = Guid.NewGuid().ToString("N");
+        var tenant = _context.ActiveTenantId;
+        var deliveryLog = new System.Collections.Concurrent.ConcurrentBag<(string EventId, string Tenant, int Delivery)>();
 
-        for (int delivery = 1; delivery <= 10; delivery++)
+        // Simulate 10 simultaneous deliveries of the same message
+        var tasks = Enumerable.Range(0, 10).Select(async delivery =>
         {
-            deliveryLog.Add((originalEventId, tenant, delivery, true));
-        }
+            // Use atomic TryRecord to prevent race conditions
+            if (replayService.TryRecord(originalEventId, "hash"))
+            {
+                deliveryLog.Add((originalEventId, tenant, delivery));
+            }
+            await Task.Yield();
+        }).ToList();
 
-        var uniqueEventIds = deliveryLog.Select(d => d.EventId).Distinct().Count();
-        var processedCount = deliveryLog.Count(d => d.Processed);
+        await Task.WhenAll(tasks);
 
-        uniqueEventIds.Should().Be(1,
-            "Duplicate deliveries should have same event ID");
+        var processedCount = deliveryLog.Count;
+
         processedCount.Should().Be(1,
-            "Only first delivery should be processed");
+            "Only the first delivery should be successfully recorded and processed");
     }
 
     [Fact]
     public async Task ReplayStorm_MustNotBreakIsolation()
     {
         var tenants = new[] { "acme", "globex", "initech" };
-        var stormLog = new List<(string Tenant, string Event, int Sequence, bool Isolated)>();
+        var stormLog = new System.Collections.Concurrent.ConcurrentBag<(string Tenant, string Event, int Sequence)>();
 
         var tasks = tenants.Select((tenant, idx) => Task.Run(() =>
         {
             for (int seq = 0; seq < 100; seq++)
             {
-                stormLog.Add((tenant, $"Event_{seq}", seq, true));
+                stormLog.Add((tenant, $"Event_{seq}", seq));
                 Thread.SpinWait(100);
             }
         })).ToList();
@@ -127,8 +63,11 @@ public sealed class ReplayStormValidationTests
         await Task.WhenAll(tasks);
 
         var groupedByTenant = stormLog.GroupBy(e => e.Tenant).ToList();
-        groupedByTenant.All(g => g.All(e => e.Isolated)).Should().BeTrue(
-            "Replay storm must not break tenant isolation");
+        groupedByTenant.Should().HaveCount(3);
+        foreach (var group in groupedByTenant)
+        {
+            group.Count().Should().Be(100);
+        }
     }
 
     [Fact]
@@ -160,10 +99,8 @@ public sealed class ReplayStormValidationTests
         var acmeEvents = orderedLog.Where(e => e.Item1.Contains("acme")).Select(e => e.Item3).ToList();
         var globexEvents = orderedLog.Where(e => e.Item1.Contains("globex")).Select(e => e.Item3).ToList();
 
-        acmeEvents.Should().BeEquivalentTo(new[] { 3, 4 },
-            "Acme events should maintain their sequence numbers");
-        globexEvents.Should().BeEquivalentTo(new[] { 1, 2 },
-            "Globex events should maintain their sequence numbers");
+        acmeEvents.Should().BeEquivalentTo(new[] { 3, 4 }, options => options.WithStrictOrdering());
+        globexEvents.Should().BeEquivalentTo(new[] { 1, 2 }, options => options.WithStrictOrdering());
     }
 
     [Fact]
@@ -181,6 +118,11 @@ public sealed class ReplayStormValidationTests
         var poisonMessages = poisonLog.Where(p => p.IsPoison).ToList();
         poisonMessages.All(p => p.Quarantined).Should().BeTrue(
             "All poison messages must be quarantined regardless of tenant");
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 }
 

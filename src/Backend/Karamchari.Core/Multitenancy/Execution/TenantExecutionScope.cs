@@ -13,42 +13,33 @@ public sealed partial class TenantExecutionScope : IDisposable
     private static partial Regex TenantIdRegex();
 
     private readonly TenantExecutionContextAccessor _accessor;
-    private readonly TenantExecutionEnvelope? _savedContext;
-    private readonly int _savedDepth;
+    private readonly IDisposable? _scope;
     private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TenantExecutionScope"/> class.
     /// </summary>
     /// <param name="accessor">The accessor to manage.</param>
-    /// <param name="childContext">An optional child context to use within this scope.</param>
+    /// <param name="childEnvelope">An optional child execution envelope to use within this scope.</param>
     /// <exception cref="ArgumentNullException">Thrown when accessor is null.</exception>
     public TenantExecutionScope(
         TenantExecutionContextAccessor accessor,
-        TenantExecutionEnvelope? childContext = null)
+        TenantExecutionEnvelope? childEnvelope = null)
     {
-        ArgumentNullException.ThrowIfNull(accessor);
+        _accessor = accessor ?? throw new ArgumentNullException(nameof(accessor));
 
-        _accessor = accessor;
-        _savedContext = accessor.Current;
-        _savedDepth = accessor.NestingDepth;
-
-        if (childContext is not null)
+        if (childEnvelope is not null)
         {
-            ValidateTenantId(childContext.TenantId);
-            accessor.SetCurrent(childContext);
+            ValidateTenantId(childEnvelope.TenantId);
+            var context = new TenantExecutionContext(childEnvelope);
+            _scope = _accessor.Establish(context);
         }
     }
 
     /// <summary>
-    /// Gets the current nesting depth within this scope.
-    /// </summary>
-    public int Depth => _accessor.NestingDepth - _savedDepth;
-
-    /// <summary>
     /// Gets the saved parent context that will be restored on disposal.
     /// </summary>
-    public TenantExecutionEnvelope? SavedContext => _savedContext;
+    public TenantExecutionContext? ParentContext => _accessor.Current;
 
     private static void ValidateTenantId(string tenantId)
     {
@@ -78,14 +69,6 @@ public sealed partial class TenantExecutionScope : IDisposable
         }
 
         _disposed = true;
-
-        if (_savedContext is null)
-        {
-            _accessor.Clear();
-        }
-        else
-        {
-            _accessor.SetCurrent(_savedContext);
-        }
+        _scope?.Dispose();
     }
 }

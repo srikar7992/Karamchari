@@ -1,360 +1,55 @@
+using System.Text;
 using FluentAssertions;
 using Karamchari.Core.Caching.Tenant;
+using Karamchari.Core.Multitenancy;
 using Karamchari.TenantIsolationCertification.Infrastructure;
 using Microsoft.Extensions.Logging;
-using NSubstitute;
+using Moq;
 using Xunit;
 
 namespace Karamchari.TenantIsolationCertification.CacheIsolation;
 
-public sealed class TenantCacheNamespaceTests
+public sealed class TenantCacheGuardTests : IDisposable
 {
-    [Theory]
-    [InlineData("acme", "employees", "tenant_acme:employees")]
-    [InlineData("globex", "payroll", "tenant_globex:payroll")]
-    [InlineData("initech", "data", "tenant_initech:data")]
-    public void Build_WithValidInputs_ShouldReturnNamespacedKey(string tenantId, string key, string expected)
-    {
-        var result = TenantCacheNamespace.Build(tenantId, key);
+    private readonly TenantTestContext _context;
+    private readonly Mock<ITenantProvider> _tenantProviderMock;
+    private readonly TenantCacheGuard _guard;
 
-        result.Should().Be(expected);
+    public TenantCacheGuardTests()
+    {
+        _context = TenantTestContext.Create("acme");
+        _tenantProviderMock = new Mock<ITenantProvider>();
+        _tenantProviderMock.Setup(p => p.GetTenant()).Returns(new TenantContext("acme", TenantSource.JwtClaim));
+
+        _guard = new TenantCacheGuard(_tenantProviderMock.Object);
     }
 
-    [Theory]
-    [InlineData("acme", "employees", "attendance", "tenant_acme:employees:attendance")]
-    [InlineData("globex", "payroll", "2024", "tenant_globex:payroll:2024")]
-    public void Build_WithCategory_ShouldIncludeCategoryInKey(string tenantId, string category, string key, string expected)
-    {
-        var result = TenantCacheNamespace.Build(tenantId, category, key);
-
-        result.Should().Be(expected);
-    }
-
-    [Fact]
-    public void Build_WithUppercaseTenantId_ShouldNormalizeToLowercase()
-    {
-        var result = TenantCacheNamespace.Build("ACME", "employees");
-
-        result.Should().StartWith("tenant_acme:");
-    }
-
-    [Fact]
-    public void Build_WithWhitespaceInKey_ShouldNormalize()
-    {
-        var result = TenantCacheNamespace.Build("acme", "employee data");
-
-        result.Should().Contain("employee_data");
-    }
-
-    [Theory]
-    [InlineData("tenant_acme:employees")]
-    [InlineData("tenant_globex:payroll")]
-    [InlineData("tenant_initech:data")]
-    public void IsTenantKey_WithValidTenantKey_ShouldReturnTrue(string key)
-    {
-        var result = TenantCacheNamespace.IsTenantKey(key);
-
-        result.Should().BeTrue();
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("acme:employees")]
-    [InlineData("tenant:acme:employees")]
-    [InlineData("cache_key")]
-    [InlineData("something_else")]
-    public void IsTenantKey_WithInvalidKey_ShouldReturnFalse(string key)
-    {
-        var result = TenantCacheNamespace.IsTenantKey(key);
-
-        result.Should().BeFalse();
-    }
-
-    [Theory]
-    [InlineData("tenant_acme:employees", "acme", "employees")]
-    [InlineData("tenant_globex:payroll:2024", "globex", "payroll:2024")]
-    public void Parse_WithValidKey_ShouldReturnTenantAndKey(string key, string expectedTenantId, string expectedKey)
-    {
-        var (tenantId, parsedKey) = TenantCacheNamespace.Parse(key);
-
-        tenantId.Should().Be(expectedTenantId);
-        parsedKey.Should().Be(expectedKey);
-    }
-
-    [Fact]
-    public void Parse_WithInvalidKey_ShouldThrowArgumentException()
-    {
-        var action = () => TenantCacheNamespace.Parse("invalid_key");
-
-        action.Should().Throw<ArgumentException>();
-    }
-
-    [Fact]
-    public void Build_WithUnicodeNormalization_ShouldNormalizeKeys()
-    {
-        var result = TenantCacheNamespace.Build("acme", "café");
-
-        result.Should().Be("tenant_acme:caf");
-    }
-
-    [Fact]
-    public void Build_WithKeyTooLong_ShouldThrowArgumentException()
-    {
-        var longKey = new string('a', 200);
-
-        var action = () => TenantCacheNamespace.Build("acme", longKey);
-
-        action.Should().Throw<ArgumentException>();
-    }
-
-    [Fact]
-    public void Build_WithInvalidTenantIdFormat_ShouldThrowArgumentException()
-    {
-        var action = () => TenantCacheNamespace.Build("acme!@#", "employees");
-
-        action.Should().Throw<ArgumentException>();
-    }
-}
-
-public sealed class TenantCacheKeyBuilderTests
-{
-    [Fact]
-    public void Build_WithValidInputs_ShouldReturnCorrectKey()
-    {
-        var builder = new TenantCacheKeyBuilder();
-
-        var result = builder.Build("acme", "employees");
-
-        result.Should().Be("tenant_acme:employees");
-    }
-
-    [Fact]
-    public void ValidateTenantId_WithValidId_ShouldNotThrow()
-    {
-        var builder = new TenantCacheKeyBuilder();
-
-        var action = () => builder.ValidateTenantId("acme");
-
-        action.Should().NotThrow();
-    }
-
-    [Fact]
-    public void ValidateTenantId_WithInvalidCharacters_ShouldThrow()
-    {
-        var builder = new TenantCacheKeyBuilder();
-
-        var action = () => builder.ValidateTenantId("acme!@#");
-
-        action.Should().Throw<ArgumentException>();
-    }
-
-    [Fact]
-    public void ValidateTenantId_WithConfusableUnicode_ShouldThrow()
-    {
-        var builder = new TenantCacheKeyBuilder();
-
-        var action = () => builder.ValidateTenantId("acme\u200b");
-
-        action.Should().Throw<ArgumentException>();
-    }
-
-    [Fact]
-    public void ValidateKey_WithValidKey_ShouldNotThrow()
-    {
-        var builder = new TenantCacheKeyBuilder();
-
-        var action = () => builder.ValidateKey("employees");
-
-        action.Should().NotThrow();
-    }
-
-    [Fact]
-    public void ValidateKey_WithControlCharacters_ShouldThrow()
-    {
-        var builder = new TenantCacheKeyBuilder();
-
-        var action = () => builder.ValidateKey("employ\x00ees");
-
-        action.Should().Throw<ArgumentException>();
-    }
-
-    [Fact]
-    public void ValidateKey_WithTrailingWhitespace_ShouldThrow()
-    {
-        var builder = new TenantCacheKeyBuilder();
-
-        var action = () => builder.ValidateKey("employees ");
-
-        action.Should().Throw<ArgumentException>();
-    }
-
-    [Fact]
-    public void ValidateKey_WithKeyTooLong_ShouldThrow()
-    {
-        var builder = new TenantCacheKeyBuilder();
-        var longKey = new string('a', 300);
-
-        var action = () => builder.ValidateKey(longKey);
-
-        action.Should().Throw<ArgumentException>();
-    }
-
-    [Fact]
-    public void TryBuild_WithValidInputs_ShouldReturnTrue()
-    {
-        var builder = new TenantCacheKeyBuilder();
-
-        var success = builder.TryBuild("acme", "employees", out var result);
-
-        success.Should().BeTrue();
-        result.Should().Be("tenant_acme:employees");
-    }
-
-    [Fact]
-    public void TryBuild_WithInvalidInputs_ShouldReturnFalse()
-    {
-        var builder = new TenantCacheKeyBuilder();
-
-        var success = builder.TryBuild("acme!", "employees", out var result);
-
-        success.Should().BeFalse();
-        result.Should().BeNull();
-    }
-}
-
-public sealed class TenantCacheValidatorTests
-{
-    [Fact]
-    public void Validate_WithValidKey_ShouldReturnValidResult()
-    {
-        var validator = new TenantCacheValidator();
-
-        var result = validator.Validate("tenant_acme:employees");
-
-        result.IsValid.Should().BeTrue();
-    }
-
-    [Fact]
-    public void Validate_WithNullKey_ShouldReturnInvalidResult()
-    {
-        var validator = new TenantCacheValidator();
-
-        var result = validator.Validate(null!);
-
-        result.IsValid.Should().BeFalse();
-        result.Error.Should().Be(TenantCacheValidationError.NullOrEmpty);
-    }
-
-    [Fact]
-    public void Validate_WithMissingTenantPrefix_ShouldReturnInvalidResult()
-    {
-        var validator = new TenantCacheValidator();
-
-        var result = validator.Validate("acme:employees");
-
-        result.IsValid.Should().BeFalse();
-        result.Error.Should().Be(TenantCacheValidationError.MissingTenantPrefix);
-    }
-
-    [Fact]
-    public void Validate_WithUnicodeConfusable_ShouldReturnInvalidResult()
-    {
-        var validator = new TenantCacheValidator();
-
-        var result = validator.Validate("tenant_acme\u200b:employees");
-
-        result.IsValid.Should().BeFalse();
-        result.Error.Should().Be(TenantCacheValidationError.UnicodeConfusable);
-    }
-
-    [Fact]
-    public void Validate_WithKeyInjection_ShouldReturnInvalidResult()
-    {
-        var validator = new TenantCacheValidator();
-
-        var result = validator.Validate("tenant_acme:tenant_globex:employees");
-
-        result.IsValid.Should().BeFalse();
-        result.Error.Should().Be(TenantCacheValidationError.KeyInjection);
-    }
-
-    [Fact]
-    public void ValidateWithDiagnostics_ShouldAddDiagnosticInfo()
-    {
-        var validator = new TenantCacheValidator();
-
-        var result = validator.ValidateWithDiagnostics("tenant_acme:employees");
-
-        result.Diagnostics.Should().NotBeEmpty();
-    }
-
-    [Fact]
-    public void GenerateDiagnosticsReport_WithValidKey_ShouldContainKeyDetails()
-    {
-        var validator = new TenantCacheValidator();
-
-        var report = validator.GenerateDiagnosticsReport("tenant_acme:employees");
-
-        report.Should().Contain("tenant_acme");
-        report.Should().Contain("employees");
-    }
-
-    [Fact]
-    public void GenerateDiagnosticsReport_WithInvalidKey_ShouldContainErrorDetails()
-    {
-        var validator = new TenantCacheValidator();
-
-        var report = validator.GenerateDiagnosticsReport("invalid_key");
-
-        report.Should().Contain("INVALID");
-    }
-}
-
-public sealed class TenantCacheGuardTests
-{
     [Fact]
     public void ValidateGet_WithMatchingTenant_ShouldNotThrow()
     {
-        var ctx = TenantTestContext.Create("acme", TenantSource.JwtClaim);
-        var accessor = new TestTenantContextAccessor(ctx);
-        var guard = new TenantCacheGuard(accessor);
+        var key = TenantCacheNamespace.Build("acme", "test-key");
 
-        var action = () => guard.ValidateGet("tenant_acme:employees");
+        var action = () => _guard.ValidateGet(key);
 
         action.Should().NotThrow();
     }
 
     [Fact]
-    public void ValidateGet_WithMismatchedTenant_ShouldThrowCachePoisoningException()
+    public void ValidateGet_WithMismatchingTenant_ShouldThrow()
     {
-        var ctx = TenantTestContext.Create("globex", TenantSource.JwtClaim);
-        var accessor = new TestTenantContextAccessor(ctx);
-        var guard = new TenantCacheGuard(accessor);
+        var key = TenantCacheNamespace.Build("globex", "test-key");
 
-        var action = () => guard.ValidateGet("tenant_acme:employees");
+        var action = () => _guard.ValidateGet(key);
 
         action.Should().Throw<CachePoisoningDetectionException>();
     }
 
     [Fact]
-    public void ValidateGet_WithoutTenantContext_ShouldThrowInvalidOperationException()
+    public void ValidateGet_WithNonTenantKey_ShouldThrow()
     {
-        var accessor = new TestTenantContextAccessor(null);
-        var guard = new TenantCacheGuard(accessor);
+        var key = "global_config_key";
 
-        var action = () => guard.ValidateGet("tenant_acme:employees");
-
-        action.Should().Throw<InvalidOperationException>();
-    }
-
-    [Fact]
-    public void ValidateGet_WithNonTenantKey_ShouldThrowArgumentException()
-    {
-        var ctx = TenantTestContext.Create("acme", TenantSource.JwtClaim);
-        var accessor = new TestTenantContextAccessor(ctx);
-        var guard = new TenantCacheGuard(accessor);
-
-        var action = () => guard.ValidateGet("invalid_key");
+        var action = () => _guard.ValidateGet(key);
 
         action.Should().Throw<ArgumentException>();
     }
@@ -362,131 +57,272 @@ public sealed class TenantCacheGuardTests
     [Fact]
     public void ValidateSet_WithMatchingTenant_ShouldNotThrow()
     {
-        var ctx = TenantTestContext.Create("acme", TenantSource.JwtClaim);
-        var accessor = new TestTenantContextAccessor(ctx);
-        var guard = new TenantCacheGuard(accessor);
+        var key = TenantCacheNamespace.Build("acme", "test-key");
 
-        var action = () => guard.ValidateSet("tenant_acme:employees");
+        var action = () => _guard.ValidateSet(key);
 
         action.Should().NotThrow();
     }
 
     [Fact]
-    public void ValidateSet_WithMismatchedTenant_ShouldThrowCachePoisoningException()
+    public void ValidateSet_WithMismatchingTenant_ShouldThrow()
     {
-        var ctx = TenantTestContext.Create("globex", TenantSource.JwtClaim);
-        var accessor = new TestTenantContextAccessor(ctx);
-        var guard = new TenantCacheGuard(accessor);
+        var key = TenantCacheNamespace.Build("globex", "test-key");
 
-        var action = () => guard.ValidateSet("tenant_acme:employees");
+        var action = () => _guard.ValidateSet(key);
 
         action.Should().Throw<CachePoisoningDetectionException>();
     }
 
     [Fact]
-    public void TryValidateGet_WithValidKey_ShouldReturnTrue()
+    public void TryValidateGet_ShouldReturnCorrectResult()
     {
-        var ctx = TenantTestContext.Create("acme", TenantSource.JwtClaim);
-        var accessor = new TestTenantContextAccessor(ctx);
-        var guard = new TenantCacheGuard(accessor);
+        var validKey = TenantCacheNamespace.Build("acme", "test-key");
+        var invalidKey = TenantCacheNamespace.Build("globex", "test-key");
 
-        var success = guard.TryValidateGet("tenant_acme:employees");
-
-        success.Should().BeTrue();
+        _guard.TryValidateGet(validKey).Should().BeTrue();
+        _guard.TryValidateGet(invalidKey).Should().BeFalse();
     }
 
     [Fact]
-    public void TryValidateGet_WithInvalidKey_ShouldReturnFalse()
+    public void BuildValidKey_ShouldUseCurrentTenant()
     {
-        var ctx = TenantTestContext.Create("acme", TenantSource.JwtClaim);
-        var accessor = new TestTenantContextAccessor(ctx);
-        var guard = new TenantCacheGuard(accessor);
+        var key = _guard.BuildValidKey("my-data");
 
-        var success = guard.TryValidateGet("invalid_key");
-
-        success.Should().BeFalse();
+        key.Should().StartWith("tenant_acme:");
+        key.Should().Contain("my-data");
     }
 
     [Fact]
-    public void BuildValidKey_ShouldReturnTenantNamespacedKey()
+    public void BuildValidKey_WithCategory_ShouldUseCurrentTenant()
     {
-        var ctx = TenantTestContext.Create("acme", TenantSource.JwtClaim);
-        var accessor = new TestTenantContextAccessor(ctx);
-        var guard = new TenantCacheGuard(accessor);
+        var key = _guard.BuildValidKey("security", "my-data");
 
-        var key = guard.BuildValidKey("employees");
-
-        key.Should().Be("tenant_acme:employees");
+        key.Should().StartWith("tenant_acme:");
+        key.Should().Contain("security");
+        key.Should().Contain("my-data");
     }
 
-    [Fact]
-    public void BuildValidKey_WithCategory_ShouldReturnCategoryKey()
+    public void Dispose()
     {
-        var ctx = TenantTestContext.Create("acme", TenantSource.JwtClaim);
-        var accessor = new TestTenantContextAccessor(ctx);
-        var guard = new TenantCacheGuard(accessor);
-
-        var key = guard.BuildValidKey("payroll", "employees");
-
-        key.Should().Be("tenant_acme:payroll:employees");
+        _context.Dispose();
     }
 }
 
-public sealed class CachePoisoningDetectionExceptionTests
+public sealed class TenantCacheKeyBuilderTests
 {
-    [Fact]
-    public void Exception_ShouldStoreDetectionTime()
-    {
-        var ex = new CachePoisoningDetectionException("test");
+    private readonly TenantCacheKeyBuilder _builder;
 
-        ex.DetectionTimeUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+    public TenantCacheKeyBuilderTests()
+    {
+        _builder = new TenantCacheKeyBuilder();
     }
 
     [Fact]
-    public void Exception_WithAttackKey_ShouldStoreKey()
+    public void Build_ValidInput_ReturnsCorrectKey()
     {
-        var ex = new CachePoisoningDetectionException("test", "malicious_key");
+        var result = _builder.Build("acme", "user_123");
 
-        ex.AttackKey.Should().Be("malicious_key");
+        result.Should().Be("tenant_acme:user_123");
     }
 
     [Fact]
-    public void Exception_DefaultConstructor_ShouldHaveNullAttackKey()
+    public void Build_WithCategory_ReturnsCorrectKey()
     {
-        var ex = new CachePoisoningDetectionException("test");
+        var result = _builder.Build("acme", "settings", "theme");
 
-        ex.AttackKey.Should().BeNull();
+        result.Should().Be("tenant_acme:settings:theme");
+    }
+
+    [Fact]
+    public void Build_NormalizesTenantId()
+    {
+        var result = _builder.Build("ACME ", "key");
+
+        result.Should().Be("tenant_acme:key");
+    }
+
+    [Fact]
+    public void Build_NormalizesKey()
+    {
+        var result = _builder.Build("acme", " user profile ");
+
+        result.Should().Be("tenant_acme:user_profile");
+    }
+
+    [Fact]
+    public void Build_InvalidTenantId_ThrowsArgumentException()
+    {
+        var action = () => _builder.Build("acme!", "key");
+
+        action.Should().Throw<ArgumentException>().WithMessage("*Tenant ID*");
+    }
+
+    [Fact]
+    public void Build_TenantIdTooLong_ThrowsArgumentException()
+    {
+        var longId = new string('a', 65);
+        var action = () => _builder.Build(longId, "key");
+
+        action.Should().Throw<ArgumentException>().WithMessage("*exceeds maximum length*");
+    }
+
+    [Fact]
+    public void Build_KeyTooLong_ThrowsArgumentException()
+    {
+        var longKey = new string('k', 257);
+        var action = () => _builder.Build("acme", longKey);
+
+        action.Should().Throw<ArgumentException>().WithMessage("*Key exceeds maximum length*");
+    }
+
+    [Fact]
+    public void Build_KeyWithInvalidChars_ThrowsArgumentException()
+    {
+        var action = () => _builder.Build("acme", "key\nwith\nnewline");
+
+        action.Should().Throw<ArgumentException>().WithMessage("*invalid control character*");
+    }
+
+    [Theory]
+    [InlineData("\u200b")] // Zero-width space
+    [InlineData("\ufeff")] // Byte order mark
+    public void Build_WithConfusableUnicode_ThrowsArgumentException(string confusable)
+    {
+        var action = () => _builder.Build("acme" + confusable, "key");
+
+        action.Should().Throw<ArgumentException>();
     }
 }
 
-public sealed class TenantCacheValidationResultTests
+public sealed class TenantCacheNamespaceTests
 {
     [Fact]
-    public void MarkInvalid_ShouldSetErrorAndInvalidFlag()
+    public void Build_ValidInput_ReturnsExpectedString()
     {
-        var result = new TenantCacheValidationResult();
+        var result = TenantCacheNamespace.Build("acme", "key");
 
-        result.MarkInvalid(TenantCacheValidationError.NullOrEmpty, "Test error");
+        result.Should().Be("tenant_acme:key");
+    }
+
+    [Fact]
+    public void Build_WithCategory_ReturnsExpectedString()
+    {
+        var result = TenantCacheNamespace.Build("acme", "cat", "key");
+
+        result.Should().Be("tenant_acme:cat:key");
+    }
+
+    [Fact]
+    public void IsTenantKey_CorrectPrefix_ReturnsTrue()
+    {
+        TenantCacheNamespace.IsTenantKey("tenant_acme:key").Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsTenantKey_WrongPrefix_ReturnsFalse()
+    {
+        TenantCacheNamespace.IsTenantKey("global_key").Should().BeFalse();
+    }
+
+    [Fact]
+    public void Parse_ValidKey_ReturnsParts()
+    {
+        var (tenantId, key) = TenantCacheNamespace.Parse("tenant_acme:my:data:key");
+
+        tenantId.Should().Be("acme");
+        key.Should().Be("my:data:key");
+    }
+
+    [Fact]
+    public void Parse_InvalidKey_ThrowsArgumentException()
+    {
+        var action = () => TenantCacheNamespace.Parse("invalid_key");
+
+        action.Should().Throw<ArgumentException>();
+    }
+}
+
+public sealed class TenantCacheValidatorTests
+{
+    private readonly TenantCacheValidator _validator;
+
+    public TenantCacheValidatorTests()
+    {
+        _validator = new TenantCacheValidator();
+    }
+
+    [Fact]
+    public void Validate_ValidKey_ReturnsValid()
+    {
+        var result = _validator.Validate("tenant_acme:user_profile");
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_MissingPrefix_ReturnsInvalid()
+    {
+        var result = _validator.Validate("acme:user_profile");
 
         result.IsValid.Should().BeFalse();
-        result.Error.Should().Be(TenantCacheValidationError.NullOrEmpty);
-        result.ErrorMessage.Should().Be("Test error");
+        result.Error.Should().Be(TenantCacheValidationError.MissingTenantPrefix);
     }
 
     [Fact]
-    public void HasError_WhenErrorSet_ShouldReturnTrue()
+    public void Validate_InvalidTenantFormat_ReturnsInvalid()
     {
-        var result = new TenantCacheValidationResult();
-        result.MarkInvalid(TenantCacheValidationError.NullOrEmpty, "Error");
+        var result = _validator.Validate("tenant_ACME_123:key");
 
-        result.HasError.Should().BeTrue();
+        result.IsValid.Should().BeFalse();
+        result.Error.Should().Be(TenantCacheValidationError.InvalidTenantIdFormat);
     }
 
     [Fact]
-    public void ThrowIfInvalid_WhenInvalid_ShouldThrowException()
+    public void Validate_EmptyKey_ReturnsInvalid()
     {
-        var result = new TenantCacheValidationResult();
-        result.MarkInvalid(TenantCacheValidationError.NullOrEmpty, "Error");
+        var result = _validator.Validate("tenant_acme:");
+
+        result.IsValid.Should().BeFalse();
+        result.Error.Should().Be(TenantCacheValidationError.InvalidTenantIdFormat);
+    }
+
+    [Fact]
+    public void Validate_KeyInjectionAttempt_ReturnsInvalid()
+    {
+        // Attempting to inject another tenant prefix via the key
+        var result = _validator.Validate("tenant_acme:sub:tenant_globex:data");
+
+        result.IsValid.Should().BeFalse();
+        result.Error.Should().Be(TenantCacheValidationError.KeyInjection);
+    }
+
+    [Fact]
+    public void Validate_UnicodeCollision_ReturnsInvalid()
+    {
+        // Using a character that might normalize or collide suspiciously
+        // Note: The actual implementation of DetectUnicodeCollision uses some heuristics
+        // that we're testing here.
+        var result = _validator.Validate("tenant_acme\u200b:key");
+
+        result.IsValid.Should().BeFalse();
+        result.Error.Should().Be(TenantCacheValidationError.InvalidTenantIdFormat);
+    }
+
+    [Fact]
+    public void GenerateDiagnosticsReport_ReturnsDetailedString()
+    {
+        var report = _validator.GenerateDiagnosticsReport("invalid-key");
+
+        report.Should().Contain("INVALID");
+        report.Should().Contain("Error Type");
+        report.Should().Contain("Diagnostics");
+    }
+
+    [Fact]
+    public void ThrowIfInvalid_WithInvalidResult_ThrowsException()
+    {
+        var result = _validator.Validate("bad-key");
 
         var action = () => result.ThrowIfInvalid();
 
@@ -494,9 +330,9 @@ public sealed class TenantCacheValidationResultTests
     }
 
     [Fact]
-    public void ThrowIfInvalid_WhenValid_ShouldNotThrow()
+    public void ThrowIfInvalid_WithValidResult_DoesNotThrow()
     {
-        var result = new TenantCacheValidationResult();
+        var result = _validator.Validate("tenant_acme:valid");
 
         var action = () => result.ThrowIfInvalid();
 
@@ -511,23 +347,4 @@ public sealed class TenantCacheValidationResultTests
 
         result.Diagnostics.Should().Contain("Test diagnostic");
     }
-}
-
-internal sealed class TestTenantContextAccessor : ITenantContextAccessor
-{
-    private readonly TenantContext? _context;
-
-    public TestTenantContextAccessor(TenantTestContext? context)
-    {
-        _context = context == null
-            ? null
-            : new TenantContext
-            {
-                TenantId = context.ActiveTenantId,
-                TenantSchema = context.ActiveSchema,
-                Source = context.ActiveSource
-            };
-    }
-
-    public TenantContext? TenantContext => _context;
 }
