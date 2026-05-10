@@ -4,9 +4,9 @@
     "net10.0": {
       "MassTransit.Abstractions": {
         "type": "Direct",
-        "requested": "[8.3.6, )",
-        "resolved": "8.3.6",
-        "contentHash": "F3R3EFPvUvpsiebnijmpvZ4IhSEcqkEJdrhlFuTOjzIUnMRYBgki/oDfFWj57Ki4b9yq0nilt4Q5bk11pC4ygg=="
+        "requested": "[9.1.0, )",
+        "resolved": "9.1.0",
+        "contentHash": "yesigAI5/J+YhCvnxxvMjRpH3qcH776h1Zq2xPhAJJwwVT+FilcE66yox9gPk8gsck+cjmfWUlOwEMg363cmOQ=="
       },
       "Microsoft.EntityFrameworkCore": {
         "type": "Direct",

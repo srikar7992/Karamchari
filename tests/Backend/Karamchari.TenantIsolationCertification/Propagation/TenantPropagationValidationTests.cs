@@ -465,8 +465,9 @@ public sealed class TelemetryBasedValidationTests : IDisposable
             for (int i = 0; i < 20; i++)
             {
                 var iteration = i;
-                tasks.Add(Task.Run(() =>
+                tasks.Add(Task.Run(async () =>
                 {
+                    await Task.Delay(10);
                     PropagationTrace.Record(new PropagationTrace(tenantId, $"ThreadSwitch_{iteration}", correlationId));
                 }));
             }

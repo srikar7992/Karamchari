@@ -4,12 +4,12 @@
     "net10.0": {
       "MassTransit.EntityFrameworkCore": {
         "type": "Direct",
-        "requested": "[8.3.6, )",
-        "resolved": "8.3.6",
-        "contentHash": "qZtWIzd/cFosHiL5eKsk3DUZUH6w0/PBrRxjjyDK4SKUWE9WrdCvz59ocJVCQ8QQHeJYATLnFlEJ1Oshw1AbCw==",
+        "requested": "[9.1.0, )",
+        "resolved": "9.1.0",
+        "contentHash": "Mx6A7gKeyEH8AKpyD1e6623NRvOeP7iIuNTl3AjmsHKKbyUnYq9dobv1Z+fT0hIq0SaKKSSqaRLii0n6VGMeVw==",
         "dependencies": {
-          "MassTransit": "8.3.6",
-          "Microsoft.EntityFrameworkCore.Relational": "9.0.0"
+          "MassTransit": "9.1.0",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.0"
         }
       },
       "Microsoft.EntityFrameworkCore.Design": {
@@ -385,7 +385,7 @@
       "karamchari.core": {
         "type": "Project",
         "dependencies": {
-          "MassTransit.Abstractions": "[8.3.6, )",
+          "MassTransit.Abstractions": "[9.1.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.7, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.7, )",
           "Microsoft.EntityFrameworkCore.SqlServer": "[10.0.7, )",
@@ -405,18 +405,18 @@
       },
       "MassTransit": {
         "type": "CentralTransitive",
-        "requested": "[8.3.6, )",
-        "resolved": "8.3.6",
-        "contentHash": "iQQ02dUJuWlpNai3eDN7WmnstvmB2LAD8YN1i8OFT5BaNpGYYg3v0US3S6f1Zz7us+NnGHm6csg25Ak3z0H7Xg==",
+        "requested": "[9.1.0, )",
+        "resolved": "9.1.0",
+        "contentHash": "2hdJGw92qSFhvu+12qsX16NPDKbpAZMiOjsxxHFjwR3MjiacNmyOh2+nE5PK5rDky67OHHwbxLqt68qTaL3Plg==",
         "dependencies": {
-          "MassTransit.Abstractions": "8.3.6"
+          "MassTransit.Abstractions": "9.1.0"
         }
       },
       "MassTransit.Abstractions": {
         "type": "CentralTransitive",
-        "requested": "[8.3.6, )",
-        "resolved": "8.3.6",
-        "contentHash": "F3R3EFPvUvpsiebnijmpvZ4IhSEcqkEJdrhlFuTOjzIUnMRYBgki/oDfFWj57Ki4b9yq0nilt4Q5bk11pC4ygg=="
+        "requested": "[9.1.0, )",
+        "resolved": "9.1.0",
+        "contentHash": "yesigAI5/J+YhCvnxxvMjRpH3qcH776h1Zq2xPhAJJwwVT+FilcE66yox9gPk8gsck+cjmfWUlOwEMg363cmOQ=="
       },
       "Microsoft.EntityFrameworkCore": {
         "type": "CentralTransitive",
