@@ -44,7 +44,7 @@ public static class MassTransitExtensions
     {
         // API Needs module services but NOT consumers
         services.AddKaramchariHR(configuration);
-        services.AddKaramchariWorkflow();
+        services.AddKaramchariWorkflow(configuration);
         services.AddKaramchariTimeAttendance(configuration);
         services.AddKaramchariPayroll(configuration);
         services.AddKaramchariPerformance(configuration);

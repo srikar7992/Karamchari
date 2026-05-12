@@ -27,7 +27,7 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public FnFExitType ExitType { get; private set; }
+    public ExitType ExitType { get; private set; }
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -88,7 +88,7 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         string tenantId,
         Guid employeeId,
         string employeeName,
-        FnFExitType exitType,
+        ExitType exitType,
         DateOnly lastWorkingDay,
         string initiatedBy)
     {
@@ -146,7 +146,7 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
         if (_lineItems.Count == 0)
             throw new InvalidOperationException("FnF must have at least one line item before submission.");
 
-        Status = FnFStatus.PendingApproval;
+        Status = FnFStatus.Submitted;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
         RaiseDomainEvent(new FnFApprovalRequestedEvent(Id, TenantId, EmployeeId, NetSettlementAmount));
     }
@@ -156,7 +156,7 @@ public sealed class FnFSettlement : AggregateRoot<Guid>
     /// </summary>
     public void Approve(string approvedBy)
     {
-        if (Status != FnFStatus.PendingApproval)
+        if (Status != FnFStatus.Submitted)
             throw new InvalidOperationException($"Cannot approve FnF in status {Status}.");
 
         Status = FnFStatus.Approved;

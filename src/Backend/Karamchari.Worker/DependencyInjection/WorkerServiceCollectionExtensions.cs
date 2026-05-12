@@ -22,16 +22,10 @@ namespace Karamchari.Worker.DependencyInjection;
 
 /// <summary>
 /// Provides extension methods for registering Worker-specific services.
+/// Prepared for Step 13 partitioning: logical grouping of consumers.
 /// </summary>
 public static class WorkerServiceCollectionExtensions
 {
-    /// <summary>
-    /// Configures MassTransit for the Worker role, registering all module consumers.
-    /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The application configuration.</param>
-    /// <param name="environment">The host environment.</param>
-    /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddKaramchariWorkerMessaging(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -39,33 +33,20 @@ public static class WorkerServiceCollectionExtensions
     {
         services.AddMassTransit(x =>
         {
-            // Register All Module Consumers using unified extensions
-            x.AddKaramchariHRConsumers();
-            x.AddKaramchariWorkflowConsumers();
-            x.AddKaramchariTimeAttendanceConsumers();
-            x.AddKaramchariPayrollConsumers();
-            x.AddKaramchariPerformanceConsumers();
-            x.AddKaramchariNotificationsConsumers();
-            x.AddKaramchariCompensationConsumers();
-            x.AddKaramchariRecruitmentConsumers();
-            x.AddKaramchariIntelligenceConsumers();
-            x.AddKaramchariBillingConsumers();
-            x.AddKaramchariForecastingConsumers();
-            x.AddKaramchariPSAConsumers();
+            // 1. High Priority (Payroll & HR)
+            RegisterHighPriorityConsumers(x);
 
-            // Register outboxes for all modules so workers can publish with transaction support
-            // (Used by Sagas and Consumers that publish events)
-            x.AddEntityFrameworkOutbox<Karamchari.HR.Persistence.HRDbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.Payroll.Data.PayrollDbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.TimeAttendance.Persistence.TimeAttendanceDbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.PSA.Persistence.PSADbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.Performance.Persistence.PerformanceDbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.Notifications.Persistence.NotificationsDbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.Compensation.Persistence.CompensationDbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.Recruitment.Persistence.RecruitmentDbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.Capability.Persistence.CapabilityDbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.Intelligence.Persistence.IntelligenceDbContext>(o => o.UseSqlServer());
-            x.AddEntityFrameworkOutbox<Karamchari.Governance.Persistence.GovernanceDbContext>(o => o.UseSqlServer());
+            // 2. Medium Priority (Workflow & Approvals)
+            RegisterWorkflowConsumers(x);
+
+            // 3. Analytics & Forecasting (Low Priority/Heavy)
+            RegisterAnalyticsConsumers(x, configuration);
+
+            // 4. Notifications & Capability
+            RegisterNotificationConsumers(x);
+
+            // Outboxes
+            RegisterOutboxes(x);
 
             // Transport
             var rabbitMqConnection = configuration.GetConnectionString("RabbitMQ");
@@ -74,6 +55,8 @@ public static class WorkerServiceCollectionExtensions
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(rabbitMqConnection);
+                    
+                    // Future: Split into different receive endpoints per priority
                     cfg.ConfigureEndpoints(context);
                 });
             }
@@ -89,12 +72,56 @@ public static class WorkerServiceCollectionExtensions
         return services;
     }
 
+    private static void RegisterHighPriorityConsumers(IBusRegistrationConfigurator x)
+    {
+        // HR & Payroll are critical for business continuity
+        x.AddKaramchariHRConsumers();
+        x.AddKaramchariPayrollConsumers();
+        x.AddKaramchariTimeAttendanceConsumers();
+        x.AddKaramchariRecruitmentConsumers();
+        x.AddKaramchariCompensationConsumers();
+    }
+
+    private static void RegisterWorkflowConsumers(IBusRegistrationConfigurator x)
+    {
+        // Coordination logic
+        x.AddKaramchariWorkflowConsumers();
+    }
+
+    private static void RegisterAnalyticsConsumers(IBusRegistrationConfigurator x, IConfiguration cfg)
+    {
+        // Heavy processing
+        x.AddKaramchariIntelligenceConsumers();
+        x.AddKaramchariBillingConsumers();
+        x.AddKaramchariForecastingConsumers();
+        x.AddKaramchariPSAConsumers();
+    }
+
+    private static void RegisterNotificationConsumers(IBusRegistrationConfigurator x)
+    {
+        // Outbound communication
+        x.AddKaramchariNotificationsConsumers();
+        x.AddKaramchariCapabilityConsumers();
+    }
+
+    private static void RegisterOutboxes(IBusRegistrationConfigurator x)
+    {
+        x.AddEntityFrameworkOutbox<Karamchari.HR.Persistence.HRDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Payroll.Data.PayrollDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.TimeAttendance.Persistence.TimeAttendanceDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.PSA.Persistence.PSADbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Performance.Persistence.PerformanceDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Notifications.Persistence.NotificationsDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Compensation.Persistence.CompensationDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Recruitment.Persistence.RecruitmentDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Capability.Persistence.CapabilityDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Intelligence.Persistence.IntelligenceDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Governance.Persistence.GovernanceDbContext>(o => o.UseSqlServer());
+    }
+
     /// <summary>
     /// Consolidates all background services from different modules into the worker pool.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The application configuration.</param>
-    /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddKaramchariWorkerPool(
         this IServiceCollection services,
         IConfiguration configuration)

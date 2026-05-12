@@ -4,7 +4,8 @@ using Karamchari.Core.Multitenancy;
 namespace Karamchari.Workflow.Domain;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Defines a template for a coordination workflow (approvals, routing, SLA).
+/// Focuses exclusively on coordination; business truth remains in domain aggregates.
 /// </summary>
 public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
 {
@@ -37,9 +38,6 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
     /// Provides required documentation for this member.
     /// </summary>
     public bool IsActive { get; private set; }
-
-    /// <summary>Structured JSON condition evaluated against ApprovalContext. Null = always matches.</summary>
-    public string? ConditionJson { get; private set; }
 
     /// <summary>Higher priority definitions are evaluated first when multiple definitions match.</summary>
     public int Priority { get; private set; }
@@ -81,10 +79,6 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public void Deactivate() => IsActive = false;
 
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
-    public void SetCondition(string conditionJson) => ConditionJson = conditionJson;
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>

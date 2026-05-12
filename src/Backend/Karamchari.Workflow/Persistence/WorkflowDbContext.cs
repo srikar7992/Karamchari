@@ -1,0 +1,58 @@
+using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Persistence;
+using Karamchari.Workflow.Domain;
+using Microsoft.EntityFrameworkCore;
+
+namespace Karamchari.Workflow.Persistence;
+
+public sealed class WorkflowDbContext : KaramchariDbContext
+{
+    public WorkflowDbContext(DbContextOptions<WorkflowDbContext> options, ITenantProvider tenantProvider)
+        : base(options, tenantProvider)
+    {
+    }
+
+    public DbSet<WorkflowDefinition> WorkflowDefinitions => Set<WorkflowDefinition>();
+    public DbSet<WorkflowInstance> WorkflowInstances => Set<WorkflowInstance>();
+
+    protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
+    {
+        ArgumentNullException.ThrowIfNull(modelBuilder);
+        modelBuilder.Entity<WorkflowDefinition>(b =>
+        {
+            b.ToTable("Workflow_Definitions");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EntityType, x.IsActive });
+            b.OwnsMany(x => x.Steps, s =>
+            {
+                s.ToTable("Workflow_Steps");
+                s.WithOwner().HasForeignKey("DefinitionId");
+                s.HasKey(x => x.Id);
+            });
+        });
+
+        modelBuilder.Entity<WorkflowInstance>(b =>
+        {
+            b.ToTable("Workflow_Instances");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EntityType, x.EntityId });
+            b.Property(x => x.Status).HasConversion<string>();
+
+            b.OwnsMany(x => x.StepInstances, s =>
+            {
+                s.ToTable("Workflow_StepInstances");
+                s.WithOwner().HasForeignKey("WorkflowInstanceId");
+                s.HasKey(x => x.Id);
+                s.Property(x => x.Status).HasConversion<string>();
+            });
+
+            b.OwnsMany(x => x.AuditLog, a =>
+            {
+                a.ToTable("Workflow_AuditLogs");
+                a.WithOwner().HasForeignKey("WorkflowInstanceId");
+                a.Property<Guid>("Id");
+                a.HasKey("Id");
+            });
+        });
+    }
+}

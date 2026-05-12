@@ -1,18 +1,19 @@
 namespace Karamchari.Performance.Domain.Promotions;
 
 /// <summary>
-/// [DEPRECATED] Internal status for promotion recommendations.
-/// Candidates for convergence into unified workflow runtime.
+/// Authoritative business status for promotion recommendations.
 /// </summary>
 public enum PromotionStatus
 {
+    /// <summary>Recommendation is being drafted.</summary>
     Draft = 1,
-    Submitted = 2,
-    UnderReview = 3,
-    ApprovedByManager = 4,
-    ApprovedByHR = 5,
-    ApprovedByLeadership = 6,
-    Approved = 7,
-    Rejected = 8,
-    Withdrawn = 9
+
+    /// <summary>Recommendation has been approved and is authoritative truth.</summary>
+    Approved = 2,
+
+    /// <summary>Recommendation was rejected.</summary>
+    Rejected = 3,
+
+    /// <summary>Recommendation was withdrawn by the nominator.</summary>
+    Withdrawn = 4
 }

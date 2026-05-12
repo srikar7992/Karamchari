@@ -184,6 +184,13 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             b.OwnsOne(x => x.Rules, r => r.ToJson());
         });
 
+        modelBuilder.Entity<LeaveRequest>(b =>
+        {
+            b.ToTable("LeaveRequests");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Status).HasConversion<string>();
+        });
+
         modelBuilder.Entity<Timesheet>(b =>
         {
             b.ToTable("Timesheets");

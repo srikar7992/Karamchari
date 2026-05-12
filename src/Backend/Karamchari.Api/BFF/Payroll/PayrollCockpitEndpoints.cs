@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
+using Karamchari.Api.BFF.Common;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Arrears;
 using Karamchari.Payroll.Domain.Corrections;
@@ -18,9 +19,6 @@ namespace Karamchari.Api.BFF.Payroll;
 /// </summary>
 public static class PayrollCockpitEndpoints
 {
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public static WebApplication MapPayrollCockpitEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/payroll/cockpit").RequireAuthorization();
@@ -39,19 +37,19 @@ public static class PayrollCockpitEndpoints
         PayrollDbContext db,
         CancellationToken ct)
     {
-        // Parallel queries for cockpit summary
+        // Parallel queries for cockpit summary using simplified authoritative states
         var fnfTask = db.Set<FnFSettlement>().AsNoTracking()
             .CountAsync(s => s.Status == FnFStatus.Draft
-                || s.Status == FnFStatus.PendingApproval
+                || s.Status == FnFStatus.Submitted
                 || s.Status == FnFStatus.Approved, ct);
 
         var arrearTask = db.Set<ArrearCalculation>().AsNoTracking()
             .CountAsync(a => a.Status == ArrearStatus.Pending
-                || a.Status == ArrearStatus.PendingApproval, ct);
+                || a.Status == ArrearStatus.Approved, ct);
 
         var correctionTask = db.Set<PayrollCorrection>().AsNoTracking()
             .CountAsync(c => c.Status == CorrectionStatus.Draft
-                || c.Status == CorrectionStatus.PendingApproval, ct);
+                || c.Status == CorrectionStatus.Submitted, ct);
 
         var anomalyTask = db.Set<ReconciliationJob>().AsNoTracking()
             .SelectMany(j => j.Anomalies)
@@ -61,8 +59,7 @@ public static class PayrollCockpitEndpoints
             .CountAsync(l => l.Status == LoanStatus.Active, ct);
 
         var reimbTask = db.Set<ReimbursementClaim>().AsNoTracking()
-            .CountAsync(c => c.Status == ReimbursementStatus.Submitted
-                || c.Status == ReimbursementStatus.PendingApproval, ct);
+            .CountAsync(c => c.Status == ReimbursementStatus.Submitted, ct);
 
         await Task.WhenAll(fnfTask, arrearTask, correctionTask, anomalyTask, loanTask, reimbTask);
 
@@ -72,7 +69,7 @@ public static class PayrollCockpitEndpoints
 
         // FnF queue
         var fnfQueue = await db.Set<FnFSettlement>().AsNoTracking()
-            .Where(s => s.Status == FnFStatus.PendingApproval)
+            .Where(s => s.Status == FnFStatus.Submitted)
             .OrderBy(s => s.CreatedAtUtc)
             .Take(20)
             .Select(s => new PayrollCockpitQueueItemDto(
@@ -83,7 +80,7 @@ public static class PayrollCockpitEndpoints
 
         // Arrear queue
         var arrearQueue = await db.Set<ArrearCalculation>().AsNoTracking()
-            .Where(a => a.Status == ArrearStatus.PendingApproval)
+            .Where(a => a.Status == ArrearStatus.Pending)
             .OrderBy(a => a.CreatedAtUtc)
             .Take(20)
             .Select(a => new PayrollCockpitQueueItemDto(
@@ -94,7 +91,7 @@ public static class PayrollCockpitEndpoints
 
         // Correction queue
         var correctionQueue = await db.Set<PayrollCorrection>().AsNoTracking()
-            .Where(c => c.Status == CorrectionStatus.PendingApproval)
+            .Where(c => c.Status == CorrectionStatus.Submitted)
             .OrderBy(c => c.CreatedAtUtc)
             .Take(20)
             .Select(c => new PayrollCockpitQueueItemDto(

@@ -1,6 +1,11 @@
+using Karamchari.Core.DependencyInjection;
+using Karamchari.Core.Persistence;
 using Karamchari.Workflow.Consumers;
+using Karamchari.Workflow.Persistence;
 using Karamchari.Workflow.Services;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Karamchari.Workflow.DependencyInjection;
@@ -10,24 +15,33 @@ namespace Karamchari.Workflow.DependencyInjection;
 /// </summary>
 public static class WorkflowServiceCollectionExtensions
 {
+    private const string ConnectionStringName = "KaramchariDb";
+
     /// <summary>
-    /// Registers workflow engine services, including the condition compiler, metrics handlers, 
-    /// and observability infrastructure required for business process orchestration.
+    /// Registers workflow engine services and persistence.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="busConfigurator">Optional MassTransit bus configurator for registering consumers.</param>
-    /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddKaramchariWorkflow(
         this IServiceCollection services,
+        IConfiguration configuration,
         IBusRegistrationConfigurator? busConfigurator = null)
     {
-        services.AddSingleton<WorkflowConditionCompiler>();
         services.AddScoped<WorkflowMetricsHandler>();
 
         if (busConfigurator != null)
         {
             AddKaramchariWorkflowConsumers(busConfigurator);
         }
+
+        // RLS
+        services.RegisterTenantTable("Workflow_Definitions");
+        services.RegisterTenantTable("Workflow_Instances");
+
+        services.AddDbContext<WorkflowDbContext>((sp, options) =>
+        {
+            var connectionString = configuration.GetConnectionString(ConnectionStringName);
+            options.UseSqlServer(connectionString);
+            options.AddKaramchariInterceptors(sp);
+        });
 
         return services;
     }
@@ -39,5 +53,6 @@ public static class WorkflowServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(busConfigurator);
         busConfigurator.AddConsumer<WorkflowTraceabilityConsumer>();
+        busConfigurator.AddConsumer<WorkflowOrchestratorConsumer>();
     }
 }

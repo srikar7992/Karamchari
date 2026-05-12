@@ -1,6 +1,7 @@
 using Karamchari.Api.BFF.Attendance;
 using Karamchari.Api.BFF.Billing;
 using Karamchari.Api.BFF.Capability;
+using Karamchari.Api.BFF.Common;
 using Karamchari.Api.BFF.Compliance;
 using Karamchari.Api.BFF.Employee;
 using Karamchari.Api.BFF.ESS;
@@ -46,7 +47,9 @@ public static class EndpointExtensions
 
         // Feature Modules
         app.MapTenantEndpoints();
+        app.MapApprovalEndpoints();
         app.MapAttendanceEndpoints();
+        app.MapLeaveEndpoints();
         app.MapCapabilityEndpoints();
         app.MapStrategyEndpoints();
         app.MapPayrollEndpoints();

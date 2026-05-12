@@ -24,7 +24,6 @@ public static class SalaryRevisionEndpoints
         group.MapPost("/", ProposeRevision).WithName("Revision.Propose");
         group.MapGet("/{id:guid}", GetRevision).WithName("Revision.Get");
         group.MapGet("/", ListRevisions).WithName("Revision.List");
-        group.MapPost("/{id:guid}/approve", ApproveRevision).WithName("Revision.Approve");
 
         return app;
     }
@@ -84,38 +83,6 @@ public static class SalaryRevisionEndpoints
             .ToListAsync(ct);
 
         return Results.Ok(new { Items = items.Select(MapToDto), Total = total, Page = page });
-    }
-
-    private static async Task<IResult> ApproveRevision(
-        Guid id,
-        ClaimsPrincipal user,
-        PayrollDbContext db,
-        IPublishEndpoint bus,
-        CancellationToken ct)
-    {
-        var revision = await db.Set<SalaryRevision>().FirstOrDefaultAsync(r => r.Id == id, ct);
-        if (revision is null) return Results.NotFound();
-
-        var approvedBy = user.GetEmployeeIdString();
-        if (approvedBy is null) return Results.Unauthorized();
-
-        revision.Approve(approvedBy);
-
-        await db.SaveChangesAsync(ct);
-
-        await bus.Publish(new SalaryRevisionApprovedIntegrationEvent
-        {
-            RevisionId = revision.Id,
-            TenantId = revision.TenantId,
-            EmployeeId = revision.EmployeeId,
-            PreviousCTC = revision.PreviousCTC,
-            NewCTC = revision.NewCTC,
-            EffectiveFrom = revision.EffectiveFrom,
-            RequiresArrears = revision.RequiresArrears,
-            OccurredOnUtc = DateTimeOffset.UtcNow
-        }, ct);
-
-        return Results.Ok(MapToDto(revision));
     }
 
     private static SalaryRevisionDto MapToDto(SalaryRevision r) =>

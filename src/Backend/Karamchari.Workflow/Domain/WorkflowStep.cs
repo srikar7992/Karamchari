@@ -4,7 +4,7 @@ using Karamchari.Core.Domain.Workflows;
 namespace Karamchari.Workflow.Domain;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// A single step in a workflow coordination template.
 /// </summary>
 public sealed class WorkflowStep : Entity<Guid>
 {
@@ -16,8 +16,7 @@ public sealed class WorkflowStep : Entity<Guid>
         bool isParallel,
         QuorumRule quorumRule,
         int quorumThreshold,
-        string approverRolesJson,
-        string? conditionJson)
+        string approverRolesJson)
         : base(id)
     {
         DefinitionId = definitionId;
@@ -27,7 +26,6 @@ public sealed class WorkflowStep : Entity<Guid>
         QuorumRule = quorumRule;
         QuorumThreshold = quorumThreshold;
         ApproverRolesJson = approverRolesJson;
-        ConditionJson = conditionJson;
     }
 
     private WorkflowStep() { Name = string.Empty; ApproverRolesJson = "[]"; }
@@ -56,7 +54,6 @@ public sealed class WorkflowStep : Entity<Guid>
     /// Provides required documentation for this member.
     /// </summary>
     public int QuorumThreshold { get; private set; }
-    public string? ConditionJson { get; private set; }
 
     // Stored as a JSON array in the DB column; deserialized by the service layer when needed.
     /// <summary>
@@ -74,8 +71,7 @@ public sealed class WorkflowStep : Entity<Guid>
         bool isParallel,
         QuorumRule quorum,
         int quorumThreshold,
-        IEnumerable<string> approverRoles,
-        string? conditionJson = null)
+        IEnumerable<string> approverRoles)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(approverRoles);
@@ -87,7 +83,7 @@ public sealed class WorkflowStep : Entity<Guid>
         var rolesJson = System.Text.Json.JsonSerializer.Serialize(roles);
 
         return new WorkflowStep(Guid.NewGuid(), definitionId, order, name.Trim(),
-            isParallel, quorum, quorumThreshold, rolesJson, conditionJson);
+            isParallel, quorum, quorumThreshold, rolesJson);
     }
 
     /// <summary>

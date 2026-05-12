@@ -83,5 +83,6 @@ public static class TimeAttendanceServiceCollectionExtensions
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedConsumer>();
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedAnalyticsConsumer>();
         busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.BillingAnalyticsConsumer>();
+        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.WorkflowCompletedConsumer>();
     }
 }

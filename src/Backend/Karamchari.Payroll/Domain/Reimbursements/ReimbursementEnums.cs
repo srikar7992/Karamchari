@@ -1,18 +1,31 @@
 namespace Karamchari.Payroll.Domain.Reimbursements;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Authoritative business status for reimbursement claims.
+/// Coordination states (Pending Approval, Under Review) are managed by Workflow.
 /// </summary>
 public enum ReimbursementStatus
 {
-    Draft,
-    Submitted,
-    PendingApproval,
-    PartiallyApproved,
-    Approved,
-    Rejected,
-    PaidOut,
-    Clawback
+    /// <summary>Claim is being drafted or evaluated.</summary>
+    Draft = 1,
+
+    /// <summary>Claim has been submitted and is awaiting coordination.</summary>
+    Submitted = 2,
+
+    /// <summary>Claim has been fully approved and is authoritative truth for payout.</summary>
+    Approved = 3,
+
+    /// <summary>Claim has been partially approved.</summary>
+    PartiallyApproved = 4,
+
+    /// <summary>Claim was rejected.</summary>
+    Rejected = 5,
+
+    /// <summary>Claim has been paid out in a payroll run.</summary>
+    PaidOut = 6,
+
+    /// <summary>Claim has been clawed back after payout.</summary>
+    Clawback = 7
 }
 
 /// <summary>
@@ -37,8 +50,8 @@ public enum ReimbursementCategory
 /// </summary>
 public enum ReimbursementTaxability
 {
-    Exempt,
     Taxable,
+    Exempt,
     PartiallyTaxable
 }
 

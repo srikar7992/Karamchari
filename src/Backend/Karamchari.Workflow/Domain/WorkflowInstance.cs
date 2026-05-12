@@ -107,7 +107,6 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
             definition.Id,
             definition.Name,
             definition.EntityType,
-            CompilerVersion = Services.WorkflowConditionCompiler.CompilerVersion,
             Steps = definition.Steps.Select(s => new
             {
                 s.Id,
@@ -116,8 +115,7 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
                 s.IsParallel,
                 s.QuorumRule,
                 s.QuorumThreshold,
-                ApproverRoles = s.GetApproverRoles(),
-                s.ConditionJson,
+                ApproverRoles = s.GetApproverRoles()
             }),
         });
 
@@ -223,8 +221,6 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
         var approvedCount = currentStepInstances.Count(s => s.Status == WorkflowStepStatus.Approved);
         var totalCount = currentStepInstances.Count;
 
-        // Parse quorum rule from the snapshot to avoid coupling to the live definition.
-        // Fallback: if we can't parse, require all.
         try
         {
             using var doc = JsonDocument.Parse(DefinitionSnapshotJson);
@@ -256,7 +252,6 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
 
     private void AdvanceStep(int completedStepOrder)
     {
-        // Determine next step order by finding steps in the snapshot beyond completedStepOrder.
         int? nextOrder = null;
         try
         {

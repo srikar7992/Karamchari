@@ -159,6 +159,7 @@ public static class PayrollServiceCollectionExtensions
         busConfigurator.AddConsumer<InitiateDisbursementConsumer>();
         busConfigurator.AddConsumer<RetryDisbursementConsumer>();
         busConfigurator.AddConsumer<PayrollNotificationRouter>();
+        busConfigurator.AddConsumer<WorkflowCompletedPayrollConsumer>();
 
         busConfigurator.AddSagaStateMachine<PayrollRunStateMachine, PayrollRunState>()
             .EntityFrameworkRepository(r =>

@@ -128,6 +128,23 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         string Category,
         string Reason);
 
+    /// <summary>Published when a new leave request is created and awaiting coordination.</summary>
+    public record LeaveRequestCreatedIntegrationEvent(
+        Guid RequestId,
+        string TenantId,
+        Guid EmployeeId,
+        DateOnly StartDate,
+        DateOnly EndDate,
+        double TotalDays);
+
+    /// <summary>Published when a new reimbursement claim is submitted and awaiting coordination.</summary>
+    public record ReimbursementSubmittedIntegrationEvent(
+        Guid ClaimId,
+        string TenantId,
+        Guid EmployeeId,
+        string Category,
+        decimal Amount);
+
     // â”€â”€ Standardized Workflow Events (Phase 1B.3 Convergence) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Published when any platform workflow instance is started.</summary>

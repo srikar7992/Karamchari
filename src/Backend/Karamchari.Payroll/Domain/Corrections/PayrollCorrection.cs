@@ -159,7 +159,7 @@ public sealed class PayrollCorrection : AggregateRoot<Guid>
         if (Status != CorrectionStatus.Draft)
             throw new InvalidOperationException($"Cannot submit correction in status {Status}.");
 
-        Status = CorrectionStatus.PendingApproval;
+        Status = CorrectionStatus.Submitted;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
         RaiseDomainEvent(new CorrectionApprovalRequestedEvent(Id, TenantId, EmployeeId, Type, AffectedPeriodName));
     }
@@ -169,7 +169,7 @@ public sealed class PayrollCorrection : AggregateRoot<Guid>
     /// </summary>
     public void Approve(string approvedBy)
     {
-        if (Status != CorrectionStatus.PendingApproval)
+        if (Status != CorrectionStatus.Submitted)
             throw new InvalidOperationException($"Cannot approve correction in status {Status}.");
 
         Status = CorrectionStatus.Approved;
@@ -184,7 +184,7 @@ public sealed class PayrollCorrection : AggregateRoot<Guid>
     /// </summary>
     public void Reject(string rejectedBy, string reason)
     {
-        if (Status != CorrectionStatus.PendingApproval)
+        if (Status != CorrectionStatus.Submitted)
             throw new InvalidOperationException($"Cannot reject correction in status {Status}.");
 
         Status = CorrectionStatus.Rejected;

@@ -9,10 +9,23 @@ namespace Karamchari.Payroll.Domain.SalaryRevisions;
 public enum RevisionType { AnnualIncrement, Promotion, MarketCorrection, RetentionAdjustment, OffCycle }
 
 /// <summary>
-/// [DEPRECATED] Internal status for salary revisions.
-/// Candidates for convergence into unified workflow runtime.
+/// Authoritative business status for salary revisions.
+/// Coordination states (Pending, Under Review) are managed by Workflow.
 /// </summary>
-public enum RevisionStatus { Draft, PendingApproval, Approved, Applied, Cancelled }
+public enum RevisionStatus
+{
+    /// <summary>Revision is being drafted and is not yet authoritative.</summary>
+    Draft = 1,
+
+    /// <summary>Revision has been finalized and is authoritative truth for payroll calculation.</summary>
+    Finalized = 2,
+
+    /// <summary>Revision has been applied to payroll and cannot be changed.</summary>
+    Applied = 3,
+
+    /// <summary>Revision was cancelled or superseded.</summary>
+    Cancelled = 4
+}
 
 /// <summary>
 /// Aggregate for a salary revision (increment, promotion, off-cycle, etc.).
@@ -133,20 +146,20 @@ public sealed class SalaryRevision : AggregateRoot<Guid>
         if (Status != RevisionStatus.Draft)
             throw new InvalidOperationException($"Cannot submit revision in status {Status}.");
 
-        Status = RevisionStatus.PendingApproval;
-        UpdatedAtUtc = DateTimeOffset.UtcNow;
+        // Business invariant: Status remains Draft until finalized by coordination (Workflow).
         RaiseDomainEvent(new SalaryRevisionApprovalRequestedEvent(Id, TenantId, EmployeeId, NewCTC, EffectiveFrom));
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the salary revision, making it authoritative truth.
+    /// Called by coordination logic (Workflow) upon successful approval.
     /// </summary>
-    public void Approve(string approvedBy)
+    public void Finalize(string approvedBy)
     {
-        if (Status != RevisionStatus.PendingApproval)
-            throw new InvalidOperationException($"Cannot approve revision in status {Status}.");
+        if (Status != RevisionStatus.Draft)
+            throw new InvalidOperationException($"Cannot finalize revision in status {Status}.");
 
-        Status = RevisionStatus.Approved;
+        Status = RevisionStatus.Finalized;
         ApprovedBy = approvedBy;
         ApprovedAtUtc = DateTimeOffset.UtcNow;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
@@ -158,7 +171,7 @@ public sealed class SalaryRevision : AggregateRoot<Guid>
     /// </summary>
     public void MarkApplied(Guid? arrearId)
     {
-        if (Status != RevisionStatus.Approved)
+        if (Status != RevisionStatus.Finalized)
             throw new InvalidOperationException($"Cannot apply revision in status {Status}.");
 
         Status = RevisionStatus.Applied;

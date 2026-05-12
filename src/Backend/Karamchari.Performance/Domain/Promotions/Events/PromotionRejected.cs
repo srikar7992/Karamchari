@@ -9,7 +9,6 @@ public sealed record PromotionRejected(
     Guid RecommendationId,
     string TenantId,
     Guid EmployeeId,
-    PromotionApprovalStage RejectedAtStage,
     string Reason,
     DateTimeOffset OccurredOnUtc) : IDomainEvent
 {

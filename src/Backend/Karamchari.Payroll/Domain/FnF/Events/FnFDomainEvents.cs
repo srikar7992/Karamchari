@@ -9,7 +9,7 @@ public sealed record FnFSettlementInitiatedEvent(
     Guid SettlementId,
     string TenantId,
     Guid EmployeeId,
-    FnFExitType ExitType,
+    ExitType ExitType,
     DateOnly LastWorkingDay) : IDomainEvent
 {
     /// <summary>

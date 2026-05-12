@@ -6,9 +6,7 @@ using Karamchari.Performance.Domain.Scoring;
 namespace Karamchari.Performance.Domain.Promotions;
 
 /// <summary>
-/// Drives a promotion recommendation through a multi-stage approval workflow.
-/// Stages: Manager â†’ HR â†’ Leadership (configurable subset at tenant level).
-/// ReadinessScore is computed at creation by IPromotionReadinessEngine â€” immutable after submission.
+/// Drives a promotion recommendation. Coordination is managed by the Workflow module.
 /// </summary>
 public sealed class PromotionRecommendation : AggregateRoot<Guid>, ITenantOwned
 {
@@ -131,49 +129,39 @@ public sealed class PromotionRecommendation : AggregateRoot<Guid>, ITenantOwned
     {
         if (Status != PromotionStatus.Draft)
             throw new InvalidOperationException($"Cannot submit from {Status}.");
-        Status = PromotionStatus.Submitted;
+
+        // Business state remains Draft until finalized by coordination.
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the promotion recommendation, making it authoritative truth.
+    /// Called by coordination logic (Workflow) upon successful approval.
     /// </summary>
-    public void Approve(PromotionApprovalStage stage, Guid actorId, string? comments, bool isLastStage)
+    public void Finalize(Guid actorId)
     {
-        EnsureCanAct();
-        _approvalActions.Add(new PromotionApprovalAction(Guid.NewGuid(), Id, stage, actorId, true, comments));
+        if (Status != PromotionStatus.Draft)
+            throw new InvalidOperationException($"Cannot finalize from {Status}.");
 
-        Status = stage switch
-        {
-            PromotionApprovalStage.Manager => PromotionStatus.ApprovedByManager,
-            PromotionApprovalStage.HR => PromotionStatus.ApprovedByHR,
-            PromotionApprovalStage.Leadership => PromotionStatus.ApprovedByLeadership,
-            _ => throw new ArgumentOutOfRangeException(nameof(stage))
-        };
+        Status = PromotionStatus.Approved;
+        ApprovedEffectiveDate = ProposedEffectiveDate;
 
-        if (isLastStage)
-        {
-            Status = PromotionStatus.Approved;
-            ApprovedEffectiveDate = ProposedEffectiveDate;
-
-            RaiseDomainEvent(new PromotionApproved(
-                Id, TenantId, EmployeeId, CurrentGrade, ProposedGrade,
-                CurrentTitle, ProposedTitle, ApprovedEffectiveDate.Value, DateTimeOffset.UtcNow));
-        }
+        RaiseDomainEvent(new PromotionApproved(
+            Id, TenantId, EmployeeId, CurrentGrade, ProposedGrade,
+            CurrentTitle, ProposedTitle, ApprovedEffectiveDate.Value, DateTimeOffset.UtcNow));
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Rejects the promotion recommendation.
     /// </summary>
-    public void Reject(PromotionApprovalStage stage, Guid actorId, string reason)
+    public void Reject(Guid actorId, string reason)
     {
-        EnsureCanAct();
-        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        if (Status != PromotionStatus.Draft)
+            throw new InvalidOperationException($"Cannot reject from {Status}.");
 
-        _approvalActions.Add(new PromotionApprovalAction(Guid.NewGuid(), Id, stage, actorId, false, reason));
         Status = PromotionStatus.Rejected;
 
         RaiseDomainEvent(new PromotionRejected(
-            Id, TenantId, EmployeeId, stage, reason, DateTimeOffset.UtcNow));
+            Id, TenantId, EmployeeId, reason, DateTimeOffset.UtcNow));
     }
 
     /// <summary>
@@ -184,11 +172,5 @@ public sealed class PromotionRecommendation : AggregateRoot<Guid>, ITenantOwned
         if (Status is PromotionStatus.Approved or PromotionStatus.Rejected)
             throw new InvalidOperationException($"Cannot withdraw a {Status} recommendation.");
         Status = PromotionStatus.Withdrawn;
-    }
-
-    private void EnsureCanAct()
-    {
-        if (Status is PromotionStatus.Approved or PromotionStatus.Rejected or PromotionStatus.Withdrawn)
-            throw new InvalidOperationException($"Cannot act on a {Status} recommendation.");
     }
 }

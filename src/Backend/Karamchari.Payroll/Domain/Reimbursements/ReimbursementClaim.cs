@@ -5,7 +5,7 @@ namespace Karamchari.Payroll.Domain.Reimbursements;
 
 /// <summary>
 /// Aggregate for an employee reimbursement claim.
-/// Supports partial approvals, clawback, and fraud flag escalation.
+/// Business truth is owned by this aggregate; coordination is managed by Workflow.
 /// </summary>
 public sealed class ReimbursementClaim : AggregateRoot<Guid>
 {
@@ -165,12 +165,13 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the claim as approved (Business Truth).
+    /// Called by Workflow coordination upon successful completion.
     /// </summary>
-    public void Approve(string approvedBy, decimal? approvedAmount = null)
+    public void FinalizeApproved(string approvedBy, decimal? approvedAmount = null)
     {
-        if (Status is not (ReimbursementStatus.Submitted or ReimbursementStatus.PendingApproval))
-            throw new InvalidOperationException($"Cannot approve claim in status {Status}.");
+        if (Status != ReimbursementStatus.Submitted)
+            throw new InvalidOperationException($"Cannot finalize claim in status {Status}.");
 
         var amount = approvedAmount ?? ClaimedAmount;
 
@@ -187,12 +188,12 @@ public sealed class ReimbursementClaim : AggregateRoot<Guid>
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the claim as rejected (Business Truth).
     /// </summary>
-    public void Reject(string rejectedBy, string reason)
+    public void FinalizeRejected(string rejectedBy, string reason)
     {
-        if (Status is not (ReimbursementStatus.Submitted or ReimbursementStatus.PendingApproval))
-            throw new InvalidOperationException($"Cannot reject claim in status {Status}.");
+        if (Status != ReimbursementStatus.Submitted)
+            throw new InvalidOperationException($"Cannot finalize rejection in status {Status}.");
 
         Status = ReimbursementStatus.Rejected;
         RejectedBy = rejectedBy;

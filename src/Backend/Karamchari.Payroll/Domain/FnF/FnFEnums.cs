@@ -3,28 +3,39 @@ namespace Karamchari.Payroll.Domain.FnF;
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public enum FnFExitType
+public enum ExitType
 {
     Resignation,
     Termination,
-    Absconding,
     Retirement,
-    ContractCompletion
+    DeathInService
 }
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Authoritative business status for FnF settlements.
 /// </summary>
 public enum FnFStatus
 {
-    Draft,
-    PendingApproval,
-    Approved,
-    Disbursed,
-    Cancelled,
-    OnHold,        // legal hold
-    Reopened,
-    PostFnFCorrection
+    /// <summary>Settlement is being drafted.</summary>
+    Draft = 1,
+
+    /// <summary>Settlement has been submitted and is awaiting coordination.</summary>
+    Submitted = 2,
+
+    /// <summary>Settlement has been approved and is authoritative truth.</summary>
+    Approved = 3,
+
+    /// <summary>Settlement has been disbursed.</summary>
+    Disbursed = 4,
+
+    /// <summary>Settlement was cancelled.</summary>
+    Cancelled = 5,
+
+    /// <summary>Settlement is on hold due to pending clearance.</summary>
+    OnHold = 6,
+
+    /// <summary>Settlement was reopened for recalculation.</summary>
+    Reopened = 7
 }
 
 /// <summary>
@@ -32,17 +43,14 @@ public enum FnFStatus
 /// </summary>
 public enum FnFLineItemType
 {
-    PendingSalary,
-    LeaveEncashment,
     Gratuity,
-    BonusAdjustment,
-    ReimbursementSettlement,
-    LoanRecovery,
+    LeaveEncashment,
+    NoticePay,
+    Severance,
+    Bonus,
+    Recovery,
+    PendingSalary,
     NoticePeriodRecovery,
-    AssetRecovery,
-    TaxAdjustment,
-    ComplianceDeduction,
-    VariablePaySettlement,
-    ArrearsAdjustment,
+    LoanRecovery,
     Other
 }

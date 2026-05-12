@@ -41,7 +41,7 @@ public static class FnFEndpoints
         var (tenantId, employeeId) = user.GetTenantAndEmployee();
         if (tenantId is null || employeeId is null) return Results.Unauthorized();
 
-        if (!Enum.TryParse<FnFExitType>(request.ExitType, out var exitType))
+        if (!Enum.TryParse<ExitType>(request.ExitType, out var exitType))
             return Results.BadRequest($"Invalid exit type: {request.ExitType}");
 
         var settlement = FnFSettlement.Initiate(

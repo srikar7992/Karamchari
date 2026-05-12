@@ -1,30 +1,29 @@
 namespace Karamchari.Payroll.Domain.Arrears;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Authoritative business status for arrear calculations.
 /// </summary>
 public enum ArrearStatus
 {
-    Pending,
-    PendingApproval,
-    Approved,
-    Processed,
-    Reversed,
-    Cancelled
+    /// <summary>Arrear calculation is pending review.</summary>
+    Pending = 1,
+
+    /// <summary>Arrear has been approved and is authoritative truth.</summary>
+    Approved = 2,
+
+    /// <summary>Arrear has been processed in a payroll run.</summary>
+    Processed = 3,
+
+    /// <summary>Arrear was rejected or cancelled.</summary>
+    Rejected = 4,
+
+    /// <summary>Arrear was reversed after being processed.</summary>
+    Reversed = 5
 }
 
-/// <summary>
-/// Provides required documentation for this member.
-/// </summary>
 public enum ArrearTriggerType
 {
     SalaryRevision,
-    AttendanceCorrection,
-    ShiftCorrection,
-    OvertimeCorrection,
-    TaxRecalculation,
-    BackdatedPromotion,
-    ComplianceAdjustment,
-    LeaveCorrection,
-    ManualAdjustment
+    Correction,
+    Manual
 }

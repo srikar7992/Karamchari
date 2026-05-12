@@ -5,6 +5,7 @@ using Karamchari.Core.Multitenancy;
 
 /// <summary>
 /// Represents an employee's request for leave.
+/// Business truth is owned by this aggregate; coordination is managed by Workflow.
 /// </summary>
 public sealed class LeaveRequest : AggregateRoot<Guid>, ITenantOwned
 {
@@ -16,7 +17,7 @@ public sealed class LeaveRequest : AggregateRoot<Guid>, ITenantOwned
         EndDate = endDate;
         ActualDays = actualDays;
         Reason = reason;
-        Status = LeaveRequestStatus.Pending;
+        Status = LeaveRequestStatus.Draft;
         RequestedOnUtc = DateTime.UtcNow;
     }
 
@@ -56,7 +57,7 @@ public sealed class LeaveRequest : AggregateRoot<Guid>, ITenantOwned
     public string? Reason { get; private set; }
 
     /// <summary>
-    /// Gets the current status of the request.
+    /// Gets the current business status of the request.
     /// </summary>
     public LeaveRequestStatus Status { get; private set; }
 
@@ -73,35 +74,47 @@ public sealed class LeaveRequest : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Creates a new leave request.
     /// </summary>
-    /// <param name="employeeId">The employee identifier.</param>
-    /// <param name="policyId">The leave policy identifier.</param>
-    /// <param name="startDate">The start date.</param>
-    /// <param name="endDate">The end date.</param>
-    /// <param name="actualDays">The pre-calculated actual days.</param>
-    /// <param name="reason">The reason.</param>
-    /// <returns>A new <see cref="LeaveRequest"/> instance.</returns>
     public static LeaveRequest Create(Guid employeeId, Guid policyId, DateOnly startDate, DateOnly endDate, double actualDays, string? reason = null)
     {
         if (endDate < startDate) throw new ArgumentException("End date cannot be before start date.");
         if (actualDays <= 0) throw new ArgumentException("Actual days must be greater than zero.");
-        return new LeaveRequest(Guid.NewGuid(), employeeId, policyId, startDate, endDate, actualDays, reason?.Trim());
+
+        var request = new LeaveRequest(Guid.NewGuid(), employeeId, policyId, startDate, endDate, actualDays, reason?.Trim());
+
+        // TenantId is not set in Create because it's ITenantOwned (stamped by interceptor)
+        // but for domain events we often need it. The interceptor stamps it on SaveChanges.
+        // We'll rely on the consumer selection of WorkflowDefinition to handle TenantId.
+
+        request.RaiseDomainEvent(new Events.LeaveRequestCreated(request.Id, "", employeeId, startDate, endDate, actualDays));
+
+        return request;
     }
 
     /// <summary>
-    /// Approves the leave request.
+    /// Finalizes the leave request as approved (Business Truth).
+    /// Called by Workflow coordination upon successful completion.
     /// </summary>
-    public void Approve()
+    public void FinalizeApproved()
     {
-        if (Status != LeaveRequestStatus.Pending) throw new InvalidOperationException("Only pending requests can be approved.");
+        if (Status != LeaveRequestStatus.Draft) throw new InvalidOperationException("Only draft requests can be approved.");
         Status = LeaveRequestStatus.Approved;
     }
 
     /// <summary>
-    /// Rejects the leave request.
+    /// Finalizes the leave request as rejected (Business Truth).
     /// </summary>
-    public void Reject()
+    public void FinalizeRejected()
     {
-        if (Status != LeaveRequestStatus.Pending) throw new InvalidOperationException("Only pending requests can be rejected.");
+        if (Status != LeaveRequestStatus.Draft) throw new InvalidOperationException("Only draft requests can be rejected.");
         Status = LeaveRequestStatus.Rejected;
+    }
+
+    /// <summary>
+    /// Cancels the leave request.
+    /// </summary>
+    public void Cancel()
+    {
+        if (Status == LeaveRequestStatus.Approved) throw new InvalidOperationException("Cannot cancel an already approved leave.");
+        Status = LeaveRequestStatus.Cancelled;
     }
 }

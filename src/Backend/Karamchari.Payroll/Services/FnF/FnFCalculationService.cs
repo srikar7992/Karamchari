@@ -12,7 +12,7 @@ public record FnFCalculationInput(
     string TenantId,
     Guid EmployeeId,
     DateOnly LastWorkingDay,
-    FnFExitType ExitType,
+    ExitType ExitType,
     int NoticePeriodDays,
     int ActualNoticeDays,
     decimal PendingSalaryDays,

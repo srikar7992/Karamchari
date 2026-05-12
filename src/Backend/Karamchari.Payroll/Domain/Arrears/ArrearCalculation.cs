@@ -146,7 +146,7 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
         if (_periodDiffs.Count == 0)
             throw new InvalidOperationException("Cannot submit arrear with no period diffs.");
 
-        Status = ArrearStatus.PendingApproval;
+        Status = ArrearStatus.Pending;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
         RaiseDomainEvent(new ArrearApprovalRequestedEvent(Id, TenantId, EmployeeId, TotalNetDelta));
     }
@@ -156,7 +156,7 @@ public sealed class ArrearCalculation : AggregateRoot<Guid>
     /// </summary>
     public void Approve(string approvedBy)
     {
-        if (Status != ArrearStatus.PendingApproval)
+        if (Status != ArrearStatus.Pending)
             throw new InvalidOperationException($"Cannot approve arrear in status {Status}.");
 
         Status = ArrearStatus.Approved;

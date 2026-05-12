@@ -1,17 +1,19 @@
 namespace Karamchari.TimeAttendance.Domain.Leaves;
 
 /// <summary>
-/// [DEPRECATED] Defines the status of a leave request.
-/// Candidates for convergence into unified workflow runtime.
+/// Authoritative business status for leave requests.
 /// </summary>
 public enum LeaveRequestStatus
 {
-    /// <summary>The request is waiting for approval.</summary>
-    Pending = 1,
-    /// <summary>The request has been approved.</summary>
+    /// <summary>The request is being drafted or is awaiting coordination.</summary>
+    Draft = 1,
+
+    /// <summary>The request has been approved and is authoritative truth.</summary>
     Approved = 2,
-    /// <summary>The request has been rejected.</summary>
+
+    /// <summary>The request was rejected.</summary>
     Rejected = 3,
-    /// <summary>The request has been cancelled by the employee.</summary>
+
+    /// <summary>The request was cancelled by the employee.</summary>
     Cancelled = 4
 }

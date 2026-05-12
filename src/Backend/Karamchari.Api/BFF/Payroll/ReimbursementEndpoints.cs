@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Karamchari.Api.BFF;
 using Karamchari.Api.BFF.Common;
 using Karamchari.Api.Middleware;
+using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Reimbursements;
@@ -28,8 +29,6 @@ public static class ReimbursementEndpoints
         group.MapGet("/{id:guid}", GetClaim).WithName("Reimbursement.Get");
         group.MapGet("/", ListClaims).WithName("Reimbursement.List");
         group.MapGet("/my", GetMyClaims).WithName("Reimbursement.My");
-        group.MapPost("/{id:guid}/approve", ApproveClaim).WithName("Reimbursement.Approve").WithIdempotency();
-        group.MapPost("/{id:guid}/reject", RejectClaim).WithName("Reimbursement.Reject").WithIdempotency();
         group.MapPost("/{id:guid}/clawback", ClawbackClaim).WithName("Reimbursement.Clawback").WithIdempotency();
 
         return app;
@@ -39,6 +38,7 @@ public static class ReimbursementEndpoints
         [FromBody] SubmitReimbursementRequest request,
         ClaimsPrincipal user,
         PayrollDbContext db,
+        IPublishEndpoint bus,
         CancellationToken ct)
     {
         var (tenantId, employeeId) = user.GetTenantAndEmployee();
@@ -63,6 +63,10 @@ public static class ReimbursementEndpoints
 
             db.Set<ReimbursementClaim>().Add(claim);
             await db.SaveChangesAsync(ct);
+
+            // Publish integration event to start workflow
+            await bus.Publish(new ReimbursementSubmittedIntegrationEvent(
+                claim.Id, tenantId, employeeId.Value, category.ToString(), claim.ClaimedAmount), ct);
 
             return Results.Created($"/api/v1/payroll/reimbursements/{claim.Id}", MapToDto(claim));
         }
@@ -122,56 +126,6 @@ public static class ReimbursementEndpoints
 
         var items = await query.OrderByDescending(c => c.CreatedAtUtc).ToListAsync(ct);
         return Results.Ok(items.Select(MapToDto));
-    }
-
-    private static async Task<IResult> ApproveClaim(
-        Guid id,
-        [FromBody] decimal approvedAmount,
-        ClaimsPrincipal user,
-        PayrollDbContext db,
-        IPublishEndpoint bus,
-        CancellationToken ct)
-    {
-        var claim = await db.Set<ReimbursementClaim>().FirstOrDefaultAsync(c => c.Id == id, ct);
-        if (claim is null) return Results.NotFound();
-
-        var approvedBy = user.GetEmployeeIdString();
-        if (approvedBy is null) return Results.Unauthorized();
-
-        claim.Approve(approvedBy, approvedAmount);
-
-        await db.SaveChangesAsync(ct);
-
-        await bus.Publish(new ReimbursementApprovedIntegrationEvent
-        {
-            ClaimId = claim.Id,
-            TenantId = claim.TenantId,
-            EmployeeId = claim.EmployeeId,
-            ApprovedAmount = claim.ApprovedAmount,
-            Category = claim.Category.ToString(),
-            OccurredOnUtc = DateTimeOffset.UtcNow
-        }, ct);
-
-        return Results.Ok(MapToDto(claim));
-    }
-
-    private static async Task<IResult> RejectClaim(
-        Guid id,
-        [FromBody] string reason,
-        ClaimsPrincipal user,
-        PayrollDbContext db,
-        CancellationToken ct)
-    {
-        var claim = await db.Set<ReimbursementClaim>().FirstOrDefaultAsync(c => c.Id == id, ct);
-        if (claim is null) return Results.NotFound();
-
-        var rejectedBy = user.GetEmployeeIdString();
-        if (rejectedBy is null) return Results.Unauthorized();
-
-        claim.Reject(rejectedBy, reason);
-
-        await db.SaveChangesAsync(ct);
-        return Results.Ok(MapToDto(claim));
     }
 
     private static async Task<IResult> ClawbackClaim(
