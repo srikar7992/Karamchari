@@ -27,8 +27,6 @@ public static class LoanEndpoints
         group.MapGet("/{id:guid}", GetLoan).WithName("Loan.Get");
         group.MapGet("/", ListLoans).WithName("Loan.List");
         group.MapGet("/{id:guid}/schedule", GetSchedule).WithName("Loan.Schedule");
-        group.MapPost("/{id:guid}/approve", ApproveLoan).WithName("Loan.Approve").WithIdempotency();
-        group.MapPost("/{id:guid}/reject", RejectLoan).WithName("Loan.Reject").WithIdempotency();
         group.MapPost("/{id:guid}/pre-close", PreCloseLoan).WithName("Loan.PreClose").WithIdempotency();
 
         return app;
@@ -74,44 +72,6 @@ public static class LoanEndpoints
         }, ct);
 
         return Results.Created($"/api/v1/payroll/loans/{loan.Id}", MapToDto(loan));
-    }
-
-    private static async Task<IResult> ApproveLoan(
-        Guid id,
-        [FromBody] string? note,
-        ClaimsPrincipal user,
-        PayrollDbContext db,
-        CancellationToken ct)
-    {
-        var loan = await db.Set<EmployeeLoan>().FindAsync(new object[] { id }, ct);
-        if (loan == null) return Results.NotFound();
-
-        var approvedBy = user.GetEmployeeIdString();
-        if (approvedBy is null) return Results.Unauthorized();
-
-        loan.Approve(approvedBy, note);
-        await db.SaveChangesAsync(ct);
-
-        return Results.Ok(MapToDto(loan));
-    }
-
-    private static async Task<IResult> RejectLoan(
-        Guid id,
-        [FromBody] string reason,
-        ClaimsPrincipal user,
-        PayrollDbContext db,
-        CancellationToken ct)
-    {
-        var loan = await db.Set<EmployeeLoan>().FindAsync(new object[] { id }, ct);
-        if (loan == null) return Results.NotFound();
-
-        var rejectedBy = user.GetEmployeeIdString();
-        if (rejectedBy is null) return Results.Unauthorized();
-
-        loan.Reject(rejectedBy, reason);
-        await db.SaveChangesAsync(ct);
-
-        return Results.Ok(MapToDto(loan));
     }
 
     private static async Task<IResult> GetLoan(

@@ -1,39 +1,43 @@
 using Karamchari.Core.Domain.Primitives;
-using Karamchari.Core.Domain.Workflows;
 using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Recruitment.Domain.Offers;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Authoritative business status for recruitment offers.
+/// Coordination states (Pending Approval) are managed by Workflow.
 /// </summary>
 public enum OfferStatus
 {
-    /// <inheritdoc/>
-    Draft,
-    /// <inheritdoc/>
-    PendingApproval,
-    /// <inheritdoc/>
-    Approved,
-    /// <inheritdoc/>
-    Extended,
-    /// <inheritdoc/>
-    Accepted,
-    /// <inheritdoc/>
-    Rejected,
-    /// <inheritdoc/>
-    Expired,
-    /// <inheritdoc/>
-    Revoked
+    /// <summary>Offer is being drafted.</summary>
+    Draft = 1,
+
+    /// <summary>Offer has been approved and can be extended to candidate.</summary>
+    Approved = 2,
+
+    /// <summary>Offer has been sent to the candidate.</summary>
+    Extended = 3,
+
+    /// <summary>Candidate has accepted the offer.</summary>
+    Accepted = 4,
+
+    /// <summary>Candidate has rejected the offer.</summary>
+    Rejected = 5,
+
+    /// <summary>Offer has expired.</summary>
+    Expired = 6,
+
+    /// <summary>Offer was revoked by the company.</summary>
+    Revoked = 7
 }
 
 /// <summary>
 /// Aggregate root representing an employment offer.
-/// Orchestrates compensation approvals and candidate acceptance.
+/// Business truth is owned here; coordination is managed by Workflow.
 /// </summary>
 public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
 {
-    private readonly List<ApprovalStep> _approvalChain = [];
+    private OfferLetter() { }
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -83,13 +87,6 @@ public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public IReadOnlyCollection<ApprovalStep> ApprovalChain => _approvalChain.AsReadOnly();
-
-    private OfferLetter() { }
-
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public static OfferLetter Create(
         string tenantId,
         Guid applicationId,
@@ -115,44 +112,30 @@ public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
 
-        // Standard offer approval chain: Recruiter -> Hiring Manager -> Finance
-        offer._approvalChain.Add(ApprovalStep.Create(1, "Recruiter"));
-        offer._approvalChain.Add(ApprovalStep.Create(2, "Hiring Manager"));
-        offer._approvalChain.Add(ApprovalStep.Create(3, "Finance"));
-
         return offer;
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the offer as approved, making it authoritative truth for extending.
+    /// Called by Workflow coordination upon successful completion.
     /// </summary>
-    public void RequestApproval()
+    public void FinalizeApproved()
     {
         if (Status != OfferStatus.Draft)
-            throw new InvalidOperationException($"Cannot request approval from state {Status}");
+            throw new InvalidOperationException($"Cannot finalize offer in status {Status}");
 
-        Status = OfferStatus.PendingApproval;
+        Status = OfferStatus.Approved;
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Rejects the offer during coordination.
     /// </summary>
-    public void Approve(string approverId, string? note = null)
+    public void FinalizeRejected()
     {
-        if (Status != OfferStatus.PendingApproval)
-            throw new InvalidOperationException($"Cannot approve offer in status {Status}");
+        if (Status != OfferStatus.Draft)
+            throw new InvalidOperationException($"Cannot reject offer in status {Status}");
 
-        var currentStep = _approvalChain
-            .OrderBy(s => s.Sequence)
-            .FirstOrDefault(s => s.Status == ApprovalStatus.Pending)
-            ?? throw new InvalidOperationException("No pending approval steps found.");
-
-        currentStep.Approve(approverId, note);
-
-        if (_approvalChain.All(s => s.Status == ApprovalStatus.Approved))
-        {
-            Status = OfferStatus.Approved;
-        }
+        Status = OfferStatus.Rejected;
     }
 
     /// <summary>
@@ -187,11 +170,11 @@ public sealed class OfferLetter : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public void Reject(string reason)
+    public void Revoke()
     {
-        if (Status != OfferStatus.Extended)
-            throw new InvalidOperationException($"Cannot reject offer in state {Status}");
+        if (Status is OfferStatus.Accepted or OfferStatus.Rejected)
+            throw new InvalidOperationException($"Cannot revoke offer in state {Status}");
 
-        Status = OfferStatus.Rejected;
+        Status = OfferStatus.Revoked;
     }
 }

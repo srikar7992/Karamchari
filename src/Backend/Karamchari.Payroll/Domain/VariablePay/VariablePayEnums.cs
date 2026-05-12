@@ -17,18 +17,31 @@ public enum VariablePayType
 }
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Authoritative business status for variable pay allocations.
+/// Coordination states (Pending Approval) are managed by Workflow.
 /// </summary>
 public enum VariablePayStatus
 {
-    Draft,
-    PendingApproval,
-    Approved,
-    Scheduled,
-    PaidOut,
-    Clawback,
-    Cancelled,
-    Deferred
+    /// <summary>Allocation is being drafted.</summary>
+    Draft = 1,
+
+    /// <summary>Allocation has been approved and is authoritative truth.</summary>
+    Approved = 2,
+
+    /// <summary>Allocation has been scheduled for a specific payroll period.</summary>
+    Scheduled = 3,
+
+    /// <summary>Allocation has been paid out.</summary>
+    PaidOut = 4,
+
+    /// <summary>Allocation has been clawed back.</summary>
+    Clawback = 5,
+
+    /// <summary>Allocation was cancelled or rejected.</summary>
+    Cancelled = 6,
+
+    /// <summary>Allocation is deferred to a future date.</summary>
+    Deferred = 7
 }
 
 /// <summary>

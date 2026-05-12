@@ -131,14 +131,6 @@ public class RecruitmentDbContext : KaramchariDbContext
             b.Property(x => x.EquityGrant).HasPrecision(18, 2);
             b.Property(x => x.SignOnBonus).HasPrecision(18, 2);
             b.Property(x => x.RowVersion).IsRowVersion();
-
-            b.OwnsMany(x => x.ApprovalChain, ac =>
-            {
-                ac.ToTable("Recruitment_OfferApprovalSteps");
-                ac.WithOwner().HasForeignKey("OfferId");
-                ac.HasKey("OfferId", "Sequence");
-                ac.Property(x => x.Status).HasConversion<string>();
-            });
         });
     }
 }

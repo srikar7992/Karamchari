@@ -1,18 +1,16 @@
 using Karamchari.Core.Domain.Primitives;
-using Karamchari.Core.Domain.Workflows;
 using Karamchari.Payroll.Domain.Loans.Events;
 
 namespace Karamchari.Payroll.Domain.Loans;
 
 /// <summary>
 /// Aggregate for employee loans and salary advances.
-/// Maintains the full amortization schedule. Installments are computed externally
-/// (LoanAmortizationEngine) and injected via SetSchedule().
+/// Maintains the full amortization schedule. Business truth is owned here;
+/// coordination (approvals) is managed by the Workflow module.
 /// </summary>
 public sealed class EmployeeLoan : AggregateRoot<Guid>
 {
     private readonly List<LoanInstallment> _installments = [];
-    private readonly List<ApprovalStep> _approvalChain = [];
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -81,10 +79,6 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
     /// Provides required documentation for this member.
     /// </summary>
     public IReadOnlyCollection<LoanInstallment> Installments => _installments.AsReadOnly();
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
-    public IReadOnlyCollection<ApprovalStep> ApprovalChain => _approvalChain.AsReadOnly();
 
     private EmployeeLoan() { }
 
@@ -115,14 +109,9 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
             TenureMonths = tenureMonths,
             OutstandingBalance = principalAmount,
             DisbursedOn = disbursedOn,
-            Status = LoanStatus.PendingApproval,
+            Status = LoanStatus.Draft,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
-
-        // Standard loan chain: Manager -> HR -> Finance
-        loan._approvalChain.Add(ApprovalStep.Create(1, "Manager"));
-        loan._approvalChain.Add(ApprovalStep.Create(2, "HR"));
-        loan._approvalChain.Add(ApprovalStep.Create(3, "Finance"));
 
         loan.RaiseDomainEvent(new LoanCreatedEvent(
             loan.Id, tenantId, employeeId, type, principalAmount));
@@ -131,46 +120,29 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the loan as active, making it authoritative truth for deductions.
+    /// Called by Workflow coordination logic upon successful completion.
     /// </summary>
-    public void Approve(string approvedBy, string? note = null)
+    public void FinalizeApproved(string approvedBy)
     {
-        if (Status != LoanStatus.PendingApproval)
-            throw new InvalidOperationException($"Cannot approve loan in status {Status}.");
+        if (Status != LoanStatus.Draft)
+            throw new InvalidOperationException($"Cannot finalize loan in status {Status}.");
 
-        var currentStep = _approvalChain
-            .OrderBy(s => s.Sequence)
-            .FirstOrDefault(s => s.Status == ApprovalStatus.Pending)
-            ?? throw new InvalidOperationException("No pending approval steps found.");
-
-        currentStep.Approve(approvedBy, note);
-
-        // If all steps approved, activate loan
-        if (_approvalChain.All(s => s.Status == ApprovalStatus.Approved))
-        {
-            Status = LoanStatus.Active;
-            ApprovedBy = approvedBy; // Last approver
-            ApprovedAtUtc = DateTimeOffset.UtcNow;
-            RaiseDomainEvent(new LoanClosedEvent(Id, TenantId, EmployeeId, LoanStatus.Active)); // Using existing event for activation notify
-        }
-
+        Status = LoanStatus.Active;
+        ApprovedBy = approvedBy;
+        ApprovedAtUtc = DateTimeOffset.UtcNow;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+        RaiseDomainEvent(new LoanClosedEvent(Id, TenantId, EmployeeId, LoanStatus.Active));
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Rejects the loan request.
     /// </summary>
-    public void Reject(string rejectedBy, string reason)
+    public void FinalizeRejected()
     {
-        if (Status != LoanStatus.PendingApproval)
+        if (Status != LoanStatus.Draft)
             throw new InvalidOperationException($"Cannot reject loan in status {Status}.");
-
-        var currentStep = _approvalChain
-            .OrderBy(s => s.Sequence)
-            .FirstOrDefault(s => s.Status == ApprovalStatus.Pending)
-            ?? throw new InvalidOperationException("No pending approval steps found.");
-
-        currentStep.Reject(rejectedBy, reason);
 
         Status = LoanStatus.Rejected;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
@@ -207,8 +179,8 @@ public sealed class EmployeeLoan : AggregateRoot<Guid>
 
         if (OutstandingBalance == 0)
         {
-            Status = LoanStatus.ClosedByEmployee;
-            RaiseDomainEvent(new LoanClosedEvent(Id, TenantId, EmployeeId, LoanStatus.ClosedByEmployee));
+            Status = LoanStatus.Closed;
+            RaiseDomainEvent(new LoanClosedEvent(Id, TenantId, EmployeeId, LoanStatus.Closed));
         }
     }
 

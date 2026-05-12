@@ -5,7 +5,7 @@ namespace Karamchari.Payroll.Domain.VariablePay;
 
 /// <summary>
 /// Aggregate for a single variable pay allocation (bonus, incentive, etc.).
-/// Clawback window and deferred payout both handled here.
+/// Business truth is owned here; coordination is managed by Workflow.
 /// </summary>
 public sealed class VariablePayAllocation : AggregateRoot<Guid>
 {
@@ -32,7 +32,7 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public TaxTreatment TaxTreatment { get; private set; }
+    public TaxTreatment Taxability { get; private set; }
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -118,7 +118,7 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
             Type = type,
             AllocatedAmount = allocatedAmount,
             ProratedAmount = allocatedAmount,
-            TaxTreatment = taxTreatment,
+            Taxability = taxTreatment,
             PerformancePeriod = performancePeriod,
             ScheduledPayoutDate = scheduledPayoutDate,
             ClawbackWindowMonths = clawbackWindowMonths,
@@ -143,29 +143,30 @@ public sealed class VariablePayAllocation : AggregateRoot<Guid>
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the allocation as approved, making it authoritative truth for payout.
+    /// Called by Workflow coordination upon successful completion.
     /// </summary>
-    public void SubmitForApproval()
+    public void FinalizeApproved(string approvedBy)
     {
         if (Status != VariablePayStatus.Draft)
-            throw new InvalidOperationException($"Cannot submit variable pay in status {Status}.");
-
-        Status = VariablePayStatus.PendingApproval;
-        UpdatedAtUtc = DateTimeOffset.UtcNow;
-    }
-
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
-    public void Approve(string approvedBy)
-    {
-        if (Status != VariablePayStatus.PendingApproval)
-            throw new InvalidOperationException($"Cannot approve variable pay in status {Status}.");
+            throw new InvalidOperationException($"Cannot finalize variable pay in status {Status}.");
 
         Status = VariablePayStatus.Approved;
         ApprovedBy = approvedBy;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
         RaiseDomainEvent(new VariablePayApprovedEvent(Id, TenantId, EmployeeId, Type, ProratedAmount, approvedBy));
+    }
+
+    /// <summary>
+    /// Rejects the allocation during coordination.
+    /// </summary>
+    public void FinalizeRejected()
+    {
+        if (Status != VariablePayStatus.Draft)
+            throw new InvalidOperationException($"Cannot reject variable pay in status {Status}.");
+
+        Status = VariablePayStatus.Cancelled;
+        UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
     /// <summary>

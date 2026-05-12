@@ -5,7 +5,8 @@ using Karamchari.Performance.Domain.Goals.Events;
 namespace Karamchari.Performance.Domain.Goals;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Aggregate root representing a performance goal.
+/// Business truth is owned here; coordination (approval) is managed by Workflow.
 /// </summary>
 public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
 {
@@ -133,33 +134,34 @@ public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public void SubmitForApproval()
+    public void Submit()
     {
         if (Status != GoalStatus.Draft)
-            throw new InvalidOperationException($"Cannot submit goal in state {Status}.");
+            throw new InvalidOperationException($"Cannot submit goal from {Status}.");
 
-        Status = GoalStatus.PendingApproval;
+        // Business state remains Draft until coordination completes.
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the goal as active, making it authoritative truth for tracking.
+    /// Called by Workflow coordination upon successful completion.
     /// </summary>
-    public void Approve()
+    public void FinalizeApproved()
     {
-        if (Status != GoalStatus.PendingApproval)
-            throw new InvalidOperationException($"Cannot approve goal in state {Status}.");
+        if (Status != GoalStatus.Draft)
+            throw new InvalidOperationException($"Cannot activate goal from {Status}.");
 
         Status = GoalStatus.Active;
         RaiseDomainEvent(new GoalApproved(Id, TenantId, OwnerId, OwnerType, DateTimeOffset.UtcNow));
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Rejects the goal during coordination.
     /// </summary>
-    public void Reject()
+    public void FinalizeRejected()
     {
-        if (Status != GoalStatus.PendingApproval)
-            throw new InvalidOperationException($"Cannot reject goal in state {Status}.");
+        if (Status != GoalStatus.Draft)
+            throw new InvalidOperationException($"Cannot reject goal from {Status}.");
 
         Status = GoalStatus.Rejected;
     }

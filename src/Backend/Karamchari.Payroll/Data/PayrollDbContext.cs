@@ -385,15 +385,6 @@ public class PayrollDbContext : KaramchariDbContext
                 i.Property(x => x.InterestAmount).HasPrecision(18, 2);
                 i.Property(x => x.OutstandingAfter).HasPrecision(18, 2);
             });
-
-            b.OwnsMany(x => x.ApprovalChain, a =>
-            {
-                a.ToTable("LoanApprovalSteps");
-                a.WithOwner().HasForeignKey("LoanId");
-                a.Property<Guid>("Id");
-                a.HasKey("Id");
-                a.Property(x => x.Status).HasConversion<string>();
-            });
         });
 
         // â”€â”€ Phase 1A: Variable Pay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -405,7 +396,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.EmployeeId });
             b.Property(x => x.Status).HasConversion<string>();
             b.Property(x => x.Type).HasConversion<string>();
-            b.Property(x => x.TaxTreatment).HasConversion<string>();
+            b.Property(x => x.Taxability).HasConversion<string>();
             b.Property(x => x.AllocatedAmount).HasPrecision(18, 2);
             b.Property(x => x.ProratedAmount).HasPrecision(18, 2);
             b.Property(x => x.PaidAmount).HasPrecision(18, 2);

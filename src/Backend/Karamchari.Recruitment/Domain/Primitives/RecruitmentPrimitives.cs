@@ -63,22 +63,28 @@ public enum HiringPriority
 }
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Authoritative business status for job requisitions.
+/// Coordination states (Pending Approval) are managed by Workflow.
 /// </summary>
 public enum RequisitionStatus
 {
-    /// <inheritdoc/>
-    Draft,
-    /// <inheritdoc/>
-    PendingApproval,
-    /// <inheritdoc/>
-    Open,
-    /// <inheritdoc/>
-    OnHold,
-    /// <inheritdoc/>
-    Filled,
-    /// <inheritdoc/>
-    Cancelled
+    /// <summary>Requisition is being drafted.</summary>
+    Draft = 1,
+
+    /// <summary>Requisition has been approved and is open for hiring.</summary>
+    Open = 2,
+
+    /// <summary>Requisition is on hold.</summary>
+    OnHold = 3,
+
+    /// <summary>Requisition has been filled.</summary>
+    Filled = 4,
+
+    /// <summary>Requisition was cancelled.</summary>
+    Cancelled = 5,
+
+    /// <summary>Requisition was rejected during coordination.</summary>
+    Rejected = 6
 }
 
 /// <summary>

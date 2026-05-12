@@ -6,7 +6,7 @@ namespace Karamchari.Recruitment.Domain.Requisitions;
 
 /// <summary>
 /// Aggregate root for a Job Requisition.
-/// Orchestrates the hiring demand, budget approvals, and headcount planning.
+/// Business truth is owned here; coordination is managed by Workflow.
 /// </summary>
 public sealed class JobRequisition : AggregateRoot<Guid>, ITenantOwned
 {
@@ -105,28 +105,27 @@ public sealed class JobRequisition : AggregateRoot<Guid>, ITenantOwned
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the requisition as open, making it authoritative truth for hiring.
+    /// Called by Workflow coordination logic upon successful completion.
     /// </summary>
-    public void RequestApproval()
+    public void FinalizeApproved(string approvedBy)
     {
         if (Status != RequisitionStatus.Draft && Status != RequisitionStatus.OnHold)
-            throw new InvalidOperationException($"Cannot request approval from state {Status}");
-
-        Status = RequisitionStatus.PendingApproval;
-        // Logic to initiate Approval Workflow goes here
-    }
-
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
-    public void Open(string approvedBy)
-    {
-        if (Status != RequisitionStatus.PendingApproval)
             throw new InvalidOperationException($"Cannot open requisition from state {Status}");
 
         Status = RequisitionStatus.Open;
         ApprovedAtUtc = DateTimeOffset.UtcNow;
-        // Raise RequisitionOpenedEvent
+    }
+
+    /// <summary>
+    /// Rejects the requisition during coordination.
+    /// </summary>
+    public void FinalizeRejected()
+    {
+        if (Status != RequisitionStatus.Draft)
+            throw new InvalidOperationException($"Cannot reject requisition from state {Status}");
+
+        Status = RequisitionStatus.Rejected;
     }
 
     /// <summary>
@@ -143,9 +142,22 @@ public sealed class JobRequisition : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
+    public void Cancel()
+    {
+        if (Status == RequisitionStatus.Filled)
+            throw new InvalidOperationException("Cannot cancel a filled requisition.");
+
+        Status = RequisitionStatus.Cancelled;
+        ClosedAtUtc = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public void AttachDemandSignal(WorkforceDemandSource source, WorkforceDemandLevel level, string justification, string? sourceReferenceId = null)
     {
-        if (Status != RequisitionStatus.Draft && Status != RequisitionStatus.PendingApproval)
+        // Allowed in Draft or while coordination is in progress (still business state Draft)
+        if (Status != RequisitionStatus.Draft)
             throw new InvalidOperationException($"Cannot attach demand signal to requisition in state {Status}");
 
         DemandSignal = WorkforceDemandSignal.Create(Id, source, level, justification, sourceReferenceId);

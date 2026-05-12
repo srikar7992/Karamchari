@@ -24,7 +24,6 @@ public static class VariablePayEndpoints
         group.MapPost("/", AllocateVariablePay).WithName("VariablePay.Allocate");
         group.MapGet("/{id:guid}", GetVariablePay).WithName("VariablePay.Get");
         group.MapGet("/", ListVariablePay).WithName("VariablePay.List");
-        group.MapPost("/{id:guid}/approve", ApproveVariablePay).WithName("VariablePay.Approve");
 
         return app;
     }
@@ -83,37 +82,6 @@ public static class VariablePayEndpoints
             .ToListAsync(ct);
 
         return Results.Ok(new { Items = items.Select(MapToDto), Total = total, Page = page });
-    }
-
-    private static async Task<IResult> ApproveVariablePay(
-        Guid id,
-        ClaimsPrincipal user,
-        PayrollDbContext db,
-        IPublishEndpoint bus,
-        CancellationToken ct)
-    {
-        var pay = await db.Set<VariablePayAllocation>().FirstOrDefaultAsync(p => p.Id == id, ct);
-        if (pay is null) return Results.NotFound();
-
-        var approvedBy = user.GetEmployeeIdString();
-        if (approvedBy is null) return Results.Unauthorized();
-
-        pay.Approve(approvedBy);
-
-        await db.SaveChangesAsync(ct);
-
-        await bus.Publish(new VariablePayApprovedIntegrationEvent
-        {
-            AllocationId = pay.Id,
-            TenantId = pay.TenantId,
-            EmployeeId = pay.EmployeeId,
-            Amount = pay.ProratedAmount,
-            VariablePayType = pay.Type.ToString(),
-            PayoutPeriodName = pay.PayoutPeriodName,
-            OccurredOnUtc = DateTimeOffset.UtcNow
-        }, ct);
-
-        return Results.Ok(MapToDto(pay));
     }
 
     private static VariablePayDto MapToDto(VariablePayAllocation p) =>

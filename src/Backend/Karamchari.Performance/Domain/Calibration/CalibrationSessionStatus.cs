@@ -1,13 +1,22 @@
 namespace Karamchari.Performance.Domain.Calibration;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Authoritative business status for calibration sessions.
 /// </summary>
 public enum CalibrationSessionStatus
 {
+    /// <summary>Session is being set up.</summary>
     Draft = 1,
+
+    /// <summary>Session is active and scores are being adjusted.</summary>
     InProgress = 2,
-    PendingApproval = 3,
-    Finalized = 4,
-    Archived = 5
+
+    /// <summary>Session has been finalized and scores are authoritative.</summary>
+    Finalized = 3,
+
+    /// <summary>Session was archived.</summary>
+    Archived = 4,
+
+    /// <summary>Session was rejected during coordination.</summary>
+    Rejected = 5
 }

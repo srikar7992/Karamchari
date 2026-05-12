@@ -6,8 +6,7 @@ namespace Karamchari.Performance.Domain.Calibration;
 
 /// <summary>
 /// Manages one calibration panel session for a subset of employees within a review cycle.
-/// Multiple sessions may exist per cycle (e.g., per-department).
-/// BellCurvePolicy is stored as a JSON owned value object.
+/// Business truth is owned here; coordination (approval) is managed by Workflow.
 /// </summary>
 public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
 {
@@ -130,19 +129,21 @@ public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public void SubmitForApproval()
+    public void Submit()
     {
         if (Status != CalibrationSessionStatus.InProgress)
             throw new InvalidOperationException($"Cannot submit from {Status}.");
-        Status = CalibrationSessionStatus.PendingApproval;
+
+        // Business state remains InProgress until coordination completes.
     }
 
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Finalizes the calibration session, making adjusted scores authoritative.
+    /// Called by Workflow coordination upon successful completion.
     /// </summary>
-    public void FinalizeSession()
+    public void FinalizeApproved()
     {
-        if (Status != CalibrationSessionStatus.PendingApproval)
+        if (Status != CalibrationSessionStatus.InProgress)
             throw new InvalidOperationException($"Cannot finalize from {Status}.");
 
         foreach (var entry in _entries)
@@ -153,6 +154,17 @@ public sealed class CalibrationSession : AggregateRoot<Guid>, ITenantOwned
 
         RaiseDomainEvent(new CalibrationSessionFinalized(
             Id, TenantId, ReviewCycleId, _entries.Count, FinalizedOnUtc.Value));
+    }
+
+    /// <summary>
+    /// Rejects the calibration session adjustments during coordination.
+    /// </summary>
+    public void FinalizeRejected()
+    {
+        if (Status != CalibrationSessionStatus.InProgress)
+            throw new InvalidOperationException($"Cannot reject from {Status}.");
+
+        Status = CalibrationSessionStatus.Rejected;
     }
 
     private void EnsureNotFinalized()
