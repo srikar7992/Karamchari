@@ -36,6 +36,7 @@ public sealed class WorkflowDbContext : KaramchariDbContext
             b.ToTable("Workflow_Instances");
             b.HasKey(x => x.Id);
             b.HasIndex(x => new { x.TenantId, x.EntityType, x.EntityId });
+            b.HasIndex(x => new { x.TenantId, x.Status }); // Index for dashboard lookups
             b.Property(x => x.Status).HasConversion<string>();
 
             b.OwnsMany(x => x.StepInstances, s =>
@@ -44,6 +45,9 @@ public sealed class WorkflowDbContext : KaramchariDbContext
                 s.WithOwner().HasForeignKey("WorkflowInstanceId");
                 s.HasKey(x => x.Id);
                 s.Property(x => x.Status).HasConversion<string>();
+
+                // PERFORMANCE: Hotspot index for "My Approvals" query
+                s.HasIndex(x => new { x.Status, x.ApproverRole });
             });
 
             b.OwnsMany(x => x.AuditLog, a =>

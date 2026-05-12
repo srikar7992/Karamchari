@@ -19,6 +19,7 @@ public static class ApprovalEndpoints
         var group = app.MapGroup("/api/v1/approvals").RequireAuthorization();
 
         group.MapGet("/my", GetMyApprovals).WithName("Approvals.My");
+        group.MapGet("/{workflowInstanceId:guid}/timeline", GetWorkflowTimeline).WithName("Approvals.Timeline");
         group.MapPost("/{stepInstanceId:guid}/approve", ApproveStep).WithName("Approvals.Approve");
         group.MapPost("/{stepInstanceId:guid}/reject", RejectStep).WithName("Approvals.Reject");
 
@@ -56,6 +57,37 @@ public static class ApprovalEndpoints
             .ToListAsync(ct);
 
         return Results.Ok(pendingApprovals);
+    }
+
+    private static async Task<IResult> GetWorkflowTimeline(
+        Guid workflowInstanceId,
+        WorkflowDbContext db,
+        CancellationToken ct)
+    {
+        var instance = await db.WorkflowInstances
+            .AsNoTracking()
+            .Include(i => i.StepInstances)
+            .Include(i => i.AuditLog)
+            .FirstOrDefaultAsync(i => i.Id == workflowInstanceId, ct);
+
+        if (instance == null) return Results.NotFound();
+
+        var timeline = new WorkflowTimelineDto(
+            instance.Id,
+            instance.EntityType,
+            instance.EntityId,
+            instance.Status.ToString(),
+            instance.CurrentStep,
+            instance.StartedAt,
+            instance.CompletedAt,
+            instance.StepInstances.Select(s => new WorkflowStepDto(
+                s.Id, s.StepOrder, s.ApproverRole, s.Status.ToString(),
+                s.ApproverId, s.ActedAt, s.RejectionReason)).ToList(),
+            instance.AuditLog.OrderBy(a => a.Timestamp).Select(a => new WorkflowAuditDto(
+                a.Timestamp, a.Action, a.ActorId, a.FromState, a.ToState, a.Notes)).ToList()
+        );
+
+        return Results.Ok(timeline);
     }
 
     private static async Task<IResult> ApproveStep(
@@ -133,3 +165,16 @@ public record ApprovalInboxItem(
 
 public record ApprovalDecisionRequest(string? Note);
 public record RejectionDecisionRequest(string Reason);
+
+public record WorkflowTimelineDto(
+    Guid Id, string EntityType, Guid EntityId, string Status, int CurrentStep,
+    DateTimeOffset StartedAt, DateTimeOffset? CompletedAt,
+    List<WorkflowStepDto> Steps, List<WorkflowAuditDto> Audit);
+
+public record WorkflowStepDto(
+    Guid Id, int Order, string Role, string Status,
+    Guid ApproverId, DateTimeOffset? ActedAt, string? Reason);
+
+public record WorkflowAuditDto(
+    DateTimeOffset Timestamp, string Action, Guid ActorId,
+    string FromState, string ToState, string? Notes);
