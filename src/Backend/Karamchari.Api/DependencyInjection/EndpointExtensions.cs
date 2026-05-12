@@ -34,6 +34,8 @@ public static class EndpointExtensions
     /// </summary>
     public static WebApplication MapKaramchariEndpoints(this WebApplication app)
     {
+        ArgumentNullException.ThrowIfNull(app);
+
         // Infrastructure
         app.MapIdentityEndpoints();
 
@@ -45,7 +47,14 @@ public static class EndpointExtensions
         // Analytics Daily Metrics (Remaining from Program.cs)
         app.MapGet("/api/analytics/projects/daily", GetDailyProjectMetrics);
 
-        // Feature Modules
+        // Map Endpoints via Capability Modules
+        var modules = CapabilityRegistry.GetModules(app.Configuration);
+        foreach (var module in modules)
+        {
+            module.MapEndpoints(app);
+        }
+
+        // Feature Modules (BFF/Experience Layer)
         app.MapTenantEndpoints();
         app.MapApprovalEndpoints();
         app.MapAttendanceEndpoints();

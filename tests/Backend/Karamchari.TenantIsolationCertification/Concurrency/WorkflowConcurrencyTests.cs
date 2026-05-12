@@ -52,11 +52,19 @@ public sealed class WorkflowConcurrencyTests
         var actor2 = Guid.NewGuid();
 
         // One thread approves, one thread rejects
-        var task1 = Task.Run(() => instance.Approve(stepInstances[0].Id, actor1));
-        var task2 = Task.Run(() => instance.Reject(stepInstances[1].Id, actor2, "Security risk"));
+        var task1 = Task.Run(() =>
+        {
+            try { instance.Approve(stepInstances[0].Id, actor1); }
+            catch (InvalidOperationException) { /* expected if rejected first */ }
+        });
+
+        var task2 = Task.Run(() =>
+        {
+            try { instance.Reject(stepInstances[1].Id, actor2, "Security risk"); }
+            catch (InvalidOperationException) { /* expected if approved first */ }
+        });
 
         await Task.WhenAll(task1, task2);
-
         // REJECTION WINS: Once any step is rejected, workflow status is Rejected
         instance.Status.Should().Be(WorkflowStatus.Rejected, "Rejection should override concurrent approval in the same step group");
     }

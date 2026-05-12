@@ -1,3 +1,4 @@
+using Karamchari.Capability.Domain.Entitlements;
 using Karamchari.Capability.Domain.Growth;
 using Karamchari.Capability.Domain.Learning;
 using Karamchari.Capability.Domain.Skills;
@@ -44,6 +45,15 @@ public class CapabilityDbContext : KaramchariDbContext
     /// Provides required documentation for this member.
     /// </summary>
     public DbSet<GrowthPlan> GrowthPlans => Set<GrowthPlan>();
+
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
+    public DbSet<CapabilityDefinition> CapabilityDefinitions => Set<CapabilityDefinition>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
+    public DbSet<TenantCapability> TenantCapabilities => Set<TenantCapability>();
 
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -124,6 +134,22 @@ public class CapabilityDbContext : KaramchariDbContext
                 m.WithOwner().HasForeignKey("GrowthPlanId");
                 m.HasKey(x => x.Id);
             });
+        });
+
+        modelBuilder.Entity<CapabilityDefinition>(b =>
+        {
+            b.ToTable("Capability_Definitions");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.CapabilityId).IsUnique();
+            b.Property(x => x.Tier).HasConversion<string>();
+        });
+
+        modelBuilder.Entity<TenantCapability>(b =>
+        {
+            b.ToTable("Capability_TenantEntitlements");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.CapabilityId }).IsUnique();
+            b.Property(x => x.Status).HasConversion<string>();
         });
     }
 }

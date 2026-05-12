@@ -43,17 +43,11 @@ public static class MassTransitExtensions
     public static IServiceCollection AddKaramchariMassTransit(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
         // API Needs module services but NOT consumers
-        services.AddKaramchariHR(configuration);
-        services.AddKaramchariWorkflow(configuration);
-        services.AddKaramchariTimeAttendance(configuration);
-        services.AddKaramchariPayroll(configuration);
-        services.AddKaramchariPerformance(configuration);
-        services.AddKaramchariNotifications(configuration);
-        services.AddKaramchariCompensation(configuration);
-        services.AddKaramchariRecruitment(configuration);
-        services.AddKaramchariIntelligence(configuration);
-        services.AddKaramchariBilling(configuration);
-        services.AddKaramchariForecasting(configuration);
+        var modules = CapabilityRegistry.GetModules(configuration);
+        foreach (var module in modules)
+        {
+            module.RegisterServices(services);
+        }
 
         services.AddMassTransit(x =>
         {

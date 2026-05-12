@@ -67,7 +67,7 @@ public sealed class MigrationChaosTests
     public async Task ConcurrentSchemaUpgrades_MustNotInterfere()
     {
         var tenants = new[] { "acme", "globex", "initech" };
-        var concurrentLog = new List<(string Tenant, string Version, bool Success)>();
+        var concurrentLog = new System.Collections.Concurrent.ConcurrentBag<(string Tenant, string Version, bool Success)>();
 
         var tasks = tenants.Select(tenant => Task.Run(() =>
         {
