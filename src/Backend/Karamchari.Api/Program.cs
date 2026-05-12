@@ -11,7 +11,7 @@ builder.AddKaramchariLogging();
 
 // 2. Identity & Security (Enterprise Foundation)
 builder.Services.AddKaramchariIdentity(builder.Configuration);
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => options.AddKaramchariPermissionPolicies());
 
 // 3. Infrastructure & Core
 builder.Services.AddKaramchariCore(builder.Configuration);
@@ -34,6 +34,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRateLimiter();
 app.UseAuthentication();
+app.UseKaramchariTenantAuthorization();
 app.UseAuthorization();
 app.UseKaramchariTenantObservability();
 

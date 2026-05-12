@@ -2,9 +2,12 @@ using Karamchari.Core.Messaging;
 using Karamchari.Core.Messaging.Outbox;
 using Karamchari.Core.Middleware;
 using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Multitenancy.Execution;
 using Karamchari.Core.Persistence;
 using Karamchari.Core.Persistence.Interceptors;
 using Karamchari.Core.Persistence.Provisioning;
+using Karamchari.Core.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -50,8 +53,15 @@ public static class CoreServiceCollectionExtensions
         // is a no-op if already registered, so it's safe to call from Core.
         services.AddHttpContextAccessor();
 
-        // Tenant provider must be Scoped Ã¢â‚¬â€ it caches the resolution on HttpContext.Items.
+        // Tenant provider must be Scoped — it caches the resolution on HttpContext.Items.
         services.AddScoped<ITenantProvider, HttpTenantProvider>();
+
+        // Tenant Execution Context Accessor
+        services.AddSingleton<TenantExecutionContextAccessor>();
+
+        // Centralized Authorization
+        services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+
 
         // Interceptors are stateless w.r.t. EF, but they depend on the scoped
         // ITenantProvider, so they must themselves be Scoped.
@@ -198,6 +208,31 @@ public static class CoreServiceCollectionExtensions
     public static IApplicationBuilder UseKaramchariTenantObservability(this IApplicationBuilder app)
     {
         return app.UseMiddleware<TenantObservabilityMiddleware>();
+    }
+
+    /// <summary>
+    /// Adds the tenant authorization middleware to the request pipeline.
+    /// MUST be called after UseAuthentication.
+    /// </summary>
+    public static IApplicationBuilder UseKaramchariTenantAuthorization(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<TenantAuthorizationMiddleware>();
+    }
+
+    /// <summary>
+    /// Adds centralized permission policies to the authorization system.
+    /// </summary>
+    public static AuthorizationOptions AddKaramchariPermissionPolicies(this AuthorizationOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        foreach (var permission in Karamchari.Core.Security.Permissions.All)
+        {
+            options.AddPolicy(permission, policy =>
+                policy.Requirements.Add(new PermissionRequirement(permission)));
+        }
+
+        return options;
     }
 
     private static IServiceCollection TryAddSingletonTimeProvider(this IServiceCollection services)

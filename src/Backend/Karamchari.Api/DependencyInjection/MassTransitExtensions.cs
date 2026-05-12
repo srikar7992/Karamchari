@@ -42,24 +42,28 @@ public static class MassTransitExtensions
     /// </summary>
     public static IServiceCollection AddKaramchariMassTransit(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
+        // API Needs module services but NOT consumers
+        services.AddKaramchariHR(configuration);
+        services.AddKaramchariWorkflow();
+        services.AddKaramchariTimeAttendance(configuration);
+        services.AddKaramchariPayroll(configuration);
+        services.AddKaramchariPerformance(configuration);
+        services.AddKaramchariNotifications(configuration);
+        services.AddKaramchariCompensation(configuration);
+        services.AddKaramchariRecruitment(configuration);
+        services.AddKaramchariIntelligence(configuration);
+        services.AddKaramchariBilling(configuration);
+        services.AddKaramchariForecasting(configuration);
+
         services.AddMassTransit(x =>
         {
-            // Add Bounded Contexts
-            services.AddKaramchariHR(configuration, x);
-            services.AddKaramchariWorkflow(x);
-            services.AddKaramchariTimeAttendance(configuration, x);
-            services.AddKaramchariPayroll(configuration, x);
-            services.AddKaramchariPerformance(configuration, x);
-            services.AddKaramchariNotifications(configuration, x);
-            services.AddKaramchariCompensation(configuration, x);
-            services.AddKaramchariRecruitment(configuration, x);
-            services.AddKaramchariIntelligence(configuration, x);
-
-            x.AddConsumer<Karamchari.PSA.Consumers.BillableRevenueConsumer>();
-            x.AddConsumer<Karamchari.PSA.Consumers.ProfitCalculationConsumer>();
+            // API only publishes, it doesn't need to register consumers
+            // except for those needed for synchronous request/response or 
+            // internal API-only async flows (rare in this topology).
 
             var isDev = environment.IsDevelopment();
 
+            // Register outboxes for all modules so API can publish with transaction support
             x.AddEntityFrameworkOutbox<HRDbContext>(o =>
             {
                 o.UseSqlServer();
@@ -116,23 +120,15 @@ public static class MassTransitExtensions
                 if (isDev) o.UseBusOutbox();
             });
 
-            services.AddKaramchariBilling(configuration);
-            services.AddKaramchariForecasting(configuration);
-
-            x.AddConsumer<Karamchari.Billing.Consumers.BillableEntryConsumer>();
-            x.AddConsumer<Karamchari.Billing.Consumers.CollectionCaseConsumer>();
-            x.AddConsumer<Karamchari.Forecasting.Consumers.ForecastUpdateConsumer>();
-
             if (isDev && string.IsNullOrEmpty(configuration.GetConnectionString("RabbitMQ")))
             {
                 x.UsingInMemory((context, cfg) =>
                 {
-                    cfg.ConfigureEndpoints(context);
+                    // No ConfigureEndpoints(context) here for API
                     cfg.UseConsumeFilter<TenantConsumeFilter>(context);
                     cfg.UsePublishFilter<TenantPublishFilter>(context);
                     cfg.UseSendFilter<TenantSendFilter>(context);
                     cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
-                    cfg.ConcurrentMessageLimit = 8;
                 });
             }
             else
@@ -143,9 +139,7 @@ public static class MassTransitExtensions
                     x.UsingRabbitMq((context, cfg) =>
                     {
                         cfg.Host(rabbitMqConnection);
-                        cfg.ConfigureEndpoints(context);
                         cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
-                        cfg.ConcurrentMessageLimit = 8;
                     });
                 }
                 else
@@ -153,21 +147,14 @@ public static class MassTransitExtensions
                     x.UsingAzureServiceBus((context, cfg) =>
                     {
                         cfg.Host(configuration.GetConnectionString("AzureServiceBus"));
-                        cfg.ConfigureEndpoints(context);
                         cfg.UseConsumeFilter<TenantConsumeFilter>(context);
                         cfg.UsePublishFilter<TenantPublishFilter>(context);
                         cfg.UseSendFilter<TenantSendFilter>(context);
                         cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
-                        cfg.ConcurrentMessageLimit = 8;
                     });
                 }
             }
         });
-
-        if (!environment.IsDevelopment())
-        {
-            services.AddOutboxRelay(configuration);
-        }
 
         return services;
     }

@@ -343,24 +343,163 @@ ModelBuilder constructor behavior varies. Use parameterless constructor for test
 
 ---
 
-## General Patterns for Future Reference
+## 17. Dependency Omission in DI Container
 
-### Before Writing Tests
-1. Always read existing test patterns in the codebase
-2. Check implementation class for actual APIs (constructors, properties, methods)
-3. Verify package references are complete
+### Mistake
+**Error:** `Unable to resolve service for type 'ITenantJobContextSerializer' while attempting to activate 'BackgroundJobTenantMiddleware'.`
+
+**Context:** Registered a middleware but forgot to register its singleton dependency in the `Karamchari.Core` composition root.
+
+### Fix
+```csharp
+// Added the missing singleton dependency
+services.AddSingleton<ITenantJobContextSerializer, TenantJobContextSerializer>();
+services.AddScoped<BackgroundJobTenantMiddleware>();
+```
+
+### Lesson
+When adding new infrastructure components (middleware, filters), perform a "dependency walk" to ensure all types in the constructor are registered. Run integration tests early as they catch DI container validation errors.
+
+---
+
+## 18. Unit Test Expectation vs. Implementation Cleanliness
+
+### Mistake
+**Error:** `Expected problemDetails.Detail to be "Test exception", but found <null>.`
+
+**Context:** Removed `exception.Message` from `ProblemDetails.Detail` in `GlobalExceptionHandler` to reduce noise/exposure, but existing unit tests explicitly relied on this field for verification.
+
+### Fix
+```csharp
+// Restored Detail for diagnostic visibility and test compatibility
+var problemDetails = new ProblemDetails
+{
+    // ...
+    Detail = exception.Message,
+    // ...
+};
+```
+
+### Lesson
+Before "cleaning up" standard response objects, check existing unit tests for expectations on those fields. If security is a concern, consider including detail only in non-production environments.
+
+---
+
+## 19. Third-Party Library Breaking Changes (RabbitMQ Health Checks)
+
+### Mistake
+**Error:** `The best overload for 'AddRabbitMQ' does not have a parameter named 'connectionString'` or `cannot convert from 'string' to 'System.Func<...>'`
+
+**Context:** `AspNetCore.HealthChecks.RabbitMQ` version 9.0.0 removed the simple connection string overload to prevent connection leaks, moving to a factory-based or DI-based approach.
+
+### Fix
+```csharp
+// Use the new factory-based signature
+healthBuilder.AddRabbitMQ(
+    sp => 
+    {
+        var factory = new ConnectionFactory { Uri = new Uri(connectionString) };
+        return factory.CreateConnectionAsync();
+    },
+    name: "RabbitMQ");
+```
+
+### Lesson
+Package updates (especially major versions like 9.0.0) often include breaking changes in configuration extensions. Always search for the library's "Migration Guide" or latest README when positional/named arguments suddenly fail.
+
+---
+
+## 20. MassTransit Filter Registration Pattern
+
+### Mistake
+**Error:** Anti-pattern usage of `services.BuildServiceProvider()` inside `AddMassTransit`.
+
+**Context:** Attempted to resolve filter dependencies during registration using a temporary service provider, which can lead to singleton/scoped lifetime issues.
+
+### Fix
+```csharp
+// BEFORE:
+x.UseConsumeFilter<TenantConsumeFilter>(services.BuildServiceProvider());
+
+// AFTER:
+x.UsingRabbitMq((context, cfg) => 
+{
+    cfg.UseConsumeFilter<TenantConsumeFilter>(context); // 'context' is IBusRegistrationContext
+});
+```
+
+### Lesson
+MassTransit provides `IBusRegistrationContext` (usually named `context`) in the `UsingXxx` configuration blocks. Use this context to resolve filters; it handles lifetimes correctly without requiring an explicit `BuildServiceProvider()` call.
+
+---
+
+## 21. Non-Generic ConsumeContext Limitations
+
+### Mistake
+**Error:** `'ConsumeContext' does not contain a definition for 'Message'`
+
+**Context:** Tried to access `.Message` inside `IFilter<ConsumeContext>` (the non-generic base interface). Filters applied at the bus/host level receive the base context, which doesn't know the message type.
+
+### Fix
+```csharp
+// Use SupportedMessageTypes for logging/identification in base filters
+var messageType = context.SupportedMessageTypes.FirstOrDefault() ?? "Unknown";
+_logger.LogInformation("Processing {MessageType}", messageType);
+```
+
+### Lesson
+Global/Transport-level filters in MassTransit operate on `ConsumeContext`. If you need to log the message type name, use `SupportedMessageTypes`. If you need the actual message payload, you must use a generic filter `IFilter<ConsumeContext<T>>`.
+
+---
+
+## 22. Culture-Sensitive Formatting (CA1305)
+
+### Mistake
+**Error:** `CA1305: The behavior of 'int.ToString()' could vary based on the current user's locale settings.`
+
+**Context:** Using `.ToString()` on integers or dates for telemetry tags or logging without specifying a format provider.
+
+### Fix
+```csharp
+// Use InvariantCulture for system-internal identifiers and telemetry
+var stepTag = @event.ToStep.ToString(CultureInfo.InvariantCulture);
+```
+
+### Lesson
+Always use `CultureInfo.InvariantCulture` when converting primitive types to strings for logs, telemetry tags, or URLs to ensure consistency across different server regions and locales.
+
+---
+
+## General Patterns for Future Reference (Updated)
+
+### Observability & Traceability
+1. **Context First**: Always ensure `TenantExecutionContext` is established before logging or starting activities.
+2. **Propagate Everywhere**: Every outbound call (HTTP, Messaging) must include the `CorrelationId` and `TenantId` from the current context.
+3. **Structured Logs**: Use named placeholders in log strings (e.g. `{TenantId}`) instead of string interpolation to preserve searchable metadata.
+4. **SLA Monitoring**: Check deadlines at the entry point of every async consumer/worker.
 
 ### During Development
-1. Build frequently to catch errors early
-2. Run tests after build to verify
-3. Read error messages carefully - they usually point to exact issue
+1. **Full Build**: Run `dotnet build` on the solution, not just the project, to catch cross-module dependency breaks.
+2. Pre-push Validation: Always run the full test suite before pushing, as integration tests catch DI and configuration errors that unit tests miss.
 
-### When Encountering Errors
-1. **Ambiguous types**: Use fully qualified names
-2. **Missing types**: Check package references or wrong namespace
-3. **Property assignment errors**: Use constructor parameters or check if read-only
-4. **API compatibility**: Use more general/portable API patterns
-5. **Test assertion failures**: Determine if test or implementation is wrong
+---
+
+## 23. Duplicating Existing Infrastructure Classes
+
+### Mistake
+**Error:** `error CS0104: 'TenantExecutionContext' is an ambiguous reference between 'Karamchari.Core.Multitenancy.Execution.TenantExecutionContext' and 'Karamchari.Core.Multitenancy.TenantExecutionContext'`
+
+**Context:** Created a new `TenantExecutionContext` class in a parent namespace (`Karamchari.Core.Multitenancy`) without realizing a more specialized version already existed in a sub-namespace (`Karamchari.Core.Multitenancy.Execution`).
+
+### Fix
+1. Analyzed the existing class to see if it fulfilled the new requirements.
+2. Deleted the duplicate classes.
+3. Merged the new properties (`UserId`, `Roles`, `Permissions`) and methods (`HasPermission`, `HasRole`) into the existing `TenantExecutionContext`.
+4. Updated all references to use the unified class.
+
+### Lesson
+Perform a deep search for class names before creating new "canonical" objects. Infrastructure classes are often tucked away in sub-namespaces like `.Execution`, `.Persistence`, or `.Common`. Always check if an existing object can be extended before creating a new one.
+
 
 ---
 

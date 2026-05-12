@@ -19,11 +19,15 @@ public static class CompensationServiceCollectionExtensions
     public static IServiceCollection AddKaramchariCompensation(
         this IServiceCollection services,
         IConfiguration configuration,
-        MassTransit.IBusRegistrationConfigurator busConfigurator)
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentNullException.ThrowIfNull(busConfigurator);
+
+        if (busConfigurator != null)
+        {
+            AddKaramchariCompensationConsumers(busConfigurator);
+        }
 
         // HR-visibility-only tables. All must be registered for RLS coverage.
         services.RegisterTenantTable("CompensationBands");
@@ -44,5 +48,13 @@ public static class CompensationServiceCollectionExtensions
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Compensation module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariCompensationConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
     }
 }

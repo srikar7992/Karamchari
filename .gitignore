@@ -71,3 +71,14 @@ test_results*.txt
 # a file named after a code token).
 .claude/
 .aider*
+src/Backend/,
+src/Backend/0.02h
+src/Backend/c.TenantId
+src/Backend/p.TenantId
+
+# NuGet lock files (if not desired in repo)
+packages.lock.json
+GEMINI.md
+SESSION_MISTAKES_REFERENCE.md
+SESSION_MISTAKES_REFERENCE.md
+SESSION_MISTAKES_REFERENCE.md

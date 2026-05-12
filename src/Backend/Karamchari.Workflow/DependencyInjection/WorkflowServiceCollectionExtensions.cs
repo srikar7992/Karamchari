@@ -24,8 +24,20 @@ public static class WorkflowServiceCollectionExtensions
         services.AddSingleton<WorkflowConditionCompiler>();
         services.AddScoped<WorkflowMetricsHandler>();
 
-        busConfigurator?.AddConsumer<WorkflowTraceabilityConsumer>();
+        if (busConfigurator != null)
+        {
+            AddKaramchariWorkflowConsumers(busConfigurator);
+        }
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Workflow module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariWorkflowConsumers(this IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
+        busConfigurator.AddConsumer<WorkflowTraceabilityConsumer>();
     }
 }

@@ -19,10 +19,15 @@ public static class CapabilityServiceCollectionExtensions
     public static IServiceCollection AddKaramchariCapability(
         this IServiceCollection services,
         IConfiguration configuration,
-        MassTransit.IBusRegistrationConfigurator busConfigurator)
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+
+        if (busConfigurator != null)
+        {
+            AddKaramchariCapabilityConsumers(busConfigurator);
+        }
 
         // RLS setup
         services.RegisterTenantTable("Capability_SkillDefinitions");
@@ -46,5 +51,13 @@ public static class CapabilityServiceCollectionExtensions
         // Register domain services and orchestrators here
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Capability module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariCapabilityConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
     }
 }

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Karamchari.Core.Domain.Primitives;
+using Karamchari.Core.Domain.Workflows;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Workflow.Domain.Events;
 
@@ -12,7 +13,7 @@ namespace Karamchari.Workflow.Domain;
 public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<WorkflowStepInstance> _stepInstances = [];
-    private readonly List<WorkflowAuditEntry> _auditLog = [];
+    private readonly List<Karamchari.Core.Domain.Workflows.WorkflowAuditEntry> _auditLog = [];
 
     private WorkflowInstance(
         Guid id,
@@ -78,7 +79,7 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public IReadOnlyList<WorkflowAuditEntry> AuditLog => _auditLog.AsReadOnly();
+    public IReadOnlyList<Karamchari.Core.Domain.Workflows.WorkflowAuditEntry> AuditLog => _auditLog.AsReadOnly();
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -132,7 +133,7 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
                 instance._stepInstances.Add(WorkflowStepInstance.Create(instance.Id, step.Order, role));
         }
 
-        instance.Audit("Started", Guid.Empty);
+        instance.Audit("Started", Guid.Empty, "None", WorkflowStatus.Pending.ToString());
 
         instance.RaiseDomainEvent(new WorkflowInstanceStarted(
             instance.Id, tenantId, entityType, entityId, DateTimeOffset.UtcNow));
@@ -154,11 +155,11 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
                 $"Step instance {stepInstanceId} not found in workflow instance {Id}.",
                 nameof(stepInstanceId));
 
-        if (stepInstance.Status == StepInstanceStatus.Approved)
+        if (stepInstance.Status == WorkflowStepStatus.Approved)
             return;
 
         stepInstance.MarkApproved(approverId);
-        Audit("StepApproved", approverId, stepOrder: stepInstance.StepOrder);
+        Audit("StepApproved", approverId, Status.ToString(), Status.ToString(), notes: $"Step {stepInstance.StepOrder} approved.");
 
         if (IsQuorumMet(stepInstance.StepOrder))
             AdvanceStep(stepInstance.StepOrder);
@@ -181,19 +182,20 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
                 nameof(stepInstanceId));
 
         stepInstance.MarkRejected(approverId, reason);
+        var oldStatus = Status;
         Status = WorkflowStatus.Rejected;
         CompletedAt = DateTimeOffset.UtcNow;
 
-        Audit("Rejected", approverId, stepOrder: stepInstance.StepOrder, notes: reason);
+        Audit("Rejected", approverId, oldStatus.ToString(), Status.ToString(), notes: reason);
 
         RaiseDomainEvent(new WorkflowInstanceCompleted(
-            Id, TenantId, EntityType, EntityId, WorkflowStatus.Rejected, DateTimeOffset.UtcNow));
+            Id, TenantId, EntityType, EntityId, Status, DateTimeOffset.UtcNow));
     }
 
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public void Audit(string action, Guid actorId, int? stepOrder = null, string? notes = null)
+    public void Audit(string action, Guid actorId, string fromState, string toState, string? notes = null)
     {
         var snapshot = JsonSerializer.Serialize(new
         {
@@ -202,21 +204,23 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
             StepInstanceCount = _stepInstances.Count,
         });
 
-        _auditLog.Add(new WorkflowAuditEntry
-        {
-            Action = action,
-            ActorId = actorId,
-            StepOrder = stepOrder,
-            Notes = notes,
-            OccurredAt = DateTimeOffset.UtcNow,
-            StateSnapshot = snapshot,
-        });
+        _auditLog.Add(new Karamchari.Core.Domain.Workflows.WorkflowAuditEntry(
+            TenantId,
+            "N/A", // CorrelationId not easily available here, should be handled by repository/interceptor
+            Id,
+            action,
+            actorId,
+            DateTimeOffset.UtcNow,
+            fromState,
+            toState,
+            notes,
+            snapshot));
     }
 
     private bool IsQuorumMet(int stepOrder)
     {
         var currentStepInstances = _stepInstances.Where(s => s.StepOrder == stepOrder).ToList();
-        var approvedCount = currentStepInstances.Count(s => s.Status == StepInstanceStatus.Approved);
+        var approvedCount = currentStepInstances.Count(s => s.Status == WorkflowStepStatus.Approved);
         var totalCount = currentStepInstances.Count;
 
         // Parse quorum rule from the snapshot to avoid coupling to the live definition.
@@ -282,13 +286,14 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
         }
         else
         {
+            var oldStatus = Status;
             Status = WorkflowStatus.Approved;
             CompletedAt = DateTimeOffset.UtcNow;
 
-            Audit("Approved", Guid.Empty);
+            Audit("Approved", Guid.Empty, oldStatus.ToString(), Status.ToString());
 
             RaiseDomainEvent(new WorkflowInstanceCompleted(
-                Id, TenantId, EntityType, EntityId, WorkflowStatus.Approved, DateTimeOffset.UtcNow));
+                Id, TenantId, EntityType, EntityId, Status, DateTimeOffset.UtcNow));
         }
     }
 

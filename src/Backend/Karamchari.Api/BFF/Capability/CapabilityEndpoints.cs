@@ -4,6 +4,9 @@ using Karamchari.Capability.Domain.Learning;
 using Karamchari.Capability.Domain.Primitives;
 using Karamchari.Capability.Domain.Skills;
 using Karamchari.Capability.Persistence;
+using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Multitenancy.Execution;
+using Karamchari.Core.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,36 +25,50 @@ public static class CapabilityEndpoints
         var group = app.MapGroup("/api/v1/capability").RequireAuthorization();
 
         // Skills
-        group.MapGet("/skills", ListSkills).WithName("Capability.Skills.List");
-        group.MapPost("/skills", DefineSkill).WithName("Capability.Skills.Define");
+        group.MapGet("/skills", ListSkills)
+            .RequireAuthorization(Permissions.CapabilityRead)
+            .WithName("Capability.Skills.List");
+
+        group.MapPost("/skills", DefineSkill)
+            .RequireAuthorization(Permissions.CapabilityWrite)
+            .WithName("Capability.Skills.Define");
 
         // Profiles
-        group.MapGet("/profiles/me", GetMyProfile).WithName("Capability.Profiles.GetMy");
-        group.MapPost("/profiles/me/skills", AddVerifiedSkill).WithName("Capability.Profiles.AddSkill");
+        group.MapGet("/profiles/me", GetMyProfile)
+            .RequireAuthorization(Permissions.CapabilityRead)
+            .WithName("Capability.Profiles.GetMy");
+
+        group.MapPost("/profiles/me/skills", AddVerifiedSkill)
+            .RequireAuthorization(Permissions.CapabilityWrite)
+            .WithName("Capability.Profiles.AddSkill");
 
         // Learning
-        group.MapGet("/learning/modules", ListModules).WithName("Capability.Learning.Modules.List");
-        group.MapPost("/learning/enrollments/{id:guid}/complete", CompleteEnrollment).WithName("Capability.Learning.Enrollments.Complete");
+        group.MapGet("/learning/modules", ListModules)
+            .RequireAuthorization(Permissions.CapabilityRead)
+            .WithName("Capability.Learning.Modules.List");
+
+        group.MapPost("/learning/enrollments/{id:guid}/complete", CompleteEnrollment)
+            .RequireAuthorization(Permissions.CapabilityWrite)
+            .WithName("Capability.Learning.Enrollments.Complete");
 
         return app;
     }
 
     private static async Task<IResult> ListSkills(CapabilityDbContext db, CancellationToken ct)
     {
+        // Global query filter handles TenantId isolation
         var skills = await db.SkillDefinitions.AsNoTracking().ToListAsync(ct);
         return Results.Ok(skills);
     }
 
     private static async Task<IResult> DefineSkill(
         [FromBody] DefineSkillRequest request,
-        ClaimsPrincipal user,
+        TenantExecutionContextAccessor contextAccessor,
         CapabilityDbContext db,
         CancellationToken ct)
     {
-        var tenantId = user.GetTenantId();
-        if (string.IsNullOrEmpty(tenantId)) return Results.Unauthorized();
-
-        var skill = SkillDefinition.Define(tenantId, request.Name, request.Category, request.Description);
+        var context = contextAccessor.Current!;
+        var skill = SkillDefinition.Define(context.TenantId, request.Name, request.Category, request.Description);
 
         db.SkillDefinitions.Add(skill);
         await db.SaveChangesAsync(ct);
@@ -61,20 +78,23 @@ public static class CapabilityEndpoints
 
     private static async Task<IResult> GetMyProfile(
         ClaimsPrincipal user,
+        TenantExecutionContextAccessor contextAccessor,
         CapabilityDbContext db,
         CancellationToken ct)
     {
-        var (tenantId, employeeId) = user.GetTenantAndEmployee();
-        if (tenantId is null || employeeId is null) return Results.Unauthorized();
+        var context = contextAccessor.Current!;
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
 
+        // Global query filter handles TenantId isolation
         var profile = await db.CapabilityProfiles
             .Include(p => p.Skills)
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.TenantId == tenantId && p.EmployeeId == employeeId, ct);
+            .FirstOrDefaultAsync(p => p.EmployeeId == employeeId, ct);
 
         if (profile == null)
         {
-            profile = CapabilityProfile.Initialize(tenantId, employeeId.Value);
+            profile = CapabilityProfile.Initialize(context.TenantId, employeeId.Value);
             db.CapabilityProfiles.Add(profile);
             await db.SaveChangesAsync(ct);
         }
@@ -88,12 +108,13 @@ public static class CapabilityEndpoints
         CapabilityDbContext db,
         CancellationToken ct)
     {
-        var (tenantId, employeeId) = user.GetTenantAndEmployee();
-        if (tenantId is null || employeeId is null) return Results.Unauthorized();
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
 
+        // Global query filter handles TenantId isolation
         var profile = await db.CapabilityProfiles
             .Include(p => p.Skills)
-            .FirstOrDefaultAsync(p => p.TenantId == tenantId && p.EmployeeId == employeeId, ct);
+            .FirstOrDefaultAsync(p => p.EmployeeId == employeeId, ct);
 
         if (profile == null) return Results.NotFound("Profile not found.");
 
@@ -116,6 +137,7 @@ public static class CapabilityEndpoints
 
     private static async Task<IResult> ListModules(CapabilityDbContext db, CancellationToken ct)
     {
+        // Global query filter handles TenantId isolation
         var modules = await db.LearningModules.AsNoTracking().ToListAsync(ct);
         return Results.Ok(modules);
     }
@@ -123,13 +145,13 @@ public static class CapabilityEndpoints
     private static async Task<IResult> CompleteEnrollment(
         Guid id,
         [FromHeader(Name = "X-Idempotency-Key")] string idempotencyKey,
-        ClaimsPrincipal user,
         CapabilityDbContext db,
         CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(idempotencyKey))
             return Results.BadRequest("X-Idempotency-Key header is required.");
 
+        // Global query filter handles TenantId isolation
         var enrollment = await db.LearningEnrollments.FirstOrDefaultAsync(e => e.Id == id, ct);
         if (enrollment == null) return Results.NotFound();
 

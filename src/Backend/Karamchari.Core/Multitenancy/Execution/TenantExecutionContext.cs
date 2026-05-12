@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Karamchari.Core.Multitenancy.Execution;
@@ -32,6 +33,21 @@ public sealed class TenantExecutionContext
     public string TenantId => Envelope.TenantId;
 
     /// <summary>
+    /// The user identifier associated with this execution, if available.
+    /// </summary>
+    public string UserId { get; }
+
+    /// <summary>
+    /// The roles assigned to the user within this tenant.
+    /// </summary>
+    public IReadOnlySet<string> Roles { get; }
+
+    /// <summary>
+    /// The specific permissions granted to the user.
+    /// </summary>
+    public IReadOnlySet<string> Permissions { get; }
+
+    /// <summary>
     /// The correlation ID for cross-service request tracking.
     /// </summary>
     public string CorrelationId => Envelope.CorrelationId;
@@ -55,10 +71,30 @@ public sealed class TenantExecutionContext
     /// Initializes a new instance of the <see cref="TenantExecutionContext"/> class.
     /// </summary>
     /// <param name="envelope">The execution envelope.</param>
-    public TenantExecutionContext(TenantExecutionEnvelope envelope)
+    /// <param name="userId">The user identifier.</param>
+    /// <param name="roles">The user roles.</param>
+    /// <param name="permissions">The user permissions.</param>
+    public TenantExecutionContext(
+        TenantExecutionEnvelope envelope,
+        string? userId = null,
+        IEnumerable<string>? roles = null,
+        IEnumerable<string>? permissions = null)
     {
         Envelope = envelope ?? throw new ArgumentNullException(nameof(envelope));
+        UserId = userId ?? envelope.UserIdentity ?? "anonymous";
+        Roles = roles?.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase) ?? ImmutableHashSet<string>.Empty;
+        Permissions = permissions?.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase) ?? ImmutableHashSet<string>.Empty;
     }
+
+    /// <summary>
+    /// Checks if the current context has a specific permission.
+    /// </summary>
+    public bool HasPermission(string permission) => Permissions.Contains(permission);
+
+    /// <summary>
+    /// Checks if the current context has a specific role.
+    /// </summary>
+    public bool HasRole(string role) => Roles.Contains(role);
 
     /// <summary>
     /// Establishes this context as the current one for the async flow.

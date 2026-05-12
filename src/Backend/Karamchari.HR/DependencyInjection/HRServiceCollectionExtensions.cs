@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Karamchari.HR.DependencyInjection;
 
@@ -22,20 +23,18 @@ public static class HRServiceCollectionExtensions
     /// <summary>
     /// Adds the HR module services to the service collection.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The configuration.</param>
-    /// <param name="busConfigurator">The MassTransit bus registration configurator.</param>
-    /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddKaramchariHR(
         this IServiceCollection services,
         IConfiguration configuration,
-        MassTransit.IBusRegistrationConfigurator busConfigurator)
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentNullException.ThrowIfNull(busConfigurator);
 
-        busConfigurator.AddConsumer<Karamchari.HR.Consumers.TenantProvisionedConsumer>();
+        if (busConfigurator != null)
+        {
+            AddKaramchariHRConsumers(busConfigurator);
+        }
 
         // RLS: Employees lives under each tenant's schema and must be covered by the
         // per-tenant security policy. Forgetting this line is a security regression.
@@ -66,5 +65,14 @@ public static class HRServiceCollectionExtensions
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers HR module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariHRConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
+        busConfigurator.AddConsumer<Karamchari.HR.Consumers.TenantProvisionedConsumer>();
     }
 }

@@ -15,22 +15,18 @@ public static class TimeAttendanceServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public static IServiceCollection AddKaramchariTimeAttendance(
         this IServiceCollection services,
         IConfiguration configuration,
-        MassTransit.IBusRegistrationConfigurator busConfigurator)
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentNullException.ThrowIfNull(busConfigurator);
 
-        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TenantProvisionedConsumer>();
-        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedConsumer>();
-        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedAnalyticsConsumer>();
-        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.BillingAnalyticsConsumer>();
+        if (busConfigurator != null)
+        {
+            AddKaramchariTimeAttendanceConsumers(busConfigurator);
+        }
 
         // â”€â”€ RLS: Workforce operational intelligence (Phase 1C) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -75,5 +71,17 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.AddScoped<Karamchari.TimeAttendance.Services.ShiftRosteringEngine>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Time and Attendance module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariTimeAttendanceConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
+        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TenantProvisionedConsumer>();
+        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedConsumer>();
+        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.TimesheetApprovedAnalyticsConsumer>();
+        busConfigurator.AddConsumer<Karamchari.TimeAttendance.Consumers.BillingAnalyticsConsumer>();
     }
 }

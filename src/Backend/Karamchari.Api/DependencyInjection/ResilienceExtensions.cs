@@ -1,40 +1,40 @@
 using System.Net;
-using Polly;
-using Polly.Extensions.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Karamchari.Api.DependencyInjection;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// Provides centralized resilience configuration using modern .NET standard resilience handlers.
 /// </summary>
 public static class ResilienceExtensions
 {
     /// <summary>
-    /// Provides required documentation for this member.
+    /// Configures global HTTP client resilience.
+    /// Applies to all HttpClient instances created via IHttpClientFactory unless overridden.
     /// </summary>
     public static IServiceCollection AddKaramchariResilience(this IServiceCollection services)
     {
-        var random = new Random();
+        // Add standardized resilience to all HttpClients globally
+        services.ConfigureHttpClientDefaults(builder =>
+        {
+            builder.AddStandardResilienceHandler(options =>
+            {
+                // Customize standard resilience defaults
+                // 1. Retry Strategy (Exponential backoff + Jitter)
+                options.Retry.MaxRetryAttempts = 3;
+                options.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
+                options.Retry.UseJitter = true;
 
-        // 1. Retry Storm Protection (Jitter)
-        var retryPolicy = HttpPolicyExtensions
-            .HandleTransientHttpError()
-            .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound) // Example: some APIs return 404 for transient states
-            .WaitAndRetryAsync(3, retryAttempt =>
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)) +
-                TimeSpan.FromMilliseconds(random.Next(0, 1000)) // Add jitter
-            );
+                // 2. Circuit Breaker
+                options.CircuitBreaker.FailureRatio = 0.5;
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
+                options.CircuitBreaker.MinimumThroughput = 5;
 
-        // 2. Downstream Degradation Handling (Circuit Breaker)
-        var circuitBreakerPolicy = HttpPolicyExtensions
-            .HandleTransientHttpError()
-            .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
-
-        // 3. Global Timeout
-        var timeoutPolicy = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(15));
-
-        // Wrap them so Timeout wraps Retry wraps CircuitBreaker
-        services.AddSingleton(Policy.WrapAsync(retryPolicy, circuitBreakerPolicy, timeoutPolicy));
+                // 3. Timeout
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(15);
+            });
+        });
 
         return services;
     }

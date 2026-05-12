@@ -1,7 +1,8 @@
 namespace Karamchari.TimeAttendance.Domain.Leaves;
 
 /// <summary>
-/// Defines the status of a leave request.
+/// [DEPRECATED] Defines the status of a leave request.
+/// Candidates for convergence into unified workflow runtime.
 /// </summary>
 public enum LeaveRequestStatus
 {

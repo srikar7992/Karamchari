@@ -12,19 +12,23 @@ namespace Karamchari.Intelligence.Services;
 /// Background worker to monitor the freshness of analytical projections and intelligence signals.
 /// Ensures stale data is caught and alerted before executives make decisions on it.
 /// </summary>
-internal sealed class DriftDetectionWorker : BackgroundService
+public sealed class DriftDetectionWorker : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DriftDetectionWorker> _logger;
     private static readonly TimeSpan ScanInterval = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan StaleThreshold = TimeSpan.FromHours(24);
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DriftDetectionWorker"/> class.
+    /// </summary>
     public DriftDetectionWorker(IServiceProvider serviceProvider, ILogger<DriftDetectionWorker> logger)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
 
+    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)

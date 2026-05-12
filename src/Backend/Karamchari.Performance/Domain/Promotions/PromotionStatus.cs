@@ -1,7 +1,8 @@
 namespace Karamchari.Performance.Domain.Promotions;
 
 /// <summary>
-/// Provides required documentation for this member.
+/// [DEPRECATED] Internal status for promotion recommendations.
+/// Candidates for convergence into unified workflow runtime.
 /// </summary>
 public enum PromotionStatus
 {

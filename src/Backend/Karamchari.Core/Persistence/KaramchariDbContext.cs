@@ -59,6 +59,11 @@ public abstract class KaramchariDbContext : DbContext
     protected TenantExecutionEnvelope TenantEnvelope => _tenantProvider.GetTenant();
 
     /// <summary>
+    /// Gets the current tenant ID. Used by global query filters.
+    /// </summary>
+    public string CurrentTenantId => _tenantProvider.GetCurrentTenantId();
+
+    /// <summary>
     /// Configures the default schema and applies domain model configurations.
     /// </summary>
     /// <param name="modelBuilder">The builder being used to construct the model for this context.</param>
@@ -71,6 +76,21 @@ public abstract class KaramchariDbContext : DbContext
         // MassTransit's bus outbox tables to dbo), but must keep PlaceholderSchema
         // as the default so the interceptor's rewrite remains consistent.
         modelBuilder.HasDefaultSchema(PlaceholderSchema);
+
+        // Apply global query filters to all ITenantOwned entities.
+        // This is defence-in-depth on top of schema isolation and RLS.
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (typeof(ITenantOwned).IsAssignableFrom(entityType.ClrType))
+            {
+                var parameter = System.Linq.Expressions.Expression.Parameter(entityType.ClrType, "e");
+                var body = System.Linq.Expressions.Expression.Equal(
+                    System.Linq.Expressions.Expression.Property(parameter, nameof(ITenantOwned.TenantId)),
+                    System.Linq.Expressions.Expression.Property(System.Linq.Expressions.Expression.Constant(this), nameof(CurrentTenantId))
+                );
+                modelBuilder.Entity(entityType.ClrType).HasQueryFilter(System.Linq.Expressions.Expression.Lambda(body, parameter));
+            }
+        }
 
         OnDomainModelCreating(modelBuilder);
     }

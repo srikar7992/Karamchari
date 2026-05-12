@@ -1,4 +1,5 @@
 using Karamchari.Core.Domain.Primitives;
+using Karamchari.Core.Domain.Workflows;
 
 namespace Karamchari.Workflow.Domain;
 

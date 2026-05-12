@@ -18,8 +18,13 @@ public static class BillingServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddKaramchariBilling(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
+        if (busConfigurator != null)
+        {
+            AddKaramchariBillingConsumers(busConfigurator);
+        }
         // RLS Table Registrations
         services.RegisterTenantTable("Billing_Contracts");
         services.RegisterTenantTable("Billing_BillableEntries");
@@ -38,8 +43,16 @@ public static class BillingServiceCollectionExtensions
         services.AddScoped<Karamchari.Billing.Services.InvoiceGeneratorService>();
         services.AddScoped<Karamchari.Billing.Services.ARAnalyticsService>();
 
-        services.AddHostedService<Karamchari.Billing.Services.CollectionsBackgroundWorker>();
-
         return services;
+    }
+
+    /// <summary>
+    /// Registers Billing module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariBillingConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
+        busConfigurator.AddConsumer<Karamchari.Billing.Consumers.BillableEntryConsumer>();
+        busConfigurator.AddConsumer<Karamchari.Billing.Consumers.CollectionCaseConsumer>();
     }
 }

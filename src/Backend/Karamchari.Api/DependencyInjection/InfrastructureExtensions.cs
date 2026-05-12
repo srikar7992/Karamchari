@@ -2,6 +2,7 @@ using System.Threading.RateLimiting;
 using FluentValidation;
 using Karamchari.HR.Persistence;
 using Karamchari.Notifications.RealTime;
+using Karamchari.PSA.DependencyInjection;
 using Karamchari.PSA.Hubs;
 using Karamchari.PSA.Persistence;
 using Karamchari.PSA.Services;
@@ -83,17 +84,8 @@ public static class InfrastructureExtensions
                 .AddRuntimeInstrumentation()
                 .AddMeter("Karamchari.*"));
 
-        // PSA context services (moved from Program.cs)
-        services.AddDbContext<PSADbContext>(o =>
-            o.UseSqlServer(configuration.GetConnectionString("KaramchariDb")));
-        services.AddScoped<ProjectResourceRepository>();
-        services.AddScoped<InvoiceGeneratorService>();
-        services.AddScoped<EmployeeCostService>();
-        services.AddSingleton<PricingEngine>();
-        services.AddSingleton<SimulationService>();
-        services.AddSingleton<AnomalyDetectionService>();
-        services.AddScoped<CashFlowService>();
-        services.AddSingleton<AnalyticsBroadcaster>();
+        // PSA context services
+        services.AddKaramchariPSA(configuration);
 
         // Compliance Generators
         services.AddScoped<Karamchari.Payroll.Services.Compliance.IEcrGenerator, Karamchari.Payroll.Services.Compliance.EcrGenerator>();
@@ -114,9 +106,6 @@ public static class InfrastructureExtensions
                 sp.GetRequiredService<Karamchari.Core.Persistence.Provisioning.RlsScriptGenerator>(),
                 sp.GetRequiredService<IEnumerable<Karamchari.Core.Persistence.Provisioning.ITenantPostProvisioningTask>>(),
                 sp.GetRequiredService<ILogger<Karamchari.Core.Persistence.Provisioning.TenantProvisioningService>>()));
-
-        // Idempotency Cleanup
-        services.AddHostedService<Karamchari.Api.Middleware.BackgroundServices.IdempotencyCleanupWorker>();
 
         return services;
     }

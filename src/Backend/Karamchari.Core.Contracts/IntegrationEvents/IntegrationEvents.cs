@@ -127,6 +127,46 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         Guid EmployeeId,
         string Category,
         string Reason);
+
+    // â”€â”€ Standardized Workflow Events (Phase 1B.3 Convergence) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+    /// <summary>Published when any platform workflow instance is started.</summary>
+    public record WorkflowStartedIntegrationEvent(
+        Guid WorkflowId,
+        string TenantId,
+        string EntityType,
+        Guid EntityId,
+        DateTimeOffset StartedAt,
+        string InitiatedBy);
+
+    /// <summary>Published when a workflow state transition occurs.</summary>
+    public record WorkflowTransitionedIntegrationEvent(
+        Guid WorkflowId,
+        string TenantId,
+        string FromStatus,
+        string ToStatus,
+        Guid ActorId,
+        DateTimeOffset TransitionedAt,
+        string? Reason = null);
+
+    /// <summary>Published when an approval decision is recorded.</summary>
+    public record WorkflowApprovalDecisionIntegrationEvent(
+        Guid WorkflowId,
+        string TenantId,
+        Guid StepId,
+        Guid ApproverId,
+        bool Approved,
+        string? Note = null,
+        DateTimeOffset DecidedAt = default);
+
+    /// <summary>Published when a workflow is completed (Approved/Rejected/Cancelled).</summary>
+    public record WorkflowCompletedIntegrationEvent(
+        Guid WorkflowId,
+        string TenantId,
+        string EntityType,
+        Guid EntityId,
+        string FinalStatus,
+        DateTimeOffset CompletedAt);
 }
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.V1

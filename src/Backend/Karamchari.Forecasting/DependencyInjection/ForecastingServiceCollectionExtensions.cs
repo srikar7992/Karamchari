@@ -19,8 +19,14 @@ public static class ForecastingServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddKaramchariForecasting(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
+        if (busConfigurator != null)
+        {
+            AddKaramchariForecastingConsumers(busConfigurator);
+        }
+
         services.RegisterTenantTable("Forecast_Metrics");
         services.RegisterTenantTable("Forecast_ClientPaymentProfiles");
 
@@ -37,5 +43,14 @@ public static class ForecastingServiceCollectionExtensions
         services.AddScoped<ForecastingEngine>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Forecasting module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariForecastingConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
+        busConfigurator.AddConsumer<Karamchari.Forecasting.Consumers.ForecastUpdateConsumer>();
     }
 }

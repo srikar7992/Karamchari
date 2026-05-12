@@ -52,8 +52,6 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<ITokenBlacklistService, TokenBlacklistService>();
         services.AddScoped<ISecurityAuditService, SecurityAuditService>();
-        services.AddHostedService<Karamchari.Identity.Infrastructure.BackgroundServices.RefreshTokenCleanupWorker>();
-        services.AddHostedService<Karamchari.Identity.Infrastructure.BackgroundServices.RevokedTokenCleanupWorker>();
         services.AddMemoryCache();
 
         var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();

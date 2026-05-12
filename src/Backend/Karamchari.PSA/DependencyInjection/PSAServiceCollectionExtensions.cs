@@ -1,31 +1,50 @@
-namespace Karamchari.PSA.DependencyInjection;
-
+using Karamchari.Core.DependencyInjection;
+using Karamchari.PSA.Hubs;
 using Karamchari.PSA.Persistence;
 using Karamchari.PSA.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+namespace Karamchari.PSA.DependencyInjection;
 
 /// <summary>
-/// Extension methods for registering the PSA bounded context services.
+/// Extension methods for registering PSA module services.
 /// </summary>
 public static class PSAServiceCollectionExtensions
 {
-    /// <summary>
-    /// Registers all PSA domain services, the DbContext, and the MassTransit consumer.
-    /// </summary>
-    public static IServiceCollection AddPSA(
-        this IServiceCollection services,
-        IConfiguration configuration)
-    {
-        // DbContext â€” same connection string as other contexts; RLS scopes by tenant.
-        services.AddDbContext<PSADbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("KaramchariDb")));
+    private const string ConnectionStringName = "KaramchariDb";
 
-        // Domain services
+    public static IServiceCollection AddKaramchariPSA(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
+    {
+        if (busConfigurator != null)
+        {
+            AddKaramchariPSAConsumers(busConfigurator);
+        }
+
+        services.AddDbContext<PSADbContext>(o =>
+            o.UseSqlServer(configuration.GetConnectionString(ConnectionStringName)));
+
         services.AddScoped<ProjectResourceRepository>();
         services.AddScoped<InvoiceGeneratorService>();
+        services.AddScoped<EmployeeCostService>();
+        services.AddSingleton<PricingEngine>();
+        services.AddSingleton<SimulationService>();
+        services.AddSingleton<AnomalyDetectionService>();
+        services.AddScoped<CashFlowService>();
+        services.AddSingleton<AnalyticsBroadcaster>();
 
         return services;
+    }
+
+    public static void AddKaramchariPSAConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
+        busConfigurator.AddConsumer<Karamchari.PSA.Consumers.BillableRevenueConsumer>();
+        busConfigurator.AddConsumer<Karamchari.PSA.Consumers.ProfitCalculationConsumer>();
     }
 }

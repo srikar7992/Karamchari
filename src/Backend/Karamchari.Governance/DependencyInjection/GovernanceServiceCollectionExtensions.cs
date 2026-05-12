@@ -19,10 +19,16 @@ public static class GovernanceServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddKaramchariGovernance(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+
+        if (busConfigurator != null)
+        {
+            AddKaramchariGovernanceConsumers(busConfigurator);
+        }
 
         // RLS setup
         services.RegisterTenantTable("Governance_ServiceLevelObjectives");
@@ -41,5 +47,13 @@ public static class GovernanceServiceCollectionExtensions
         services.AddScoped<ISchemaValidator, SchemaValidator>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Governance module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariGovernanceConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
     }
 }

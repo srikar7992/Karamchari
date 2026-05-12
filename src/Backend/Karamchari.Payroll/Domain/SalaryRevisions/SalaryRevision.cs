@@ -7,8 +7,10 @@ namespace Karamchari.Payroll.Domain.SalaryRevisions;
 /// Provides required documentation for this member.
 /// </summary>
 public enum RevisionType { AnnualIncrement, Promotion, MarketCorrection, RetentionAdjustment, OffCycle }
+
 /// <summary>
-/// Provides required documentation for this member.
+/// [DEPRECATED] Internal status for salary revisions.
+/// Candidates for convergence into unified workflow runtime.
 /// </summary>
 public enum RevisionStatus { Draft, PendingApproval, Approved, Applied, Cancelled }
 

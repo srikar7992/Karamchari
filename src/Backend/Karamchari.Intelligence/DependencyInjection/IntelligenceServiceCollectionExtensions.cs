@@ -19,10 +19,15 @@ public static class IntelligenceServiceCollectionExtensions
     public static IServiceCollection AddKaramchariIntelligence(
         this IServiceCollection services,
         IConfiguration configuration,
-        MassTransit.IBusRegistrationConfigurator busConfigurator)
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+
+        if (busConfigurator != null)
+        {
+            AddKaramchariIntelligenceConsumers(busConfigurator);
+        }
 
         // RLS setup
         services.RegisterTenantTable("Intelligence_Signals");
@@ -50,9 +55,14 @@ public static class IntelligenceServiceCollectionExtensions
         services.AddScoped<Karamchari.Intelligence.Services.IWorkforcePlanningService,
                             Karamchari.Intelligence.Services.WorkforcePlanningService>();
 
-        // Background Workers
-        services.AddHostedService<Karamchari.Intelligence.Services.DriftDetectionWorker>();
-
         return services;
+    }
+
+    /// <summary>
+    /// Registers Intelligence module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariIntelligenceConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
     }
 }

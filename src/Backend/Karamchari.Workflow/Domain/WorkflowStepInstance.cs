@@ -1,4 +1,5 @@
 using Karamchari.Core.Domain.Primitives;
+using Karamchari.Core.Domain.Workflows;
 
 namespace Karamchari.Workflow.Domain;
 
@@ -18,7 +19,7 @@ public sealed class WorkflowStepInstance : Entity<Guid>
         StepOrder = stepOrder;
         ApproverRole = approverRole;
         ApproverId = Guid.Empty;
-        Status = StepInstanceStatus.Pending;
+        Status = WorkflowStepStatus.Pending;
     }
 
     private WorkflowStepInstance() { ApproverRole = string.Empty; }
@@ -42,7 +43,7 @@ public sealed class WorkflowStepInstance : Entity<Guid>
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public StepInstanceStatus Status { get; private set; }
+    public WorkflowStepStatus Status { get; private set; }
     public DateTimeOffset? ActedAt { get; private set; }
     public string? RejectionReason { get; private set; }
 
@@ -61,7 +62,7 @@ public sealed class WorkflowStepInstance : Entity<Guid>
     public void MarkApproved(Guid approverId)
     {
         ApproverId = approverId;
-        Status = StepInstanceStatus.Approved;
+        Status = WorkflowStepStatus.Approved;
         ActedAt = DateTimeOffset.UtcNow;
     }
 
@@ -72,7 +73,7 @@ public sealed class WorkflowStepInstance : Entity<Guid>
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
         ApproverId = approverId;
-        Status = StepInstanceStatus.Rejected;
+        Status = WorkflowStepStatus.Rejected;
         ActedAt = DateTimeOffset.UtcNow;
         RejectionReason = reason;
     }

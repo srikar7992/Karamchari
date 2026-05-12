@@ -22,14 +22,15 @@ public static class PerformanceServiceCollectionExtensions
     public static IServiceCollection AddKaramchariPerformance(
         this IServiceCollection services,
         IConfiguration configuration,
-        MassTransit.IBusRegistrationConfigurator busConfigurator)
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentNullException.ThrowIfNull(busConfigurator);
 
-        // MassTransit consumer
-        busConfigurator.AddConsumer<EmployeeOnboardedPerformanceConsumer>();
+        if (busConfigurator != null)
+        {
+            AddKaramchariPerformanceConsumers(busConfigurator);
+        }
 
         // RLS: every table that holds tenant data must be registered here.
         // Forgetting any of these is a security regression â€” RLS won't cover the table.
@@ -104,5 +105,14 @@ public static class PerformanceServiceCollectionExtensions
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Performance module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariPerformanceConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
+        busConfigurator.AddConsumer<EmployeeOnboardedPerformanceConsumer>();
     }
 }

@@ -1,0 +1,86 @@
+name: Deploy Karamchari API
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  ACR_NAME: 'karamchari'
+  IMAGE_NAME: 'karamchari-api'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Example Azure Login and ACR Login would go here
+      # - name: Azure Login
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # - name: Build and Push Docker Image
+      #   run: |
+      #     docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} -f src/Backend/Karamchari.Api/Dockerfile .
+      #     docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Build Docker Image (Validation)
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} -f src/Backend/Karamchari.Api/Dockerfile .
+
+  deploy-dev:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      # - name: Azure Login
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # - name: Deploy Infrastructure (Bicep)
+      #   uses: azure/arm-deploy@v1
+      #   with:
+      #     subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      #     resourceGroupName: rg-karamchari-dev
+      #     template: ./infrastructure/bicep/main.bicep
+      #     parameters: environmentName=dev tenantId=${{ secrets.AZURE_TENANT_ID }} principalId=${{ secrets.AZURE_PRINCIPAL_ID }} sqlAdministratorLoginPassword=${{ secrets.SQL_PASSWORD }}
+
+      # - name: Deploy to Azure App Service
+      #   uses: azure/webapps-deploy@v2
+      #   with:
+      #     app-name: app-karamchari-dev
+      #     images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Validate Deployment
+        run: echo "Validation successful for Dev"
+
+  deploy-staging:
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Deployment
+        run: echo "Validation successful for Staging"
+
+  deploy-prod:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: 
+      name: prod
+      # requires manual approval in GitHub Environments
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Deployment
+        run: echo "Validation successful for Prod"

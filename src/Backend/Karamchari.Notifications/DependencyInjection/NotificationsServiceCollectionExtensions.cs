@@ -28,11 +28,15 @@ public static class NotificationsServiceCollectionExtensions
     public static IServiceCollection AddKaramchariNotifications(
         this IServiceCollection services,
         IConfiguration configuration,
-        IBusRegistrationConfigurator busConfigurator)
+        IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentNullException.ThrowIfNull(busConfigurator);
+
+        if (busConfigurator != null)
+        {
+            AddKaramchariNotificationsConsumers(busConfigurator);
+        }
 
         // RLS tenant table registrations â€” security regression if any table is omitted.
         services.RegisterTenantTable("NotificationTemplates");
@@ -65,14 +69,16 @@ public static class NotificationsServiceCollectionExtensions
 
         // Digest engine.
         services.AddScoped<DigestAggregatorService>();
-        services.AddHostedService<DigestGenerationWorker>();
 
-        // Real-time push service â€” HubNotificationPushService is registered in
-        // Karamchari.Api (needs IHubContext<NotificationHub> from SignalR).
-        // The interface is registered here; the concrete binding happens in Program.cs
-        // after AddSignalR() is called.
+        return services;
+    }
 
-        // MassTransit consumers.
+    /// <summary>
+    /// Registers Notifications module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariNotificationsConsumers(this IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
         busConfigurator.AddConsumer<ReviewAssignedConsumer>();
         busConfigurator.AddConsumer<ReviewSubmittedConsumer>();
         busConfigurator.AddConsumer<CalibrationFinalizedConsumer>();
@@ -80,7 +86,5 @@ public static class NotificationsServiceCollectionExtensions
         busConfigurator.AddConsumer<GoalCycleActivatedConsumer>();
         busConfigurator.AddConsumer<FeedbackRequestCreatedConsumer>();
         busConfigurator.AddConsumer<GoalApprovalRequiredConsumer>();
-
-        return services;
     }
 }

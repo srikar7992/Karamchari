@@ -41,11 +41,15 @@ public static class PayrollServiceCollectionExtensions
     public static IServiceCollection AddKaramchariPayroll(
         this IServiceCollection services,
         IConfiguration configuration,
-        IBusRegistrationConfigurator busConfigurator)
+        IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentNullException.ThrowIfNull(busConfigurator);
+
+        if (busConfigurator != null)
+        {
+            AddKaramchariPayrollConsumers(busConfigurator);
+        }
 
         services.AddSingleton<CTCTemplateCompiler>();
         services.AddSingleton<CTCBreakdownService>();
@@ -129,6 +133,15 @@ public static class PayrollServiceCollectionExtensions
             options.AddKaramchariInterceptors(serviceProvider);
         });
 
+        return services;
+    }
+
+    /// <summary>
+    /// Registers Payroll module consumers and state machines for MassTransit.
+    /// </summary>
+    public static void AddKaramchariPayrollConsumers(this IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
         busConfigurator.AddConsumer<EmployeeOnboardedConsumer>();
         busConfigurator.AddConsumer<CalculateAllEmployeePayCommandConsumer>();
         busConfigurator.AddConsumer<PayrollBatchConsumer>();
@@ -174,7 +187,5 @@ public static class PayrollServiceCollectionExtensions
                 r.ConcurrencyMode = ConcurrencyMode.Optimistic;
                 r.AddDbContext<DbContext, PayrollDbContext>();
             });
-
-        return services;
     }
 }

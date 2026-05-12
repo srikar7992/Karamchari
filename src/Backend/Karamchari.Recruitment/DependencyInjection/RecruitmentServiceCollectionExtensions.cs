@@ -19,10 +19,15 @@ public static class RecruitmentServiceCollectionExtensions
     public static IServiceCollection AddKaramchariRecruitment(
         this IServiceCollection services,
         IConfiguration configuration,
-        MassTransit.IBusRegistrationConfigurator busConfigurator)
+        MassTransit.IBusRegistrationConfigurator? busConfigurator = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+
+        if (busConfigurator != null)
+        {
+            AddKaramchariRecruitmentConsumers(busConfigurator);
+        }
 
         // RLS setup
         services.RegisterTenantTable("Recruitment_JobRequisitions");
@@ -45,5 +50,13 @@ public static class RecruitmentServiceCollectionExtensions
         // Register domain services and orchestrators here
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Recruitment module consumers for MassTransit.
+    /// </summary>
+    public static void AddKaramchariRecruitmentConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
+    {
+        ArgumentNullException.ThrowIfNull(busConfigurator);
     }
 }
