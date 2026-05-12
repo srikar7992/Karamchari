@@ -247,7 +247,7 @@ public sealed class CacheNamespaceCertificationTests
     public async Task HighConcurrencyCacheChurn_MustMaintainIsolation()
     {
         var tenants = new[] { "acme", "globex" };
-        var churnLog = new List<(string Tenant, bool Corrupted)>();
+        var churnLog = new System.Collections.Concurrent.ConcurrentBag<(string Tenant, bool Corrupted)>();
 
         var tasks = Enumerable.Range(0, 10).Select(i => Task.Run(() =>
         {
