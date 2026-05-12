@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
 using Karamchari.Api.BFF.Common;
+using Karamchari.HR.Services;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
 using Karamchari.Payroll.Domain.SalaryStructures;
@@ -27,6 +28,7 @@ public static class ESSEndpoints
     {
         var ess = app.MapGroup("/api/ess").RequireAuthorization();
 
+        ess.MapGet("/profile", GetProfile);
         ess.MapGet("/payslips", GetPayslips);
         ess.MapGet("/payslips/{year}/{month}/download", DownloadPayslip);
         ess.MapGet("/payslips/ytd", GetYtdSummary);
@@ -34,6 +36,18 @@ public static class ESSEndpoints
         ess.MapPost("/declarations/analyze", AnalyzeDeclaration).RequireRateLimiting("ai");
 
         return app;
+    }
+
+    private static async Task<IResult> GetProfile(
+        ClaimsPrincipal user,
+        EmployeeSummaryService summaryService,
+        CancellationToken ct)
+    {
+        var employeeId = user.GetEmployeeId();
+        if (employeeId == null) return Results.Unauthorized();
+
+        var summary = await summaryService.GetSummaryAsync(employeeId.Value, ct);
+        return summary == null ? Results.NotFound() : Results.Ok(summary);
     }
 
     private static async Task<IResult> GetPayslips(ClaimsPrincipal user, PayrollDbContext dbContext)

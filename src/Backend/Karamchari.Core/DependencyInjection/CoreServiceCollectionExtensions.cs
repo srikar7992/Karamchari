@@ -101,9 +101,16 @@ public static class CoreServiceCollectionExtensions
         services.AddSingleton<ITenantTableRegistry>(registry);
         services.AddSingleton<RlsScriptGenerator>();
 
-        // Single TimeProvider instance is fine Ã¢â‚¬â€ TimeProvider.System is thread-safe.
+        // Single TimeProvider instance is fine — TimeProvider.System is thread-safe.
         // Tests can swap in a FakeTimeProvider before calling AddKaramchariCore.
         services.TryAddSingletonTimeProvider();
+
+        // Projection Governance
+        services.AddScoped<Karamchari.Core.Projections.IProjectionRegistry, Karamchari.Core.Projections.ProjectionRegistry>();
+
+        // Operational Job & Temporal Governance
+        services.AddSingleton<Karamchari.Core.Jobs.JobGovernanceService>();
+        services.AddSingleton<Karamchari.Core.Temporal.TemporalGovernanceService>();
 
         return services;
     }

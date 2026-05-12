@@ -2,6 +2,7 @@ using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.HR.Domain.Departments;
 using Karamchari.HR.Domain.Employees;
+using Karamchari.HR.Domain.Organization;
 using Karamchari.HR.Domain.Relationships;
 using Karamchari.HR.Persistence.Configurations;
 using MassTransit;
@@ -39,6 +40,14 @@ public sealed class HRDbContext : KaramchariDbContext
     /// </summary>
     public DbSet<Department> Departments => Set<Department>();
 
+    public DbSet<Designation> Designations => Set<Designation>();
+    public DbSet<Branch> Branches => Set<Branch>();
+    public DbSet<LegalEntity> LegalEntities => Set<LegalEntity>();
+    public DbSet<CostCenter> CostCenters => Set<CostCenter>();
+    public DbSet<BusinessUnit> BusinessUnits => Set<BusinessUnit>();
+    public DbSet<Position> Positions => Set<Position>();
+    public DbSet<Location> Locations => Set<Location>();
+
     /// <summary>
     /// Gets the employees set.
     /// </summary>
@@ -54,9 +63,59 @@ public sealed class HRDbContext : KaramchariDbContext
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
+        base.OnDomainModelCreating(modelBuilder);
+
         modelBuilder.ApplyConfiguration(new DepartmentConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeRelationshipConfiguration());
+
+        modelBuilder.Entity<Designation>(b =>
+        {
+            b.ToTable("Designations");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+        });
+
+        modelBuilder.Entity<Branch>(b =>
+        {
+            b.ToTable("Branches");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+        });
+
+        modelBuilder.Entity<LegalEntity>(b =>
+        {
+            b.ToTable("LegalEntities");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.TaxId }).IsUnique();
+        });
+
+        modelBuilder.Entity<CostCenter>(b =>
+        {
+            b.ToTable("CostCenters");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+        });
+
+        modelBuilder.Entity<BusinessUnit>(b =>
+        {
+            b.ToTable("BusinessUnits");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+        });
+
+        modelBuilder.Entity<Position>(b =>
+        {
+            b.ToTable("Positions");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Code }).IsUnique();
+        });
+
+        modelBuilder.Entity<Location>(b =>
+        {
+            b.ToTable("Locations");
+            b.HasKey(x => x.Id);
+        });
 
         // MassTransit's transactional outbox entities. Adding them registers the
         // EF model types; pinning them to dbo keeps them out of the tenant

@@ -49,6 +49,7 @@ public static class HRServiceCollectionExtensions
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<IVisibilityResolver, VisibilityResolver>();
+        services.AddScoped<Karamchari.HR.Services.EmployeeSummaryService>();
 
         services.Configure<DocumentIntelligenceOptions>(
             configuration.GetSection(DocumentIntelligenceOptions.SectionName));

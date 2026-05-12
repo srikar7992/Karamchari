@@ -49,6 +49,20 @@ public sealed class WorkflowCompletedConsumer :
         if (msg.FinalStatus == WorkflowStatus.Approved.ToString())
         {
             leave.FinalizeApproved();
+
+            // Deduct from balance ledger
+            var balance = await _db.LeaveBalances
+                .Include(b => b.Entries)
+                .FirstOrDefaultAsync(b => b.EmployeeId == leave.EmployeeId && b.PolicyId == leave.PolicyId, ct);
+
+            if (balance != null)
+            {
+                balance.Consume((decimal)leave.ActualDays, leave.StartDate, leave.Id.ToString());
+            }
+            else
+            {
+                _logger.LogError("Balance not found for Employee {EmployeeId}, Policy {PolicyId}", leave.EmployeeId, leave.PolicyId);
+            }
         }
         else if (msg.FinalStatus == WorkflowStatus.Rejected.ToString())
         {

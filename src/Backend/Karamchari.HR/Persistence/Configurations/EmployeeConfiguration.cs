@@ -38,8 +38,29 @@ internal sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
             .HasMaxLength(32)
             .IsRequired();
 
+        builder.Property(x => x.EmploymentType)
+            .HasConversion<string>()
+            .HasMaxLength(32)
+            .IsRequired();
+
+        builder.Property(x => x.TimeZoneId)
+            .HasMaxLength(64)
+            .IsRequired();
+
         builder.HasIndex(x => new { x.TenantId, x.EmployeeNumber })
             .IsUnique()
             .HasDatabaseName("UX_Employees_TenantId_EmployeeNumber");
+
+        builder.OwnsMany(x => x.History, h =>
+        {
+            h.ToTable("EmployeeHistory");
+            h.WithOwner().HasForeignKey("EmployeeId");
+            h.HasKey(x => x.Id);
+            h.Property(x => x.Type).HasConversion<string>().HasMaxLength(64);
+            h.Property(x => x.PreviousValue).HasMaxLength(500);
+            h.Property(x => x.NewValue).HasMaxLength(500);
+            h.Property(x => x.CorrelationId).HasMaxLength(64);
+            h.HasIndex(x => new { x.EmployeeId, x.Type });
+        });
     }
 }
