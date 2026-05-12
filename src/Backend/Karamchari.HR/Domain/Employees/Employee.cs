@@ -6,9 +6,13 @@ namespace Karamchari.HR.Domain.Employees;
 
 /// <summary>
 /// HR aggregate root for a person employed by a tenant organization.
+/// Serves as the canonical workforce system-of-record.
+/// Business truth is reconstructable via the immutable history ledger.
 /// </summary>
 public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
 {
+    private readonly List<EmployeeHistoryEntry> _history = [];
+
     private Employee(
         Guid id,
         string employeeNumber,
@@ -22,6 +26,7 @@ public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
         WorkEmail = NormalizeOptional(workEmail);
         HiredOn = hiredOn;
         Status = EmploymentStatus.Active;
+        TimeZoneId = "UTC";
     }
 
     private Employee()
@@ -61,6 +66,13 @@ public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public EmploymentStatus Status { get; private set; }
 
+    public Guid? DepartmentId { get; private set; }
+    public Guid? DesignationId { get; private set; }
+    public Guid? ReportingManagerId { get; private set; }
+    public Guid? LegalEntityId { get; private set; }
+    public Guid? BranchId { get; private set; }
+    public EmploymentType EmploymentType { get; private set; }
+
     /// <summary>
     /// Gets the identifier for the regional holiday calendar.
     /// </summary>
@@ -72,6 +84,11 @@ public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
     public string TimeZoneId { get; private set; } = "UTC";
 
     /// <summary>
+    /// Historical timeline of organizational and lifecycle changes.
+    /// </summary>
+    public IReadOnlyCollection<EmployeeHistoryEntry> History => _history.AsReadOnly();
+
+    /// <summary>
     /// Hires a new employee.
     /// </summary>
     public static Employee Hire(
@@ -79,46 +96,94 @@ public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
         string legalName,
         string? workEmail,
         DateOnly hiredOn,
+        EmploymentType employmentType = EmploymentType.FullTime,
         Guid? holidayCalendarId = null,
         string timeZoneId = "UTC")
     {
         var employee = new Employee(Guid.NewGuid(), employeeNumber, legalName, workEmail, hiredOn)
         {
+            EmploymentType = employmentType,
             HolidayCalendarId = holidayCalendarId,
             TimeZoneId = timeZoneId
         };
+
         employee.RaiseDomainEvent(new EmployeeHired(
             employee.Id,
             employee.EmployeeNumber,
             employee.LegalName,
             employee.WorkEmail,
             employee.HiredOn));
+
         return employee;
     }
 
     /// <summary>
-    /// Renames the employee.
+    /// Transfers the employee to a new department.
+    /// Records an immutable history entry for retroactive reconstruction.
     /// </summary>
-    /// <param name="legalName">The new legal name.</param>
-    public void Rename(string legalName) => LegalName = NormalizeRequired(legalName, nameof(legalName));
+    public void TransferToDepartment(Guid departmentId, DateTimeOffset effectiveFrom, Guid changedBy, string? correlationId = null)
+    {
+        var previousValue = DepartmentId?.ToString() ?? "None";
+        DepartmentId = departmentId;
+
+        AddHistory(EmployeeHistoryType.DepartmentTransfer, previousValue, departmentId.ToString(), effectiveFrom, changedBy, correlationId);
+    }
 
     /// <summary>
-    /// Changes the employee's work email.
+    /// Changes the employee's reporting manager.
     /// </summary>
-    /// <param name="workEmail">The new work email.</param>
-    public void ChangeWorkEmail(string? workEmail) => WorkEmail = NormalizeOptional(workEmail);
+    public void ChangeManager(Guid? managerId, DateTimeOffset effectiveFrom, Guid changedBy, string? correlationId = null)
+    {
+        var previousValue = ReportingManagerId?.ToString() ?? "None";
+        ReportingManagerId = managerId;
+
+        AddHistory(EmployeeHistoryType.ManagerChange, previousValue, managerId?.ToString() ?? "None", effectiveFrom, changedBy, correlationId);
+    }
+
+    /// <summary>
+    /// Changes the employee's designation.
+    /// </summary>
+    public void ChangeDesignation(Guid designationId, DateTimeOffset effectiveFrom, Guid changedBy, string? correlationId = null)
+    {
+        var previousValue = DesignationId?.ToString() ?? "None";
+        DesignationId = designationId;
+
+        AddHistory(EmployeeHistoryType.DesignationChange, previousValue, designationId.ToString(), effectiveFrom, changedBy, correlationId);
+    }
 
     /// <summary>
     /// Terminates the employee's employment.
     /// </summary>
-    public void Terminate()
+    public void Terminate(DateTimeOffset effectiveFrom, Guid changedBy, string? correlationId = null)
     {
-        if (Status == EmploymentStatus.Terminated)
-        {
-            return;
-        }
+        if (Status == EmploymentStatus.Terminated) return;
 
+        var previousStatus = Status.ToString();
         Status = EmploymentStatus.Terminated;
+
+        AddHistory(EmployeeHistoryType.LifecycleStateChange, previousStatus, Status.ToString(), effectiveFrom, changedBy, correlationId);
+    }
+
+    private void AddHistory(
+        EmployeeHistoryType type,
+        string previousValue,
+        string newValue,
+        DateTimeOffset effectiveFrom,
+        Guid changedBy,
+        string? correlationId)
+    {
+        // Close the previous active entry of the same type if it exists
+        var lastEntry = _history
+            .Where(h => h.Type == type && h.EffectiveTo == null)
+            .OrderByDescending(h => h.EffectiveFrom)
+            .FirstOrDefault();
+
+        lastEntry?.EffectiveTo = effectiveFrom;
+
+        var entry = EmployeeHistoryEntry.Create(
+            Id, type, previousValue, newValue, effectiveFrom, changedBy, correlationId);
+
+        _history.Add(entry);
     }
 
     private static string NormalizeRequired(string value, string parameterName)

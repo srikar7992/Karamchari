@@ -4,16 +4,18 @@ using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;
 
 /// <summary>
-/// Tracks the available leave balance for an employee for a specific policy.
+/// Aggregate root that manages an employee's leave balance for a specific policy.
+/// Business truth is derived from the immutable ledger entries.
 /// </summary>
 public sealed class LeaveBalance : AggregateRoot<Guid>, ITenantOwned
 {
-    private LeaveBalance(Guid id, Guid employeeId, Guid policyId, double totalEntitlement) : base(id)
+    private readonly List<LeaveBalanceEntry> _entries = [];
+
+    private LeaveBalance(Guid id, Guid employeeId, Guid policyId) : base(id)
     {
         EmployeeId = employeeId;
         PolicyId = policyId;
-        TotalEntitlement = totalEntitlement;
-        UsedBalance = 0;
+        Status = BalanceStatus.Active;
     }
 
     private LeaveBalance()
@@ -21,67 +23,78 @@ public sealed class LeaveBalance : AggregateRoot<Guid>, ITenantOwned
         TenantId = string.Empty;
     }
 
-    /// <summary>
-    /// Gets the tenant identifier.
-    /// </summary>
     public string TenantId { get; private set; } = string.Empty;
-
-    /// <summary>
-    /// Gets the employee identifier.
-    /// </summary>
     public Guid EmployeeId { get; private set; }
-
-    /// <summary>
-    /// Gets the leave policy identifier.
-    /// </summary>
     public Guid PolicyId { get; private set; }
+    public BalanceStatus Status { get; private set; }
 
     /// <summary>
-    /// Gets the total entitlement for the period.
+    /// Derived balance calculated from ledger entries.
     /// </summary>
-    public double TotalEntitlement { get; private set; }
+    public decimal AvailableBalance => _entries.Sum(e => e.Quantity);
 
-    /// <summary>
-    /// Gets the number of leave days already used.
-    /// </summary>
-    public double UsedBalance { get; private set; }
+    public IReadOnlyCollection<LeaveBalanceEntry> Entries => _entries.AsReadOnly();
 
-    /// <summary>
-    /// Gets the remaining leave balance.
-    /// </summary>
-    public double RemainingBalance => TotalEntitlement - UsedBalance;
-
-    /// <summary>
-    /// Creates a new leave balance for an employee.
-    /// </summary>
-    /// <param name="employeeId">The employee identifier.</param>
-    /// <param name="policyId">The policy identifier.</param>
-    /// <param name="totalEntitlement">The total entitlement.</param>
-    /// <returns>A new <see cref="LeaveBalance"/> instance.</returns>
-    public static LeaveBalance Create(Guid employeeId, Guid policyId, double totalEntitlement)
+    public static LeaveBalance Create(Guid employeeId, Guid policyId)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(totalEntitlement);
-        return new LeaveBalance(Guid.NewGuid(), employeeId, policyId, totalEntitlement);
+        return new LeaveBalance(Guid.NewGuid(), employeeId, policyId);
     }
 
     /// <summary>
-    /// Deducts leave days from the balance.
+    /// Adds a ledger entry to adjust the balance.
     /// </summary>
-    /// <param name="days">The number of days to deduct.</param>
-    public void Deduct(double days)
+    public void AddEntry(LeaveBalanceEntry entry)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(days);
-        if (days > RemainingBalance) throw new InvalidOperationException("Insufficient leave balance.");
-        UsedBalance += days;
+        ArgumentNullException.ThrowIfNull(entry);
+
+        if (entry.EmployeeId != EmployeeId || entry.PolicyId != PolicyId)
+            throw new InvalidOperationException("Ledger entry does not match this balance.");
+
+        if (AvailableBalance + entry.Quantity < 0 && entry.Quantity < 0)
+            throw new InvalidOperationException("Insufficient leave balance for this deduction.");
+
+        _entries.Add(entry);
     }
 
     /// <summary>
-    /// Refunds leave days back to the balance.
+    /// Accrues leave for the employee.
     /// </summary>
-    /// <param name="days">The number of days to refund.</param>
-    public void Refund(double days)
+    public void Accrue(decimal quantity, DateOnly effectiveDate, string? remarks = null, string? correlationId = null)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(days);
-        UsedBalance = Math.Max(0, UsedBalance - days);
+        var entry = LeaveBalanceEntry.Create(
+            EmployeeId, PolicyId, LeaveBalanceEntryType.Accrual, quantity,
+            effectiveDate, remarks: remarks, correlationId: correlationId);
+
+        AddEntry(entry);
     }
+
+    /// <summary>
+    /// Consumes leave.
+    /// </summary>
+    public void Consume(decimal quantity, DateOnly effectiveDate, string sourceReference, string? correlationId = null)
+    {
+        var entry = LeaveBalanceEntry.Create(
+            EmployeeId, PolicyId, LeaveBalanceEntryType.Consumption, -Math.Abs(quantity),
+            effectiveDate, sourceReference: sourceReference, correlationId: correlationId);
+
+        AddEntry(entry);
+    }
+
+    /// <summary>
+    /// Restores balance from a cancelled leave.
+    /// </summary>
+    public void Restore(decimal quantity, DateOnly effectiveDate, string sourceReference, string? correlationId = null)
+    {
+        var entry = LeaveBalanceEntry.Create(
+            EmployeeId, PolicyId, LeaveBalanceEntryType.CancellationRestore, Math.Abs(quantity),
+            effectiveDate, sourceReference: sourceReference, correlationId: correlationId);
+
+        AddEntry(entry);
+    }
+}
+
+public enum BalanceStatus
+{
+    Active = 1,
+    Inactive = 2
 }

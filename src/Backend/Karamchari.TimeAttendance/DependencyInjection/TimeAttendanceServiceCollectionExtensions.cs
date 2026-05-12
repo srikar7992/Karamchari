@@ -64,6 +64,8 @@ public static class TimeAttendanceServiceCollectionExtensions
         });
 
         services.AddScoped<LeaveRequestService>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.LeaveBalanceService>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.AttendanceReconciliationService>();
         services.AddScoped<Karamchari.TimeAttendance.Services.TimesheetService>();
         services.AddSingleton<Karamchari.TimeAttendance.Services.ICapacityProvider,
                               Karamchari.TimeAttendance.Services.NullCapacityProvider>();

@@ -66,6 +66,7 @@ public static class EndpointExtensions
         app.MapPSAEndpoints();
         app.MapBillingEndpoints();
         app.MapESSEndpoints();
+        app.MapEmployeeEndpoints();
 
         // BFF Workspaces (Phase 1A)
         app.MapManagerWorkspace();

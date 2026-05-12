@@ -12,7 +12,15 @@ public enum AttendanceStatus
     CheckedOut,
     Missed,
     Corrected,
-    Disputed
+    Disputed,
+
+    // Finalized statuses
+    Present,
+    Absent,
+    HalfDay,
+    OnLeave,
+    Holiday,
+    WeekOff
 }
 
 /// <summary>

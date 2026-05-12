@@ -39,6 +39,8 @@ public class TimeAttendanceDbContext : KaramchariDbContext
     /// Provides required documentation for this member.
     /// </summary>
     public DbSet<AttendanceSession> AttendanceSessions => Set<AttendanceSession>();
+
+    public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -138,6 +140,16 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             });
         });
 
+        modelBuilder.Entity<AttendanceRecord>(b =>
+        {
+            b.ToTable("Workforce_AttendanceRecords");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.Date }).IsUnique();
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.WorkedHours).HasPrecision(18, 2);
+            b.Property(x => x.OvertimeHours).HasPrecision(18, 2);
+        });
+
         modelBuilder.Entity<AttendanceAnomaly>(b =>
         {
             b.ToTable("Workforce_AttendanceAnomalies");
@@ -189,6 +201,25 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             b.ToTable("LeaveRequests");
             b.HasKey(x => x.Id);
             b.Property(x => x.Status).HasConversion<string>();
+        });
+
+        modelBuilder.Entity<LeaveBalance>(b =>
+        {
+            b.ToTable("LeaveBalances");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.PolicyId }).IsUnique();
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Ignore(x => x.AvailableBalance);
+
+            b.OwnsMany(x => x.Entries, e =>
+            {
+                e.ToTable("LeaveBalanceEntries");
+                e.WithOwner().HasForeignKey("BalanceId");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.EntryType).HasConversion<string>();
+                e.Property(x => x.Quantity).HasPrecision(18, 2);
+                e.HasIndex(x => new { x.EmployeeId, x.PolicyId });
+            });
         });
 
         modelBuilder.Entity<Timesheet>(b =>
