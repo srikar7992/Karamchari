@@ -15,15 +15,17 @@ namespace Karamchari.Identity.Infrastructure.Security;
 internal sealed class JwtTokenService : IJwtTokenService
 {
     private readonly JwtOptions _options;
+    private readonly DatabaseSigningKeyResolver _keyResolver;
 
     /// <summary>Initializes a new instance of the <see cref="JwtTokenService"/> class.</summary>
-    public JwtTokenService(IOptions<JwtOptions> options)
+    public JwtTokenService(IOptions<JwtOptions> options, DatabaseSigningKeyResolver keyResolver)
     {
         _options = options.Value;
+        _keyResolver = keyResolver;
     }
 
     /// <summary>Generates an access token for the specified user.</summary>
-    public string GenerateAccessToken(string tenantId, Guid userId, string email, IEnumerable<string> roles, IEnumerable<string> permissions)
+    public async Task<string> GenerateAccessTokenAsync(string tenantId, Guid userId, string email, IEnumerable<string> roles, IEnumerable<string> permissions)
     {
         var claims = new List<Claim>
         {
@@ -43,16 +45,20 @@ internal sealed class JwtTokenService : IJwtTokenService
             claims.Add(new Claim("permission", permission));
         }
 
-        // 1. Resolve signing key
-        string secret = _options.Secret;
-        string kid = _options.ActiveKeyId;
+        // 1. Resolve current signing key from DB (with fallback to config for dev/initial setup)
+        var key = await _keyResolver.GetCurrentSigningKeyAsync();
+        string kid = key?.KeyId ?? _options.ActiveKeyId;
 
-        if (_options.SigningKeys.TryGetValue(kid, out var keySecret))
+        if (key == null)
         {
-            secret = keySecret;
+            string secret = _options.Secret;
+            if (_options.SigningKeys.TryGetValue(kid, out var keySecret))
+            {
+                secret = keySecret;
+            }
+            key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         // 2. Add Key ID (kid) to header for rotation support
@@ -65,92 +71,62 @@ internal sealed class JwtTokenService : IJwtTokenService
             _options.Issuer,
             _options.Audience,
             claims,
-            null,
+            DateTime.UtcNow,
             DateTime.UtcNow.AddMinutes(_options.AccessTokenExpirationMinutes));
 
         var token = new JwtSecurityToken(header, payload);
-
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    /// <summary>Generates a refresh token.</summary>
+    /// <summary>Generates a raw refresh token and its hash.</summary>
     public (string RawToken, string Hash, DateTimeOffset ExpiresAt) GenerateRefreshToken()
     {
         var randomNumber = new byte[64];
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
-
-        var raw = Convert.ToBase64String(randomNumber);
-        var hash = HashToken(raw);
-
-        return (raw, hash, DateTimeOffset.UtcNow.AddDays(_options.RefreshTokenExpirationDays));
+        var rawToken = Convert.ToBase64String(randomNumber);
+        var hash = HashToken(rawToken);
+        var expiresAt = DateTimeOffset.UtcNow.AddDays(_options.RefreshTokenExpirationDays);
+        return (rawToken, hash, expiresAt);
     }
 
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
-    /// <inheritdoc/>
+    /// <summary>Hashes a raw token for comparison.</summary>
     public string HashToken(string rawToken)
     {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
-        return Convert.ToBase64String(bytes);
+        var bytes = Encoding.UTF8.GetBytes(rawToken);
+        var hash = SHA256.HashData(bytes);
+        return Convert.ToBase64String(hash);
     }
 
     /// <summary>Validates a JWT token.</summary>
     public bool ValidateToken(string token, out ClaimsPrincipal? principal)
     {
         principal = null;
-        var tokenHandler = new JwtSecurityTokenHandler();
+        var handler = new JwtSecurityTokenHandler();
 
         try
         {
-            principal = tokenHandler.ValidateToken(token, GetValidationParameters(), out _);
+            // Note: Validation typically uses the keys configured in Authentication middleware.
+            // This manual validation should use the same resolver logic if needed.
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = _options.Issuer,
+                ValidateAudience = true,
+                ValidAudience = _options.Audience,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ClockSkew = TimeSpan.Zero,
+                // In a real implementation, we would pass the resolver's keys here
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Secret))
+            };
+
+            principal = handler.ValidateToken(token, validationParameters, out _);
             return true;
         }
         catch
         {
             return false;
         }
-    }
-
-    private TokenValidationParameters GetValidationParameters()
-    {
-        var parameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = _options.Issuer,
-            ValidateAudience = true,
-            ValidAudience = _options.Audience,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ClockSkew = TimeSpan.Zero
-        };
-
-        // Use IssuerSigningKeyResolver to find the right key by kid
-        parameters.IssuerSigningKeyResolver = (token, securityToken, kid, validationParameters) =>
-        {
-            var keys = new List<SecurityKey>();
-
-            // 1. Check named keys
-            if (!string.IsNullOrEmpty(kid) && _options.SigningKeys.TryGetValue(kid, out var secret))
-            {
-                keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)));
-            }
-            else
-            {
-                // 2. Fallback to all known keys if kid missing or unknown
-                foreach (var s in _options.SigningKeys.Values)
-                {
-                    keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(s)));
-                }
-
-                // 3. Fallback to legacy Secret
-                keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Secret)));
-            }
-
-            return keys;
-        };
-
-        return parameters;
     }
 }

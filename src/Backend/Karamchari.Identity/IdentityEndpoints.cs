@@ -69,7 +69,7 @@ public static class IdentityEndpoints
         }
 
         var roles = await userManager.GetRolesAsync(user);
-        var accessToken = jwtService.GenerateAccessToken(tenantId, user.Id, user.Email!, roles, []);
+        var accessToken = await jwtService.GenerateAccessTokenAsync(tenantId, user.Id, user.Email!, roles, []);
 
         var deviceInfo = context.Request.Headers.UserAgent.ToString();
         var (_, refreshToken) = await refreshService.CreateTokenAsync(user.Id, tenantId, deviceInfo);
@@ -98,7 +98,7 @@ public static class IdentityEndpoints
         if (user == null) return Results.Unauthorized();
 
         var roles = await userManager.GetRolesAsync(user);
-        var accessToken = jwtService.GenerateAccessToken(token.TenantId, user.Id, user.Email!, roles, []);
+        var accessToken = await jwtService.GenerateAccessTokenAsync(token.TenantId, user.Id, user.Email!, roles, []);
 
         return Results.Ok(new LoginResponse(accessToken, newRaw, DateTime.UtcNow.AddMinutes(60)));
     }

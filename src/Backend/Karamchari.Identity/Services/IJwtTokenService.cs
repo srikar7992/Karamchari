@@ -8,7 +8,7 @@ namespace Karamchari.Identity.Services;
 public interface IJwtTokenService
 {
     /// <summary>Generates an access token for the specified user.</summary>
-    string GenerateAccessToken(string tenantId, Guid userId, string email, IEnumerable<string> roles, IEnumerable<string> permissions);
+    Task<string> GenerateAccessTokenAsync(string tenantId, Guid userId, string email, IEnumerable<string> roles, IEnumerable<string> permissions);
 
     /// <summary>Generates a raw refresh token and its hash.</summary>
     (string RawToken, string Hash, DateTimeOffset ExpiresAt) GenerateRefreshToken();

@@ -36,6 +36,13 @@ public static class IdentityServiceCollectionExtensions
             options.UseSqlServer(connectionString);
         });
 
+        services.AddDbContextFactory<IdentityDbContext>((sp, options) =>
+        {
+            var connectionString = configuration.GetConnectionString("KaramchariDb")
+                ?? throw new InvalidOperationException("ConnectionStrings:KaramchariDb must be configured.");
+            options.UseSqlServer(connectionString);
+        });
+
         services.AddIdentity<IdentityUser<Guid>, IdentityRole<Guid>>(options =>
         {
             options.Password.RequireDigit = true;
@@ -51,7 +58,8 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<ITokenBlacklistService, TokenBlacklistService>();
-        services.AddScoped<ISecurityAuditService, SecurityAuditService>();
+        services.AddScoped<ISecurityAuditService, PersistentSecurityAuditService>();
+        services.AddSingleton<DatabaseSigningKeyResolver>();
         services.AddMemoryCache();
 
         var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
@@ -75,19 +83,8 @@ public static class IdentityServiceCollectionExtensions
                     ClockSkew = TimeSpan.Zero,
                     IssuerSigningKeyResolver = (token, securityToken, kid, validationParameters) =>
                     {
-                        var keys = new List<SecurityKey>();
-                        if (!string.IsNullOrEmpty(kid) && jwtOptions.SigningKeys.TryGetValue(kid, out var secret))
-                        {
-                            keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)));
-                        }
-                        else
-                        {
-                            foreach (var s in jwtOptions.SigningKeys.Values)
-                                keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(s)));
-
-                            keys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)));
-                        }
-                        return keys;
+                        var resolver = services.BuildServiceProvider().GetRequiredService<DatabaseSigningKeyResolver>();
+                        return resolver.GetValidationKeysAsync().GetAwaiter().GetResult();
                     }
                 };
 

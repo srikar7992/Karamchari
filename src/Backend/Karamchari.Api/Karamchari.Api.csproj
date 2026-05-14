@@ -64,6 +64,7 @@
     <ProjectReference Include="..\Karamchari.Capability\Karamchari.Capability.csproj" />
     <ProjectReference Include="..\Karamchari.Intelligence\Karamchari.Intelligence.csproj" />
     <ProjectReference Include="..\Karamchari.Governance\Karamchari.Governance.csproj" />
+    <ProjectReference Include="..\Karamchari.FinancialOps\Karamchari.FinancialOps.csproj" />
   </ItemGroup>
 
 </Project>

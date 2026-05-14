@@ -6,6 +6,7 @@ using Karamchari.Compensation.Persistence;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Messaging.Outbox;
 using Karamchari.Core.Messaging.Tenant;
+using Karamchari.FinancialOps.Persistence;
 using Karamchari.Forecasting.DependencyInjection;
 using Karamchari.Governance.DependencyInjection;
 using Karamchari.Governance.Persistence;
@@ -59,6 +60,11 @@ public static class MassTransitExtensions
 
             // Register outboxes for all modules so API can publish with transaction support
             x.AddEntityFrameworkOutbox<HRDbContext>(o =>
+            {
+                o.UseSqlServer();
+                if (isDev) o.UseBusOutbox();
+            });
+            x.AddEntityFrameworkOutbox<FinancialOpsDbContext>(o =>
             {
                 o.UseSqlServer();
                 if (isDev) o.UseBusOutbox();
