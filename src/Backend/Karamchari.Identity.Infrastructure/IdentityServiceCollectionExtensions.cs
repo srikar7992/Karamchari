@@ -28,20 +28,20 @@ public static class IdentityServiceCollectionExtensions
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 
-        services.AddDbContext<IdentityDbContext>((sp, options) =>
+        services.AddDbContext<IdentityDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("KaramchariDb")
                 ?? throw new InvalidOperationException(
                     "ConnectionStrings:KaramchariDb must be configured before IdentityDbContext can be resolved.");
             options.UseSqlServer(connectionString);
-        });
+        }, ServiceLifetime.Scoped, ServiceLifetime.Singleton);
 
-        services.AddDbContextFactory<IdentityDbContext>((sp, options) =>
+        services.AddDbContextFactory<IdentityDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("KaramchariDb")
                 ?? throw new InvalidOperationException("ConnectionStrings:KaramchariDb must be configured.");
             options.UseSqlServer(connectionString);
-        });
+        }, ServiceLifetime.Singleton);
 
         services.AddIdentity<IdentityUser<Guid>, IdentityRole<Guid>>(options =>
         {

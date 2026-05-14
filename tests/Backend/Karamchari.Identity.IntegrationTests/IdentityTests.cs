@@ -66,7 +66,8 @@ public class IdentityTests : IClassFixture<WebApplicationFactory<Program>>
 
                 // Add isolated In-Memory DBs. UseInternalServiceProvider prevents EF provider
                 // collisions with SQL Server registrations retained by MassTransit internals.
-                services.AddDbContext<IdentityDbContext>(o => ConfigureInMemory(o, "IdentityTestDb", inMemoryProvider));
+                services.AddDbContext<IdentityDbContext>(o => ConfigureInMemory(o, "IdentityTestDb", inMemoryProvider), ServiceLifetime.Scoped, ServiceLifetime.Singleton);
+                services.AddDbContextFactory<IdentityDbContext>(o => ConfigureInMemory(o, "IdentityTestDb", inMemoryProvider), ServiceLifetime.Singleton);
                 services.AddDbContext<Karamchari.Payroll.Data.PayrollDbContext>(o => ConfigureInMemory(o, "PayrollTestDb", inMemoryProvider));
                 services.AddDbContext<Karamchari.HR.Persistence.HRDbContext>(o => ConfigureInMemory(o, "HRTestDb", inMemoryProvider));
                 services.AddDbContext<Karamchari.TimeAttendance.Persistence.TimeAttendanceDbContext>(o => ConfigureInMemory(o, "TimeAttendanceTestDb", inMemoryProvider));
