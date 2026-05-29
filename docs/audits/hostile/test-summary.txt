@@ -1,0 +1,188 @@
+Restoring & building once...
+    0 Error(s)
+
+Time Elapsed 00:00:02.62
+
+==> Karamchari.Core.UnitTests
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Karamchari.Core -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core/Debug/net10.0/Karamchari.Core.dll
+  Karamchari.Core.UnitTests -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core.UnitTests/Debug/net10.0/Karamchari.Core.UnitTests.dll
+Test run for /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core.UnitTests/Debug/net10.0/Karamchari.Core.UnitTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.Core.UnitTests.trx
+Results File: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.Core.UnitTests.trx
+
+Passed!  - Failed:     0, Passed:    36, Skipped:     0, Total:    36, Duration: 35 ms - Karamchari.Core.UnitTests.dll (net10.0)
+
+Attachments:
+  /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/cab1fe93-4cf2-43c7-a594-2d1b7bade67d/coverage.cobertura.xml
+[PASS] Karamchari.Core.UnitTests
+
+==> Karamchari.Api.UnitTests
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Karamchari.Compensation.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Compensation.Contracts/Debug/net10.0/Karamchari.Compensation.Contracts.dll
+  Karamchari.Billing.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Billing.Contracts/Debug/net10.0/Karamchari.Billing.Contracts.dll
+  Karamchari.Core -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core/Debug/net10.0/Karamchari.Core.dll
+  Karamchari.Core.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core.Contracts/Debug/net10.0/Karamchari.Core.Contracts.dll
+  Karamchari.TimeAttendance.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.TimeAttendance.Contracts/Debug/net10.0/Karamchari.TimeAttendance.Contracts.dll
+  Karamchari.Identity.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Identity.Contracts/Debug/net10.0/Karamchari.Identity.Contracts.dll
+  Karamchari.Intelligence.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Intelligence.Contracts/Debug/net10.0/Karamchari.Intelligence.Contracts.dll
+  Karamchari.Governance -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Governance/Debug/net10.0/Karamchari.Governance.dll
+  Karamchari.Payroll.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Payroll.Contracts/Debug/net10.0/Karamchari.Payroll.Contracts.dll
+  Karamchari.FinancialOps.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.FinancialOps.Contracts/Debug/net10.0/Karamchari.FinancialOps.Contracts.dll
+  Karamchari.Capability.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Capability.Contracts/Debug/net10.0/Karamchari.Capability.Contracts.dll
+  Karamchari.Recruitment.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Recruitment.Contracts/Debug/net10.0/Karamchari.Recruitment.Contracts.dll
+  Karamchari.HR -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.HR/Debug/net10.0/Karamchari.HR.dll
+  Karamchari.PSA -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.PSA/Debug/net10.0/Karamchari.PSA.dll
+  Karamchari.Billing -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Billing/Debug/net10.0/Karamchari.Billing.dll
+  Karamchari.TimeAttendance -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.TimeAttendance/Debug/net10.0/Karamchari.TimeAttendance.dll
+  Karamchari.Performance.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Performance.Contracts/Debug/net10.0/Karamchari.Performance.Contracts.dll
+  Karamchari.Intelligence -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Intelligence/Debug/net10.0/Karamchari.Intelligence.dll
+  Karamchari.Payroll -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Payroll/Debug/net10.0/Karamchari.Payroll.dll
+  Karamchari.Performance -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Performance/Debug/net10.0/Karamchari.Performance.dll
+  Karamchari.Recruitment -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Recruitment/Debug/net10.0/Karamchari.Recruitment.dll
+  Karamchari.FinancialOps -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.FinancialOps/Debug/net10.0/Karamchari.FinancialOps.dll
+  Karamchari.Notifications -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Notifications/Debug/net10.0/Karamchari.Notifications.dll
+  Karamchari.Identity -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Identity/Debug/net10.0/Karamchari.Identity.dll
+  Karamchari.Forecasting -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Forecasting/Debug/net10.0/Karamchari.Forecasting.dll
+  Karamchari.Compensation -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Compensation/Debug/net10.0/Karamchari.Compensation.dll
+  Karamchari.Workflow -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Workflow/Debug/net10.0/Karamchari.Workflow.dll
+  Karamchari.Capability -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Capability/Debug/net10.0/Karamchari.Capability.dll
+  Karamchari.Identity.Infrastructure -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Identity.Infrastructure/Debug/net10.0/Karamchari.Identity.Infrastructure.dll
+  Karamchari.Api -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Api/Debug/net10.0/Karamchari.Api.dll
+  Karamchari.Api.UnitTests -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Api.UnitTests/Debug/net10.0/Karamchari.Api.UnitTests.dll
+Test run for /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Api.UnitTests/Debug/net10.0/Karamchari.Api.UnitTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.Api.UnitTests.trx
+Results File: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.Api.UnitTests.trx
+
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 76 ms - Karamchari.Api.UnitTests.dll (net10.0)
+
+Attachments:
+  /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/0ec06d08-ff96-4433-9b57-4685120d0b73/coverage.cobertura.xml
+[PASS] Karamchari.Api.UnitTests
+
+==> Karamchari.ArchitectureTests
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Karamchari.Core -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core/Debug/net10.0/Karamchari.Core.dll
+  Karamchari.Core.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core.Contracts/Debug/net10.0/Karamchari.Core.Contracts.dll
+  Karamchari.TimeAttendance.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.TimeAttendance.Contracts/Debug/net10.0/Karamchari.TimeAttendance.Contracts.dll
+  Karamchari.Payroll.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Payroll.Contracts/Debug/net10.0/Karamchari.Payroll.Contracts.dll
+  Karamchari.Billing.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Billing.Contracts/Debug/net10.0/Karamchari.Billing.Contracts.dll
+  Karamchari.Identity.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Identity.Contracts/Debug/net10.0/Karamchari.Identity.Contracts.dll
+  Karamchari.FinancialOps.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.FinancialOps.Contracts/Debug/net10.0/Karamchari.FinancialOps.Contracts.dll
+  Karamchari.Capability.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Capability.Contracts/Debug/net10.0/Karamchari.Capability.Contracts.dll
+  Karamchari.Performance.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Performance.Contracts/Debug/net10.0/Karamchari.Performance.Contracts.dll
+  Karamchari.Compensation.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Compensation.Contracts/Debug/net10.0/Karamchari.Compensation.Contracts.dll
+  Karamchari.Governance -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Governance/Debug/net10.0/Karamchari.Governance.dll
+  Karamchari.Forecasting -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Forecasting/Debug/net10.0/Karamchari.Forecasting.dll
+  Karamchari.Intelligence.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Intelligence.Contracts/Debug/net10.0/Karamchari.Intelligence.Contracts.dll
+  Karamchari.Identity -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Identity/Debug/net10.0/Karamchari.Identity.dll
+  Karamchari.PSA -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.PSA/Debug/net10.0/Karamchari.PSA.dll
+  Karamchari.TimeAttendance -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.TimeAttendance/Debug/net10.0/Karamchari.TimeAttendance.dll
+  Karamchari.Workflow -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Workflow/Debug/net10.0/Karamchari.Workflow.dll
+  Karamchari.Performance -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Performance/Debug/net10.0/Karamchari.Performance.dll
+  Karamchari.Recruitment.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Recruitment.Contracts/Debug/net10.0/Karamchari.Recruitment.Contracts.dll
+  Karamchari.Notifications -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Notifications/Debug/net10.0/Karamchari.Notifications.dll
+  Karamchari.Billing -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Billing/Debug/net10.0/Karamchari.Billing.dll
+  Karamchari.HR -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.HR/Debug/net10.0/Karamchari.HR.dll
+  Karamchari.Capability -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Capability/Debug/net10.0/Karamchari.Capability.dll
+  Karamchari.Payroll -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Payroll/Debug/net10.0/Karamchari.Payroll.dll
+  Karamchari.Compensation -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Compensation/Debug/net10.0/Karamchari.Compensation.dll
+  Karamchari.Intelligence -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Intelligence/Debug/net10.0/Karamchari.Intelligence.dll
+  Karamchari.Identity.Infrastructure -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Identity.Infrastructure/Debug/net10.0/Karamchari.Identity.Infrastructure.dll
+  Karamchari.FinancialOps -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.FinancialOps/Debug/net10.0/Karamchari.FinancialOps.dll
+  Karamchari.Recruitment -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Recruitment/Debug/net10.0/Karamchari.Recruitment.dll
+  Karamchari.Api -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Api/Debug/net10.0/Karamchari.Api.dll
+  Karamchari.ArchitectureTests -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.ArchitectureTests/Debug/net10.0/Karamchari.ArchitectureTests.dll
+Test run for /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.ArchitectureTests/Debug/net10.0/Karamchari.ArchitectureTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.ArchitectureTests.trx
+Results File: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.ArchitectureTests.trx
+
+Passed!  - Failed:     0, Passed:     7, Skipped:     0, Total:     7, Duration: 6 s - Karamchari.ArchitectureTests.dll (net10.0)
+[PASS] Karamchari.ArchitectureTests
+
+==> Karamchari.Payroll.Tests
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Karamchari.Core.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core.Contracts/Debug/net10.0/Karamchari.Core.Contracts.dll
+  Karamchari.Payroll.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Payroll.Contracts/Debug/net10.0/Karamchari.Payroll.Contracts.dll
+  Karamchari.Core -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core/Debug/net10.0/Karamchari.Core.dll
+  Karamchari.Payroll -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Payroll/Debug/net10.0/Karamchari.Payroll.dll
+  Karamchari.Payroll.Tests -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Payroll.Tests/Debug/net10.0/Karamchari.Payroll.Tests.dll
+Test run for /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Payroll.Tests/Debug/net10.0/Karamchari.Payroll.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.Payroll.Tests.trx
+Results File: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.Payroll.Tests.trx
+
+Passed!  - Failed:     0, Passed:    44, Skipped:     0, Total:    44, Duration: 531 ms - Karamchari.Payroll.Tests.dll (net10.0)
+
+Attachments:
+  /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/71a833ff-cdbf-4bf2-a4ad-e413d45d3a77/coverage.cobertura.xml
+[PASS] Karamchari.Payroll.Tests
+
+==> Karamchari.PSA.Tests
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Karamchari.Core -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core/Debug/net10.0/Karamchari.Core.dll
+  Karamchari.Core.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core.Contracts/Debug/net10.0/Karamchari.Core.Contracts.dll
+  Karamchari.PSA -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.PSA/Debug/net10.0/Karamchari.PSA.dll
+  Karamchari.PSA.Tests -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.PSA.Tests/Debug/net10.0/Karamchari.PSA.Tests.dll
+Test run for /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.PSA.Tests/Debug/net10.0/Karamchari.PSA.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.PSA.Tests.trx
+Results File: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.PSA.Tests.trx
+
+Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 8 ms - Karamchari.PSA.Tests.dll (net10.0)
+
+Attachments:
+  /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/e7d3e749-c7ec-453d-a9ed-e6fadba32601/coverage.cobertura.xml
+[PASS] Karamchari.PSA.Tests
+
+==> Karamchari.TimeAttendance.Tests
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Karamchari.Core.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core.Contracts/Debug/net10.0/Karamchari.Core.Contracts.dll
+  Karamchari.Billing.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Billing.Contracts/Debug/net10.0/Karamchari.Billing.Contracts.dll
+  Karamchari.TimeAttendance.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.TimeAttendance.Contracts/Debug/net10.0/Karamchari.TimeAttendance.Contracts.dll
+  Karamchari.Core -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core/Debug/net10.0/Karamchari.Core.dll
+  Karamchari.TimeAttendance -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.TimeAttendance/Debug/net10.0/Karamchari.TimeAttendance.dll
+  Karamchari.TimeAttendance.Tests -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.TimeAttendance.Tests/Debug/net10.0/Karamchari.TimeAttendance.Tests.dll
+Test run for /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.TimeAttendance.Tests/Debug/net10.0/Karamchari.TimeAttendance.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.TimeAttendance.Tests.trx
+Results File: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.TimeAttendance.Tests.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 2 ms - Karamchari.TimeAttendance.Tests.dll (net10.0)
+
+Attachments:
+  /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/18344814-7b6e-44d5-9b3c-b748cb3b5afe/coverage.cobertura.xml
+[PASS] Karamchari.TimeAttendance.Tests
+
+==> Karamchari.FinancialChaosTests
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Karamchari.Core.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core.Contracts/Debug/net10.0/Karamchari.Core.Contracts.dll
+  Karamchari.FinancialOps.Contracts -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.FinancialOps.Contracts/Debug/net10.0/Karamchari.FinancialOps.Contracts.dll
+  Karamchari.Core -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.Core/Debug/net10.0/Karamchari.Core.dll
+  Karamchari.FinancialOps -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.FinancialOps/Debug/net10.0/Karamchari.FinancialOps.dll
+  Karamchari.FinancialChaosTests -> /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.FinancialChaosTests/Debug/net10.0/Karamchari.FinancialChaosTests.dll
+Test run for /Users/srikarbojji/Projects/Karamchari/artifacts/bin/Karamchari.FinancialChaosTests/Debug/net10.0/Karamchari.FinancialChaosTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+Data collection : Unable to find a datacollector with friendly name 'XPlat Code Coverage'.
+Data collection : Could not find data collector 'XPlat Code Coverage'
+WARNING: Overwriting results file: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.FinancialChaosTests.trx
+Results File: /Users/srikarbojji/Projects/Karamchari/artifacts/test-results/Karamchari.FinancialChaosTests.trx
+
+Passed!  - Failed:     0, Passed:     5, Skipped:     0, Total:     5, Duration: 3 s - Karamchari.FinancialChaosTests.dll (net10.0)
+[PASS] Karamchari.FinancialChaosTests
+[SKIP] integration/cert suites (--no-integration)
+
+================ SUMMARY ================
+Projects passed: 7
+Projects failed: 0
+TRX + coverage under: artifacts/test-results
