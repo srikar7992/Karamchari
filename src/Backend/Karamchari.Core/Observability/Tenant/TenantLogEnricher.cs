@@ -28,13 +28,18 @@ public sealed class TenantLogEnricher : ILogEventEnricher
         var envelope = context.Envelope;
 
         AddPropertyIfAbsent(logEvent, propertyFactory, TenantTelemetryTags.TenantId, envelope.TenantId);
+        AddPropertyIfAbsent(logEvent, propertyFactory, "TenantId", envelope.TenantId);
+        
         AddPropertyIfAbsent(logEvent, propertyFactory, TenantTelemetryTags.CorrelationId, envelope.CorrelationId);
+        AddPropertyIfAbsent(logEvent, propertyFactory, "CorrelationId", envelope.CorrelationId);
+        
         AddPropertyIfAbsent(logEvent, propertyFactory, TenantTelemetryTags.RequestId, envelope.RequestId);
         AddPropertyIfAbsent(logEvent, propertyFactory, TenantTelemetryTags.ExecutionSource, envelope.ExecutionSource.ToString());
 
         if (!string.IsNullOrEmpty(envelope.UserIdentity))
         {
             AddPropertyIfAbsent(logEvent, propertyFactory, TenantTelemetryTags.UserId, envelope.UserIdentity);
+            AddPropertyIfAbsent(logEvent, propertyFactory, "UserId", envelope.UserIdentity);
         }
 
         if (!string.IsNullOrEmpty(envelope.WorkflowInstanceId))

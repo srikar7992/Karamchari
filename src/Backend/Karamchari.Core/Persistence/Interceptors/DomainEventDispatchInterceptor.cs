@@ -20,7 +20,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// .GetAwaiter().GetResult() inside a SaveChanges call invites deadlocks.
 /// EF 8+ encourages async-only paths anyway.
 /// </summary>
-public sealed class DomainEventDispatchInterceptor : SaveChangesInterceptor
+public sealed partial class DomainEventDispatchInterceptor : SaveChangesInterceptor
 {
     private readonly IDomainEventDispatcher _dispatcher;
     private readonly ILogger<DomainEventDispatchInterceptor> _logger;
@@ -109,4 +109,10 @@ public sealed class DomainEventDispatchInterceptor : SaveChangesInterceptor
         context.ChangeTracker
             .Entries<IHasDomainEvents>()
             .Any(e => e.Entity.DomainEvents.Count > 0);
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Debug,
+        Message = "Dispatched {EventCount} domain event(s) to the bus outbox.")]
+    static partial void LogDomainEventsDispatched(ILogger logger, int eventCount);
 }

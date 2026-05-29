@@ -1,7 +1,7 @@
-using Karamchari.Compensation.Domain;
-using Karamchari.Compensation.Persistence.Configurations;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
+using Karamchari.Compensation.Domain;
+using Karamchari.Compensation.Persistence.Configurations;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +13,9 @@ namespace Karamchari.Compensation.Persistence;
 /// </summary>
 public sealed class CompensationDbContext : KaramchariDbContext
 {
-    private const string MessagingSchema = "dbo";
-
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public CompensationDbContext(DbContextOptions<CompensationDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
@@ -23,7 +24,7 @@ public sealed class CompensationDbContext : KaramchariDbContext
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public DbSet<CompensationBand> CompensationBands => Set<CompensationBand>();
+    public DbSet<CompensationBand> Bands => Set<CompensationBand>();
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -31,12 +32,15 @@ public sealed class CompensationDbContext : KaramchariDbContext
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public DbSet<IncrementBudgetPool> IncrementBudgetPools => Set<IncrementBudgetPool>();
+    public DbSet<IncrementBudgetPool> BudgetPools => Set<IncrementBudgetPool>();
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public DbSet<EmployeeCompensationRecord> EmployeeCompensationRecords => Set<EmployeeCompensationRecord>();
+    public DbSet<EmployeeCompensationRecord> CompensationRecords => Set<EmployeeCompensationRecord>();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -47,12 +51,14 @@ public sealed class CompensationDbContext : KaramchariDbContext
         modelBuilder.ApplyConfiguration(new IncrementBudgetPoolConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeCompensationRecordConfiguration());
 
+        const string MessagingSchema = "dbo";
+
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
 
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
     }
 }

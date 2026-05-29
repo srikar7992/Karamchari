@@ -55,14 +55,7 @@ public static class HealthCheckExtensions
         if (!string.IsNullOrEmpty(rabbitMqConnection))
         {
             healthBuilder.AddRabbitMQ(
-                sp =>
-                {
-                    var factory = new RabbitMQ.Client.ConnectionFactory
-                    {
-                        Uri = new Uri(rabbitMqConnection)
-                    };
-                    return factory.CreateConnectionAsync().GetAwaiter().GetResult();
-                },
+                rabbitMqConnection,
                 name: "Messaging:RabbitMQ",
                 tags: MessagingTags);
         }
@@ -109,6 +102,20 @@ public static class HealthCheckExtensions
         app.MapHealthChecks("/health/live", new HealthCheckOptions
         {
             Predicate = _ => false, // Always returns 200 if the app is up
+            ResponseWriter = WriteResponse
+        });
+
+        // Startup probe: dependencies must be reachable before the pod begins serving.
+        // Uses the readiness checks; Kubernetes stops probing once it first succeeds.
+        app.MapHealthChecks("/health/startup", new HealthCheckOptions
+        {
+            Predicate = check => check.Tags.Contains("ready"),
+            ResultStatusCodes =
+            {
+                [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                [HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable,
+                [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+            },
             ResponseWriter = WriteResponse
         });
 

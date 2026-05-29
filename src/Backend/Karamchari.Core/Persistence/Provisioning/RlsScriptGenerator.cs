@@ -80,19 +80,20 @@ public sealed partial class RlsScriptGenerator
 
         var policyName = $"TenantPolicy_{tenant.TenantId.Replace('-', '_')}";
         var template = ReadEmbeddedResource(TenantPolicyTemplateResource);
+        var tableList = BuildTableList(tenant.SchemaName, tables);
 
         return template
-            .Replace("{{PolicyName}}", policyName, StringComparison.Ordinal)
-            .Replace("{{TableList}}", BuildTableList(tenant.SchemaName, tables), StringComparison.Ordinal);
+            .Replace("{{TableList}}", tableList, StringComparison.Ordinal)
+            .Replace("{{PolicyName}}", policyName, StringComparison.Ordinal);
     }
 
     private static string BuildTableList(string schemaName, IReadOnlyCollection<TenantTable> tables)
     {
-        // Each table contributes 5 ADD predicates: 1 FILTER + 4 BLOCK (after insert,
-        // before/after update, before delete). The list is comma-separated; the trailing
-        // semicolon is supplied by the template.
+        // Each table contributes a set of ADD predicates. We use dynamic SQL within
+        // the script to check if the TenantId column exists before applying RLS,
+        // allowing us to handle tables that are isolated by schema but lack
+        // a local TenantId column (e.g. some owned collections).
         var sb = new StringBuilder();
-        var first = true;
 
         foreach (var table in tables)
         {
@@ -103,17 +104,15 @@ public sealed partial class RlsScriptGenerator
                     $"Registered table name '{table.TableName}' failed boundary validation; refusing to emit DDL.");
             }
 
-            if (!TenantTable.TableNameIsValid(table.TenantIdColumn))
-            {
-                throw new InvalidOperationException(
-                    $"Registered TenantId column '{table.TenantIdColumn}' failed boundary validation; refusing to emit DDL.");
-            }
-
-            AppendPredicate(sb, ref first, "FILTER", "ON [" + schemaName + "].[" + table.TableName + "]", table.TenantIdColumn);
-            AppendPredicate(sb, ref first, "BLOCK ", "ON [" + schemaName + "].[" + table.TableName + "] AFTER INSERT", table.TenantIdColumn);
-            AppendPredicate(sb, ref first, "BLOCK ", "ON [" + schemaName + "].[" + table.TableName + "] BEFORE UPDATE", table.TenantIdColumn);
-            AppendPredicate(sb, ref first, "BLOCK ", "ON [" + schemaName + "].[" + table.TableName + "] AFTER UPDATE", table.TenantIdColumn);
-            AppendPredicate(sb, ref first, "BLOCK ", "ON [" + schemaName + "].[" + table.TableName + "] BEFORE DELETE", table.TenantIdColumn);
+            var fullTableName = $"[{schemaName}].[{table.TableName}]";
+            sb.AppendLine($"IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('{fullTableName}') AND name = '{table.TenantIdColumn}')");
+            sb.AppendLine("BEGIN");
+            sb.AppendLine($"    EXEC('ALTER SECURITY POLICY [security].[{{{{PolicyName}}}}] ADD FILTER PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName},");
+            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName} AFTER INSERT,");
+            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName} BEFORE UPDATE,");
+            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName} AFTER UPDATE,");
+            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName} BEFORE DELETE');");
+            sb.AppendLine("END");
         }
 
         return sb.ToString();

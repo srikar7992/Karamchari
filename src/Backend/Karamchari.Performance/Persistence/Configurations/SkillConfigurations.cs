@@ -41,13 +41,11 @@ internal sealed class SkillTaxonomyConfiguration : IEntityTypeConfiguration<Skil
                     .HasDatabaseName("IX_Skills_Tenant_Name_Domain");
 
                 // ProficiencyDescriptors: small, rarely queried independently â†’ JSON
-                skill.OwnsMany(x => x.ProficiencyDescriptors, pd =>
-                {
-                    pd.ToJson();
-                    pd.Property(p => p.Level).IsRequired();
-                    pd.Property(p => p.Description).IsRequired().HasMaxLength(2000);
-                    pd.Property(p => p.BehavioralIndicators).HasMaxLength(4000);
-                });
+                skill.Property(x => x.ProficiencyDescriptors)
+                    .HasConversion(
+                        v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                        v => System.Text.Json.JsonSerializer.Deserialize<List<SkillProficiencyDescriptor>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                    .HasColumnType("nvarchar(max)");
             });
         });
     }

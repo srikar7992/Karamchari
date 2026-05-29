@@ -41,6 +41,10 @@ public static class HRServiceCollectionExtensions
         services.RegisterTenantTable("Departments");
         services.RegisterTenantTable("Employees");
         services.RegisterTenantTable("EmployeeRelationships");
+        // EmployeeHistory is an OwnsMany collection of Employee (see EmployeeConfiguration).
+        // It lives in the tenant schema and is joined whenever an Employee is loaded, so it
+        // MUST be cloned into each tenant schema and covered by the per-tenant RLS policy.
+        services.RegisterTenantTable("EmployeeHistory");
 
         // Replace the Core-shipped fail-closed null dispatcher with the
         // MassTransit-backed publisher. Replace (not Add) ensures we win even
@@ -61,7 +65,13 @@ public static class HRServiceCollectionExtensions
                 ?? throw new InvalidOperationException(
                     $"ConnectionStrings:{ConnectionStringName} must be configured before HRDbContext can be resolved.");
 
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
             options.AddKaramchariInterceptors(serviceProvider);
         });
 

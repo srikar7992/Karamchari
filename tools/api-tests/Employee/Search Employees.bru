@@ -1,0 +1,15 @@
+meta {
+  name: Search Employees
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/search/employees?q=Priya
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}

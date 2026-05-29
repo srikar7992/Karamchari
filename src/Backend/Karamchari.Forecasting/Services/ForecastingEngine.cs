@@ -1,4 +1,4 @@
-using Karamchari.Billing.Persistence;
+using Karamchari.Billing.Contracts;
 using Karamchari.Forecasting.Domain;
 using Karamchari.Forecasting.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -27,12 +27,12 @@ public sealed record MonthlyForecast(
 /// </summary>
 public sealed class ForecastingEngine
 {
-    private readonly BillingDbContext _billingDb;
+    private readonly IBillingReadService _billingReadService;
     private readonly ForecastingDbContext _forecastDb;
 
-    public ForecastingEngine(BillingDbContext billingDb, ForecastingDbContext forecastDb)
+    public ForecastingEngine(IBillingReadService billingReadService, ForecastingDbContext forecastDb)
     {
-        _billingDb = billingDb;
+        _billingReadService = billingReadService;
         _forecastDb = forecastDb;
     }
 
@@ -42,18 +42,10 @@ public sealed class ForecastingEngine
     public async Task<ForecastSummary> GetSummaryAsync(string tenantId, CancellationToken ct = default)
     {
         // 1. Revenue Forecast (Unbilled Billable Entries)
-        var unbilledRevenue = await _billingDb.BillableEntries
-            .Where(e => e.TenantId == tenantId && !e.IsBilled && !e.IsVoided)
-            .SumAsync(e => e.Amount, ct);
+        var unbilledRevenue = await _billingReadService.GetUnbilledRevenueAsync(tenantId, ct);
 
         // 2. Cash Forecast (Probability-weighted Outstanding Invoices)
-        var outstandingInvoices = await _billingDb.Invoices
-            .Include(i => i.Payments)
-            .Where(i => i.TenantId == tenantId &&
-                        i.Status != Billing.Domain.Invoices.InvoiceStatus.Draft &&
-                        i.Status != Billing.Domain.Invoices.InvoiceStatus.Paid &&
-                        i.Status != Billing.Domain.Invoices.InvoiceStatus.Cancelled)
-            .ToListAsync(ct);
+        var outstandingInvoices = await _billingReadService.GetOutstandingInvoicesAsync(tenantId, ct);
 
         var profiles = await _forecastDb.ClientPaymentProfiles
             .Where(p => p.TenantId == tenantId)
@@ -65,7 +57,7 @@ public sealed class ForecastingEngine
 
         foreach (var inv in outstandingInvoices)
         {
-            var outstanding = inv.GrandTotal - inv.Payments.Sum(p => p.Amount);
+            var outstanding = inv.GrandTotal - inv.PaymentAmounts.Sum();
             var days = today.DayNumber - inv.PeriodEnd.DayNumber;
 
             profiles.TryGetValue(inv.ClientId, out var profile);

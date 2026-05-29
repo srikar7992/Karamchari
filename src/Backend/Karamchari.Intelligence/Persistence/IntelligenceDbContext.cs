@@ -1,6 +1,7 @@
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Intelligence.Domain.Metrics;
+using Karamchari.Intelligence.Domain.Primitives;
 using Karamchari.Intelligence.Domain.Signals;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
@@ -51,12 +52,15 @@ public class IntelligenceDbContext : KaramchariDbContext
         base.OnDomainModelCreating(modelBuilder);
 
         const string MessagingSchema = "dbo";
+
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
+
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+
 
         modelBuilder.Entity<IntelligenceSignal>(b =>
         {
@@ -65,11 +69,11 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.SignalType, x.SubjectId });
             b.Property(x => x.RowVersion).IsRowVersion();
 
-            b.OwnsOne(x => x.Confidence, cb =>
-            {
-                cb.Property(p => p.Level).HasConversion<string>();
-                cb.Property(p => p.Score).HasPrecision(5, 2);
-            });
+            b.Property(x => x.Confidence)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<SignalConfidence>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<MetricDefinition>(b =>
@@ -79,10 +83,11 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.Name, x.CurrentVersion }).IsUnique();
             b.Property(x => x.RowVersion).IsRowVersion();
 
-            b.OwnsOne(x => x.Calculation, cb =>
-            {
-                cb.Property(p => p.Formula).IsRequired();
-            });
+            b.Property(x => x.Calculation)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<CalculationDefinition>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<OrganizationalHealthSignal>(b =>
@@ -93,14 +98,29 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.OverallHealthScore).HasPrecision(5, 2);
             b.Property(x => x.RowVersion).IsRowVersion();
 
-            b.OwnsOne(x => x.BurnoutRisk);
-            b.OwnsOne(x => x.StaffingStress);
-            b.OwnsOne(x => x.Confidence, cb =>
-            {
-                cb.Property(p => p.Level).HasConversion<string>();
-                cb.Property(p => p.Score).HasPrecision(5, 2);
-            });
-            b.OwnsOne(x => x.Explanation, cb => cb.ToJson());
+            b.Property(x => x.BurnoutRisk)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<WorkforcePressureIndex>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+                
+            b.Property(x => x.StaffingStress)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<WorkforcePressureIndex>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+
+            b.Property(x => x.Confidence)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<SignalConfidence>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+
+            b.Property(x => x.Explanation)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<ScoreExplanation>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<WorkforceRiskSignal>(b =>
@@ -111,13 +131,23 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.Category).HasConversion<string>();
             b.Property(x => x.RowVersion).IsRowVersion();
 
-            b.OwnsOne(x => x.Severity);
-            b.OwnsOne(x => x.Confidence, cb =>
-            {
-                cb.Property(p => p.Level).HasConversion<string>();
-                cb.Property(p => p.Score).HasPrecision(5, 2);
-            });
-            b.OwnsOne(x => x.Explanation, cb => cb.ToJson());
+            b.Property(x => x.Severity)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<WorkforcePressureIndex>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+
+            b.Property(x => x.Confidence)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<SignalConfidence>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+
+            b.Property(x => x.Explanation)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<ScoreExplanation>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<ExecutiveInsight>(b =>
@@ -130,11 +160,11 @@ public class IntelligenceDbContext : KaramchariDbContext
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList()
             );
 
-            b.OwnsOne(x => x.AggregateConfidence, cb =>
-            {
-                cb.Property(p => p.Level).HasConversion<string>();
-                cb.Property(p => p.Score).HasPrecision(5, 2);
-            });
+            b.Property(x => x.AggregateConfidence)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<SignalConfidence>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<StrategicWorkforceScenario>(b =>

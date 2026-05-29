@@ -1,23 +1,52 @@
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Workflow.Domain;
+using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Workflow.Persistence;
 
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
 public sealed class WorkflowDbContext : KaramchariDbContext
 {
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public WorkflowDbContext(DbContextOptions<WorkflowDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
     }
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<WorkflowDefinition> WorkflowDefinitions => Set<WorkflowDefinition>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public DbSet<WorkflowInstance> WorkflowInstances => Set<WorkflowInstance>();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
+        base.OnDomainModelCreating(modelBuilder);
+
+        const string MessagingSchema = "dbo";
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+
         modelBuilder.Entity<WorkflowDefinition>(b =>
         {
             b.ToTable("Workflow_Definitions");

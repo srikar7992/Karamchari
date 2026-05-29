@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Chaos.Tenant;
 
-public sealed class ReplayStormGenerator
+public sealed partial class ReplayStormGenerator
 {
     private readonly ILogger<ReplayStormGenerator> _logger;
     private readonly ConcurrentDictionary<string, ReplayStormState> _stormStates = new();
@@ -32,10 +32,7 @@ public sealed class ReplayStormGenerator
         var normalizedTenantId = tenantId.ToLowerInvariant();
         var state = GetOrCreateState(normalizedTenantId);
 
-        _logger.LogWarning(
-            "REPLAY STORM: Generating replay attack for tenant {TenantId} with {MessageCount} messages",
-            normalizedTenantId,
-            messageIds.Count);
+        LogGeneratingReplayAttack(_logger, normalizedTenantId, messageIds.Count);
 
         foreach (var messageId in messageIds)
         {
@@ -60,17 +57,11 @@ public sealed class ReplayStormGenerator
                 state.TotalReplaysDetected++;
                 state.TotalDuplicateDeliveries++;
 
-                _logger.LogWarning(
-                    "REPLAY STORM: Duplicate message detected {MessageId} for tenant {TenantId}",
-                    replayedMessage,
-                    normalizedTenantId);
+                LogDuplicateMessageDetected(_logger, replayedMessage, normalizedTenantId);
             }
         }
 
-        _logger.LogInformation(
-            "REPLAY STORM: Attack completed. Replays detected: {Replays}, Duplicates: {Duplicates}",
-            state.TotalReplaysDetected,
-            state.TotalDuplicateDeliveries);
+        LogAttackCompleted(_logger, state.TotalReplaysDetected, state.TotalDuplicateDeliveries);
     }
 
     public async Task GenerateStaleDeliveryAsync(
@@ -82,9 +73,7 @@ public sealed class ReplayStormGenerator
         var state = GetOrCreateState(normalizedTenantId);
         var staleTimestamp = DateTime.UtcNow - messageAge;
 
-        _logger.LogWarning(
-            "REPLAY STORM: Generating stale message delivery for tenant {TenantId}",
-            normalizedTenantId);
+        LogGeneratingStaleDelivery(_logger, normalizedTenantId);
 
         foreach (var messageId in messageIds)
         {
@@ -95,9 +84,7 @@ public sealed class ReplayStormGenerator
 
         await Task.Delay(_random.Next(50, 150));
 
-        _logger.LogInformation(
-            "REPLAY STORM: Stale delivery completed. Stale messages: {Count}",
-            state.TotalStaleDeliveries);
+        LogStaleDeliveryCompleted(_logger, state.TotalStaleDeliveries);
     }
 
     public async Task GenerateDuplicateDeliveryAsync(
@@ -108,9 +95,7 @@ public sealed class ReplayStormGenerator
         var normalizedTenantId = tenantId.ToLowerInvariant();
         var state = GetOrCreateState(normalizedTenantId);
 
-        _logger.LogWarning(
-            "REPLAY STORM: Generating duplicate delivery for tenant {TenantId}",
-            normalizedTenantId);
+        LogGeneratingDuplicateDelivery(_logger, normalizedTenantId);
 
         foreach (var messageId in messageIds)
         {
@@ -127,10 +112,7 @@ public sealed class ReplayStormGenerator
             }
         }
 
-        _logger.LogInformation(
-            "REPLAY STORM: Duplicate delivery completed. Messages: {Count}, Duplicates per message: {DuplicateCount}",
-            messageIds.Count,
-            duplicateCount);
+        LogDuplicateDeliveryCompleted(_logger, messageIds.Count, duplicateCount);
     }
 
     public async Task GenerateReplayTimingTestAsync(
@@ -141,9 +123,7 @@ public sealed class ReplayStormGenerator
         var normalizedTenantId = tenantId.ToLowerInvariant();
         var state = GetOrCreateState(normalizedTenantId);
 
-        _logger.LogInformation(
-            "REPLAY STORM: Testing replay timing window for tenant {TenantId}",
-            normalizedTenantId);
+        LogTestingReplayTiming(_logger, normalizedTenantId);
 
         foreach (var messageId in messageIds)
         {
@@ -176,9 +156,7 @@ public sealed class ReplayStormGenerator
             }
         }
 
-        _logger.LogInformation(
-            "REPLAY STORM: Timing test completed. Replays detected: {Count}",
-            state.TotalReplaysDetected);
+        LogTimingTestCompleted(_logger, state.TotalReplaysDetected);
     }
 
     public ReplayStormReport GetStormReport(string tenantId)
@@ -225,6 +203,60 @@ public sealed class ReplayStormGenerator
     {
         return _stormStates.GetOrAdd(tenantId, _ => new ReplayStormState());
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Warning,
+        Message = "REPLAY STORM: Generating replay attack for tenant {TenantId} with {MessageCount} messages")]
+    static partial void LogGeneratingReplayAttack(ILogger logger, string tenantId, int messageCount);
+
+    [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Warning,
+        Message = "REPLAY STORM: Duplicate message detected {MessageId} for tenant {TenantId}")]
+    static partial void LogDuplicateMessageDetected(ILogger logger, string messageId, string tenantId);
+
+    [LoggerMessage(
+        EventId = 3,
+        Level = LogLevel.Information,
+        Message = "REPLAY STORM: Attack completed. Replays detected: {Replays}, Duplicates: {Duplicates}")]
+    static partial void LogAttackCompleted(ILogger logger, long replays, long duplicates);
+
+    [LoggerMessage(
+        EventId = 4,
+        Level = LogLevel.Warning,
+        Message = "REPLAY STORM: Generating stale message delivery for tenant {TenantId}")]
+    static partial void LogGeneratingStaleDelivery(ILogger logger, string tenantId);
+
+    [LoggerMessage(
+        EventId = 5,
+        Level = LogLevel.Information,
+        Message = "REPLAY STORM: Stale delivery completed. Stale messages: {Count}")]
+    static partial void LogStaleDeliveryCompleted(ILogger logger, long count);
+
+    [LoggerMessage(
+        EventId = 6,
+        Level = LogLevel.Warning,
+        Message = "REPLAY STORM: Generating duplicate delivery for tenant {TenantId}")]
+    static partial void LogGeneratingDuplicateDelivery(ILogger logger, string tenantId);
+
+    [LoggerMessage(
+        EventId = 7,
+        Level = LogLevel.Information,
+        Message = "REPLAY STORM: Duplicate delivery completed. Messages: {Count}, Duplicates per message: {DuplicateCount}")]
+    static partial void LogDuplicateDeliveryCompleted(ILogger logger, int count, int duplicateCount);
+
+    [LoggerMessage(
+        EventId = 8,
+        Level = LogLevel.Information,
+        Message = "REPLAY STORM: Testing replay timing window for tenant {TenantId}")]
+    static partial void LogTestingReplayTiming(ILogger logger, string tenantId);
+
+    [LoggerMessage(
+        EventId = 9,
+        Level = LogLevel.Information,
+        Message = "REPLAY STORM: Timing test completed. Replays detected: {Count}")]
+    static partial void LogTimingTestCompleted(ILogger logger, long count);
 }
 
 public sealed record ReplayStormReport(

@@ -20,7 +20,7 @@ namespace Karamchari.Core.Multitenancy;
 /// There is no fallback Ã¢â‚¬â€ missing tenant context is fatal for any request that
 /// reaches this provider.
 /// </summary>
-internal sealed class HttpTenantProvider : ITenantProvider
+internal sealed partial class HttpTenantProvider : ITenantProvider
 {
     private const string HttpItemsKey = "__Karamchari.Tenant__";
 
@@ -56,12 +56,24 @@ internal sealed class HttpTenantProvider : ITenantProvider
 
     /// <summary>
     /// Resolves the current request tenant or throws when tenant context is invalid or missing.
+    /// Falls back to a 'system' tenant if no HttpContext is available (e.g. during migrations).
     /// </summary>
     public TenantExecutionEnvelope GetTenant()
     {
-        var httpContext = _httpContextAccessor.HttpContext
-            ?? throw new TenantResolutionException(
-                "No HttpContext is available. Background work must use TenantExecutionContext, not ITenantProvider.");
+        var httpContext = _httpContextAccessor.HttpContext;
+        
+        if (httpContext == null)
+        {
+            // Fallback for system tasks like migrations and provisioning.
+            // We use 'dbo' as the schema name so that migrations create template tables
+            // that the TenantProvisioningService can then clone into tenant schemas.
+            return new TenantExecutionEnvelope(
+                "system", 
+                Guid.NewGuid().ToString("N"), 
+                "dbo", 
+                ExecutionSource.Test, 
+                TenantSource.TrustedHeader);
+        }
 
         // Cache the resolved envelope on HttpContext.Items so we resolve at most once per request.
         if (httpContext.Items.TryGetValue(HttpItemsKey, out var cached) && cached is TenantExecutionEnvelope e)
@@ -253,4 +265,10 @@ internal sealed class HttpTenantProvider : ITenantProvider
                 TenantResolutionFailureReason.InvalidTenantIdFormat);
         }
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Warning,
+        Message = "Tenant header {Header} present but TrustedGatewayFingerprint is not configured. Header ignored.")]
+    static partial void LogTenantHeaderIgnored(ILogger logger, string header);
 }

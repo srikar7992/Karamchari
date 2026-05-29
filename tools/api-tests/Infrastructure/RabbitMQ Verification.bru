@@ -1,0 +1,21 @@
+meta {
+  name: RabbitMQ Verification
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:15672/api/aliveness-test/%2F
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: guest
+  password: guest
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq ok
+}

@@ -103,6 +103,8 @@ public sealed class TenantObservabilityMiddleware
                 "Request execution context established. Tenant: {TenantId}, Correlation: {CorrelationId}",
                 envelope.TenantId, envelope.CorrelationId);
 
+            context.Response.Headers[TenantConstants.CorrelationIdHeader] = envelope.CorrelationId;
+
             await _next(context);
         }
     }

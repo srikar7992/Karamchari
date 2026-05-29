@@ -118,6 +118,15 @@ public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
     }
 
     /// <summary>
+    /// Updates the employee's legal name and work email.
+    /// </summary>
+    public void UpdateDetails(string legalName, string? workEmail)
+    {
+        LegalName = NormalizeRequired(legalName, nameof(legalName));
+        WorkEmail = NormalizeOptional(workEmail);
+    }
+
+    /// <summary>
     /// Transfers the employee to a new department.
     /// Records an immutable history entry for retroactive reconstruction.
     /// </summary>

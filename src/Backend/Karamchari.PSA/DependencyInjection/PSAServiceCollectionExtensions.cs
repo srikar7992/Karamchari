@@ -26,8 +26,18 @@ public static class PSAServiceCollectionExtensions
             AddKaramchariPSAConsumers(busConfigurator);
         }
 
-        services.AddDbContext<PSADbContext>(o =>
-            o.UseSqlServer(configuration.GetConnectionString(ConnectionStringName)));
+        services.AddDbContext<PSADbContext>((serviceProvider, o) =>
+        {
+            var connectionString = configuration.GetConnectionString(ConnectionStringName);
+            o.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
+            o.AddKaramchariInterceptors(serviceProvider);
+        });
 
         services.AddScoped<ProjectResourceRepository>();
         services.AddScoped<InvoiceGeneratorService>();

@@ -51,13 +51,15 @@ public sealed class BillingDbContext : KaramchariDbContext
         base.OnDomainModelCreating(modelBuilder);
 
         const string MessagingSchema = "dbo";
+
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
 
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+
 
         modelBuilder.Entity<BillingContract>(b =>
         {

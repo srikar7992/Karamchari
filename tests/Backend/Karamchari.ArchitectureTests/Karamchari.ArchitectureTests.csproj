@@ -31,6 +31,10 @@
     <ProjectReference Include="..\..\..\src\Backend\Karamchari.Forecasting\Karamchari.Forecasting.csproj" />
     <ProjectReference Include="..\..\..\src\Backend\Karamchari.PSA\Karamchari.PSA.csproj" />
     <ProjectReference Include="..\..\..\src\Backend\Karamchari.Notifications\Karamchari.Notifications.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Karamchari.Workflow\Karamchari.Workflow.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Karamchari.FinancialOps\Karamchari.FinancialOps.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Karamchari.Identity\Karamchari.Identity.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Karamchari.Identity.Infrastructure\Karamchari.Identity.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

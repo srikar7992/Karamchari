@@ -25,6 +25,9 @@ public sealed record VariablePayApprovedIntegrationEvent
     /// Provides required documentation for this member.
     /// </summary>
     public decimal Amount { get; init; }
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public string? PayoutPeriodName { get; init; }
     /// <summary>
     /// Provides required documentation for this member.

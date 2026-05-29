@@ -9,8 +9,8 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// <summary>
 /// Sets <c>SESSION_CONTEXT(N'TenantId', @id)</c> on every connection open.
 /// SQL Server Row-Level Security policies on tenant tables read this value as
-/// the failsafe Ã¢â‚¬â€ if the schema-rewriting interceptor were ever bypassed (raw
-/// ADO.NET, an unguarded migration script, Ã¢â‚¬Â¦), RLS still blocks cross-tenant
+/// the failsafe — if the schema-rewriting interceptor were ever bypassed (raw
+/// ADO.NET, an unguarded migration script, …), RLS still blocks cross-tenant
 /// reads and writes.
 ///
 /// Behaviour:
@@ -22,7 +22,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 ///         deny the read in that case.</item>
 /// </list>
 /// </summary>
-public sealed class RlsSessionContextInterceptor : DbConnectionInterceptor
+public sealed partial class RlsSessionContextInterceptor : DbConnectionInterceptor
 {
     private const string SessionContextKey = "TenantId";
 
@@ -65,7 +65,7 @@ public sealed class RlsSessionContextInterceptor : DbConnectionInterceptor
 
     private void SetSessionContext(DbConnection connection)
     {
-        if (!_tenantProvider.TryGetTenant(out var tenant) || tenant is null)
+        if (!_tenantProvider.TryGetTenant(out var tenant) || tenant is null || tenant.TenantId == "system")
         {
             return;
         }
@@ -73,15 +73,12 @@ public sealed class RlsSessionContextInterceptor : DbConnectionInterceptor
         using var cmd = CreateSetSessionContextCommand(connection, tenant.TenantId);
         cmd.ExecuteNonQuery();
 
-        if (_logger.IsEnabled(LogLevel.Trace))
-        {
-            _logger.LogTrace("RLS session context set for {TenantId}.", tenant.TenantId);
-        }
+        LogRlsSessionContextSet(_logger, tenant.TenantId);
     }
 
     private async Task SetSessionContextAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        if (!_tenantProvider.TryGetTenant(out var tenant) || tenant is null)
+        if (!_tenantProvider.TryGetTenant(out var tenant) || tenant is null || tenant.TenantId == "system")
         {
             return;
         }
@@ -89,10 +86,7 @@ public sealed class RlsSessionContextInterceptor : DbConnectionInterceptor
         await using var cmd = CreateSetSessionContextCommand(connection, tenant.TenantId);
         await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
 
-        if (_logger.IsEnabled(LogLevel.Trace))
-        {
-            _logger.LogTrace("RLS session context set for {TenantId} (async).", tenant.TenantId);
-        }
+        LogRlsSessionContextSetAsync(_logger, tenant.TenantId);
     }
 
     private static DbCommand CreateSetSessionContextCommand(DbConnection connection, string tenantId)
@@ -115,4 +109,16 @@ public sealed class RlsSessionContextInterceptor : DbConnectionInterceptor
 
         return cmd;
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Trace,
+        Message = "RLS session context set for {TenantId}.")]
+    static partial void LogRlsSessionContextSet(ILogger logger, string tenantId);
+
+    [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Trace,
+        Message = "RLS session context set for {TenantId} (async).")]
+    static partial void LogRlsSessionContextSetAsync(ILogger logger, string tenantId);
 }

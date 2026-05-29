@@ -11,7 +11,7 @@ namespace Karamchari.Core.Messaging;
 /// A bounded context (or the API host) MUST register a real implementation
 /// over this default before saving any aggregate that emits events.
 /// </summary>
-internal sealed class NullDomainEventDispatcher : IDomainEventDispatcher
+public sealed class NullDomainEventDispatcher : IDomainEventDispatcher
 {
     /// <summary>
     /// Dispatches domain events or fails when a real dispatcher has not been registered.

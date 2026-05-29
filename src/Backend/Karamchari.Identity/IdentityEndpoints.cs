@@ -16,7 +16,8 @@ public static class IdentityEndpoints
     /// <summary>Maps the identity endpoints to the web application.</summary>
     public static WebApplication MapIdentityEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/identity");
+        // Abuse protection: all auth endpoints are rate-limited per client IP ("auth" policy).
+        var group = app.MapGroup("/api/identity").RequireRateLimiting("auth");
 
         group.MapPost("/register", Register);
         group.MapPost("/login", Login);

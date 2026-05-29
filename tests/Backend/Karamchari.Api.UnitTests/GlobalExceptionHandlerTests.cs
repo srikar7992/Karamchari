@@ -41,7 +41,10 @@ public class GlobalExceptionHandlerTests
         var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(responseBody);
 
         problemDetails!.Title.Should().Be("Server Error");
-        problemDetails.Detail.Should().Be("Test exception");
+        // SECURITY: raw exception text must NOT be leaked to clients.
+        problemDetails.Detail.Should().NotContain("Test exception");
+        problemDetails.Detail.Should().Contain("correlationId");
+        problemDetails.Extensions.Should().ContainKey("correlationId");
     }
 
     [Fact]

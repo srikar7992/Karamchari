@@ -19,20 +19,11 @@ internal sealed class ReviewTemplateConfiguration : IEntityTypeConfiguration<Rev
 
         // Sections + nested Questions stored as JSON â€” immutable value objects.
         // Avoids cross-table joins for template read; template structure changes = new template.
-        b.OwnsMany(x => x.Sections, s =>
-        {
-            s.ToJson();
-            s.Property(p => p.SectionId).IsRequired();
-            s.Property(p => p.Title).IsRequired().HasMaxLength(200);
-            s.Property(p => p.Weight).HasPrecision(5, 4);
-            s.OwnsMany(p => p.Questions, q =>
-            {
-                q.Property(x => x.QuestionId).IsRequired();
-                q.Property(x => x.Text).IsRequired().HasMaxLength(1000);
-                q.Property(x => x.Weight).HasPrecision(5, 4);
-                q.Property(x => x.CompetencyCode).HasMaxLength(100);
-            });
-        });
+        b.Property(x => x.Sections)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<ReviewSection>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+            .HasColumnType("nvarchar(max)");
     }
 }
 
@@ -68,13 +59,11 @@ internal sealed class ReviewAssignmentConfiguration : IEntityTypeConfiguration<R
         b.HasIndex(x => new { x.TenantId, x.CycleId, x.RevieweeId }).IsUnique();
 
         // ReviewerSlots are JSON â€” small, read with the assignment, not queried independently.
-        b.OwnsMany(x => x.ReviewerSlots, rs =>
-        {
-            rs.ToJson();
-            rs.Property(p => p.ReviewerId).IsRequired();
-            rs.Property(p => p.Role).IsRequired();
-            rs.Property(p => p.IsCompleted).IsRequired();
-        });
+        b.Property(x => x.ReviewerSlots)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<ReviewerSlot>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+            .HasColumnType("nvarchar(max)");
     }
 }
 
@@ -104,12 +93,10 @@ internal sealed class ReviewSubmissionConfiguration : IEntityTypeConfiguration<R
             r.Property(x => x.TextValue).HasMaxLength(4000);
         });
 
-        b.OwnsMany(x => x.ReopenHistory, rh =>
-        {
-            rh.ToJson();
-            rh.Property(p => p.ReopenedBy).IsRequired();
-            rh.Property(p => p.Justification).IsRequired().HasMaxLength(1000);
-            rh.Property(p => p.ReopenedOnUtc).IsRequired();
-        });
+        b.Property(x => x.ReopenHistory)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<ReopenRecord>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+            .HasColumnType("nvarchar(max)");
     }
 }

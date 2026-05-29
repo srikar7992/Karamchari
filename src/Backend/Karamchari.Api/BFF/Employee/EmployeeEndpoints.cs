@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using Karamchari.Api.Validation;
 using Karamchari.Core.Multitenancy;
+using Karamchari.HR.Contracts.Employees;
 using Karamchari.HR.Domain.Employees;
 using Karamchari.HR.Persistence;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +18,102 @@ public static class EmployeeEndpoints
     {
         var group = app.MapGroup("/api/v1/hr/employees").RequireAuthorization();
 
+        group.MapPost("/", OnboardEmployee)
+            .WithName("Employee.Onboard")
+            .WithValidation<OnboardEmployeeCommand>();
+
+        group.MapGet("/", GetEmployees)
+            .WithName("Employee.List");
+
+        group.MapGet("/{id:guid}", GetEmployee)
+            .WithName("Employee.Get");
+
+        group.MapPut("/{id:guid}", UpdateEmployee)
+            .WithName("Employee.Update")
+            .WithValidation<UpdateEmployeeCommand>();
+
+        group.MapDelete("/{id:guid}", DeleteEmployee)
+            .WithName("Employee.Delete");
+
         group.MapGet("/{id:guid}/history", GetEmployeeHistory).WithName("Employee.History");
         group.MapPost("/{id:guid}/transfer", TransferEmployee).WithName("Employee.Transfer");
 
         return app;
+    }
+
+    private static async Task<IResult> OnboardEmployee(
+        [FromBody] OnboardEmployeeCommand command,
+        IEmployeeService employeeService,
+        CancellationToken ct)
+    {
+        try
+        {
+            var id = await employeeService.OnboardEmployeeAsync(command, ct);
+            return Results.Created($"/api/v1/hr/employees/{id}", new { id });
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> GetEmployees(
+        IEmployeeService employeeService,
+        CancellationToken ct)
+    {
+        var employees = await employeeService.GetEmployeesAsync(ct);
+        return Results.Ok(employees);
+    }
+
+    private static async Task<IResult> GetEmployee(
+        Guid id,
+        IEmployeeService employeeService,
+        CancellationToken ct)
+    {
+        var employee = await employeeService.GetEmployeeByIdAsync(id, ct);
+        if (employee == null) return Results.NotFound();
+        return Results.Ok(employee);
+    }
+
+    private static async Task<IResult> UpdateEmployee(
+        Guid id,
+        [FromBody] UpdateEmployeeCommand command,
+        IEmployeeService employeeService,
+        CancellationToken ct)
+    {
+        try
+        {
+            await employeeService.UpdateEmployeeAsync(id, command, ct);
+            return Results.Ok();
+        }
+        catch (KeyNotFoundException)
+        {
+            return Results.NotFound();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> DeleteEmployee(
+        Guid id,
+        IEmployeeService employeeService,
+        CancellationToken ct)
+    {
+        try
+        {
+            await employeeService.DeleteEmployeeAsync(id, ct);
+            return Results.Ok();
+        }
+        catch (KeyNotFoundException)
+        {
+            return Results.NotFound();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(new { error = ex.ToString() });
+        }
     }
 
     private static async Task<IResult> GetEmployeeHistory(

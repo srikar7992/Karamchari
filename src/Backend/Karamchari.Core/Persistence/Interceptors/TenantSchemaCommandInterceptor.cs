@@ -134,32 +134,26 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        // Resolve the tenant first. If anything goes wrong, throwing here means
-        // the SQL never executes Ã¢â‚¬â€ RLS would catch it anyway, but we want loud
-        // failures to stay loud.
-        var tenant = _tenantProvider.GetTenant();
-
-        if (!SchemaNameRegex().IsMatch(tenant.SchemaName))
-        {
-            // TenantExecutionEnvelope already validates this via TenantId format, 
-            // but we re-check at the boundary because the value is about to be embedded in raw SQL.
-            throw new InvalidOperationException(
-                $"Refusing to execute SQL: tenant schema '{tenant.SchemaName}' does not match the safe-identifier pattern.");
-        }
-
         var original = command.CommandText;
         if (string.IsNullOrEmpty(original))
         {
             return;
         }
 
-        // Fast bail-out for commands that don't reference the placeholder
-        // (e.g. server-version pings, transaction control). Most queries DO
-        // reference it, but a quick String.Contains check is cheaper than regex
-        // on the cold path.
         if (!original.Contains(KaramchariDbContext.PlaceholderSchema, StringComparison.Ordinal))
         {
             return;
+        }
+
+        var tenant = _tenantProvider.GetTenant();
+        _logger.LogInformation("Interceptor: Rewriting SQL for schema {Schema}. Original SQL: {Sql}", tenant.SchemaName, original[..Math.Min(100, original.Length)]);
+
+        if (tenant.SchemaName != "dbo" && !SchemaNameRegex().IsMatch(tenant.SchemaName))
+        {
+            // TenantExecutionEnvelope already validates this via TenantId format, 
+            // but we re-check at the boundary because the value is about to be embedded in raw SQL.
+            throw new InvalidOperationException(
+                $"Refusing to execute SQL: tenant schema '{tenant.SchemaName}' does not match the safe-identifier pattern.");
         }
 
         var placeholderRegex = PlaceholderRegex();
@@ -174,6 +168,8 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
                 ? $"[{tenant.SchemaName}]"
                 : tenant.SchemaName);
 
+        _logger.LogInformation("Interceptor: Rewrote SQL to: {Sql}", rewritten[..Math.Min(100, rewritten.Length)]);
+
         if (ReferenceEquals(rewritten, original))
         {
             // Match-but-no-substitution should never happen given the regex,
@@ -185,13 +181,16 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
 
         command.CommandText = rewritten;
 
-        if (_logger.IsEnabled(LogLevel.Trace))
-        {
-            _logger.LogTrace(
-                "Tenant schema rewritten for {TenantId}: {Placeholder} -> {Schema}",
-                tenant.TenantId,
-                KaramchariDbContext.PlaceholderSchema,
-                tenant.SchemaName);
-        }
+        LogTenantSchemaRewritten(
+            _logger,
+            tenant.TenantId,
+            KaramchariDbContext.PlaceholderSchema,
+            tenant.SchemaName);
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Trace,
+        Message = "Tenant schema rewritten for {TenantId}: {Placeholder} -> {Schema}")]
+    static partial void LogTenantSchemaRewritten(ILogger logger, string tenantId, string placeholder, string schema);
 }

@@ -462,13 +462,16 @@ public sealed class TelemetryBasedValidationTests : IDisposable
 
         using (context.Establish())
         {
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 40; i++)
             {
                 var iteration = i;
                 tasks.Add(Task.Run(async () =>
                 {
                     await Task.Yield();
-                    await Task.Delay(50);
+                    // Blocking a thread pool thread briefly forces the pool to spawn more 
+                    // threads to maintain concurrency, ensuring we see thread switches.
+                    Thread.Sleep(10);
+                    await Task.Delay(20);
                     PropagationTrace.Record(new PropagationTrace(tenantId, $"ThreadSwitch_{iteration}", correlationId));
                 }));
             }

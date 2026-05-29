@@ -1,0 +1,25 @@
+meta {
+  name: Update Employee (Missing)
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/v1/hr/employees/33333333-0000-0000-0000-000000000001
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "firstName": "Priya",
+    "lastName": "Sharma-Patel"
+  }
+}
+
+# NOTE: This endpoint is currently MISSING from the REST API scaffold.
+# This is a placeholder showing the suggested request structure once exposed via Minimal APIs.

@@ -43,7 +43,13 @@ public static class CompensationServiceCollectionExtensions
                 ?? throw new InvalidOperationException(
                     $"ConnectionStrings:{ConnectionStringName} must be configured before CompensationDbContext can be resolved.");
 
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
             options.AddKaramchariInterceptors(serviceProvider);
         });
 

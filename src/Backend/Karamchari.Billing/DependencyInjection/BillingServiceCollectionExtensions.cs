@@ -36,12 +36,19 @@ public static class BillingServiceCollectionExtensions
                 ?? throw new InvalidOperationException(
                     $"ConnectionStrings:{ConnectionStringName} must be configured before BillingDbContext can be resolved.");
 
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
             options.AddKaramchariInterceptors(serviceProvider);
         });
 
         services.AddScoped<Karamchari.Billing.Services.InvoiceGeneratorService>();
         services.AddScoped<Karamchari.Billing.Services.ARAnalyticsService>();
+        services.AddScoped<Karamchari.Billing.Contracts.IBillingReadService, Karamchari.Billing.Services.BillingReadService>();
 
         return services;
     }

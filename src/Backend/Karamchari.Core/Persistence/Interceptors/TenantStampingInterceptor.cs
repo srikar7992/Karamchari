@@ -13,7 +13,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// <list type="bullet">
 ///   <item><b>Insert:</b> if the entity has a blank TenantId, populate it with
 ///         the current tenant. If it has one already, it must match the
-///         current tenant Ã¢â‚¬â€ otherwise the save is rejected as a cross-tenant
+///         current tenant — otherwise the save is rejected as a cross-tenant
 ///         write attempt.</item>
 ///   <item><b>Update / Delete:</b> the TenantId on the tracked entity must
 ///         match the current tenant. Modifying the TenantId is never allowed
@@ -25,7 +25,7 @@ namespace Karamchari.Core.Persistence.Interceptors;
 /// RLS enforces the same invariant at the database layer, so we have two
 /// independent gates against cross-tenant writes.
 /// </summary>
-public sealed class TenantStampingInterceptor : SaveChangesInterceptor
+public sealed partial class TenantStampingInterceptor : SaveChangesInterceptor
 {
     private const string TenantIdPropertyName = nameof(ITenantOwned.TenantId);
 
@@ -80,7 +80,7 @@ public sealed class TenantStampingInterceptor : SaveChangesInterceptor
 
     private void StampAndValidate(DbContext context)
     {
-        // We need a tenant. If none is resolvable, refuse the save Ã¢â‚¬â€ any tenant-owned
+        // We need a tenant. If none is resolvable, refuse the save — any tenant-owned
         // write without a tenant context is a bug, period.
         var tenant = _tenantProvider.GetTenant();
         var expectedTenantId = tenant.TenantId;
@@ -112,13 +112,7 @@ public sealed class TenantStampingInterceptor : SaveChangesInterceptor
         if (string.IsNullOrWhiteSpace(current))
         {
             prop.CurrentValue = expectedTenantId;
-            if (_logger.IsEnabled(LogLevel.Trace))
-            {
-                _logger.LogTrace(
-                    "Stamped TenantId={TenantId} on inserted {EntityType}.",
-                    expectedTenantId,
-                    entry.Entity.GetType().Name);
-            }
+            LogTenantStamped(_logger, expectedTenantId, entry.Entity.GetType().Name);
             return;
         }
 
@@ -160,4 +154,10 @@ public sealed class TenantStampingInterceptor : SaveChangesInterceptor
                 $"Refusing to delete {entry.Entity.GetType().Name}: row TenantId '{current}' does not match the active tenant '{expectedTenantId}'.");
         }
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Trace,
+        Message = "Stamped TenantId={TenantId} on inserted {EntityType}.")]
+    static partial void LogTenantStamped(ILogger logger, string tenantId, string entityType);
 }

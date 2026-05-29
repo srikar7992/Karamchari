@@ -28,7 +28,11 @@ public static class LoggingExtensions
                 .Enrich.WithEnvironmentName()
                 .Enrich.WithProcessId()
                 .Enrich.WithProperty("Application", "Karamchari.Api")
+                .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
+                .Enrich.WithProperty("MachineName", Environment.MachineName)
+                .Enrich.WithProperty("ApplicationVersion", typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0")
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.File("logs/karamchari-.log", rollingInterval: RollingInterval.Day, outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.OpenTelemetry(options =>
                 {
                     options.Endpoint = context.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? "http://localhost:4317";

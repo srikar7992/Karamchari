@@ -38,28 +38,33 @@ public class GlobalExceptionHandler : IExceptionHandler
         _logger.LogError(exception, "Unhandled exception occurred. CorrelationId: {CorrelationId}, Message: {Message}",
             correlationId, exception.Message);
 
+        // SECURITY: never echo raw exception text, SQL messages, or stack traces to clients.
+        // The full exception is logged above with the correlation id; clients receive a
+        // sanitized, generic message and the correlation id to quote to support.
         var problemDetails = new ProblemDetails
         {
             Status = (int)HttpStatusCode.InternalServerError,
             Title = "Server Error",
             Type = "https://karamchari.com/errors/internal-server-error",
-            Detail = exception.Message, // Include for diagnostic visibility (Unit tests expect this)
+            Detail = "An unexpected error occurred while processing the request. "
+                   + "Quote the correlationId when contacting support.",
             Instance = httpContext.Request.Path
         };
 
-        // Standardized mapping for specific exception types
+        // Standardized mapping for specific exception types. Only client-safe details are surfaced.
         if (exception is UnauthorizedAccessException)
         {
             problemDetails.Status = (int)HttpStatusCode.Unauthorized;
             problemDetails.Title = "Unauthorized";
             problemDetails.Type = "https://karamchari.com/errors/unauthorized";
+            problemDetails.Detail = "Authentication is required or the supplied credentials are invalid.";
         }
-        else if (exception is TenantResolutionException tenantEx)
+        else if (exception is TenantResolutionException)
         {
             problemDetails.Status = (int)HttpStatusCode.BadRequest;
             problemDetails.Title = "Tenant Resolution Failed";
             problemDetails.Type = "https://karamchari.com/errors/tenant-resolution-failed";
-            problemDetails.Detail = tenantEx.Message;
+            problemDetails.Detail = "The tenant context for this request could not be resolved.";
         }
         else if (exception is FluentValidation.ValidationException validationEx)
         {

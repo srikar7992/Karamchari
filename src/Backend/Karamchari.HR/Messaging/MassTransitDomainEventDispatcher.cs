@@ -13,14 +13,14 @@ namespace Karamchari.HR.Messaging;
 /// </summary>
 public sealed class MassTransitDomainEventDispatcher : IDomainEventDispatcher
 {
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ITenantProvider _tenantProvider;
 
-    public MassTransitDomainEventDispatcher(IPublishEndpoint publishEndpoint, ITenantProvider tenantProvider)
+    public MassTransitDomainEventDispatcher(IServiceProvider serviceProvider, ITenantProvider tenantProvider)
     {
-        ArgumentNullException.ThrowIfNull(publishEndpoint);
+        ArgumentNullException.ThrowIfNull(serviceProvider);
         ArgumentNullException.ThrowIfNull(tenantProvider);
-        _publishEndpoint = publishEndpoint;
+        _serviceProvider = serviceProvider;
         _tenantProvider = tenantProvider;
     }
 
@@ -35,16 +35,21 @@ public sealed class MassTransitDomainEventDispatcher : IDomainEventDispatcher
             return;
         }
 
+        var publishEndpoint = (IPublishEndpoint)_serviceProvider.GetService(typeof(IPublishEndpoint))!;
         var tenantId = _tenantProvider.TryGetCurrentTenantId(out var tId) ? tId : "system";
 
         foreach (var @event in events)
         {
             var eventType = @event.GetType();
 
-            // We use reflection to invoke the generic Wrap method
+            // Wrap is a generic STATIC method: EnterpriseEventEnvelope<TPayload>.Wrap<T>(...).
+            // Closing the declaring type is not enough — the method's own type parameter T must
+            // be bound with MakeGenericMethod, otherwise MethodInfo.Invoke throws
+            // "Late bound operations cannot be performed ... ContainsGenericParameters is true".
             var wrapMethod = typeof(EnterpriseEventEnvelope<>)
                 .MakeGenericType(eventType)
-                .GetMethod("Wrap", BindingFlags.Public | BindingFlags.Static);
+                .GetMethod("Wrap", BindingFlags.Public | BindingFlags.Static)
+                ?.MakeGenericMethod(eventType);
 
             if (wrapMethod != null)
             {
@@ -61,7 +66,7 @@ public sealed class MassTransitDomainEventDispatcher : IDomainEventDispatcher
 
                 if (envelope != null)
                 {
-                    await _publishEndpoint.Publish(envelope, envelope.GetType(), cancellationToken).ConfigureAwait(false);
+                    await publishEndpoint.Publish(envelope, envelope.GetType(), cancellationToken).ConfigureAwait(false);
                 }
             }
         }

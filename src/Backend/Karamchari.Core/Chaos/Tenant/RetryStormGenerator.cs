@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Chaos.Tenant;
 
-public sealed class RetryStormGenerator
+public sealed partial class RetryStormGenerator
 {
     private readonly ILogger<RetryStormGenerator> _logger;
     private readonly ConcurrentDictionary<string, RetryStormState> _stormStates = new();
@@ -43,11 +43,7 @@ public sealed class RetryStormGenerator
         var normalizedTenantId = tenantId.ToLowerInvariant();
         var state = GetOrCreateState(normalizedTenantId);
 
-        _logger.LogWarning(
-            "RETRY STORM: Generating retry storm for tenant {TenantId} with {OperationCount} operations, max {MaxRetries} retries",
-            normalizedTenantId,
-            operationIds.Count,
-            maxRetries);
+        LogGeneratingRetryStorm(_logger, normalizedTenantId, operationIds.Count, maxRetries);
 
         foreach (var operationId in operationIds)
         {
@@ -85,19 +81,12 @@ public sealed class RetryStormGenerator
 
                 if (attempt >= maxRetries)
                 {
-                    _logger.LogError(
-                        "RETRY STORM: Operation {OperationId} exhausted all retries for tenant {TenantId}",
-                        operationId,
-                        normalizedTenantId);
+                    LogOperationExhaustedRetries(_logger, operationId, normalizedTenantId);
                 }
             }
         }
 
-        _logger.LogInformation(
-            "RETRY STORM: Storm completed. Attempts: {Total}, Succeeded: {Succeeded}, Failed: {Failed}",
-            state.TotalRetriesAttempted,
-            state.TotalRetriesSucceeded,
-            state.TotalRetriesFailed);
+        LogStormCompleted(_logger, state.TotalRetriesAttempted, state.TotalRetriesSucceeded, state.TotalRetriesFailed);
     }
 
     public async Task GenerateRetryTimingAttackAsync(
@@ -109,9 +98,7 @@ public sealed class RetryStormGenerator
         var normalizedTenantId = tenantId.ToLowerInvariant();
         var state = GetOrCreateState(normalizedTenantId);
 
-        _logger.LogWarning(
-            "RETRY STORM: Generating retry timing attack for tenant {TenantId}",
-            normalizedTenantId);
+        LogGeneratingTimingAttack(_logger, normalizedTenantId);
 
         foreach (var operationId in operationIds)
         {
@@ -146,9 +133,7 @@ public sealed class RetryStormGenerator
             }
         }
 
-        _logger.LogInformation(
-            "RETRY STORM: Timing attack completed. Violations: {Violations}",
-            state.TotalBackoffViolations);
+        LogTimingAttackCompleted(_logger, state.TotalBackoffViolations);
     }
 
     public async Task GenerateExponentialBackoffFailureAsync(
@@ -159,9 +144,7 @@ public sealed class RetryStormGenerator
         var normalizedTenantId = tenantId.ToLowerInvariant();
         var state = GetOrCreateState(normalizedTenantId);
 
-        _logger.LogWarning(
-            "RETRY STORM: Generating exponential backoff failure for tenant {TenantId}",
-            normalizedTenantId);
+        LogGeneratingBackoffFailure(_logger, normalizedTenantId);
 
         foreach (var operationId in operationIds)
         {
@@ -175,7 +158,7 @@ public sealed class RetryStormGenerator
 
                 await Task.Delay(delay);
 
-                var backoffViolated = immediateRetry || delay < baseDelay * Math.Pow(2, attempt - 2);
+                var backoffViolated = immediateRetry || (attempt > 1 && delay < baseDelay * Math.Pow(2, attempt - 2));
                 if (backoffViolated && attempt > 1)
                 {
                     state.TotalBackoffViolations++;
@@ -195,9 +178,7 @@ public sealed class RetryStormGenerator
             }
         }
 
-        _logger.LogInformation(
-            "RETRY STORM: Backoff failure test completed. Violations: {Violations}",
-            state.TotalBackoffViolations);
+        LogBackoffFailureCompleted(_logger, state.TotalBackoffViolations);
     }
 
     public async Task GenerateRetryContextCorruptionAsync(
@@ -207,9 +188,7 @@ public sealed class RetryStormGenerator
         var normalizedTenantId = tenantId.ToLowerInvariant();
         var state = GetOrCreateState(normalizedTenantId);
 
-        _logger.LogWarning(
-            "RETRY STORM: Generating retry context corruption for tenant {TenantId}",
-            normalizedTenantId);
+        LogGeneratingContextCorruption(_logger, normalizedTenantId);
 
         foreach (var operationId in operationIds)
         {
@@ -225,21 +204,14 @@ public sealed class RetryStormGenerator
                 {
                     state.TotalContextCorruptions++;
 
-                    _logger.LogError(
-                        "RETRY STORM: Context corruption detected for operation {OperationId} on attempt {Attempt}: tenant changed from {Original} to {Corrupted}",
-                        operationId,
-                        attempt,
-                        normalizedTenantId,
-                        simulatedTenantId);
+                    LogContextCorruptionDetected(_logger, operationId, attempt, normalizedTenantId, simulatedTenantId);
                 }
 
                 await Task.Delay(_random.Next(10, 50));
             }
         }
 
-        _logger.LogInformation(
-            "RETRY STORM: Context corruption test completed. Corruptions: {Corruptions}",
-            state.TotalContextCorruptions);
+        LogContextCorruptionCompleted(_logger, state.TotalContextCorruptions);
     }
 
     public RetryStormReport GetStormReport(string tenantId)
@@ -302,6 +274,66 @@ public sealed class RetryStormGenerator
     {
         return _stormStates.GetOrAdd(tenantId, _ => new RetryStormState());
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Warning,
+        Message = "RETRY STORM: Generating retry storm for tenant {TenantId} with {OperationCount} operations, max {MaxRetries} retries")]
+    static partial void LogGeneratingRetryStorm(ILogger logger, string tenantId, int operationCount, int maxRetries);
+
+    [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Error,
+        Message = "RETRY STORM: Operation {OperationId} exhausted all retries for tenant {TenantId}")]
+    static partial void LogOperationExhaustedRetries(ILogger logger, string operationId, string tenantId);
+
+    [LoggerMessage(
+        EventId = 3,
+        Level = LogLevel.Information,
+        Message = "RETRY STORM: Storm completed. Attempts: {Total}, Succeeded: {Succeeded}, Failed: {Failed}")]
+    static partial void LogStormCompleted(ILogger logger, long total, long succeeded, long failed);
+
+    [LoggerMessage(
+        EventId = 4,
+        Level = LogLevel.Warning,
+        Message = "RETRY STORM: Generating retry timing attack for tenant {TenantId}")]
+    static partial void LogGeneratingTimingAttack(ILogger logger, string tenantId);
+
+    [LoggerMessage(
+        EventId = 5,
+        Level = LogLevel.Information,
+        Message = "RETRY STORM: Timing attack completed. Violations: {Violations}")]
+    static partial void LogTimingAttackCompleted(ILogger logger, long violations);
+
+    [LoggerMessage(
+        EventId = 6,
+        Level = LogLevel.Warning,
+        Message = "RETRY STORM: Generating exponential backoff failure for tenant {TenantId}")]
+    static partial void LogGeneratingBackoffFailure(ILogger logger, string tenantId);
+
+    [LoggerMessage(
+        EventId = 7,
+        Level = LogLevel.Information,
+        Message = "RETRY STORM: Backoff failure test completed. Violations: {Violations}")]
+    static partial void LogBackoffFailureCompleted(ILogger logger, long violations);
+
+    [LoggerMessage(
+        EventId = 8,
+        Level = LogLevel.Warning,
+        Message = "RETRY STORM: Generating retry context corruption for tenant {TenantId}")]
+    static partial void LogGeneratingContextCorruption(ILogger logger, string tenantId);
+
+    [LoggerMessage(
+        EventId = 9,
+        Level = LogLevel.Error,
+        Message = "RETRY STORM: Context corruption detected for operation {OperationId} on attempt {Attempt}: tenant changed from {Original} to {Corrupted}")]
+    static partial void LogContextCorruptionDetected(ILogger logger, string operationId, int attempt, string original, string corrupted);
+
+    [LoggerMessage(
+        EventId = 10,
+        Level = LogLevel.Information,
+        Message = "RETRY STORM: Context corruption test completed. Corruptions: {Corruptions}")]
+    static partial void LogContextCorruptionCompleted(ILogger logger, long corruptions);
 }
 
 public sealed record RetryStormReport(

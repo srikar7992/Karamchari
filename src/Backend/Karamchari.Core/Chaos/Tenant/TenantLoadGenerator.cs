@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Chaos.Tenant;
 
-public sealed class TenantLoadGenerator
+public sealed partial class TenantLoadGenerator
 {
     private readonly ILogger<TenantLoadGenerator> _logger;
     private readonly TenantChaosEngine _chaosEngine;
@@ -37,10 +37,7 @@ public sealed class TenantLoadGenerator
         var endTime = DateTime.UtcNow + duration;
         var operationCount = 0;
 
-        _logger.LogInformation(
-            "Starting load generation for {TenantCount} tenants for {Duration}",
-            tenantCount,
-            duration);
+        LogStartingLoadGeneration(_logger, tenantCount, duration);
 
         try
         {
@@ -74,21 +71,14 @@ public sealed class TenantLoadGenerator
             _isRunning = false;
         }
 
-        _logger.LogInformation(
-            "Load generation completed. Total operations: {Total}, Payroll: {Payroll}, Attendance: {Attendance}",
-            TotalOperationsCompleted,
-            PayrollOperationsCompleted,
-            AttendanceOperationsCompleted);
+        LogLoadGenerationCompleted(_logger, TotalOperationsCompleted, PayrollOperationsCompleted, AttendanceOperationsCompleted);
     }
 
     public async Task GenerateConcurrentPayrollLoadAsync(
         IReadOnlyList<string> tenants,
         int operationsPerTenant)
     {
-        _logger.LogInformation(
-            "Starting concurrent payroll load for {TenantCount} tenants, {OperationsPerTenant} operations each",
-            tenants.Count,
-            operationsPerTenant);
+        LogStartingConcurrentPayrollLoad(_logger, tenants.Count, operationsPerTenant);
 
         var semaphore = new SemaphoreSlim(100);
         var tasks = new List<Task>();
@@ -115,18 +105,14 @@ public sealed class TenantLoadGenerator
 
         await Task.WhenAll(tasks);
 
-        _logger.LogInformation(
-            "Concurrent payroll load completed");
+        LogConcurrentPayrollLoadCompleted(_logger);
     }
 
     public async Task GenerateConcurrentAttendanceLoadAsync(
         IReadOnlyList<string> tenants,
         int operationsPerTenant)
     {
-        _logger.LogInformation(
-            "Starting concurrent attendance load for {TenantCount} tenants, {OperationsPerTenant} operations each",
-            tenants.Count,
-            operationsPerTenant);
+        LogStartingConcurrentAttendanceLoad(_logger, tenants.Count, operationsPerTenant);
 
         var semaphore = new SemaphoreSlim(100);
         var tasks = new List<Task>();
@@ -153,8 +139,7 @@ public sealed class TenantLoadGenerator
 
         await Task.WhenAll(tasks);
 
-        _logger.LogInformation(
-            "Concurrent attendance load completed");
+        LogConcurrentAttendanceLoadCompleted(_logger);
     }
 
     public async Task GenerateChaosLoadAsync(
@@ -163,10 +148,7 @@ public sealed class TenantLoadGenerator
         TimeSpan duration)
     {
         var tenantCount = (int)scale;
-        _logger.LogInformation(
-            "Generating chaos load at scale {Scale} ({TenantCount} tenants)",
-            scale,
-            tenantCount);
+        LogGeneratingChaosLoad(_logger, scale, tenantCount);
 
         await GenerateLoadAsync(Math.Min(tenantCount, tenants.Count), duration);
     }
@@ -187,21 +169,11 @@ public sealed class TenantLoadGenerator
             TotalOperationsCompleted++;
             PayrollOperationsCompleted++;
 
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug(
-                    "Payroll operation {OperationId} completed for tenant {TenantId}",
-                    operationId,
-                    tenantId);
-            }
+            LogPayrollOperationCompleted(_logger, operationId, tenantId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Payroll operation {OperationId} failed for tenant {TenantId}",
-                operationId,
-                tenantId);
+            LogPayrollOperationFailed(_logger, ex, operationId, tenantId);
         }
     }
 
@@ -221,21 +193,11 @@ public sealed class TenantLoadGenerator
             TotalOperationsCompleted++;
             AttendanceOperationsCompleted++;
 
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug(
-                    "Attendance operation {OperationId} completed for tenant {TenantId}",
-                    operationId,
-                    tenantId);
-            }
+            LogAttendanceOperationCompleted(_logger, operationId, tenantId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Attendance operation {OperationId} failed for tenant {TenantId}",
-                operationId,
-                tenantId);
+            LogAttendanceOperationFailed(_logger, ex, operationId, tenantId);
         }
     }
 
@@ -296,6 +258,72 @@ public sealed class TenantLoadGenerator
         PacketLoss,
         BrokerDelay
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Information,
+        Message = "Starting load generation for {TenantCount} tenants for {Duration}")]
+    static partial void LogStartingLoadGeneration(ILogger logger, int tenantCount, TimeSpan duration);
+
+    [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Information,
+        Message = "Load generation completed. Total operations: {Total}, Payroll: {Payroll}, Attendance: {Attendance}")]
+    static partial void LogLoadGenerationCompleted(ILogger logger, long total, long payroll, long attendance);
+
+    [LoggerMessage(
+        EventId = 3,
+        Level = LogLevel.Information,
+        Message = "Starting concurrent payroll load for {TenantCount} tenants, {OperationsPerTenant} operations each")]
+    static partial void LogStartingConcurrentPayrollLoad(ILogger logger, int tenantCount, int operationsPerTenant);
+
+    [LoggerMessage(
+        EventId = 4,
+        Level = LogLevel.Information,
+        Message = "Concurrent payroll load completed")]
+    static partial void LogConcurrentPayrollLoadCompleted(ILogger logger);
+
+    [LoggerMessage(
+        EventId = 5,
+        Level = LogLevel.Information,
+        Message = "Starting concurrent attendance load for {TenantCount} tenants, {OperationsPerTenant} operations each")]
+    static partial void LogStartingConcurrentAttendanceLoad(ILogger logger, int tenantCount, int operationsPerTenant);
+
+    [LoggerMessage(
+        EventId = 6,
+        Level = LogLevel.Information,
+        Message = "Concurrent attendance load completed")]
+    static partial void LogConcurrentAttendanceLoadCompleted(ILogger logger);
+
+    [LoggerMessage(
+        EventId = 7,
+        Level = LogLevel.Information,
+        Message = "Generating chaos load at scale {Scale} ({TenantCount} tenants)")]
+    static partial void LogGeneratingChaosLoad(ILogger logger, LoadScale scale, int tenantCount);
+
+    [LoggerMessage(
+        EventId = 8,
+        Level = LogLevel.Debug,
+        Message = "Payroll operation {OperationId} completed for tenant {TenantId}")]
+    static partial void LogPayrollOperationCompleted(ILogger logger, int operationId, string tenantId);
+
+    [LoggerMessage(
+        EventId = 9,
+        Level = LogLevel.Error,
+        Message = "Payroll operation {OperationId} failed for tenant {TenantId}")]
+    static partial void LogPayrollOperationFailed(ILogger logger, Exception ex, int operationId, string tenantId);
+
+    [LoggerMessage(
+        EventId = 10,
+        Level = LogLevel.Debug,
+        Message = "Attendance operation {OperationId} completed for tenant {TenantId}")]
+    static partial void LogAttendanceOperationCompleted(ILogger logger, int operationId, string tenantId);
+
+    [LoggerMessage(
+        EventId = 11,
+        Level = LogLevel.Error,
+        Message = "Attendance operation {OperationId} failed for tenant {TenantId}")]
+    static partial void LogAttendanceOperationFailed(ILogger logger, Exception ex, int operationId, string tenantId);
 }
 
 public enum LoadScale

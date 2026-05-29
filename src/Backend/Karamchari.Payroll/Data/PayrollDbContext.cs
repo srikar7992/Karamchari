@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Payroll.Domain;
@@ -154,7 +155,7 @@ public class PayrollDbContext : KaramchariDbContext
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
-        base.OnModelCreating(modelBuilder);
+        base.OnDomainModelCreating(modelBuilder);
 
         const string MessagingSchema = "dbo";
 
@@ -162,9 +163,9 @@ public class PayrollDbContext : KaramchariDbContext
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
 
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
 
         modelBuilder.Entity<PayrollProfile>(b =>
         {
@@ -255,7 +256,18 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.MonthlyGross).HasPrecision(18, 2);
             b.Property(x => x.TdsDeducted).HasPrecision(18, 2);
             b.Property(x => x.NetPay).HasPrecision(18, 2);
-            b.OwnsOne(x => x.Deductions, d => d.ToJson());
+            
+            b.Property(x => x.Deductions)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, decimal>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, decimal>())
+                .HasColumnType("nvarchar(max)");
+
+            b.Property(x => x.Earnings)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, decimal>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, decimal>())
+                .HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<ComplianceSnapshot>(b =>
@@ -317,7 +329,12 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.TotalNetDelta).HasPrecision(18, 2);
             b.Property(x => x.TotalTdsDelta).HasPrecision(18, 2);
             b.Property(x => x.RowVersion).IsRowVersion();
-            b.OwnsMany(x => x.PeriodDiffs, d => d.ToJson());
+            
+            b.Property(x => x.PeriodDiffs)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<ArrearPeriodDiff>>(v, (JsonSerializerOptions?)null) ?? new List<ArrearPeriodDiff>())
+                .HasColumnType("nvarchar(max)");
         });
 
         // â”€â”€ Phase 1A: Corrections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -459,7 +476,12 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.TotalProjectedGross).HasPrecision(18, 2);
             b.Property(x => x.TotalProjectedNet).HasPrecision(18, 2);
             b.Property(x => x.TotalProjectedDelta).HasPrecision(18, 2);
-            b.OwnsMany(x => x.Results, r => r.ToJson());
+            
+            b.Property(x => x.Results)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<SimulationEmployeeResult>>(v, (JsonSerializerOptions?)null) ?? new List<SimulationEmployeeResult>())
+                .HasColumnType("nvarchar(max)");
         });
 
         // â”€â”€ Phase 1A: Reconciliation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -471,15 +493,12 @@ public class PayrollDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.PeriodName });
             b.Property(x => x.Status).HasConversion<string>();
             b.Property(x => x.AnomalyScore).HasPrecision(5, 2);
-            b.OwnsMany(x => x.Anomalies, a =>
-            {
-                a.ToTable("PayrollAnomalies");
-                a.HasKey(x => x.Id);
-                a.Property(x => x.Type).HasConversion<string>();
-                a.Property(x => x.Severity).HasConversion<string>();
-                a.Property(x => x.ResolutionStatus).HasConversion<string>();
-                a.Property(x => x.AnomalyScore).HasPrecision(5, 2);
-            });
+            
+            b.Property(x => x.Anomalies)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<PayrollAnomaly>>(v, (JsonSerializerOptions?)null) ?? new List<PayrollAnomaly>())
+                .HasColumnType("nvarchar(max)");
         });
     }
 }

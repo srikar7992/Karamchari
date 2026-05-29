@@ -30,6 +30,7 @@ END
 GO
 
 CREATE SECURITY POLICY [security].[{{PolicyName}}]
-{{TableList}}
 WITH (STATE = ON, SCHEMABINDING = ON);
 GO
+
+{{TableList}}

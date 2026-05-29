@@ -51,7 +51,13 @@ public static class NotificationsServiceCollectionExtensions
                 ?? throw new InvalidOperationException(
                     $"ConnectionStrings:{ConnectionStringName} must be configured before NotificationsDbContext can be resolved.");
 
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
             options.AddKaramchariInterceptors(serviceProvider);
         });
 
@@ -86,5 +92,6 @@ public static class NotificationsServiceCollectionExtensions
         busConfigurator.AddConsumer<GoalCycleActivatedConsumer>();
         busConfigurator.AddConsumer<FeedbackRequestCreatedConsumer>();
         busConfigurator.AddConsumer<GoalApprovalRequiredConsumer>();
+        busConfigurator.AddConsumer<PayrollNotificationConsumer>();
     }
 }

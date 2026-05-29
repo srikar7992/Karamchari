@@ -1,0 +1,18 @@
+meta {
+  name: Delete Employee (Missing)
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/hr/employees/33333333-0000-0000-0000-000000000001
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+# NOTE: This endpoint is currently MISSING from the REST API scaffold.
+# This is a placeholder showing the suggested request structure once exposed via Minimal APIs.

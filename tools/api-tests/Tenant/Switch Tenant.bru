@@ -1,0 +1,22 @@
+meta {
+  name: Switch Tenant
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/me/goals
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+  X-Tenant-Id: acme
+}
+
+# NOTE: In Karamchari, the tenant boundary is resolved directly from the JWT claims.
+# To switch tenants:
+# 1. Register a user under the new tenant (e.g., tenantId: "acme").
+# 2. Log in as that user to receive a JWT containing the corresponding tenant_id claim.
+# 3. For service-to-service calls (when bypassing JWT), supply the `X-Tenant-Id` and `X-Karamchari-Gateway` headers.

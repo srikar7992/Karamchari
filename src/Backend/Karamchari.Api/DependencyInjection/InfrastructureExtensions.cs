@@ -53,6 +53,19 @@ public static class InfrastructureExtensions
                 opt.Window = TimeSpan.FromSeconds(1);
             });
 
+            // Abuse protection for authentication endpoints (login/register/refresh).
+            // Partitioned per client IP so one attacker cannot exhaust the limit for everyone.
+            options.AddPolicy("auth", httpContext =>
+                System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+                    }));
+
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
 
@@ -77,12 +90,20 @@ public static class InfrastructureExtensions
                     o.SetDbStatementForText = true;
                 })
                 .AddSource("MassTransit")
-                .AddSource("Karamchari.*"))
+                .AddSource("Karamchari.*")
+                .AddOtlpExporter(o =>
+                {
+                    o.Endpoint = new Uri(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? "http://localhost:4317");
+                }))
             .WithMetrics(metrics => metrics
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
-                .AddMeter("Karamchari.*"));
+                .AddMeter("Karamchari.*")
+                .AddOtlpExporter(o =>
+                {
+                    o.Endpoint = new Uri(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? "http://localhost:4317");
+                }));
 
         // PSA context services
         services.AddKaramchariPSA(configuration);

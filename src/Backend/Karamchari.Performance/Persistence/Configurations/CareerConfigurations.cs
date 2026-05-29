@@ -42,14 +42,11 @@ internal sealed class CareerFrameworkConfiguration : IEntityTypeConfiguration<Ca
                     .HasDatabaseName("IX_CareerLevels_Track_Order");
 
                 // CompetencyRequirements: small per level, not queried independently â†’ JSON
-                lvl.OwnsMany(x => x.CompetencyRequirements, cr =>
-                {
-                    cr.ToJson();
-                    cr.Property(p => p.SkillId).IsRequired();
-                    cr.Property(p => p.SkillCode).IsRequired().HasMaxLength(100);
-                    cr.Property(p => p.MinimumProficiency).IsRequired();
-                    cr.Property(p => p.IsMandatory).IsRequired();
-                });
+                lvl.Property(x => x.CompetencyRequirements)
+                    .HasConversion(
+                        v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                        v => System.Text.Json.JsonSerializer.Deserialize<List<CompetencyRequirement>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                    .HasColumnType("nvarchar(max)");
             });
         });
     }

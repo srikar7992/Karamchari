@@ -1,16 +1,19 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using Karamchari.Notifications.Domain;
 using Karamchari.Notifications.Orchestration;
 using Karamchari.Payroll.Contracts;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Karamchari.Payroll.Consumers;
+namespace Karamchari.Notifications.Consumers;
 
 /// <summary>
 /// Routes payroll events to the notification orchestrator.
 /// </summary>
-public sealed class PayrollNotificationRouter :
+public sealed class PayrollNotificationConsumer :
     IConsumer<FnFSettlementApprovedIntegrationEvent>,
     IConsumer<FnFSettlementDisbursedIntegrationEvent>,
     IConsumer<DisbursementBatchCompletedIntegrationEvent>,
@@ -20,11 +23,11 @@ public sealed class PayrollNotificationRouter :
     IConsumer<SalaryRevisionApprovedIntegrationEvent>
 {
     private readonly INotificationOrchestrator _notifications;
-    private readonly ILogger<PayrollNotificationRouter> _logger;
+    private readonly ILogger<PayrollNotificationConsumer> _logger;
 
-    public PayrollNotificationRouter(
+    public PayrollNotificationConsumer(
         INotificationOrchestrator notifications,
-        ILogger<PayrollNotificationRouter> logger)
+        ILogger<PayrollNotificationConsumer> logger)
     {
         _notifications = notifications;
         _logger = logger;

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Chaos.Tenant;
 
-public sealed class TenantChaosEngine
+public sealed partial class TenantChaosEngine
 {
     private readonly ILogger<TenantChaosEngine> _logger;
     private readonly ConcurrentDictionary<string, ChaosState> _chaosStates = new();
@@ -193,6 +193,60 @@ public sealed class TenantChaosEngine
     {
         return _chaosStates.GetOrAdd(tenantId, _ => new ChaosState());
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Warning,
+        Message = "CHAOS: Database outage injected for tenant {TenantId} at {Timestamp}")]
+    static partial void LogDbOutageInjected(ILogger logger, string tenantId, DateTime timestamp);
+
+    [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Warning,
+        Message = "CHAOS: Redis outage injected for tenant {TenantId} at {Timestamp}")]
+    static partial void LogRedisOutageInjected(ILogger logger, string tenantId, DateTime timestamp);
+
+    [LoggerMessage(
+        EventId = 3,
+        Level = LogLevel.Warning,
+        Message = "CHAOS: Message broker delay of {Delay} injected for tenant {TenantId}")]
+    static partial void LogBrokerDelayInjected(ILogger logger, TimeSpan delay, string tenantId);
+
+    [LoggerMessage(
+        EventId = 4,
+        Level = LogLevel.Warning,
+        Message = "CHAOS: Packet loss of {Percentage}% injected for tenant {TenantId}")]
+    static partial void LogPacketLossInjected(ILogger logger, double percentage, string tenantId);
+
+    [LoggerMessage(
+        EventId = 5,
+        Level = LogLevel.Warning,
+        Message = "CHAOS: Random latency between {Min} and {Max} (actual: {Actual}) injected for tenant {TenantId}")]
+    static partial void LogRandomLatencyInjected(ILogger logger, TimeSpan min, TimeSpan max, TimeSpan actual, string tenantId);
+
+    [LoggerMessage(
+        EventId = 6,
+        Level = LogLevel.Warning,
+        Message = "CHAOS: Simulated deadlock injected for tenant {TenantId} at {Timestamp}")]
+    static partial void LogDeadlockInjected(ILogger logger, string tenantId, DateTime timestamp);
+
+    [LoggerMessage(
+        EventId = 7,
+        Level = LogLevel.Warning,
+        Message = "CHAOS: Connection exhaustion injected for tenant {TenantId} at {Timestamp}")]
+    static partial void LogConnectionExhaustionInjected(ILogger logger, string tenantId, DateTime timestamp);
+
+    [LoggerMessage(
+        EventId = 8,
+        Level = LogLevel.Information,
+        Message = "CHAOS: Cleared chaos state for tenant {TenantId}")]
+    static partial void LogClearedChaosState(ILogger logger, string tenantId);
+
+    [LoggerMessage(
+        EventId = 9,
+        Level = LogLevel.Information,
+        Message = "CHAOS: Cleared all chaos states")]
+    static partial void LogClearedAllChaosStates(ILogger logger);
 
     private static string NormalizeTenantId(string tenantId)
     {

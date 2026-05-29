@@ -19,17 +19,11 @@ internal sealed class CalibrationSessionConfiguration : IEntityTypeConfiguration
 
         b.HasIndex(x => new { x.TenantId, x.ReviewCycleId, x.Name }).IsUnique();
 
-        b.OwnsOne(x => x.BellCurvePolicy, bcp =>
-        {
-            bcp.ToJson();
-            bcp.Property(p => p.PolicyName).IsRequired().HasMaxLength(100);
-            bcp.OwnsMany(p => p.BucketTargets, bt =>
-            {
-                bt.Property(x => x.BucketLabel).IsRequired().HasMaxLength(50);
-                bt.Property(x => x.TargetPercent).HasPrecision(5, 2);
-                bt.Property(x => x.TolerancePercent).HasPrecision(5, 2);
-            });
-        });
+        b.Property(x => x.BellCurvePolicy)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<BellCurvePolicy>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+            .HasColumnType("nvarchar(max)");
 
         b.OwnsMany(x => x.PanelMembers, pm =>
         {

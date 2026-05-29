@@ -39,7 +39,15 @@ public static class CoreServiceCollectionExtensions
         // Core Infrastructure DbContext (Shared tables)
         services.AddDbContext<CoreDbContext>((sp, opts) =>
         {
-            opts.UseSqlServer(configuration.GetConnectionString("KaramchariDb"));
+            var connectionString = configuration.GetConnectionString("KaramchariDb")
+                ?? throw new InvalidOperationException("Connection string 'KaramchariDb' is not configured.");
+            opts.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
         });
 
         // Tenancy options â€” strongly typed, validated on first resolution.
@@ -66,6 +74,7 @@ public static class CoreServiceCollectionExtensions
         // Interceptors are stateless w.r.t. EF, but they depend on the scoped
         // ITenantProvider, so they must themselves be Scoped.
         services.AddScoped<RlsSessionContextInterceptor>();
+        services.AddScoped<TenantSchemaCommandInterceptor>();
         services.AddScoped<TenantStampingInterceptor>();
         services.AddScoped<AuditInterceptor>();
         services.AddScoped<DomainEventDispatchInterceptor>();
@@ -111,6 +120,25 @@ public static class CoreServiceCollectionExtensions
         // Operational Job & Temporal Governance
         services.AddSingleton<Karamchari.Core.Jobs.JobGovernanceService>();
         services.AddSingleton<Karamchari.Core.Temporal.TemporalGovernanceService>();
+
+        // Redis Caching Registration
+        var redisConnection = configuration.GetConnectionString("Redis");
+        if (!string.IsNullOrEmpty(redisConnection))
+        {
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConnection;
+                options.InstanceName = "Karamchari:";
+            });
+        }
+        else
+        {
+            services.AddDistributedMemoryCache();
+        }
+
+        // Cache Guard & Metadata Cache Registration
+        services.AddScoped<Karamchari.Core.Caching.Tenant.TenantCacheGuard>();
+        services.AddScoped<Karamchari.Core.Caching.Tenant.TenantMetadataCache>();
 
         return services;
     }
@@ -168,6 +196,7 @@ public static class CoreServiceCollectionExtensions
         // fails *before* its events would be published to the bus.
         builder.AddInterceptors(
             serviceProvider.GetRequiredService<RlsSessionContextInterceptor>(),
+            serviceProvider.GetRequiredService<TenantSchemaCommandInterceptor>(),
             serviceProvider.GetRequiredService<TenantStampingInterceptor>(),
             serviceProvider.GetRequiredService<DomainEventDispatchInterceptor>());
 
@@ -195,7 +224,17 @@ public static class CoreServiceCollectionExtensions
 
         // DbContext for outbox infra tables only; no tenant interceptors.
         services.AddDbContext<OutboxRelayDbContext>((sp, opts) =>
-            opts.UseSqlServer(configuration.GetConnectionString("KaramchariDb")));
+        {
+            var connectionString = configuration.GetConnectionString("KaramchariDb")
+                ?? throw new InvalidOperationException("Connection string 'KaramchariDb' is not configured.");
+            opts.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
+        });
 
         // Type registry is built once at construction from loaded assemblies.
         // Must be registered AFTER the DI container has loaded all bounded-context assemblies

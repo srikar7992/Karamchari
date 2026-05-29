@@ -30,6 +30,11 @@ public static class FinancialOpsServiceCollectionExtensions
         // Security: Register tenant-owned tables for RLS coverage.
         services.RegisterTenantTable("WorkforceFinancialLedger");
         services.RegisterTenantTable("FinancialOperationalPeriods");
+        services.RegisterTenantTable("Financial_EmployeeLoans");
+        services.RegisterTenantTable("Financial_EmployeeAdvances");
+        services.RegisterTenantTable("FinancialCompensations");
+        services.RegisterTenantTable("ReimbursementSettlementBatches");
+        services.RegisterTenantTable("ExpenseClaims");
 
         services.AddDbContext<FinancialOpsDbContext>((serviceProvider, options) =>
         {
@@ -37,7 +42,13 @@ public static class FinancialOpsServiceCollectionExtensions
                 ?? throw new InvalidOperationException(
                     $"ConnectionStrings:{ConnectionStringName} must be configured before FinancialOpsDbContext can be resolved.");
 
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
             options.AddKaramchariInterceptors(serviceProvider);
         });
 

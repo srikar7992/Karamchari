@@ -14,100 +14,111 @@ using Microsoft.EntityFrameworkCore;
 namespace Karamchari.FinancialOps.Persistence;
 
 /// <summary>
-/// Database context for the Financial Operations bounded context.
-/// Tracks the operational financial ledger and period governance.
+/// Provides required documentation for this member.
 /// </summary>
 public sealed class FinancialOpsDbContext : KaramchariDbContext
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="FinancialOpsDbContext"/> class.
+    /// Provides required documentation for this member.
     /// </summary>
-    /// <param name="options">The context options.</param>
-    /// <param name="tenantProvider">The tenant provider.</param>
     public FinancialOpsDbContext(DbContextOptions<FinancialOpsDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
     }
 
     /// <summary>
-    /// Schema where MassTransit's transactional outbox tables live.
-    /// </summary>
-    private const string MessagingSchema = "dbo";
-
-    /// <summary>
-    /// Gets the set of workforce financial entries (the ledger).
+    /// Provides required documentation for this member.
     /// </summary>
     public DbSet<WorkforceFinancialEntry> LedgerEntries => Set<WorkforceFinancialEntry>();
-
     /// <summary>
-    /// Gets the set of financial operational periods.
+    /// Provides required documentation for this member.
     /// </summary>
     public DbSet<FinancialOperationalPeriod> OperationalPeriods => Set<FinancialOperationalPeriod>();
-
     /// <summary>
-    /// Gets the set of financial operation events (internal event sourcing).
-    /// </summary>
-    public DbSet<FinancialOperationEvent> OperationEvents => Set<FinancialOperationEvent>();
-
-    /// <summary>
-    /// Gets the set of employee loans.
+    /// Provides required documentation for this member.
     /// </summary>
     public DbSet<EmployeeLoan> Loans => Set<EmployeeLoan>();
-
     /// <summary>
-    /// Gets the set of employee advances.
+    /// Provides required documentation for this member.
     /// </summary>
     public DbSet<EmployeeAdvance> Advances => Set<EmployeeAdvance>();
-
     /// <summary>
-    /// Gets the set of financial reconciliation snapshots.
+    /// Provides required documentation for this member.
     /// </summary>
-    public DbSet<FinancialReconciliationSnapshot> ReconciliationSnapshots => Set<FinancialReconciliationSnapshot>();
-
+    public DbSet<FinancialCompensationOperation> Compensations => Set<FinancialCompensationOperation>();
     /// <summary>
-    /// Gets the set of financial finalization snapshots.
+    /// Provides required documentation for this member.
+    /// </summary>
+    public DbSet<ReimbursementSettlementBatch> ReimbursementSettlementBatches => Set<ReimbursementSettlementBatch>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
+    public DbSet<ExpenseClaim> ExpenseClaims => Set<ExpenseClaim>();
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
+    public DbSet<FinancialOperationEvent> OperationEvents => Set<FinancialOperationEvent>();
+    /// <summary>
+    /// Provides required documentation for this member.
     /// </summary>
     public DbSet<FinancialFinalizationSnapshot> FinalizationSnapshots => Set<FinancialFinalizationSnapshot>();
 
     /// <summary>
-    /// Gets the set of financial compensation operations.
+    /// Provides required documentation for this member.
     /// </summary>
-    public DbSet<FinancialCompensationOperation> Compensations => Set<FinancialCompensationOperation>();
-
-    /// <summary>
-    /// Configures the domain model for the FinancialOps context.
-    /// </summary>
-    /// <param name="modelBuilder">The model builder.</param>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
 
-        modelBuilder.Entity<FinancialCompensationOperation>(b =>
+        const string MessagingSchema = "dbo";
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+
+        modelBuilder.Entity<WorkforceFinancialEntry>(b =>
         {
-            b.ToTable("FinancialCompensations");
+            b.ToTable("WorkforceFinancialLedger");
             b.HasKey(x => x.Id);
+            b.Property(x => x.Id).HasConversion(id => id.Value, value => new WorkforceFinancialEntryId(value));
             b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
-            b.Property(x => x.TargetEntryId).HasConversion(id => id.Value, value => new WorkforceFinancialEntryId(value)).IsRequired();
+            b.Property(x => x.EmployeeId).HasConversion(id => id.Value, value => new EmployeeId(value)).IsRequired();
+            b.Property(x => x.PeriodId).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value)).IsRequired();
             b.Property(x => x.Amount).HasPrecision(18, 4).IsRequired();
-            b.Property(x => x.Reason).HasMaxLength(500).IsRequired();
-            b.Property(x => x.Status).HasConversion<int>().IsRequired();
-
-            b.OwnsOne(x => x.CorrelationChain, cb =>
-            {
-                cb.Property(c => c.RootId).HasConversion(id => id.Value, value => new FinancialCorrelationId(value)).HasColumnName("CorrelationRootId");
-                cb.Property(c => c.ParentId).HasConversion(id => id != null ? id.Value : (Guid?)null, value => value.HasValue ? new FinancialCorrelationId(value.Value) : null).HasColumnName("CorrelationParentId");
-                cb.Property(c => c.CurrentId).HasConversion(id => id.Value, value => new FinancialCorrelationId(value)).HasColumnName("CorrelationCurrentId");
-                cb.Property(c => c.Depth).HasColumnName("CorrelationDepth");
-            });
-
+            b.Property(x => x.Currency).HasConversion(id => id.Value, value => new CurrencyCode(value)).HasMaxLength(3).IsRequired();
             b.HasIndex(x => x.TenantId);
-            b.HasIndex(x => x.TargetEntryId);
+            b.HasIndex(x => x.EmployeeId);
+
+            b.Property(x => x.CorrelationChain)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<FinancialCorrelationChain>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+
+            b.Property(x => x.ReplayMetadata)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<FinancialReplayMetadata>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+        });
+
+        modelBuilder.Entity<FinancialOperationalPeriod>(b =>
+        {
+            b.ToTable("FinancialOperationalPeriods");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Id).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value));
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.HasIndex(x => new { x.TenantId, x.Name }).IsUnique();
         });
 
         modelBuilder.Entity<EmployeeLoan>(b =>
         {
-            b.ToTable("EmployeeLoans");
+            b.ToTable("Financial_EmployeeLoans");
             b.HasKey(x => x.Id);
             b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
             b.Property(x => x.EmployeeId).HasConversion(id => id.Value, value => new EmployeeId(value)).IsRequired();
@@ -116,28 +127,24 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
             b.Property(x => x.RemainingPrincipal).HasPrecision(18, 4).IsRequired();
             b.Property(x => x.Status).HasConversion<int>().IsRequired();
 
-            b.OwnsOne(x => x.ReplayMetadata, rb =>
-            {
-                rb.Property(r => r.SourceSystem).HasMaxLength(100).HasColumnName("ReplaySourceSystem");
-                rb.Property(r => r.OriginalTimestamp).HasColumnName("ReplayOriginalTimestamp");
-                rb.Property(r => r.ReplayAttempt).HasColumnName("ReplayAttemptCount");
-                rb.Property(r => r.IsSimulated).HasColumnName("IsSimulatedReplay");
-            });
+            b.Property(x => x.ReplayMetadata)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<FinancialReplayMetadata>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
 
             b.OwnsMany(x => x.Repayments, rb =>
             {
-                rb.ToTable("EmployeeLoanRepayments");
+                rb.ToTable("Financial_EmployeeLoanRepayments");
                 rb.WithOwner().HasForeignKey("LoanId");
                 rb.HasKey(x => x.Id);
                 rb.Property(x => x.Amount).HasPrecision(18, 4).IsRequired();
-                rb.Property(x => x.Explanation).HasMaxLength(500).IsRequired();
 
-                rb.OwnsOne(x => x.CorrelationChain, cb =>
-                {
-                    cb.Property(c => c.RootId).HasConversion(id => id.Value, value => new FinancialCorrelationId(value)).HasColumnName("CorrelationRootId");
-                    cb.Property(c => c.ParentId).HasConversion(id => id != null ? id.Value : (Guid?)null, value => value.HasValue ? new FinancialCorrelationId(value.Value) : null).HasColumnName("CorrelationParentId");
-                    cb.Property(c => c.CurrentId).HasConversion(id => id.Value, value => new FinancialCorrelationId(value)).HasColumnName("CorrelationCurrentId");
-                });
+                rb.Property(x => x.CorrelationChain)
+                    .HasConversion(
+                        v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                        v => System.Text.Json.JsonSerializer.Deserialize<FinancialCorrelationChain>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                    .HasColumnType("nvarchar(max)");
             });
 
             b.HasIndex(x => x.TenantId);
@@ -146,134 +153,36 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
 
         modelBuilder.Entity<EmployeeAdvance>(b =>
         {
-            b.ToTable("EmployeeAdvances");
+            b.ToTable("Financial_EmployeeAdvances");
             b.HasKey(x => x.Id);
             b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
             b.Property(x => x.EmployeeId).HasConversion(id => id.Value, value => new EmployeeId(value)).IsRequired();
             b.Property(x => x.PeriodId).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value)).IsRequired();
             b.Property(x => x.Amount).HasPrecision(18, 4).IsRequired();
-            b.Property(x => x.IsRecovered).IsRequired();
-
-            b.OwnsOne(x => x.ReplayMetadata, rb =>
-            {
-                rb.Property(r => r.SourceSystem).HasMaxLength(100).HasColumnName("ReplaySourceSystem");
-                rb.Property(r => r.OriginalTimestamp).HasColumnName("ReplayOriginalTimestamp");
-                rb.Property(r => r.ReplayAttempt).HasColumnName("ReplayAttemptCount");
-                rb.Property(r => r.IsSimulated).HasColumnName("IsSimulatedReplay");
-            });
-
             b.HasIndex(x => x.TenantId);
             b.HasIndex(x => x.EmployeeId);
-            b.HasIndex(x => x.PeriodId);
+
+            b.Property(x => x.ReplayMetadata)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<FinancialReplayMetadata>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
         });
 
-        modelBuilder.Entity<FinancialReconciliationSnapshot>(b =>
+        modelBuilder.Entity<FinancialCompensationOperation>(b =>
         {
-            b.ToTable("FinancialReconciliationSnapshots");
+            b.ToTable("FinancialCompensations");
             b.HasKey(x => x.Id);
             b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
-            b.Property(x => x.PeriodId).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value)).IsRequired();
-            b.Property(x => x.ExpectedTotal).HasPrecision(18, 4).IsRequired();
-            b.Property(x => x.ActualTotal).HasPrecision(18, 4).IsRequired();
-            b.Property(x => x.DriftAmount).HasPrecision(18, 4).IsRequired();
-            b.HasIndex(x => x.TenantId);
-            b.HasIndex(x => x.PeriodId);
-        });
-
-        modelBuilder.Entity<FinancialFinalizationSnapshot>(b =>
-        {
-            b.ToTable("FinancialFinalizationSnapshots");
-            b.HasKey(x => x.Id);
-            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
-            b.Property(x => x.PeriodId).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value)).IsRequired();
-            b.Property(x => x.FinalizedTotal).HasPrecision(18, 4).IsRequired();
-            b.Property(x => x.Checksum).HasMaxLength(100).IsRequired();
-            b.HasIndex(x => x.TenantId);
-            b.HasIndex(x => x.PeriodId);
-        });
-
-        modelBuilder.Entity<FinancialOperationEvent>(b =>
-        {
-            b.ToTable("FinancialOperationEvents");
-            b.HasKey(x => x.Id);
-            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
-            b.Property(x => x.AggregateType).HasMaxLength(100).IsRequired();
-            b.Property(x => x.EventName).HasMaxLength(100).IsRequired();
-            b.Property(x => x.FromState).HasMaxLength(64).IsRequired();
-            b.Property(x => x.ToState).HasMaxLength(64).IsRequired();
-            b.Property(x => x.TriggeredBy).HasMaxLength(100).IsRequired();
-
-            b.OwnsOne(x => x.CorrelationChain, cb =>
-            {
-                cb.Property(c => c.RootId).HasConversion(id => id.Value, value => new FinancialCorrelationId(value)).HasColumnName("CorrelationRootId");
-                cb.Property(c => c.ParentId).HasConversion(id => id != null ? id.Value : (Guid?)null, value => value.HasValue ? new FinancialCorrelationId(value.Value) : null).HasColumnName("CorrelationParentId");
-                cb.Property(c => c.CurrentId).HasConversion(id => id.Value, value => new FinancialCorrelationId(value)).HasColumnName("CorrelationCurrentId");
-                cb.Property(c => c.Depth).HasColumnName("CorrelationDepth");
-            });
-
-            b.HasIndex(x => x.TenantId);
-            b.HasIndex(x => x.AggregateId);
-            b.HasIndex(x => x.TimestampUtc);
-        });
-
-        modelBuilder.Entity<WorkforceFinancialEntry>(b =>
-        {
-            b.ToTable("WorkforceFinancialLedger");
-
-            b.HasKey(x => x.Id);
-            b.Property(x => x.Id).HasConversion(id => id.Value, value => new WorkforceFinancialEntryId(value));
-
-            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
-            b.Property(x => x.EmployeeId).HasConversion(id => id.Value, value => new EmployeeId(value)).IsRequired();
-            b.Property(x => x.PeriodId).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value)).IsRequired();
-
-            b.Property(x => x.Type).HasConversion<int>().IsRequired();
-            b.Property(x => x.Status).HasConversion<int>().IsRequired();
+            b.Property(x => x.TargetEntryId).HasConversion(id => id.Value, value => new WorkforceFinancialEntryId(value)).IsRequired();
             b.Property(x => x.Amount).HasPrecision(18, 4).IsRequired();
-            b.Property(x => x.Currency).HasConversion(c => c.Value, value => new CurrencyCode(value)).HasMaxLength(3).IsRequired();
-
-            b.OwnsOne(x => x.CorrelationChain, cb =>
-            {
-                cb.Property(c => c.RootId).HasConversion(id => id.Value, value => new FinancialCorrelationId(value)).HasColumnName("CorrelationRootId");
-                cb.Property(c => c.ParentId).HasConversion(id => id != null ? id.Value : (Guid?)null, value => value.HasValue ? new FinancialCorrelationId(value.Value) : null).HasColumnName("CorrelationParentId");
-                cb.Property(c => c.CurrentId).HasConversion(id => id.Value, value => new FinancialCorrelationId(value)).HasColumnName("CorrelationCurrentId");
-                cb.Property(c => c.Depth).HasColumnName("CorrelationDepth");
-            });
-
-            b.OwnsOne(x => x.ReplayMetadata, rb =>
-            {
-                rb.Property(r => r.SourceSystem).HasMaxLength(100).HasColumnName("ReplaySourceSystem");
-                rb.Property(r => r.OriginalTimestamp).HasColumnName("ReplayOriginalTimestamp");
-                rb.Property(r => r.ReplayAttempt).HasColumnName("ReplayAttemptCount");
-                rb.Property(r => r.IsSimulated).HasColumnName("IsSimulatedReplay");
-            });
-
-            b.Property(x => x.IdempotencyKey).HasMaxLength(100);
-            b.Property(x => x.ExecutionSequenceRef).HasMaxLength(100);
-
             b.HasIndex(x => x.TenantId);
-            b.HasIndex(x => x.EmployeeId);
-            b.HasIndex(x => x.PeriodId);
-            b.HasIndex(x => x.IdempotencyKey).IsUnique().HasFilter("[IdempotencyKey] IS NOT NULL");
-        });
 
-        modelBuilder.Entity<FinancialOperationalPeriod>(b =>
-        {
-            b.ToTable("FinancialOperationalPeriods");
-
-            b.HasKey(x => x.Id);
-            b.Property(x => x.Id).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value));
-
-            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
-            b.Property(x => x.Name).HasMaxLength(200).IsRequired();
-
-            b.Property(x => x.StartsAt).IsRequired();
-            b.Property(x => x.EndsAt).IsRequired();
-            b.Property(x => x.CutoffAt).IsRequired();
-            b.Property(x => x.IsLocked).IsRequired();
-            b.Property(x => x.IsClosed).IsRequired();
-
-            b.HasIndex(x => x.TenantId);
+            b.Property(x => x.CorrelationChain)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<FinancialCorrelationChain>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<ReimbursementSettlementBatch>(b =>
@@ -283,23 +192,13 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
             b.Property(x => x.Id).HasConversion(id => id.Value, value => new SettlementBatchId(value));
             b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
             b.Property(x => x.PeriodId).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value)).IsRequired();
-            b.Property(x => x.Type).HasConversion<int>().IsRequired();
-            b.Property(x => x.Status).HasConversion<int>().IsRequired();
-            b.Property(x => x.ExternalReference).HasMaxLength(200);
-            b.Property(x => x.LastExplanation).HasMaxLength(500);
-
-            // Collection of Claim IDs stored as a JSON string for simple scale-out partitioning
-            // within the same table.
-            b.Property(x => x.ClaimIds)
-                .HasConversion(
-                    ids => System.Text.Json.JsonSerializer.Serialize(ids.Select(id => id.Value), (System.Text.Json.JsonSerializerOptions?)null),
-                    json => System.Text.Json.JsonSerializer.Deserialize<List<Guid>>(json, (System.Text.Json.JsonSerializerOptions?)null)!
-                        .Select(guid => new ExpenseClaimId(guid)).ToList())
-                .HasColumnName("ClaimIdsJson");
+            
+            b.Property(x => x.ClaimIds).HasConversion(
+                v => string.Join(',', v.Select(id => id.Value)),
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => new ExpenseClaimId(Guid.Parse(s))).ToList().AsReadOnly()
+            );
 
             b.HasIndex(x => x.TenantId);
-            b.HasIndex(x => x.PeriodId);
-            b.HasIndex(x => x.Status);
         });
 
         modelBuilder.Entity<ExpenseClaim>(b =>
@@ -307,60 +206,57 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
             b.ToTable("ExpenseClaims");
             b.HasKey(x => x.Id);
             b.Property(x => x.Id).HasConversion(id => id.Value, value => new ExpenseClaimId(value));
-
             b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
             b.Property(x => x.EmployeeId).HasConversion(id => id.Value, value => new EmployeeId(value)).IsRequired();
             b.Property(x => x.CategoryId).HasConversion(id => id.Value, value => new ExpenseCategoryId(value)).IsRequired();
-            b.Property(x => x.ClaimNumber).HasMaxLength(64).IsRequired();
             b.Property(x => x.ClaimedAmount).HasPrecision(18, 4).IsRequired();
-            b.Property(x => x.Currency).HasConversion(c => c.Value, value => new CurrencyCode(value)).HasMaxLength(3).IsRequired();
-            b.Property(x => x.Status).HasConversion<int>().IsRequired();
-            b.Property(x => x.TaxTreatment).HasConversion<int>().IsRequired();
-            b.Property(x => x.PreferredSettlementType).HasConversion<int>().IsRequired();
-
-            b.OwnsOne(x => x.ReplayMetadata, rb =>
-            {
-                rb.Property(r => r.SourceSystem).HasMaxLength(100).HasColumnName("ReplaySourceSystem");
-                rb.Property(r => r.OriginalTimestamp).HasColumnName("ReplayOriginalTimestamp");
-                rb.Property(r => r.ReplayAttempt).HasColumnName("ReplayAttemptCount");
-                rb.Property(r => r.IsSimulated).HasColumnName("IsSimulatedReplay");
-            });
-
-            b.OwnsMany(x => x.Holds, hb =>
-            {
-                hb.ToTable("ExpenseClaimHolds");
-                hb.WithOwner().HasForeignKey("ExpenseClaimId");
-                hb.Property<Guid>("Id");
-                hb.HasKey("Id");
-                hb.Property(x => x.Type).HasConversion<int>().IsRequired();
-                hb.Property(x => x.Reason).HasMaxLength(500).IsRequired();
-                hb.Property(x => x.PlacedBy).HasMaxLength(100).IsRequired();
-                hb.Property(x => x.ReleasedBy).HasMaxLength(100);
-            });
-
-            b.OwnsMany(x => x.Receipts, rb =>
-            {
-                rb.ToTable("ExpenseReceipts");
-                rb.WithOwner().HasForeignKey("ExpenseClaimId");
-                rb.HasKey(x => x.Id);
-                rb.Property(x => x.FileName).HasMaxLength(255).IsRequired();
-                rb.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
-                rb.Property(x => x.StoragePath).HasMaxLength(500).IsRequired();
-                rb.Property(x => x.Checksum).HasMaxLength(100).IsRequired();
-            });
-
+            b.Property(x => x.Currency).HasConversion(id => id.Value, value => new CurrencyCode(value)).HasMaxLength(3).IsRequired();
             b.HasIndex(x => x.TenantId);
             b.HasIndex(x => x.EmployeeId);
             b.HasIndex(x => x.ClaimNumber).IsUnique();
+
+            b.Property(x => x.ReplayMetadata)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<FinancialReplayMetadata>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+
+            b.Property(x => x.Holds)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<List<FinancialOperationalHold>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+
+            b.Property(x => x.Receipts)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<List<ExpenseReceipt>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
         });
 
-        // MassTransit's transactional outbox entities.
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.Entity<FinancialOperationEvent>(b =>
+        {
+            b.ToTable("Financial_OperationEvents");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.HasIndex(x => x.TenantId);
+            b.HasIndex(x => x.AggregateId);
 
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
+            b.Property(x => x.CorrelationChain)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<FinancialCorrelationChain>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+        });
+
+        modelBuilder.Entity<FinancialFinalizationSnapshot>(b =>
+        {
+            b.ToTable("Financial_FinalizationSnapshots");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.PeriodId).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value)).IsRequired();
+            b.Property(x => x.FinalizedTotal).HasPrecision(18, 4).IsRequired();
+            b.HasIndex(x => new { x.TenantId, x.PeriodId }).IsUnique();
+        });
     }
 }

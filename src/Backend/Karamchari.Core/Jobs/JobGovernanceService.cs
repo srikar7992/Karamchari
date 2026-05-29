@@ -7,7 +7,7 @@ namespace Karamchari.Core.Jobs;
 /// Service for governing and monitoring operational jobs.
 /// Implements Priority 4 Step 19.
 /// </summary>
-public sealed class JobGovernanceService
+public sealed partial class JobGovernanceService
 {
     private readonly ILogger<JobGovernanceService> _logger;
 
@@ -18,17 +18,35 @@ public sealed class JobGovernanceService
 
     public void TrackJobStart(Guid jobId, string jobName, string capability)
     {
-        _logger.LogInformation("Job {JobName} ({JobId}) started in capability {Capability}", jobName, jobId, capability);
+        LogJobStarted(_logger, jobName, jobId, capability);
         // In a real system, this would write to a JobStatus store
     }
 
     public void TrackJobCompletion(Guid jobId)
     {
-        _logger.LogInformation("Job {JobId} completed successfully", jobId);
+        LogJobCompleted(_logger, jobId);
     }
 
     public void TrackJobFailure(Guid jobId, Exception ex)
     {
-        _logger.LogError(ex, "Job {JobId} failed", jobId);
+        LogJobFailed(_logger, jobId, ex);
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Information,
+        Message = "Job {JobName} ({JobId}) started in capability {Capability}")]
+    static partial void LogJobStarted(ILogger logger, string jobName, Guid jobId, string capability);
+
+    [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Information,
+        Message = "Job {JobId} completed successfully")]
+    static partial void LogJobCompleted(ILogger logger, Guid jobId);
+
+    [LoggerMessage(
+        EventId = 3,
+        Level = LogLevel.Error,
+        Message = "Job {JobId} failed")]
+    static partial void LogJobFailed(ILogger logger, Guid jobId, Exception ex);
 }

@@ -91,12 +91,14 @@ public class TimeAttendanceDbContext : KaramchariDbContext
         base.OnDomainModelCreating(modelBuilder);
 
         const string MessagingSchema = "dbo";
+
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
+
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
 
         // â”€â”€ Workforce Aggregates Mapping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -132,12 +134,23 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             b.Property(x => x.TotalWorkHours).HasPrecision(18, 2);
             b.Property(x => x.TotalBreakHours).HasPrecision(18, 2);
 
+            b.OwnsOne(x => x.CheckInLocation, loc =>
+            {
+                loc.Property(p => p.Latitude).HasColumnName("CheckIn_Latitude");
+                loc.Property(p => p.Longitude).HasColumnName("CheckIn_Longitude");
+            });
+
             b.OwnsMany(x => x.Events, e =>
             {
                 e.ToTable("Workforce_AttendanceEvents");
                 e.WithOwner().HasForeignKey("SessionId");
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Source).HasConversion<string>();
+                e.OwnsOne(x => x.Location, loc =>
+                {
+                    loc.Property(p => p.Latitude).HasColumnName("Latitude");
+                    loc.Property(p => p.Longitude).HasColumnName("Longitude");
+                });
             });
         });
 

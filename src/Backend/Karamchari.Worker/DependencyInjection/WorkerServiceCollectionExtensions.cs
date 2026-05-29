@@ -117,6 +117,9 @@ public static class WorkerServiceCollectionExtensions
         x.AddEntityFrameworkOutbox<Karamchari.Capability.Persistence.CapabilityDbContext>(o => o.UseSqlServer());
         x.AddEntityFrameworkOutbox<Karamchari.Intelligence.Persistence.IntelligenceDbContext>(o => o.UseSqlServer());
         x.AddEntityFrameworkOutbox<Karamchari.Governance.Persistence.GovernanceDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Billing.Persistence.BillingDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Forecasting.Persistence.ForecastingDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.Workflow.Persistence.WorkflowDbContext>(o => o.UseSqlServer());
     }
 
     /// <summary>

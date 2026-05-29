@@ -1,4 +1,5 @@
 using Karamchari.Billing.DependencyInjection;
+using Karamchari.Billing.Persistence;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Capability.Persistence;
 using Karamchari.Compensation.DependencyInjection;
@@ -8,6 +9,7 @@ using Karamchari.Core.Messaging.Outbox;
 using Karamchari.Core.Messaging.Tenant;
 using Karamchari.FinancialOps.Persistence;
 using Karamchari.Forecasting.DependencyInjection;
+using Karamchari.Forecasting.Persistence;
 using Karamchari.Governance.DependencyInjection;
 using Karamchari.Governance.Persistence;
 using Karamchari.HR.DependencyInjection;
@@ -26,6 +28,7 @@ using Karamchari.Recruitment.Persistence;
 using Karamchari.TimeAttendance.DependencyInjection;
 using Karamchari.TimeAttendance.Persistence;
 using Karamchari.Workflow.DependencyInjection;
+using Karamchari.Workflow.Persistence;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -62,62 +65,62 @@ public static class MassTransitExtensions
             x.AddEntityFrameworkOutbox<HRDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<FinancialOpsDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<PayrollDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<TimeAttendanceDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<PSADbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<PerformanceDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<NotificationsDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<CompensationDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<RecruitmentDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<CapabilityDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<IntelligenceDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<GovernanceDbContext>(o =>
             {
                 o.UseSqlServer();
-                if (isDev) o.UseBusOutbox();
+            });
+            x.AddEntityFrameworkOutbox<BillingDbContext>(o =>
+            {
+                o.UseSqlServer();
+            });
+            x.AddEntityFrameworkOutbox<ForecastingDbContext>(o =>
+            {
+                o.UseSqlServer();
+            });
+            x.AddEntityFrameworkOutbox<WorkflowDbContext>(o =>
+            {
+                o.UseSqlServer();
             });
 
             if (isDev && string.IsNullOrEmpty(configuration.GetConnectionString("RabbitMQ")))
@@ -139,7 +142,18 @@ public static class MassTransitExtensions
                     x.UsingRabbitMq((context, cfg) =>
                     {
                         cfg.Host(rabbitMqConnection);
+
+                        // Tenant isolation MUST be enforced on the RabbitMQ transport with the
+                        // same filters as the InMemory and Azure Service Bus branches. Omitting
+                        // these previously meant messages published/consumed over RabbitMQ carried
+                        // no enforced tenant context (cross-tenant leakage risk).
+                        cfg.UseConsumeFilter<TenantConsumeFilter>(context);
+                        cfg.UsePublishFilter<TenantPublishFilter>(context);
+                        cfg.UseSendFilter<TenantSendFilter>(context);
                         cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+
+                        // Declare topology / receive endpoints for any registered consumers.
+                        cfg.ConfigureEndpoints(context);
                     });
                 }
                 else

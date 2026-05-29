@@ -1,0 +1,18 @@
+meta {
+  name: Provision Tenant
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/tenants
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "companyName": "Acme Corporation",
+    "adminEmail": "admin@acme.com"
+  }
+}

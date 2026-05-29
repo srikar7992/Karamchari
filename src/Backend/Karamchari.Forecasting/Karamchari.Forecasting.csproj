@@ -12,9 +12,6 @@
     <ProjectReference Include="..\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\Karamchari.Billing.Contracts\Karamchari.Billing.Contracts.csproj" />
     <ProjectReference Include="..\Karamchari.TimeAttendance.Contracts\Karamchari.TimeAttendance.Contracts.csproj" />
-    <!-- TODO: ForecastingEngine queries BillingDbContext directly — arch violation (ADR-0001).
-         Needs refactor to pull data via integration events or a dedicated Billing query service. -->
-    <ProjectReference Include="..\Karamchari.Billing\Karamchari.Billing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

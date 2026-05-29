@@ -1,0 +1,23 @@
+meta {
+  name: Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/identity/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "dev@karamchari.com",
+    "password": "Password@123"
+  }
+}
+
+vars:post-response {
+  accessToken: res.body.accessToken
+  refreshToken: res.body.refreshToken
+}

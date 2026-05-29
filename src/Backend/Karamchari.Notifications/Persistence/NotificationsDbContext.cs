@@ -13,8 +13,9 @@ namespace Karamchari.Notifications.Persistence;
 /// </summary>
 public sealed class NotificationsDbContext : KaramchariDbContext
 {
-    private const string MessagingSchema = "dbo";
-
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     public NotificationsDbContext(DbContextOptions<NotificationsDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
@@ -37,6 +38,9 @@ public sealed class NotificationsDbContext : KaramchariDbContext
     /// </summary>
     public DbSet<DigestBatch> DigestBatches => Set<DigestBatch>();
 
+    /// <summary>
+    /// Provides required documentation for this member.
+    /// </summary>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -47,12 +51,14 @@ public sealed class NotificationsDbContext : KaramchariDbContext
         modelBuilder.ApplyConfiguration(new NotificationMessageConfiguration());
         modelBuilder.ApplyConfiguration(new DigestBatchConfiguration());
 
+        const string MessagingSchema = "dbo";
+
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
 
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
     }
 }

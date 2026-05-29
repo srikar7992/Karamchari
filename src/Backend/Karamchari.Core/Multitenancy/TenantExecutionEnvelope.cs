@@ -26,7 +26,7 @@ public sealed partial class TenantExecutionEnvelope
     public string TenantId { get; init; }
 
     /// <summary>The fully-qualified DB schema name for this tenant (e.g. <c>tenant_acme</c>).</summary>
-    public string SchemaName => SchemaPrefix + TenantId.Replace('-', '_');
+    public string SchemaName => TenantId == "system" ? "dbo" : SchemaPrefix + TenantId.Replace('-', '_');
 
     /// <summary>
     /// A correlation ID that chains related operations across services.

@@ -35,11 +35,16 @@ public static class WorkflowServiceCollectionExtensions
         // RLS
         services.RegisterTenantTable("Workflow_Definitions");
         services.RegisterTenantTable("Workflow_Instances");
-
         services.AddDbContext<WorkflowDbContext>((sp, options) =>
         {
             var connectionString = configuration.GetConnectionString(ConnectionStringName);
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
             options.AddKaramchariInterceptors(sp);
         });
 

@@ -17,14 +17,14 @@ public sealed class ForecastUpdateConsumer :
     IConsumer<PaymentReceivedIntegrationEvent>
 {
     private readonly ForecastingDbContext _db;
-    private readonly Karamchari.Billing.Persistence.BillingDbContext _billingDb;
+    private readonly IBillingReadService _billingReadService;
 
     public ForecastUpdateConsumer(
         ForecastingDbContext db,
-        Karamchari.Billing.Persistence.BillingDbContext billingDb)
+        IBillingReadService billingReadService)
     {
         _db = db;
-        _billingDb = billingDb;
+        _billingReadService = billingReadService;
     }
 
     /// <summary>
@@ -44,29 +44,16 @@ public sealed class ForecastUpdateConsumer :
             var projectId = entry.ProjectId!.Value;
 
             // Resolve Role
-            var roleMapping = await _billingDb.EmployeeRoles
-                .Where(r => r.TenantId == ev.TenantId && r.EmployeeId == ev.EmployeeId &&
-                            (r.ProjectId == null || r.ProjectId == projectId) &&
-                            r.EffectiveFrom <= entry.Date && (r.EffectiveTo == null || r.EffectiveTo >= entry.Date))
-                .OrderByDescending(r => r.ProjectId)
-                .FirstOrDefaultAsync(context.CancellationToken);
+            var roleId = await _billingReadService.GetEmployeeRoleIdAsync(ev.TenantId, ev.EmployeeId, projectId, entry.Date, context.CancellationToken);
 
-            if (roleMapping == null) continue;
+            if (roleId == null) continue;
 
-            // Resolve Contract and Rate
-            var contract = await _billingDb.Contracts
-                .Include(c => c.RateCards)
-                .Where(c => c.TenantId == ev.TenantId && c.ProjectId == projectId && c.IsActive)
-                .FirstOrDefaultAsync(context.CancellationToken);
+            // Resolve Rate
+            var rate = await _billingReadService.ResolveRateAsync(ev.TenantId, projectId, roleId.Value, entry.Date, context.CancellationToken);
 
-            if (contract == null) continue;
+            if (rate == null) continue;
 
-            try
-            {
-                var rate = contract.ResolveRate(roleMapping.RoleId, entry.Date);
-                totalProjectedValue += entry.Hours * rate;
-            }
-            catch (InvalidOperationException) { continue; }
+            totalProjectedValue += entry.Hours * rate.Value;
         }
 
         metric.ProjectedRevenue += totalProjectedValue;
@@ -135,22 +122,21 @@ public sealed class ForecastUpdateConsumer :
 
     private async Task UpdateClientProfile(string tenantId, Guid invoiceId, decimal amount, DateTimeOffset paidAt)
     {
-        var invoice = await _billingDb.Invoices
-            .FirstOrDefaultAsync(i => i.Id == invoiceId);
+        var invoiceDetails = await _billingReadService.GetInvoiceFinalizedDetailsAsync(invoiceId, default);
 
-        if (invoice == null || invoice.FinalizedAt == null) return;
+        if (invoiceDetails == null || invoiceDetails.FinalizedAt == null) return;
 
         var profile = await _db.ClientPaymentProfiles
-            .FirstOrDefaultAsync(p => p.TenantId == tenantId && p.ClientId == invoice.ClientId);
+            .FirstOrDefaultAsync(p => p.TenantId == tenantId && p.ClientId == invoiceDetails.ClientId);
 
         if (profile == null)
         {
-            profile = new ClientPaymentProfile { TenantId = tenantId, ClientId = invoice.ClientId };
+            profile = new ClientPaymentProfile { TenantId = tenantId, ClientId = invoiceDetails.ClientId };
             _db.ClientPaymentProfiles.Add(profile);
         }
 
         // Calculate days taken to pay this installment
-        var daysToPay = (paidAt - invoice.FinalizedAt.Value).Days;
+        var daysToPay = (paidAt - invoiceDetails.FinalizedAt.Value).Days;
 
         // Update Running Average: (OldAvg * Count + NewVal) / (Count + 1)
         profile.AverageDaysToPay = (profile.AverageDaysToPay * profile.TotalInvoicesPaid + daysToPay) / (profile.TotalInvoicesPaid + 1);

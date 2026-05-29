@@ -33,14 +33,19 @@ services:
 
   redis:
     image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
 
   seq:
     image: datalust/seq:latest
@@ -49,6 +54,11 @@ services:
       - "8081:80"
     environment:
       - ACCEPT_EULA=Y
+      # Local dev: no auth so the durable volume can initialise on first run.
+      # Production must set SEQ_FIRSTRUN_ADMINPASSWORD instead.
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
+    volumes:
+      - seq-data:/data
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -66,6 +76,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
     ports:
       - "9090:9090"
 
@@ -73,6 +84,8 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
 
@@ -91,3 +104,8 @@ services:
 
 volumes:
   sqlserver-data:
+  redis-data:
+  rabbitmq-data:
+  seq-data:
+  prometheus-data:
+  grafana-data:

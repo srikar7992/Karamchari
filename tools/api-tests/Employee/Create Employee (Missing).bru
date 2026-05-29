@@ -1,0 +1,28 @@
+meta {
+  name: Create Employee (Missing)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/hr/employees
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "email": "john.doe@karamchari.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "departmentId": "4a180121-1234-4bc1-bf11-444444444444"
+  }
+}
+
+# NOTE: This endpoint is currently MISSING from the REST API scaffold.
+# Domain onboarding logic exists inside `IEmployeeService.OnboardEmployeeAsync`.
+# This is a placeholder showing the suggested request structure once exposed via Minimal APIs.

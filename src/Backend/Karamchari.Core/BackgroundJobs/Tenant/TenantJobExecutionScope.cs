@@ -10,7 +10,7 @@ namespace Karamchari.Core.BackgroundJobs.Tenant;
 /// A scoped container for tenant background job execution.
 /// Manages the restoration and validation of tenant execution context for jobs.
 /// </summary>
-public sealed class TenantJobExecutionScope : IBackgroundTenantScope
+public sealed partial class TenantJobExecutionScope : IBackgroundTenantScope
 {
     /// <summary>
     /// Default maximum age for tenant context before it is considered stale.
@@ -207,11 +207,18 @@ public sealed class TenantJobExecutionScope : IBackgroundTenantScope
         _disposed = true;
         _scope?.Dispose();
 
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug(
-                "Disposing tenant scope for {TenantId}",
-                _envelope.TenantId);
-        }
+        LogDisposingScope(_logger, _envelope.TenantId);
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Debug,
+        Message = "Established tenant job execution scope for {TenantId}, CorrelationId {CorrelationId}")]
+    static partial void LogEstablishedScope(ILogger logger, string tenantId, string correlationId);
+
+    [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Debug,
+        Message = "Disposing tenant scope for {TenantId}")]
+    static partial void LogDisposingScope(ILogger logger, string tenantId);
 }

@@ -10,8 +10,10 @@ processors:
   batch:
 
 exporters:
-  otlp/seq:
-    endpoint: seq:5341
+  # Seq ingests OTLP over HTTP at /ingest/otlp (not gRPC). The collector appends
+  # /v1/traces and /v1/logs to this base endpoint.
+  otlphttp/seq:
+    endpoint: http://seq:5341/ingest/otlp
     tls:
       insecure: true
   prometheus:
@@ -24,7 +26,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/seq]
+      exporters: [otlphttp/seq]
     metrics:
       receivers: [otlp]
       processors: [batch]
@@ -32,4 +34,4 @@ service:
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/seq]
+      exporters: [otlphttp/seq]

@@ -52,7 +52,7 @@ public sealed class EmployeeHistoryEntry : Entity<Guid>
         string? correlationId = null)
     {
         return new EmployeeHistoryEntry(
-            Guid.NewGuid(), employeeId, type, previousValue, newValue,
+            Guid.Empty, employeeId, type, previousValue, newValue,
             effectiveFrom, changedBy, correlationId);
     }
 }

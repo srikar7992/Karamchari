@@ -43,6 +43,18 @@ public sealed class TenantProvisioningService
     }
 
     /// <summary>
+    /// Bootstraps the centralized RLS infrastructure (schema and predicate function).
+    /// Idempotent.
+    /// </summary>
+    public async Task ProvisionRlsInfrastructureAsync()
+    {
+        foreach (var script in RlsScriptGenerator.BuildBootstrapScripts())
+        {
+            await ExecuteScriptAsync(script);
+        }
+    }
+
+    /// <summary>
     /// Provisions the physical schema and security policies for a new tenant.
     /// </summary>
     /// <param name="tenantId">The tenant identifier.</param>
@@ -91,11 +103,23 @@ public sealed class TenantProvisioningService
         var tenantEnvelope = new TenantExecutionEnvelope(tenantId, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), ExecutionSource.Manual, TenantSource.Provisioning);
         var rlsScript = _rlsGenerator.BuildTenantPolicyScript(tenantEnvelope);
 
-        await _dbContext.Database.ExecuteSqlRawAsync(rlsScript);
+        await ExecuteScriptAsync(rlsScript);
 
         if (_logger.IsEnabled(LogLevel.Information))
         {
             _logger.LogInformation("Physical provisioning complete for tenant {TenantId}", tenantId);
+        }
+    }
+
+    private async Task ExecuteScriptAsync(string script)
+    {
+        var batches = script.Split(["\nGO", "\r\nGO", "\nGO\n", "\r\nGO\r\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        foreach (var batch in batches)
+        {
+            if (!string.IsNullOrWhiteSpace(batch))
+            {
+                await _dbContext.Database.ExecuteSqlRawAsync(batch);
+            }
         }
     }
 }
