@@ -20,10 +20,10 @@ This document registers every asynchronous integration event and command used wi
 ### 1. Identity & Provisioning Events
 
 #### Event: `TenantProvisionedIntegrationEvent`
-- **Publisher**: [Karamchari.Api BFF](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Api/BFF/Identity/IdentityEndpoints.cs)
+- **Publisher**: [Karamchari.Api BFF](src/Backend/Karamchari.Api/BFF/Identity/IdentityEndpoints.cs)
 - **Outbox Enabled**: No (directly published to the broker during tenant signup execution)
 - **Exchange**: `Karamchari.Core.Contracts.IntegrationEvents.TenantProvisionedIntegrationEvent`
-- **Consumer**: [TenantProvisionedConsumer](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.HR/Consumers/TenantProvisionedConsumer.cs) (HR, Payroll, and TimeAttendance)
+- **Consumer**: [TenantProvisionedConsumer](src/Backend/Karamchari.HR/Consumers/TenantProvisionedConsumer.cs) (HR, Payroll, and TimeAttendance)
 - **Queues**: `tenant-provisioned-consumer-hr`, `tenant-provisioned-consumer-payroll`, `tenant-provisioned-consumer-timeattendance`
 - **Side Effects**: Provisioning service clones master layout metadata and deploys baseline records to the newly created tenant schema.
 
@@ -32,7 +32,7 @@ This document registers every asynchronous integration event and command used wi
 ### 2. Time & Attendance Events
 
 #### Event: `TimesheetApprovedIntegrationEvent`
-- **Publisher**: [Karamchari.TimeAttendance](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.TimeAttendance)
+- **Publisher**: [Karamchari.TimeAttendance](src/Backend/Karamchari.TimeAttendance)
 - **Outbox Enabled**: Yes (`TimeAttendanceDbContext`)
 - **Exchange**: `Karamchari.TimeAttendance.Contracts.TimesheetApprovedIntegrationEvent`
 - **Consumers**: 
@@ -48,30 +48,30 @@ This document registers every asynchronous integration event and command used wi
 ### 3. Payroll Events
 
 #### Event: `SalaryRevisionApprovedIntegrationEvent`
-- **Publisher**: [Karamchari.Payroll](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Payroll)
+- **Publisher**: [Karamchari.Payroll](src/Backend/Karamchari.Payroll)
 - **Outbox Enabled**: Yes (`PayrollDbContext`)
 - **Exchange**: `Karamchari.Payroll.Contracts.SalaryRevisionApprovedIntegrationEvent`
 - **Consumers**:
   - `SalaryRevisionApprovedArrearConsumer` (Payroll context)
-  - [PayrollNotificationConsumer](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Notifications/Consumers/PayrollNotificationConsumer.cs) (Notifications context)
+  - [PayrollNotificationConsumer](src/Backend/Karamchari.Notifications/Consumers/PayrollNotificationConsumer.cs) (Notifications context)
 - **Side Effects**: Computes salary adjustments for backdated periods and registers push/email notification intents.
 
 #### Event: `FnFSettlementApprovedIntegrationEvent`
-- **Publisher**: [Karamchari.Payroll](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Payroll)
+- **Publisher**: [Karamchari.Payroll](src/Backend/Karamchari.Payroll)
 - **Outbox Enabled**: Yes (`PayrollDbContext`)
 - **Exchange**: `Karamchari.Payroll.Contracts.FnFSettlementApprovedIntegrationEvent`
 - **Consumer**: `PayrollNotificationConsumer` (Notifications context)
 - **Side Effects**: Registers final termination payout notification intent for the departing employee.
 
 #### Event: `FnFSettlementDisbursedIntegrationEvent`
-- **Publisher**: [Karamchari.Payroll](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Payroll)
+- **Publisher**: [Karamchari.Payroll](src/Backend/Karamchari.Payroll)
 - **Outbox Enabled**: Yes (`PayrollDbContext`)
 - **Exchange**: `Karamchari.Payroll.Contracts.FnFSettlementDisbursedIntegrationEvent`
 - **Consumer**: `PayrollNotificationConsumer` (Notifications context)
 - **Side Effects**: Notifies the employee that their final settlement has been deposited.
 
 #### Event: `ArrearCalculationApprovedIntegrationEvent`
-- **Publisher**: [Karamchari.Payroll](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Payroll)
+- **Publisher**: [Karamchari.Payroll](src/Backend/Karamchari.Payroll)
 - **Outbox Enabled**: Yes (`PayrollDbContext`)
 - **Exchange**: `Karamchari.Payroll.Contracts.ArrearCalculationApprovedIntegrationEvent`
 - **Consumers**:
@@ -80,7 +80,7 @@ This document registers every asynchronous integration event and command used wi
 - **Side Effects**: Appends approved arrear values to the next active payroll batch run.
 
 #### Event: `ReimbursementApprovedIntegrationEvent`
-- **Publisher**: [Karamchari.Payroll](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Payroll)
+- **Publisher**: [Karamchari.Payroll](src/Backend/Karamchari.Payroll)
 - **Outbox Enabled**: Yes (`PayrollDbContext`)
 - **Exchange**: `Karamchari.Payroll.Contracts.ReimbursementApprovedIntegrationEvent`
 - **Consumer**: `PayrollNotificationConsumer` (Notifications context)
@@ -91,14 +91,14 @@ This document registers every asynchronous integration event and command used wi
 ### 4. Performance & OKR Events
 
 #### Event: `GoalCycleActivatedIntegrationEvent`
-- **Publisher**: [Karamchari.Performance](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Performance)
+- **Publisher**: [Karamchari.Performance](src/Backend/Karamchari.Performance)
 - **Outbox Enabled**: Yes (`PerformanceDbContext`)
 - **Exchange**: `Karamchari.Performance.Contracts.GoalCycleActivatedIntegrationEvent`
-- **Consumer**: [GoalCycleActivatedConsumer](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Notifications/Consumers/GoalCycleActivatedConsumer.cs) (Notifications context)
+- **Consumer**: [GoalCycleActivatedConsumer](src/Backend/Karamchari.Notifications/Consumers/GoalCycleActivatedConsumer.cs) (Notifications context)
 - **Side Effects**: Sends a notification push requesting all tenant staff to submit their performance goals.
 
 #### Event: `PromotionApprovedIntegrationEvent`
-- **Publisher**: [Karamchari.Performance](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Performance)
+- **Publisher**: [Karamchari.Performance](src/Backend/Karamchari.Performance)
 - **Outbox Enabled**: Yes (`PerformanceDbContext`)
 - **Exchange**: `Karamchari.Performance.Contracts.PromotionApprovedIntegrationEvent`
 - **Consumer**: `PromotionApprovedConsumer` (Notifications context)

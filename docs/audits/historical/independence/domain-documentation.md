@@ -22,8 +22,8 @@ To survive the departure of original architects, each key module must have docum
 
 ### 1. High-Level Architectural Documentation vs Bounded Contexts
 The repository includes high-level architectural documentation:
-- Root-level [README.md](file:///Users/srikarbojji/Projects/Karamchari/README.md) details multi-tenancy, connection handling, schema rewriting, and getting started steps.
-- Extensive Architecture Decision Records (ADRs) exist under [docs/adr/](file:///Users/srikarbojji/Projects/Karamchari/docs/adr) detailing patterns like Row-Level Security, K-Formula execution, and BFF routing.
+- Root-level [README.md](README.md) details multi-tenancy, connection handling, schema rewriting, and getting started steps.
+- Extensive Architecture Decision Records (ADRs) exist under [docs/adr/](docs/adr) detailing patterns like Row-Level Security, K-Formula execution, and BFF routing.
 
 ### 2. Complete Absence of Bounded Context Documentation
 Despite the high-quality architectural ADRs, there is **zero written domain documentation** explaining the business capabilities of the individual modules. 

@@ -10,14 +10,14 @@ To ensure operational survival, an engineer must have access to clear guides for
 
 | Runbook Concern | Status | Location in Codebase | Repeatability for New Engineer |
 | :--- | :--- | :--- | :--- |
-| **Deploy Guide** | ❌ **Missing** | Skeleton in [.github/workflows/deploy-api.yml](file:///Users/srikarbojji/Projects/Karamchari/.github/workflows/deploy-api.yml) (Azure deployment steps are commented out). | **Low**: A developer must manually configure ACR, Bicep parameter values, and App Service bindings. |
+| **Deploy Guide** | ❌ **Missing** | Skeleton in [.github/workflows/deploy-api.yml](.github/workflows/deploy-api.yml) (Azure deployment steps are commented out). | **Low**: A developer must manually configure ACR, Bicep parameter values, and App Service bindings. |
 | **Rollback Guide** | ❌ **Missing** | None. | **Low**: No strategy for database migrations revert or blue-green container routing. |
 | **Recovery Guide** | ❌ **Missing** | None. | **Medium**: Relies on docker-compose local files, but lacks production backup/restore steps. |
-| **RabbitMQ Guide** | ❌ **Missing** | Mentioned in [README-LOCAL.md](file:///Users/srikarbojji/Projects/Karamchari/docs/development/local-setup/README.md) for local access. | **Medium**: Local troubleshooting is simple, but lacks production scale/clustering guidelines. |
+| **RabbitMQ Guide** | ❌ **Missing** | Mentioned in [README-LOCAL.md](docs/development/local-setup/README.md) for local access. | **Medium**: Local troubleshooting is simple, but lacks production scale/clustering guidelines. |
 | **Redis Guide** | ❌ **Missing** | None. | **Low**: No guidelines for cache eviction, redis cluster recovery, or connection tuning. |
 | **SQL Migrations** | ❌ **Missing** | EF migrations folders in bounded contexts. | **High**: Standard EF Core CLI migrations pattern is followed. |
 | **Tenant Provisioning**| ❌ **Missing** | Code logic in `TenantProvisioningService.cs` and API flag `--provision-dev-tenants`. | **High**: Execution of CLI switches is scripted. |
-| **Auth Setup / Keys** | ❌ **Missing** | Developer tokens referenced in [docs/startup-sequence.md](file:///Users/srikarbojji/Projects/Karamchari/docs/architecture/startup-sequence.md). | **Medium**: Key validation relies on standard ASP.NET Core Identity. |
+| **Auth Setup / Keys** | ❌ **Missing** | Developer tokens referenced in [docs/startup-sequence.md](docs/architecture/startup-sequence.md). | **Medium**: Key validation relies on standard ASP.NET Core Identity. |
 | **Outbox Monitoring** | ❌ **Missing** | Mentions in `OutboxRelayDbContext` registry. | **Low**: Tracing stuck outbox messages requires database-level querying without a dedicated dashboard. |
 | **Worker Scaling** | ❌ **Missing** | `Karamchari.Worker` project code. | **Medium**: Can be run as a Docker container, but lacks auto-scaling guidelines. |
 
@@ -56,7 +56,7 @@ Production database schema migrations must be applied using EF Core bundles or c
 To provision a new tenant (e.g., `tenant_neworg`) in production:
 
 #### 1. Trigger API endpoint
-Call the POST `/api/v1/tenants/provision` endpoint (defined in [IdentityEndpoints.cs](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Api/BFF/Identity/IdentityEndpoints.cs) or via the API gateway):
+Call the POST `/api/v1/tenants/provision` endpoint (defined in [IdentityEndpoints.cs](src/Backend/Karamchari.Api/BFF/Identity/IdentityEndpoints.cs) or via the API gateway):
 ```json
 {
   "companyName": "NewOrg Inc",

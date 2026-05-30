@@ -92,6 +92,6 @@ Karamchari uses `.githooks` to enforce validation before check-ins:
 ---
 
 ## 6. Local API Testing
-Local requests and authentication scenarios are stored as a **Bruno** collection under [tools/api-tests/](file:///Users/srikarbojji/Projects/Karamchari/tools/api-tests). 
+Local requests and authentication scenarios are stored as a **Bruno** collection under [tools/api-tests/](tools/api-tests). 
 Open the Bruno desktop client, import the directory, and select the `Local` profile to start executing requests.
 Scalar is also available at `https://localhost:60462/scalar` when the API is running in the `Development` environment.
