@@ -36,15 +36,14 @@ public static class ApprovalEndpoints
 
         if (string.IsNullOrEmpty(tenantId)) return Results.Unauthorized();
 
-        // Query pending step instances matching user's roles
-        var pendingApprovals = await db.Set<WorkflowStepInstance>()
-            .Join(db.WorkflowInstances,
-                s => s.WorkflowInstanceId,
-                i => i.Id,
-                (s, i) => new { s, i })
+        // Query pending step instances matching user's roles. WorkflowStepInstance is an EF
+        // OWNED entity of WorkflowInstance, so it cannot be queried via db.Set<WorkflowStepInstance>()
+        // (throws "Cannot create a DbSet ... owned entity type"). Navigate through the owner.
+        var pendingApprovals = await db.WorkflowInstances
+            .Where(i => i.TenantId == tenantId)
+            .SelectMany(i => i.StepInstances, (i, s) => new { s, i })
             .Where(x => x.s.Status == Karamchari.Core.Domain.Workflows.WorkflowStepStatus.Pending
-                        && roles.Contains(x.s.ApproverRole)
-                        && x.i.TenantId == tenantId)
+                        && roles.Contains(x.s.ApproverRole))
             .Select(x => new ApprovalInboxItem(
                 x.s.Id,
                 x.i.Id,

@@ -15,7 +15,10 @@ public static class TenantEndpoints
     /// </summary>
     public static WebApplication MapTenantEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/tenants", ProvisionTenant);
+        // Tenant provisioning creates schemas and publishes provisioning events — it must
+        // never be anonymous. (Bootstrap provisioning uses TenantProvisioningService directly,
+        // not this endpoint, so requiring auth here does not affect first-run setup.)
+        app.MapPost("/api/tenants", ProvisionTenant).RequireAuthorization();
         return app;
     }
 

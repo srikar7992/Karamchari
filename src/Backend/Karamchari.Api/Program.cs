@@ -69,15 +69,34 @@ builder.Services.AddOpenApi(options =>
         document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
         document.Components.SecuritySchemes["Bearer"] = securityScheme;
 
-        var securityRequirement = new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecuritySchemeReference("Bearer", document),
-                new List<string>()
-            }
-        };
+        // NOTE: security is applied PER-OPERATION below (operation transformer), not globally.
+        // A blanket document.Security would wrongly mark anonymous endpoints (login, register,
+        // refresh, health) as requiring a Bearer token in Scalar.
+        return Task.CompletedTask;
+    });
 
-        document.Security = new List<OpenApiSecurityRequirement> { securityRequirement };
+    // Per-operation security: mark only endpoints that actually require authorization
+    // (RequireAuthorization / [Authorize], and not [AllowAnonymous]) so Scalar shows the
+    // correct lock icon per endpoint. Without this the OpenAPI doc gave no per-endpoint
+    // auth signal — a developer could not tell which endpoints need a token from the doc.
+    options.AddOperationTransformer((operation, context, _) =>
+    {
+        var metadata = context.Description.ActionDescriptor.EndpointMetadata;
+        var requiresAuth =
+            metadata.OfType<Microsoft.AspNetCore.Authorization.IAuthorizeData>().Any()
+            && !metadata.OfType<Microsoft.AspNetCore.Authorization.IAllowAnonymous>().Any();
+
+        if (requiresAuth)
+        {
+            operation.Security = new List<OpenApiSecurityRequirement>
+            {
+                new()
+                {
+                    { new OpenApiSecuritySchemeReference("Bearer"), new List<string>() }
+                }
+            };
+        }
+
         return Task.CompletedTask;
     });
 });
@@ -195,8 +214,15 @@ if (args.Contains("--provision-dev-tenants"))
     // Add other test tenants
     await provisioner.ProvisionTenantAsync("acme", "tenant_acme");
     await provisioner.ProvisionTenantAsync("contoso", "tenant_contoso");
+    await provisioner.ProvisionTenantAsync("globex", "tenant_globex");
 
-    logger.LogInformation("Provisioning complete.");
+    logger.LogInformation("Provisioning complete. Seeding developer users...");
+
+    // Seed documented developer login users (admin@{tenant}.local, etc.) so a new
+    // engineer can authenticate immediately without creating data by hand.
+    await Karamchari.Api.Seeding.DevDataSeeder.SeedAsync(scope.ServiceProvider, logger);
+
+    logger.LogInformation("Provisioning + developer seeding complete.");
     await Serilog.Log.CloseAndFlushAsync();
     // Force a deterministic, successful exit. Returning would dispose the host and
     // its background services, which previously aborted the process with exit 134.
