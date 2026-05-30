@@ -81,7 +81,7 @@ missing-tenant message and **without** establishing `tenant_dev`. The most proba
 the **publish side** — the `EmployeeOnboarded` domain event is published through a path that does **not**
 run `TenantPublishFilter` (the domain-event dispatcher / `IPublishEndpoint` bypassing the bus publish
 filter, or the EF-outbox relay republishing without the original tenant header), so the message reaches
-the Worker **without `TenantMessageHeaderKeys.TenantId`** and the consumer falls back to `system`.
+the Worker **without `ExecutionContextHeaders.TenantId`** and the consumer falls back to `system`.
 
 **Next step to close D1 (NOT yet done):** inspect a live `EmployeeOnboarded` message's headers on RabbitMQ
 to confirm the tenant header is absent; then ensure the publish path stamps it (route the dispatcher
@@ -89,12 +89,16 @@ through `TenantPublishFilter`, or set the header at dispatcher/outbox enqueue ti
 
 ---
 
-## Verdict
-- Durable delivery + restart recovery: **PASS** (recovery correct but ~20–27 s cold — ops note).
-- **Async tenant isolation (D1): CONFIRMED OPEN / HIGH.** Two necessary fixes landed (consume-filter
-  wiring + ambient-context honour); a third (publish-side tenant header) remains. **NOT closed** — runtime
-  still writes async data to `dbo`/`system`.
-- Idempotency table (D2): **OPEN** (`IdempotentRequests` missing).
-- Poison/DLQ, outbox replay, broker-restart event flow: **NOT PROVEN** — not yet executed.
+## Verdict (updated 2026-05-30 after D1 fix + independent re-verification)
+- Durable delivery + restart recovery: **PASS** (recovery correct but ~24 s cold — ops note).
+- **Async tenant isolation (D1): CLOSED — VERIFIED FIXED.** The publish-side root cause (EF-outbox
+  bypassing bus filters) was fixed via the generic `TenantPublishFilter<T>` (runs at outbox capture),
+  built into fresh containers, deployed, and re-verified at runtime: wire message now carries
+  `MT-Tenant-Id`; concurrent `dev`/`acme`/`contoso` async side-effects land in their own `tenant_*`
+  schemas with correct `TenantId`, **zero new `dbo`/`system` rows**, no poison queues. Evidence:
+  `docs/audits/final-certification/ASYNC_CERTIFICATION.md`.
+- Idempotency table (D2): **OPEN** (`IdempotentRequests` missing) — MEDIUM, see below.
+- Poison/DLQ, outbox replay, broker-restart event flow: **NOT PROVEN** — routed to CHAOS_CERTIFICATION.
 
-**Worker Survivability verdict: NOT CERTIFIED** — a HIGH async tenant-isolation defect is open and reproduced at runtime.
+**Worker Survivability verdict: CONDITIONALLY CERTIFIED** — the HIGH async tenant-isolation defect (D1)
+is resolved and re-verified at runtime. Remaining items are D2 (MEDIUM) and chaos scenarios (NOT PROVEN).

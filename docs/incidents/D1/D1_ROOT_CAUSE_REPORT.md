@@ -34,7 +34,7 @@ applied to the EF outbox's own delivery pipeline.** Proven: with a real publish,
 single line (not even the `null`-context warning), and the wire message carried no tenant headers.
 
 Consequently:
-- The message is emitted **without `TenantMessageHeaderKeys.TenantId`**.
+- The message is emitted **without `ExecutionContextHeaders.TenantId`**.
 - The Worker's `TenantConsumeFilter` has nothing to extract → no ambient `TenantExecutionContext`.
 - `HttpTenantProvider` (no HTTP context in the Worker) returns the `system`/`dbo` fallback.
 - The schema interceptor writes to `dbo`; the row is stamped `TenantId=system`.
@@ -69,4 +69,21 @@ D1 is CLOSED only when, with runtime evidence: tenant `dev`/`acme`/`contoso` eac
 HTTP → outbox → RabbitMQ → Worker → persistence, including concurrent multi-tenant, duplicate delivery,
 and worker/broker restart.
 
-## Current verdict: **ROOT CAUSE IDENTIFIED** (not yet fixed). D1 remains **OPEN / HIGH**.
+## Current verdict: **CLOSED — VERIFIED FIXED** (2026-05-30, independent re-verification)
+
+The publish-side fix (generic `TenantPublishFilter<T>` running at EF-outbox capture) was built into fresh
+containers (API `3d47a2d7…`, Worker `d90fea0e…`), deployed, and re-verified at runtime against all closure
+criteria above:
+- Wire: the `EmployeeOnboarded` RabbitMQ message now carries `MT-Tenant-Id=dev` + signed
+  `MT-Execution-Envelope` (was `['MT-Activity-Id','publishId']` only — the exact loss point).
+- DB: concurrent `dev`/`acme`/`contoso` onboards landed `PayrollProfiles` in `tenant_dev`(2)/`tenant_acme`(1)/`tenant_contoso`(1),
+  each stamped with its own `TenantId`; **`dbo` unchanged at 7 (old `system` leak), 0 new rows**; no
+  `_error`/`_skipped` queues.
+- Worker restart + durable queue: parked message survived worker stop/start and consumed into `tenant_dev`.
+
+Full evidence: `docs/audits/final-certification/ASYNC_CERTIFICATION.md`
+(repro: `scripts/runtime/d1-wire-proof.sh`, `scripts/runtime/d1-e2e-proof.sh`).
+
+Remaining lower-severity async items (duplicate-delivery, broker-restart event flow, outbox crash replay)
+are routed to CHAOS_CERTIFICATION. Data-cleanup of the 7 historical `dbo`/`system` rows is a follow-up,
+not a blocker.
