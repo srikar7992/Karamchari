@@ -1,4 +1,5 @@
 using Karamchari.Billing.DependencyInjection;
+using Karamchari.Core.Messaging.Tenant;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Compensation.DependencyInjection;
 using Karamchari.Forecasting.DependencyInjection;
@@ -31,6 +32,22 @@ public static class WorkerServiceCollectionExtensions
         IConfiguration configuration,
         IHostEnvironment environment)
     {
+        // Register module-level database contexts and services
+        new WorkflowModule(configuration).RegisterServices(services);
+        new NotificationsModule(configuration).RegisterServices(services);
+        new HRModule(configuration).RegisterServices(services);
+        new TimeAttendanceModule(configuration).RegisterServices(services);
+        new PayrollModule(configuration).RegisterServices(services);
+        new RecruitmentModule(configuration).RegisterServices(services);
+        new PerformanceModule(configuration).RegisterServices(services);
+        new PSAModule(configuration).RegisterServices(services);
+        new CapabilityModule(configuration).RegisterServices(services);
+        new IntelligenceModule(configuration).RegisterServices(services);
+        new GovernanceModule(configuration).RegisterServices(services);
+        new ForecastingModule(configuration).RegisterServices(services);
+        new CompensationModule(configuration).RegisterServices(services);
+        new BillingModule(configuration).RegisterServices(services);
+
         services.AddMassTransit(x =>
         {
             // 1. High Priority (Payroll & HR)
@@ -55,8 +72,17 @@ public static class WorkerServiceCollectionExtensions
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(rabbitMqConnection);
-                    
-                    // Future: Split into different receive endpoints per priority
+
+                    // CRITICAL: restore tenant execution context from message headers BEFORE
+                    // consumers run, so the schema/RLS interceptors target the originating
+                    // tenant's schema. Without this, consumed events fall back to the "system"
+                    // tenant and write to the [dbo] template schema (cross-tenant data leak +
+                    // the tenant's own schema never receives the side effect). Mirrors the API.
+                    cfg.UseConsumeFilter<TenantConsumeFilter>(context);
+                    cfg.UsePublishFilter<TenantPublishFilter>(context);
+                    cfg.UseSendFilter<TenantSendFilter>(context);
+                    cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+
                     cfg.ConfigureEndpoints(context);
                 });
             }
@@ -64,6 +90,9 @@ public static class WorkerServiceCollectionExtensions
             {
                 x.UsingInMemory((context, cfg) =>
                 {
+                    cfg.UseConsumeFilter<TenantConsumeFilter>(context);
+                    cfg.UsePublishFilter<TenantPublishFilter>(context);
+                    cfg.UseSendFilter<TenantSendFilter>(context);
                     cfg.ConfigureEndpoints(context);
                 });
             }

@@ -64,14 +64,24 @@ internal sealed partial class HttpTenantProvider : ITenantProvider
         
         if (httpContext == null)
         {
-            // Fallback for system tasks like migrations and provisioning.
-            // We use 'dbo' as the schema name so that migrations create template tables
-            // that the TenantProvisioningService can then clone into tenant schemas.
+            // Outside an HTTP request (message consumers in the Worker, background jobs),
+            // honour the ambient tenant execution context that the MassTransit consume filter
+            // / job middleware establishes from the message headers. Without this, async
+            // consumers would silently fall back to the 'system'/'dbo' context and write the
+            // originating tenant's data into the shared template schema (isolation + correctness
+            // defect). Only when no ambient context exists (true system tasks such as migrations
+            // and provisioning) do we use the 'dbo' template context.
+            var ambient = Execution.TenantExecutionContext.Current;
+            if (ambient is not null)
+            {
+                return ambient.Envelope;
+            }
+
             return new TenantExecutionEnvelope(
-                "system", 
-                Guid.NewGuid().ToString("N"), 
-                "dbo", 
-                ExecutionSource.Test, 
+                "system",
+                Guid.NewGuid().ToString("N"),
+                "dbo",
+                ExecutionSource.Test,
                 TenantSource.TrustedHeader);
         }
 
