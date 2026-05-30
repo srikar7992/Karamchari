@@ -92,7 +92,10 @@ public sealed partial class RlsSessionContextInterceptor : DbConnectionIntercept
     private static DbCommand CreateSetSessionContextCommand(DbConnection connection, string tenantId)
     {
         var cmd = connection.CreateCommand();
-        cmd.CommandText = "EXEC sp_set_session_context @key = @key, @value = @value, @read_only = 1;";
+        // Set the session context for RLS. We don't use @read_only=1 here to allow
+        // connection reuse in scenarios where the context might be re-initialized
+        // (e.g. nested scopes or pooling edge cases).
+        cmd.CommandText = "EXEC sp_set_session_context @key = @key, @value = @value;";
         cmd.CommandType = CommandType.Text;
 
         var keyParam = cmd.CreateParameter();

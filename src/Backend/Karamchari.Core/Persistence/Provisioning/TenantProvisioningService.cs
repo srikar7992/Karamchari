@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 public sealed class TenantProvisioningService
 {
     private readonly DbContext _dbContext;
-    private readonly ITenantTableRegistry _tableRegistry;
+    private readonly ITenantModelDiscoveryService _discoveryService;
     private readonly RlsScriptGenerator _rlsGenerator;
     private readonly IEnumerable<ITenantPostProvisioningTask> _postProvisioningTasks;
     private readonly ILogger<TenantProvisioningService> _logger;
@@ -20,23 +20,21 @@ public sealed class TenantProvisioningService
     /// Initializes a new instance of the <see cref="TenantProvisioningService"/> class.
     /// </summary>
     /// <param name="dbContext">The database context used for administrative DDL operations.</param>
-    /// <param name="tableRegistry">The registry of all tenant-owned tables across all modules.</param>
+    /// <param name="discoveryService">The tenant model discovery service.</param>
     /// <param name="rlsGenerator">The generator for RLS policy scripts.</param>
     /// <param name="postProvisioningTasks">
     /// Bounded-context tasks that run after table cloning to apply indexes and constraints.
-    /// <c>SELECT * INTO</c> does not copy indexes, so each bounded context registers its
-    /// critical indexes here via <see cref="ITenantPostProvisioningTask"/>.
     /// </param>
     /// <param name="logger">The logger.</param>
     public TenantProvisioningService(
         DbContext dbContext,
-        ITenantTableRegistry tableRegistry,
+        ITenantModelDiscoveryService discoveryService,
         RlsScriptGenerator rlsGenerator,
         IEnumerable<ITenantPostProvisioningTask> postProvisioningTasks,
         ILogger<TenantProvisioningService> logger)
     {
         _dbContext = dbContext;
-        _tableRegistry = tableRegistry;
+        _discoveryService = discoveryService;
         _rlsGenerator = rlsGenerator;
         _postProvisioningTasks = postProvisioningTasks;
         _logger = logger;
@@ -64,51 +62,112 @@ public sealed class TenantProvisioningService
     {
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("Starting physical provisioning for tenant {TenantId} (Schema: {SchemaName})", tenantId, schemaName);
+            _logger.LogInformation("Starting discovery-driven provisioning for tenant {TenantId} (Schema: {SchemaName})", tenantId, schemaName);
         }
 
-        // 1. Create the Schema
-        // We use dynamic SQL because schema names cannot be parameterized. 
-        // Boundary validation is performed by the caller and within RlsScriptGenerator.
+        // 1. Discover Artifacts
+        // EF Core model is the single source of truth.
+        var artifacts = _discoveryService.Discover();
+        if (artifacts.Count == 0)
+        {
+            throw new InvalidOperationException("No tenant artifacts discovered. Provisioning aborted.");
+        }
+
+        // 2. Create the Schema
 #pragma warning disable EF1002 // SQL injection: schemaName is validated at the API boundary
         await _dbContext.Database.ExecuteSqlRawAsync($"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '{schemaName}') EXEC('CREATE SCHEMA [{schemaName}]')");
 #pragma warning restore EF1002
 
-        // 2. Clone Table Structures
-        // In this architecture, 'dbo' serves as the template schema. 
-        // We clone every registered tenant table into the new schema.
-        foreach (var table in _tableRegistry.Tables)
+        // 3. Clone Table Structures
+        foreach (var artifact in artifacts)
         {
-            var checkExists = $"SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = '{schemaName}' AND t.name = '{table.TableName}'";
-            var cloneSql = $"SELECT * INTO [{schemaName}].[{table.TableName}] FROM [dbo].[{table.TableName}] WHERE 1=0";
+            var checkExists = $"SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = '{schemaName}' AND t.name = '{artifact.TableName}'";
+            var cloneSql = $"SELECT * INTO [{schemaName}].[{artifact.TableName}] FROM [dbo].[{artifact.TableName}] WHERE 1=0";
 
-            // Note: In a production app, we would use a more robust migration tool to copy indexes and constraints.
 #pragma warning disable EF1002
             await _dbContext.Database.ExecuteSqlRawAsync($"IF NOT EXISTS ({checkExists}) {cloneSql}");
 #pragma warning restore EF1002
         }
 
-        // 3. Apply bounded-context indexes and constraints.
-        // SELECT * INTO copies column structure but NOT indexes or constraints.
-        // Each bounded context registers ITenantPostProvisioningTask implementations
-        // that apply its critical indexes to the new schema. All tasks are idempotent.
+        // 4. Apply bounded-context indexes and constraints.
         foreach (var task in _postProvisioningTasks)
         {
             await task.ExecuteAsync(schemaName, _dbContext, cancellationToken: default);
         }
 
-        // 4. Apply RLS Policies.
-        // This ensures the new schema is immediately protected by the centralized security function.
-        // RLS is applied last so that FILTER and BLOCK predicates cover fully-indexed tables.
+        // 5. Apply RLS Policies.
         var tenantEnvelope = new TenantExecutionEnvelope(tenantId, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), ExecutionSource.Manual, TenantSource.Provisioning);
         var rlsScript = _rlsGenerator.BuildTenantPolicyScript(tenantEnvelope);
 
         await ExecuteScriptAsync(rlsScript);
 
+        // 6. Artifact Set Verification
+        await VerifyProvisioningAsync(schemaName, artifacts);
+
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("Physical provisioning complete for tenant {TenantId}", tenantId);
+            _logger.LogInformation("Physical provisioning complete and verified for tenant {TenantId}", tenantId);
         }
+    }
+
+    private async Task VerifyProvisioningAsync(string schemaName, IReadOnlyCollection<TenantRelationalArtifact> expected)
+    {
+        // 1. Verify Table Existence (Artifact Set Verification)
+        var actualTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        
+        using var command = _dbContext.Database.GetDbConnection().CreateCommand();
+        command.CommandText = $"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{schemaName}'";
+        
+        if (command.Connection!.State != System.Data.ConnectionState.Open)
+        {
+            await command.Connection.OpenAsync();
+        }
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            actualTables.Add(reader.GetString(0));
+        }
+
+        var expectedTables = expected.Select(a => a.TableName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        
+        var missing = expectedTables.Except(actualTables).ToList();
+        if (missing.Count > 0)
+        {
+            var missingList = string.Join(", ", missing);
+            _logger.LogError("Provisioning verification failed for schema {SchemaName}. Missing tables: {MissingTables}", schemaName, missingList);
+            throw new InvalidOperationException($"Provisioning verification failed for schema {schemaName}. Missing tables: {missingList}");
+        }
+
+        // 2. Verify Relational Artifact Equality (Amendment 1)
+        // We compare the schema of the new tenant tables against the 'dbo' template.
+        foreach (var table in expectedTables)
+        {
+            using var columnCommand = _dbContext.Database.GetDbConnection().CreateCommand();
+            columnCommand.CommandText = $@"
+                SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_NAME = '{table}' AND TABLE_SCHEMA = '{schemaName}'
+                EXCEPT
+                SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_NAME = '{table}' AND TABLE_SCHEMA = 'dbo'";
+
+            var diffCount = 0;
+            using var diffReader = await columnCommand.ExecuteReaderAsync();
+            while (await diffReader.ReadAsync())
+            {
+                diffCount++;
+                _logger.LogWarning("Artifact Inequality detected in {Schema}.{Table}: Column {Column} differs from template.", schemaName, table, diffReader.GetString(0));
+            }
+
+            if (diffCount > 0)
+            {
+                throw new InvalidOperationException($"Relational artifact equality failed for {schemaName}.{table}. Schema differs from 'dbo' template.");
+            }
+        }
+
+        _logger.LogInformation("Artifact Equality Certified for schema {SchemaName}: {Count} artifacts verified.", schemaName, expectedTables.Count);
     }
 
     private async Task ExecuteScriptAsync(string script)

@@ -2,6 +2,7 @@ using Karamchari.Billing.DependencyInjection;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Compensation.DependencyInjection;
 using Karamchari.Core.DependencyInjection;
+using Karamchari.DataMigration.DependencyInjection;
 using Karamchari.FinancialOps.DependencyInjection;
 using Karamchari.Forecasting.DependencyInjection;
 using Karamchari.Governance.DependencyInjection;
@@ -27,6 +28,7 @@ public static class CapabilityRegistry
             // Foundation
             new WorkflowModule(configuration),
             new NotificationsModule(configuration),
+            new DataMigrationModule(configuration),
             
             // Workforce Ops
             new HRModule(configuration),

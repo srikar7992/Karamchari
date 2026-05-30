@@ -4,8 +4,8 @@ namespace Karamchari.Core.Persistence.Provisioning;
 
 /// <summary>
 /// Describes a tenant-owned table that participates in Row-Level Security.
-/// Bounded contexts register their tables via <see cref="ITenantTableRegistry"/>;
-/// the registry is consumed by <c>RlsScriptGenerator</c> at tenant provisioning time.
+/// Artifacts are discovered via <see cref="ITenantModelDiscoveryService"/>;
+/// the discovery result is consumed by <c>RlsScriptGenerator</c> at tenant provisioning time.
 ///
 /// We don't carry the schema name here Ã¢â‚¬â€ every tenant table lives under the
 /// active tenant's schema, derived per-tenant during provisioning.

@@ -39,8 +39,8 @@ public sealed class PermissionHandler : AuthorizationHandler<PermissionRequireme
             return Task.CompletedTask;
         }
 
-        // TenantAdmin bypasses all permission checks within their tenant
-        if (executionContext.HasRole(Roles.TenantAdmin))
+        // Admin bypasses all permission checks within their tenant
+        if (executionContext.HasRole(Roles.Admin))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;

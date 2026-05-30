@@ -1,0 +1,14 @@
+Employee Number,Component,Amount,Frequency
+EMP001,Basic,30000,Monthly
+EMP001,HRA,12000,Monthly
+EMP001,Transport Allowance,1600,Monthly
+EMP002,Basic,45000,Monthly
+EMP002,HRA,18000,Monthly
+EMP002,Transport Allowance,1600,Monthly
+EMP002,Special Allowance,5000,Monthly
+EMP003,Basic,50000,Monthly
+EMP003,HRA,20000,Monthly
+EMP004,Basic,60000,Monthly
+EMP004,HRA,24000,Monthly
+EMP005,Basic,35000,Monthly
+EMP005,HRA,14000,Monthly

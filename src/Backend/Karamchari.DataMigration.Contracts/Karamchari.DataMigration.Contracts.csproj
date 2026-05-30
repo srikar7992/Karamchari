@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Karamchari.DataMigration.Contracts — Integration events and public DTOs
+    for the Data Migration bounded context.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.DataMigration.Contracts</RootNamespace>
+    <AssemblyName>Karamchari.DataMigration.Contracts</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

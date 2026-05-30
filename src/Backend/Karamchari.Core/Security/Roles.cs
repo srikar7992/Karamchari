@@ -6,19 +6,17 @@ namespace Karamchari.Core.Security;
 public static class Roles
 {
     public const string SuperAdmin = "SuperAdmin";
-    public const string TenantAdmin = "TenantAdmin";
-    public const string HRManager = "HRManager";
-    public const string PayrollManager = "PayrollManager";
-    public const string Approver = "Approver";
+    public const string Admin = "Admin";
+    public const string Manager = "Manager";
     public const string Employee = "Employee";
+    public const string ReadOnly = "ReadOnly";
 
     public static readonly IReadOnlySet<string> All = new HashSet<string>
     {
         SuperAdmin,
-        TenantAdmin,
-        HRManager,
-        PayrollManager,
-        Approver,
-        Employee
+        Admin,
+        Manager,
+        Employee,
+        ReadOnly
     };
 }

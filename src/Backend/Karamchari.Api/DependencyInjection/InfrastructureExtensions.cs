@@ -119,15 +119,6 @@ public static class InfrastructureExtensions
         services.AddSignalR();
         services.AddScoped<INotificationPushService, HubNotificationPushService>();
 
-        // Provisioning Service Registration (Standardized)
-        services.AddScoped<Karamchari.Core.Persistence.Provisioning.TenantProvisioningService>(sp =>
-            new Karamchari.Core.Persistence.Provisioning.TenantProvisioningService(
-                sp.GetRequiredService<HRDbContext>(),
-                sp.GetRequiredService<Karamchari.Core.Persistence.Provisioning.ITenantTableRegistry>(),
-                sp.GetRequiredService<Karamchari.Core.Persistence.Provisioning.RlsScriptGenerator>(),
-                sp.GetRequiredService<IEnumerable<Karamchari.Core.Persistence.Provisioning.ITenantPostProvisioningTask>>(),
-                sp.GetRequiredService<ILogger<Karamchari.Core.Persistence.Provisioning.TenantProvisioningService>>()));
-
         return services;
     }
 }

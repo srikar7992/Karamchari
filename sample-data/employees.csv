@@ -1,0 +1,9 @@
+Employee Number,First Name,Last Name,Email,Department,Designation,Manager Employee Number,Date Of Joining,Employment Type
+EMP001,Alice,Johnson,alice.johnson@acme.com,Engineering,Software Engineer,,2023-01-15,Full-Time
+EMP002,Bob,Smith,bob.smith@acme.com,Engineering,Senior Engineer,EMP001,2022-06-01,Full-Time
+EMP003,Carol,Williams,carol.williams@acme.com,HR,HR Manager,,2021-03-10,Full-Time
+EMP004,David,Brown,david.brown@acme.com,Engineering,Tech Lead,EMP002,2020-09-01,Full-Time
+EMP005,Eva,Davis,eva.davis@acme.com,Finance,Finance Analyst,,2023-07-20,Full-Time
+EMP006,Frank,Miller,frank.miller@acme.com,Engineering,Software Engineer,EMP002,2024-01-08,Full-Time
+EMP007,Grace,Wilson,grace.wilson@acme.com,HR,Recruiter,EMP003,2023-11-01,Full-Time
+EMP008,Henry,Moore,henry.moore@acme.com,Engineering,QA Engineer,EMP004,2022-04-15,Contract

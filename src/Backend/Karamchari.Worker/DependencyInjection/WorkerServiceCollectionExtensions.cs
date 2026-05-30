@@ -2,6 +2,7 @@ using Karamchari.Billing.DependencyInjection;
 using Karamchari.Core.Messaging.Tenant;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Compensation.DependencyInjection;
+using Karamchari.DataMigration.DependencyInjection;
 using Karamchari.Forecasting.DependencyInjection;
 using Karamchari.Governance.DependencyInjection;
 using Karamchari.HR.DependencyInjection;
@@ -35,6 +36,7 @@ public static class WorkerServiceCollectionExtensions
         // Register module-level database contexts and services
         new WorkflowModule(configuration).RegisterServices(services);
         new NotificationsModule(configuration).RegisterServices(services);
+        new DataMigrationModule(configuration).RegisterServices(services);
         new HRModule(configuration).RegisterServices(services);
         new TimeAttendanceModule(configuration).RegisterServices(services);
         new PayrollModule(configuration).RegisterServices(services);
@@ -115,6 +117,7 @@ public static class WorkerServiceCollectionExtensions
     {
         // Coordination logic
         x.AddKaramchariWorkflowConsumers();
+        new DataMigrationModule(null!).RegisterConsumers(x);
     }
 
     private static void RegisterAnalyticsConsumers(IBusRegistrationConfigurator x, IConfiguration cfg)
@@ -136,6 +139,7 @@ public static class WorkerServiceCollectionExtensions
     private static void RegisterOutboxes(IBusRegistrationConfigurator x)
     {
         x.AddEntityFrameworkOutbox<Karamchari.HR.Persistence.HRDbContext>(o => o.UseSqlServer());
+        x.AddEntityFrameworkOutbox<Karamchari.DataMigration.Persistence.DataMigrationDbContext>(o => o.UseSqlServer());
         x.AddEntityFrameworkOutbox<Karamchari.Payroll.Data.PayrollDbContext>(o => o.UseSqlServer());
         x.AddEntityFrameworkOutbox<Karamchari.TimeAttendance.Persistence.TimeAttendanceDbContext>(o => o.UseSqlServer());
         x.AddEntityFrameworkOutbox<Karamchari.PSA.Persistence.PSADbContext>(o => o.UseSqlServer());

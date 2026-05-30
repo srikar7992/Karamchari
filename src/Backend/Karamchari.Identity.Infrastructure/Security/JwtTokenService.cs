@@ -25,14 +25,15 @@ internal sealed class JwtTokenService : IJwtTokenService
     }
 
     /// <summary>Generates an access token for the specified user.</summary>
-    public async Task<string> GenerateAccessTokenAsync(string tenantId, Guid userId, string email, IEnumerable<string> roles, IEnumerable<string> permissions)
+    public async Task<string> GenerateAccessTokenAsync(string tenantId, Guid userId, string email, IEnumerable<string> roles, IEnumerable<string> permissions, string permissionVersion)
     {
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new(JwtRegisteredClaimNames.Email, email),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new("tenant_id", tenantId)
+            new("tenant_id", tenantId),
+            new("permission_version", permissionVersion)
         };
 
         foreach (var role in roles)

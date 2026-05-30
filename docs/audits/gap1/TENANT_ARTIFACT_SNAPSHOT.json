@@ -1,0 +1,1938 @@
+[
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Departments.Department",
+    "Table": "Departments",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Employees.Employee",
+    "Table": "Employees",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Employees.EmployeeHistoryEntry",
+    "Table": "EmployeeHistory",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Organization.Branch",
+    "Table": "Branches",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Organization.BusinessUnit",
+    "Table": "BusinessUnits",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Organization.CostCenter",
+    "Table": "CostCenters",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Organization.Designation",
+    "Table": "Designations",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Organization.LegalEntity",
+    "Table": "LegalEntities",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Organization.Location",
+    "Table": "Locations",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Organization.Position",
+    "Table": "Positions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "Karamchari.HR.Domain.Relationships.EmployeeRelationship",
+    "Table": "EmployeeRelationships",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "HRDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Arrears.ArrearCalculation",
+    "Table": "ArrearCalculations",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Compliance.ComplianceFiling",
+    "Table": "ComplianceFilings",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Compliance.ComplianceSnapshot",
+    "Table": "ComplianceSnapshots",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Corrections.PayrollCorrection",
+    "Table": "PayrollCorrections",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Disbursement.DisbursementBatch",
+    "Table": "DisbursementBatches",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Disbursement.DisbursementEntry",
+    "Table": "DisbursementEntries",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.FnF.FnFLineItem",
+    "Table": "FnFLineItems",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.FnF.FnFSettlement",
+    "Table": "FnFSettlements",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Loans.EmployeeLoan",
+    "Table": "EmployeeLoans",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Loans.LoanInstallment",
+    "Table": "LoanInstallments",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.PayrollDeduction",
+    "Table": "PayrollDeductions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.PayrollLedgerEntry",
+    "Table": "PayrollLedger",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.PayrollProfile",
+    "Table": "PayrollProfiles",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.PayrollSchedule",
+    "Table": "PayrollSchedules",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.PayrollTimesheetLedger",
+    "Table": "PayrollTimesheetLedger",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Reconciliation.ReconciliationJob",
+    "Table": "ReconciliationJobs",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Reimbursements.ReimbursementClaim",
+    "Table": "ReimbursementClaims",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.SalaryRevisions.SalaryRevision",
+    "Table": "SalaryRevisions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.SalaryStructures.SalaryComponent",
+    "Table": "SalaryComponents",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.SalaryStructures.SalaryTemplate",
+    "Table": "SalaryTemplates",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.SalaryStructures.SalaryTemplateComponent",
+    "Table": "SalaryTemplates",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Simulation.PayrollSimulation",
+    "Table": "PayrollSimulations",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Statutory.ITDeclaration",
+    "Table": "ITDeclarations",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.Statutory.ProfessionalTaxSlab",
+    "Table": "ProfessionalTaxSlabs",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.Domain.VariablePay.VariablePayAllocation",
+    "Table": "VariablePayAllocations",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.StateMachines.DisbursementBatchState",
+    "Table": "DisbursementBatchStates",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.StateMachines.FnFSettlementState",
+    "Table": "FnFSettlementStates",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.StateMachines.PayrollCorrectionState",
+    "Table": "PayrollCorrectionStates",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "Karamchari.Payroll.StateMachines.PayrollRunState",
+    "Table": "PayrollRunStates",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "PayrollDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Analytics.ProcessedEventLog",
+    "Table": "Analytics_ProcessedEventLog",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Analytics.ProjectMetrics",
+    "Table": "Analytics_ProjectMetrics",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Attendance.AttendanceAnomaly",
+    "Table": "Workforce_AttendanceAnomalies",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Attendance.AttendanceEvent",
+    "Table": "Workforce_AttendanceEvents",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Attendance.AttendanceEvent.Location#GeoPoint",
+    "Table": "Workforce_AttendanceEvents",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Attendance.AttendanceRecord",
+    "Table": "Workforce_AttendanceRecords",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Attendance.AttendanceSession",
+    "Table": "Workforce_AttendanceSessions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Attendance.AttendanceSession.CheckInLocation#GeoPoint",
+    "Table": "Workforce_AttendanceSessions",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Compliance.AttendancePolicy",
+    "Table": "Workforce_AttendancePolicies",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Compliance.ComplianceRule",
+    "Table": "Workforce_ComplianceRules",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Holidays.Holiday",
+    "Table": "Holidays",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Holidays.HolidayCalendar",
+    "Table": "HolidayCalendars",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Leaves.LeaveBalance",
+    "Table": "LeaveBalances",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Leaves.LeaveBalanceEntry",
+    "Table": "LeaveBalanceEntries",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Leaves.LeavePolicy",
+    "Table": "LeavePolicies",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Leaves.LeavePolicyRules",
+    "Table": "LeavePolicies",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Leaves.LeaveRequest",
+    "Table": "LeaveRequests",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Schedules.ShiftAssignment",
+    "Table": "Workforce_ShiftAssignments",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Schedules.WorkforceSchedule",
+    "Table": "Workforce_Schedules",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Shifts.ShiftDefinition",
+    "Table": "Workforce_ShiftDefinitions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Timesheets.TimeEntry",
+    "Table": "Timesheets",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Timesheets.Timesheet",
+    "Table": "Timesheets",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Domain.Timesheets.TimesheetAuditEntry",
+    "Table": "Timesheets",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "Karamchari.TimeAttendance.Persistence.LeaveBalanceReadModel",
+    "Table": "Projections_LeaveBalances",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "TimeAttendanceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "WorkflowDbContext",
+    "Entity": "Karamchari.Core.Domain.Workflows.WorkflowAuditEntry",
+    "Table": "Workflow_AuditLogs",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "WorkflowDbContext",
+    "Entity": "Karamchari.Workflow.Domain.WorkflowDefinition",
+    "Table": "Workflow_Definitions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "WorkflowDbContext",
+    "Entity": "Karamchari.Workflow.Domain.WorkflowInstance",
+    "Table": "Workflow_Instances",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "WorkflowDbContext",
+    "Entity": "Karamchari.Workflow.Domain.WorkflowStep",
+    "Table": "Workflow_Steps",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "WorkflowDbContext",
+    "Entity": "Karamchari.Workflow.Domain.WorkflowStepInstance",
+    "Table": "Workflow_StepInstances",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "WorkflowDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "WorkflowDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "WorkflowDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Entitlements.CapabilityDefinition",
+    "Table": "Capability_Definitions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Entitlements.TenantCapability",
+    "Table": "Capability_TenantEntitlements",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Growth.GrowthMilestone",
+    "Table": "Capability_GrowthMilestones",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Growth.GrowthPlan",
+    "Table": "Capability_GrowthPlans",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Learning.CertificationAchievement",
+    "Table": "Capability_CertificationAchievements",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Learning.LearningEnrollment",
+    "Table": "Capability_LearningEnrollments",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Learning.LearningModule",
+    "Table": "Capability_LearningModules",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Skills.CapabilityProfile",
+    "Table": "Capability_Profiles",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Skills.SkillDefinition",
+    "Table": "Capability_SkillDefinitions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "Karamchari.Capability.Domain.Skills.VerifiedSkill",
+    "Table": "Capability_VerifiedSkills",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "CapabilityDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.Analytics.ProcessedEventLog",
+    "Table": "Billing_ProcessedEventLog",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.BillableEntries.BillableEntry",
+    "Table": "Billing_BillableEntries",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.Collections.CollectionCase",
+    "Table": "Billing_CollectionCases",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.Collections.CollectionPolicy",
+    "Table": "Billing_CollectionPolicies",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.Contracts.BillingContract",
+    "Table": "Billing_Contracts",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.Contracts.EmployeeRole",
+    "Table": "Billing_EmployeeRoles",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.Contracts.RateCard",
+    "Table": "Billing_RateCards",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.Invoices.Invoice",
+    "Table": "Billing_Invoices",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.Invoices.InvoiceLine",
+    "Table": "Billing_InvoiceLines",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "Karamchari.Billing.Domain.Invoices.Payment",
+    "Table": "Billing_Payments",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "BillingDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "CompensationDbContext",
+    "Entity": "Karamchari.Compensation.Domain.CompensationBand",
+    "Table": "CompensationBands",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CompensationDbContext",
+    "Entity": "Karamchari.Compensation.Domain.CompensationRevision",
+    "Table": "CompensationRevisions",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CompensationDbContext",
+    "Entity": "Karamchari.Compensation.Domain.EmployeeCompensationRecord",
+    "Table": "EmployeeCompensationRecords",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CompensationDbContext",
+    "Entity": "Karamchari.Compensation.Domain.IncrementBudgetPool",
+    "Table": "IncrementBudgetPools",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CompensationDbContext",
+    "Entity": "Karamchari.Compensation.Domain.MeritMatrix",
+    "Table": "MeritMatrices",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CompensationDbContext",
+    "Entity": "Karamchari.Compensation.Domain.MeritMatrixCell",
+    "Table": "MeritMatrixCells",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "CompensationDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "CompensationDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "CompensationDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Ledger.EmployeeAdvance",
+    "Table": "Financial_EmployeeAdvances",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Ledger.EmployeeLoan",
+    "Table": "Financial_EmployeeLoans",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Ledger.FinancialCompensationOperation",
+    "Table": "FinancialCompensations",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Ledger.FinancialFinalizationSnapshot",
+    "Table": "Financial_FinalizationSnapshots",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Ledger.FinancialOperationEvent",
+    "Table": "Financial_OperationEvents",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Ledger.LoanRepaymentEntry",
+    "Table": "Financial_EmployeeLoanRepayments",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Ledger.WorkforceFinancialEntry",
+    "Table": "WorkforceFinancialLedger",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Periods.FinancialOperationalPeriod",
+    "Table": "FinancialOperationalPeriods",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Reimbursements.ExpenseClaim",
+    "Table": "ExpenseClaims",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "Karamchari.FinancialOps.Domain.Settlements.ReimbursementSettlementBatch",
+    "Table": "ReimbursementSettlementBatches",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "FinancialOpsDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "ForecastingDbContext",
+    "Entity": "Karamchari.Forecasting.Domain.ClientPaymentProfile",
+    "Table": "Forecast_ClientPaymentProfiles",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "ForecastingDbContext",
+    "Entity": "Karamchari.Forecasting.Domain.ForecastMetrics",
+    "Table": "Forecast_Metrics",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "ForecastingDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "ForecastingDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "ForecastingDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "GovernanceDbContext",
+    "Entity": "Karamchari.Governance.Domain.Contracts.SchemaDefinition",
+    "Table": "Governance_SchemaDefinitions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "GovernanceDbContext",
+    "Entity": "Karamchari.Governance.Domain.Incidents.OperationalIncident",
+    "Table": "Governance_OperationalIncidents",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "GovernanceDbContext",
+    "Entity": "Karamchari.Governance.Domain.Reliability.ServiceLevelObjective",
+    "Table": "Governance_ServiceLevelObjectives",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "GovernanceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "GovernanceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "GovernanceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IntelligenceDbContext",
+    "Entity": "Karamchari.Intelligence.Domain.Metrics.MetricDefinition",
+    "Table": "Intelligence_MetricDefinitions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "IntelligenceDbContext",
+    "Entity": "Karamchari.Intelligence.Domain.Signals.ExecutiveInsight",
+    "Table": "Strategy_ExecutiveInsights",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "IntelligenceDbContext",
+    "Entity": "Karamchari.Intelligence.Domain.Signals.IntelligenceSignal",
+    "Table": "Intelligence_Signals",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "IntelligenceDbContext",
+    "Entity": "Karamchari.Intelligence.Domain.Signals.OrganizationalHealthSignal",
+    "Table": "Strategy_OrgHealthSignals",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "IntelligenceDbContext",
+    "Entity": "Karamchari.Intelligence.Domain.Signals.StrategicWorkforceScenario",
+    "Table": "Strategy_StrategicScenarios",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "IntelligenceDbContext",
+    "Entity": "Karamchari.Intelligence.Domain.Signals.WorkforceRiskSignal",
+    "Table": "Strategy_WorkforceRiskSignals",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "IntelligenceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IntelligenceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IntelligenceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "NotificationsDbContext",
+    "Entity": "Karamchari.Notifications.Domain.DigestBatch",
+    "Table": "DigestBatches",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "NotificationsDbContext",
+    "Entity": "Karamchari.Notifications.Domain.NotificationDeliveryAttempt",
+    "Table": "NotificationDeliveryAttempts",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "NotificationsDbContext",
+    "Entity": "Karamchari.Notifications.Domain.NotificationMessage",
+    "Table": "NotificationMessages",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "NotificationsDbContext",
+    "Entity": "Karamchari.Notifications.Domain.NotificationTemplate",
+    "Table": "NotificationTemplates",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "NotificationsDbContext",
+    "Entity": "Karamchari.Notifications.Domain.UserNotificationPreference",
+    "Table": "UserNotificationPreferences",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "NotificationsDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "NotificationsDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "NotificationsDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "Karamchari.PSA.Domain.Client",
+    "Table": "PSA_Clients",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "Karamchari.PSA.Domain.ClientProject",
+    "Table": "PSA_Projects",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "Karamchari.PSA.Domain.EmployeeCostSnapshot",
+    "Table": "PSA_EmployeeCostSnapshots",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "Karamchari.PSA.Domain.Invoice",
+    "Table": "PSA_Invoices",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "Karamchari.PSA.Domain.InvoiceLine",
+    "Table": "PSA_Invoices",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "Karamchari.PSA.Domain.ProjectMonthlyMetrics",
+    "Table": "PSA_ProjectMonthlyMetrics",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "Karamchari.PSA.Domain.ProjectProfitLedger",
+    "Table": "PSA_ProfitLedger",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "Karamchari.PSA.Domain.ProjectResource",
+    "Table": "PSA_ProjectResources",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "Karamchari.PSA.Domain.UnbilledRevenue",
+    "Table": "PSA_UnbilledRevenue",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "PSADbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Calibration.CalibrationAdjustmentRecord",
+    "Table": "CalibrationAdjustmentRecords",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Calibration.CalibrationEntry",
+    "Table": "CalibrationEntries",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Calibration.CalibrationPanelMember",
+    "Table": "CalibrationPanelMembers",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Calibration.CalibrationSession",
+    "Table": "CalibrationSessions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Career.CareerFramework",
+    "Table": "CareerFrameworks",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Career.CareerLevel",
+    "Table": "CareerLevels",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Career.CareerTrack",
+    "Table": "CareerTracks",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Career.DevelopmentAction",
+    "Table": "DevelopmentActions",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Career.EmployeeGrowthPlan",
+    "Table": "EmployeeGrowthPlans",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Feedback.FeedbackRequest",
+    "Table": "FeedbackRequests",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Feedback.FeedbackSubmission",
+    "Table": "FeedbackSubmissions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Goals.Goal",
+    "Table": "Goals",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Goals.GoalCycle",
+    "Table": "GoalCycles",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Goals.GoalProgressUpdate",
+    "Table": "GoalProgressUpdates",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Goals.GoalRevisionRecord",
+    "Table": "GoalRevisionRecords",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.KPIs.KPIDefinition",
+    "Table": "KPIDefinitions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.KPIs.KPIResult",
+    "Table": "KPIResults",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.KPIs.KPISnapshot",
+    "Table": "KPISnapshots",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.KPIs.KPIThreshold",
+    "Table": "KPIDefinitions",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.OKRs.KRCheckIn",
+    "Table": "KRCheckIns",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.OKRs.KeyResult",
+    "Table": "KeyResults",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.OKRs.OKRCycle",
+    "Table": "OKRCycles",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.OKRs.Objective",
+    "Table": "Objectives",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Promotions.PromotionApprovalAction",
+    "Table": "PromotionApprovalActions",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Promotions.PromotionRecommendation",
+    "Table": "PromotionRecommendations",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.ReadModels.CalibrationBoardProjection",
+    "Table": "CalibrationBoardProjections",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.ReadModels.EmployeeSkillInventoryItem",
+    "Table": "EmployeeSkillInventoryItems",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.ReadModels.ManagerDashboardProjection",
+    "Table": "ManagerDashboardProjections",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.ReadModels.PerformanceSnapshot",
+    "Table": "PerformanceSnapshots",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.ReadModels.PromotionPipelineItem",
+    "Table": "PromotionPipelineItems",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.ReadModels.ReviewTaskInboxItem",
+    "Table": "ReviewTaskInboxItems",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.ReadModels.TalentHeatmapEntry",
+    "Table": "TalentHeatmapEntries",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.ReadModels.TeamGoalSummary",
+    "Table": "TeamGoalSummaries",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Reporting.ExportJob",
+    "Table": "ExportJobs",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Reviews.ReviewAssignment",
+    "Table": "ReviewAssignments",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Reviews.ReviewCycle",
+    "Table": "ReviewCycles",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Reviews.ReviewResponse",
+    "Table": "ReviewResponses",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Reviews.ReviewSubmission",
+    "Table": "ReviewSubmissions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Reviews.ReviewTemplate",
+    "Table": "ReviewTemplates",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Skills.EmployeeSkillAssessment",
+    "Table": "EmployeeSkillAssessments",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Skills.EmployeeSkillProfile",
+    "Table": "EmployeeSkillProfiles",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Skills.Skill",
+    "Table": "Skills",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Skills.SkillCategory",
+    "Table": "SkillCategories",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "Karamchari.Performance.Domain.Skills.SkillTaxonomy",
+    "Table": "SkillTaxonomies",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "PerformanceDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Candidates.CandidateProfile",
+    "Table": "Recruitment_CandidateProfiles",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Interviews.InterviewFeedback",
+    "Table": "Recruitment_InterviewFeedback",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Interviews.InterviewSession",
+    "Table": "Recruitment_InterviewSessions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Offers.OfferLetter",
+    "Table": "Recruitment_OfferLetters",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Pipelines.CandidateApplication",
+    "Table": "Recruitment_CandidateApplications",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Pipelines.PipelineDefinition",
+    "Table": "Recruitment_PipelineDefinitions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Pipelines.PipelineStage",
+    "Table": "Recruitment_PipelineStages",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Primitives.CompensationRange",
+    "Table": "Recruitment_JobRequisitions",
+    "Schema": "__tenant__",
+    "IsOwned": true,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Requisitions.JobRequisition",
+    "Table": "Recruitment_JobRequisitions",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "Karamchari.Recruitment.Domain.Requisitions.WorkforceDemandSignal",
+    "Table": "WorkforceDemandSignal",
+    "Schema": "__tenant__",
+    "IsOwned": false,
+    "IsTenantScoped": true
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.InboxState",
+    "Table": "InboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxMessage",
+    "Table": "OutboxMessage",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "RecruitmentDbContext",
+    "Entity": "MassTransit.EntityFrameworkCoreIntegration.OutboxState",
+    "Table": "OutboxState",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Karamchari.Identity.Domain.RefreshToken",
+    "Table": "RefreshTokens",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Karamchari.Identity.Domain.RevokedToken",
+    "Table": "RevokedTokens",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Karamchari.Identity.Domain.SecurityAuditEntry",
+    "Table": "SecurityAuditEntries",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Karamchari.Identity.Domain.SigningKeyMetadata",
+    "Table": "SigningKeys",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Microsoft.AspNetCore.Identity.IdentityRole\u003CSystem.Guid\u003E",
+    "Table": "AspNetRoles",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Microsoft.AspNetCore.Identity.IdentityRoleClaim\u003CSystem.Guid\u003E",
+    "Table": "AspNetRoleClaims",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Microsoft.AspNetCore.Identity.IdentityUser\u003CSystem.Guid\u003E",
+    "Table": "AspNetUsers",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Microsoft.AspNetCore.Identity.IdentityUserClaim\u003CSystem.Guid\u003E",
+    "Table": "AspNetUserClaims",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Microsoft.AspNetCore.Identity.IdentityUserLogin\u003CSystem.Guid\u003E",
+    "Table": "AspNetUserLogins",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Microsoft.AspNetCore.Identity.IdentityUserRole\u003CSystem.Guid\u003E",
+    "Table": "AspNetUserRoles",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "IdentityDbContext",
+    "Entity": "Microsoft.AspNetCore.Identity.IdentityUserToken\u003CSystem.Guid\u003E",
+    "Table": "AspNetUserTokens",
+    "Schema": "identity",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "CoreDbContext",
+    "Entity": "Karamchari.Core.Domain.Idempotency.IdempotentRequest",
+    "Table": "IdempotentRequests",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  },
+  {
+    "DbContext": "CoreDbContext",
+    "Entity": "Karamchari.Core.Persistence.Interceptors.AuditLog",
+    "Table": "AuditLogs",
+    "Schema": "dbo",
+    "IsOwned": false,
+    "IsTenantScoped": false
+  }
+]

@@ -26,15 +26,15 @@ public sealed partial class RlsScriptGenerator
     [GeneratedRegex(@"^[a-z0-9][a-z0-9_-]{0,49}$", RegexOptions.CultureInvariant | RegexOptions.Compiled)]
     private static partial Regex TenantIdRegex();
 
-    private readonly ITenantTableRegistry _tableRegistry;
+    private readonly ITenantModelDiscoveryService _discoveryService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RlsScriptGenerator"/> class.
     /// </summary>
-    /// <param name="tableRegistry">The table registry.</param>
-    public RlsScriptGenerator(ITenantTableRegistry tableRegistry)
+    /// <param name="discoveryService">The tenant model discovery service.</param>
+    public RlsScriptGenerator(ITenantModelDiscoveryService discoveryService)
     {
-        _tableRegistry = tableRegistry;
+        _discoveryService = discoveryService;
     }
 
     /// <summary>
@@ -71,47 +71,52 @@ public sealed partial class RlsScriptGenerator
                 $"Tenant schema '{tenant.SchemaName}' failed boundary validation; refusing to emit DDL.");
         }
 
-        var tables = _tableRegistry.Tables;
-        if (tables.Count == 0)
+        var artifacts = _discoveryService.Discover();
+        if (artifacts.Count == 0)
         {
             throw new InvalidOperationException(
-                "TenantTableRegistry is empty. Bounded contexts must register their tables before tenant provisioning.");
+                "No tenant artifacts discovered. Ensure DbContexts are registered.");
         }
 
         var policyName = $"TenantPolicy_{tenant.TenantId.Replace('-', '_')}";
         var template = ReadEmbeddedResource(TenantPolicyTemplateResource);
-        var tableList = BuildTableList(tenant.SchemaName, tables);
+        var tableList = BuildTableList(tenant.SchemaName, artifacts);
 
-        return template
+        var dropScript = $"IF EXISTS (SELECT * FROM sys.security_policies WHERE name = '{policyName}' AND schema_id = SCHEMA_ID('security')) DROP SECURITY POLICY [security].[{policyName}]";
+
+        var script = template
             .Replace("{{TableList}}", tableList, StringComparison.Ordinal)
             .Replace("{{PolicyName}}", policyName, StringComparison.Ordinal);
+
+        return $"{dropScript}\nGO\n{script}";
     }
 
-    private static string BuildTableList(string schemaName, IReadOnlyCollection<TenantTable> tables)
+    private static string BuildTableList(string schemaName, IReadOnlyCollection<TenantRelationalArtifact> artifacts)
     {
         // Each table contributes a set of ADD predicates. We use dynamic SQL within
         // the script to check if the TenantId column exists before applying RLS,
         // allowing us to handle tables that are isolated by schema but lack
         // a local TenantId column (e.g. some owned collections).
         var sb = new StringBuilder();
+        const string tenantIdColumn = "TenantId";
 
-        foreach (var table in tables)
+        foreach (var artifact in artifacts)
         {
             // Re-validate names at the SQL boundary.
-            if (!TenantTable.TableNameIsValid(table.TableName))
+            if (!TenantTable.TableNameIsValid(artifact.TableName))
             {
                 throw new InvalidOperationException(
-                    $"Registered table name '{table.TableName}' failed boundary validation; refusing to emit DDL.");
+                    $"Discovered table name '{artifact.TableName}' failed boundary validation; refusing to emit DDL.");
             }
 
-            var fullTableName = $"[{schemaName}].[{table.TableName}]";
-            sb.AppendLine($"IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('{fullTableName}') AND name = '{table.TenantIdColumn}')");
+            var fullTableName = $"[{schemaName}].[{artifact.TableName}]";
+            sb.AppendLine($"IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('{fullTableName}') AND name = '{tenantIdColumn}')");
             sb.AppendLine("BEGIN");
-            sb.AppendLine($"    EXEC('ALTER SECURITY POLICY [security].[{{{{PolicyName}}}}] ADD FILTER PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName},");
-            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName} AFTER INSERT,");
-            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName} BEFORE UPDATE,");
-            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName} AFTER UPDATE,");
-            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{table.TenantIdColumn}]) ON {fullTableName} BEFORE DELETE');");
+            sb.AppendLine($"    EXEC('ALTER SECURITY POLICY [security].[{{{{PolicyName}}}}] ADD FILTER PREDICATE [security].[fn_tenant_access]([{tenantIdColumn}]) ON {fullTableName},");
+            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{tenantIdColumn}]) ON {fullTableName} AFTER INSERT,");
+            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{tenantIdColumn}]) ON {fullTableName} BEFORE UPDATE,");
+            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{tenantIdColumn}]) ON {fullTableName} AFTER UPDATE,");
+            sb.AppendLine($"        ADD BLOCK  PREDICATE [security].[fn_tenant_access]([{tenantIdColumn}]) ON {fullTableName} BEFORE DELETE');");
             sb.AppendLine("END");
         }
 

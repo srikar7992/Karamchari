@@ -8,6 +8,7 @@ using Karamchari.Core.Persistence.Provisioning;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
 using Testcontainers.MsSql;
 using Xunit;
 
@@ -192,9 +193,19 @@ public sealed class SqlServerRlsFixture : IAsyncLifetime
 
     private static RlsScriptGenerator CreateRlsScriptGenerator()
     {
-        var registry = new TenantTableRegistry();
-        registry.Register(new TenantTable("Employees"));
-        return new RlsScriptGenerator(registry);
+        var discovery = Substitute.For<ITenantModelDiscoveryService>();
+        discovery.Discover().Returns(new[]
+        {
+            new TenantRelationalArtifact
+            {
+                DbContextName = "Test",
+                EntityName = "Employee",
+                TableName = "Employees",
+                Schema = "__tenant__",
+                IsTenantScoped = true
+            }
+        });
+        return new RlsScriptGenerator(discovery);
     }
 
     private async Task ExecuteScriptAsync(string script)

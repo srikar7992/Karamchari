@@ -13,6 +13,7 @@ using Karamchari.Forecasting.Persistence;
 using Karamchari.Workflow.Persistence;
 using Karamchari.Recruitment.Persistence;
 using Karamchari.Capability.Persistence;
+using Karamchari.DataMigration.Persistence;
 using Karamchari.Intelligence.Persistence;
 using Karamchari.Governance.Persistence;
 using MassTransit;
@@ -88,6 +89,10 @@ public static class MassTransitExtensions
                 o.UseSqlServer();
             });
             x.AddEntityFrameworkOutbox<CapabilityDbContext>(o =>
+            {
+                o.UseSqlServer();
+            });
+            x.AddEntityFrameworkOutbox<DataMigrationDbContext>(o =>
             {
                 o.UseSqlServer();
             });

@@ -165,6 +165,7 @@ if (args.Contains("--provision-dev-tenants"))
         typeof(Karamchari.Notifications.Persistence.NotificationsDbContext),
         typeof(Karamchari.Compensation.Persistence.CompensationDbContext),
         typeof(Karamchari.Recruitment.Persistence.RecruitmentDbContext),
+        typeof(Karamchari.DataMigration.Persistence.DataMigrationDbContext),
         typeof(Karamchari.Capability.Persistence.CapabilityDbContext),
         typeof(Karamchari.Intelligence.Persistence.IntelligenceDbContext),
         typeof(Karamchari.Governance.Persistence.GovernanceDbContext),

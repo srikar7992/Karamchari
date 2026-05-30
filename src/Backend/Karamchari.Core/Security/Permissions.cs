@@ -38,6 +38,12 @@ public static class Permissions
     public const string BillingRead = "billing.read";
     public const string BillingWrite = "billing.write";
 
+    // Bulk Import Domain
+    public const string BulkImportRead = "bulkimport.read";
+    public const string BulkImportCreate = "bulkimport.create";
+    public const string BulkImportExecute = "bulkimport.execute";
+    public const string BulkImportCancel = "bulkimport.cancel";
+
     public static readonly IReadOnlySet<string> All = new HashSet<string>
     {
         EmployeeRead, EmployeeWrite, EmployeeDelete,
@@ -47,6 +53,7 @@ public static class Permissions
         TenantSettingsRead, TenantSettingsWrite,
         AuditRead,
         CapabilityRead, CapabilityWrite,
-        BillingRead, BillingWrite
+        BillingRead, BillingWrite,
+        BulkImportRead, BulkImportCreate, BulkImportExecute, BulkImportCancel
     };
 }

@@ -73,6 +73,7 @@ public static class IdentityServiceCollectionExtensions
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<ITokenBlacklistService, TokenBlacklistService>();
         services.AddScoped<ISecurityAuditService, PersistentSecurityAuditService>();
+        services.AddScoped<Karamchari.Identity.Services.IPermissionResolver, Karamchari.Identity.Services.PermissionResolver>();
         services.AddSingleton<DatabaseSigningKeyResolver>();
         services.AddMemoryCache();
 

@@ -1,0 +1,72 @@
+# EF Model Inventory Comparison
+Total Discovered (Tenant Scoped): 175
+Total Registered: 109
+Total Missing: 66
+
+## Missing Tables (The Drift Artifacts)
+- Analytics_ProcessedEventLog
+- Analytics_ProjectMetrics
+- Billing_CollectionCases
+- Billing_CollectionPolicies
+- Billing_EmployeeRoles
+- Billing_InvoiceLines
+- Billing_Payments
+- Billing_ProcessedEventLog
+- Billing_RateCards
+- Branches
+- BusinessUnits
+- CalibrationBoardProjections
+- Capability_Definitions
+- Capability_TenantEntitlements
+- CareerLevels
+- CareerTracks
+- ComplianceFilings
+- ComplianceSnapshots
+- CostCenters
+- Designations
+- DevelopmentActions
+- EmployeeGrowthPlans
+- EmployeeSkillInventoryItems
+- ExportJobs
+- Financial_EmployeeLoanRepayments
+- Financial_FinalizationSnapshots
+- Financial_OperationEvents
+- HolidayCalendars
+- Holidays
+- LeaveBalanceEntries
+- LeaveBalances
+- LeavePolicies
+- LeaveRequests
+- LegalEntities
+- Locations
+- ManagerDashboardProjections
+- PerformanceSnapshots
+- Positions
+- Projections_LeaveBalances
+- PromotionPipelineItems
+- PSA_Clients
+- PSA_EmployeeCostSnapshots
+- PSA_Invoices
+- PSA_ProfitLedger
+- PSA_ProjectMonthlyMetrics
+- PSA_ProjectResources
+- PSA_Projects
+- PSA_UnbilledRevenue
+- Recruitment_InterviewFeedback
+- Recruitment_PipelineStages
+- ReviewTaskInboxItems
+- TalentHeatmapEntries
+- TeamGoalSummaries
+- Timesheets
+- Workflow_AuditLogs
+- Workflow_StepInstances
+- Workflow_Steps
+- Workforce_AttendanceAnomalies
+- Workforce_AttendanceEvents
+- Workforce_AttendancePolicies
+- Workforce_AttendanceRecords
+- Workforce_AttendanceSessions
+- Workforce_ComplianceRules
+- Workforce_Schedules
+- Workforce_ShiftAssignments
+- Workforce_ShiftDefinitions

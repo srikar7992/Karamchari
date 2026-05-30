@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Karamchari.Core.DependencyInjection;
@@ -104,13 +105,18 @@ public static class CoreServiceCollectionExtensions
         // is fail-closed Ã¢â‚¬â€ any save with pending events will throw.
         services.TryAddScopedDomainEventDispatcher();
 
-        // Tenant table registry is the single source of truth for RLS coverage.
-        // We register a concrete instance (not the type) so additions applied
-        // during startup via RegisterTenantTable land on the same registry the
-        // provisioning service eventually resolves.
-        var registry = new TenantTableRegistry();
-        services.AddSingleton<ITenantTableRegistry>(registry);
-        services.AddSingleton<RlsScriptGenerator>();
+        // Provisioning & Discovery Infrastructure
+        // ITenantModelDiscoveryService is the single source of truth for schema coverage.
+        // It replaces the legacy ITenantTableRegistry.
+        services.AddScoped<ITenantModelDiscoveryService, TenantModelDiscoveryService>();
+        services.AddScoped<RlsScriptGenerator>();
+        services.AddScoped<TenantProvisioningService>(sp =>
+            new TenantProvisioningService(
+                sp.GetRequiredService<CoreDbContext>(),
+                sp.GetRequiredService<ITenantModelDiscoveryService>(),
+                sp.GetRequiredService<RlsScriptGenerator>(),
+                sp.GetRequiredService<IEnumerable<ITenantPostProvisioningTask>>(),
+                sp.GetRequiredService<ILogger<TenantProvisioningService>>()));
 
         // Single TimeProvider instance is fine — TimeProvider.System is thread-safe.
         // Tests can swap in a FakeTimeProvider before calling AddKaramchariCore.
@@ -146,31 +152,11 @@ public static class CoreServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers a tenant-owned table so RLS policies cover it. Call once per
-    /// table from each bounded context's <c>AddKaramchari{Context}</c> extension.
-    /// Forgetting to call this is a security regression Ã¢â‚¬â€ RLS won't apply to
-    /// the missing table.
+    /// LEGACY: No longer used. Table discovery is now automatic via <see cref="ITenantModelDiscoveryService"/>.
+    /// This method is kept as a no-op to avoid breaking existing module DI extensions during transition.
     /// </summary>
     public static IServiceCollection RegisterTenantTable(this IServiceCollection services, string tableName)
     {
-        ArgumentNullException.ThrowIfNull(services);
-
-        // Build the descriptor eagerly so name validation fires at startup, not at first save.
-        var table = new TenantTable(tableName);
-
-        // Resolve the singleton registry instance and add to it. AddKaramchariCore
-        // must have run first; otherwise the registry doesn't exist yet.
-        var registryDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ITenantTableRegistry))
-            ?? throw new InvalidOperationException(
-                "Call AddKaramchariCore before RegisterTenantTable so the registry exists.");
-
-        if (registryDescriptor.ImplementationInstance is not ITenantTableRegistry instance)
-        {
-            throw new InvalidOperationException(
-                "ITenantTableRegistry must be registered as a concrete singleton instance Ã¢â‚¬â€ see AddKaramchariCore.");
-        }
-
-        instance.Register(table);
         return services;
     }
 

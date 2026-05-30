@@ -49,6 +49,7 @@ public static class IdentityEndpoints
         UserManager<IdentityUser<Guid>> userManager,
         IJwtTokenService jwtService,
         IRefreshTokenService refreshService,
+        IPermissionResolver permissionResolver,
         ISecurityAuditService auditService)
     {
         var user = await userManager.FindByEmailAsync(request.Email);
@@ -70,7 +71,9 @@ public static class IdentityEndpoints
         }
 
         var roles = await userManager.GetRolesAsync(user);
-        var accessToken = await jwtService.GenerateAccessTokenAsync(tenantId, user.Id, user.Email!, roles, []);
+        var permissions = permissionResolver.ResolvePermissions(roles);
+        var version = permissionResolver.GetPermissionVersion();
+        var accessToken = await jwtService.GenerateAccessTokenAsync(tenantId, user.Id, user.Email!, roles, permissions, version);
 
         var deviceInfo = context.Request.Headers.UserAgent.ToString();
         var (_, refreshToken) = await refreshService.CreateTokenAsync(user.Id, tenantId, deviceInfo);
@@ -85,7 +88,8 @@ public static class IdentityEndpoints
         HttpContext context,
         UserManager<IdentityUser<Guid>> userManager,
         IJwtTokenService jwtService,
-        IRefreshTokenService refreshService)
+        IRefreshTokenService refreshService,
+        IPermissionResolver permissionResolver)
     {
         var ipAddress = context.Connection.RemoteIpAddress?.ToString();
         var (token, newRaw) = await refreshService.RotateTokenAsync(request.RefreshToken, ipAddress);
@@ -99,7 +103,9 @@ public static class IdentityEndpoints
         if (user == null) return Results.Unauthorized();
 
         var roles = await userManager.GetRolesAsync(user);
-        var accessToken = await jwtService.GenerateAccessTokenAsync(token.TenantId, user.Id, user.Email!, roles, []);
+        var permissions = permissionResolver.ResolvePermissions(roles);
+        var version = permissionResolver.GetPermissionVersion();
+        var accessToken = await jwtService.GenerateAccessTokenAsync(token.TenantId, user.Id, user.Email!, roles, permissions, version);
 
         return Results.Ok(new LoginResponse(accessToken, newRaw, DateTime.UtcNow.AddMinutes(60)));
     }

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -30,10 +31,10 @@ public static class DevDataSeeder
 
     private static readonly (string Prefix, string Role)[] Personas =
     {
-        ("admin", "Admin"),
-        ("manager", "Manager"),
-        ("employee", "Employee"),
-        ("readonly", "ReadOnly"),
+        ("admin", Roles.Admin),
+        ("manager", Roles.Manager),
+        ("employee", Roles.Employee),
+        ("readonly", Roles.ReadOnly),
     };
 
     /// <summary>Ensures the documented roles and developer users exist.</summary>
