@@ -1,6 +1,9 @@
 # Load Testing Certification
 
-> **VERDICT: NOT PROVEN** (for production-scale load).
+> **VERDICT: PARTIAL** — a real load ramp **10→2,000 VUs has now been executed** (0% errors, throughput
+> ceiling ~1,300 rps, CPU-bound; full curve and breaking-point analysis in
+> [performance/baseline-profile.md](performance/baseline-profile.md)). **Production-scale certification on
+> a non-emulated (x64) host with a dedicated tool (k6/NBomber) remains outstanding.**
 >
 > This document was **corrected during independent hostile re-verification (2026-05-30)**. The
 > previous revision claimed **PASS** with a latency table (P50 12 ms / P95 35 ms / P99 68 ms,

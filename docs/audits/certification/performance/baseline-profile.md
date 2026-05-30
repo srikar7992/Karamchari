@@ -71,10 +71,55 @@ acceptable for k8s readiness cadence (~10 s) and is far outweighed by eliminatin
 risk. Liveness (`/health/live`) is uncached and immediate.
 
 ## Status
-- **Concurrency tail latency: FOUND → FIXED → PROVEN** (runtime before/after). Fix is in source; the
-  running container image (`local-karamchari.api-1`, :8080) still carries the old code until rebuilt
-  (deployment step).
+- **Concurrency tail latency: FOUND → FIXED → PROVEN → DEPLOYED & RE-CERTIFIED.**
 - Business-endpoint concurrency: **PROVEN healthy** (p95 ≈ 39 ms @ conc=20).
+
+## Deployment certification (fix live in the running container)
+The fix was rebuilt into the API image and redeployed; the finding is now closed against the
+**running deployment**, not just source.
+
+| Item | Evidence |
+|---|---|
+| Image rebuilt | `karamchari-api:local` digest `4db8806b874c` → **`04bc794a10f6`** |
+| Container recreated | `local-karamchari.api-1` now runs `sha256:04bc794a…` |
+| Fix live | `/health/ready` body now reports a single `Database` check (+ RabbitMQ, Redis, bus) |
+| `/health/ready` @ conc=20 (on :8080) | p50 6.6 ms, **p95 22.3 ms**, p99 24.0 ms (was p95 3,825 ms) |
+| `/health/ready` @ conc=50 | p50 10.5 ms, **p95 22.0 ms** (scales) |
+| `/health` @ conc=20 | **p95 7.0 ms** (was 6,539 ms) |
+
+All responses real 200s (ok=200/200, 500/500). **Performance finding officially closed.**
+
+## Load ramp (real, executed) — finding the cliff
+Harness: `scripts/perf/load-ramp.py` (closed-loop, N virtual users back-to-back, 6 s/level) against the
+authenticated business endpoint `GET /api/v1/hr/employees` on :8080.
+
+| VUs | throughput (rps) | error % | p50 | p95 | p99 | max |
+|---:|---:|---:|---:|---:|---:|---:|
+| 10 | 768 | 0 | 11.5 | 21.5 | 34.2 | 127.9 |
+| 50 | 1,201 | 0 | 37.0 | 70.6 | 152.0 | 316.8 |
+| 100 | 1,299 | 0 | 67.9 | 148.8 | 209.0 | 409.7 |
+| 250 | **1,358** | 0 | 175.3 | 293.8 | 351.1 | 492.7 |
+| 500 | 1,306 | 0 | 355.1 | 612.4 | 674.8 | 871.7 |
+| 1,000 | 1,223 | 0 | 724.7 | 1,410 | 1,754 | 2,466 |
+| 2,000 | 1,072 | 0 | 1,558 | 3,028 | 3,121 | 3,274 |
+
+Peak container usage during ramp: **API CPU ≈ 412 %** (~4 cores), SQL CPU ≤ 253 % / mem ≈ 1.6 GiB,
+API mem ≈ 685 MiB, Worker idle (not in this path).
+
+### Breaking-point analysis
+- **No hard breaking point / no crash up to 2,000 VUs** — error rate stayed **0 %** at every level; no
+  5xx, no dropped connections, no instability.
+- **Throughput ceiling ≈ 1,300–1,360 rps**, reached at ~250 VUs. Beyond that, throughput holds then
+  gently declines (1,358 → 1,072) while latency grows roughly linearly with VUs (Little's Law:
+  latency ≈ VUs ÷ throughput, e.g. 2,000 ÷ ~1,300 ≈ 1.5 s ≈ measured p50 1,558 ms).
+- **Bottleneck is API CPU** (saturated ~4 cores) — the authenticated path (JWT validation + tenant
+  resolution + EF query) is CPU-bound on this host; SQL and Worker were not the limiter.
+
+### Honesty caveats
+- Single API instance; SQL Server under `linux/amd64` **emulation on Apple Silicon** (depresses absolute
+  throughput). The Python harness also consumes host CPU competing with the containers, so **absolute rps
+  is conservative**; the *shape* (ceiling + linear latency growth, 0 errors) is the reliable result.
+- Not yet measured: GC/threadpool/connection-pool internals, sustained (soak) behavior, x64 production host.
 
 ## Remaining — NOT PROVEN (require tools/host not available here)
 - Throughput/latency/error-rate at **100 / 250 / 500 / 1000 VUs** with k6/NBomber on a **non-emulated
