@@ -71,5 +71,7 @@ public enum TenantMessageFailureReason
     /// <summary>The tenant identifier in the message does not match expected tenant.</summary>
     TenantMismatch = 7,
     /// <summary>The message is missing required headers.</summary>
-    MissingRequiredHeaders = 8
+    MissingRequiredHeaders = 8,
+    /// <summary>The cryptographic signature is invalid or missing.</summary>
+    InvalidSignature = 9
 }

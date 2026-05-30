@@ -78,9 +78,9 @@ public static class WorkerServiceCollectionExtensions
                     // tenant's schema. Without this, consumed events fall back to the "system"
                     // tenant and write to the [dbo] template schema (cross-tenant data leak +
                     // the tenant's own schema never receives the side effect). Mirrors the API.
-                    cfg.UseConsumeFilter<TenantConsumeFilter>(context);
-                    cfg.UsePublishFilter<TenantPublishFilter>(context);
-                    cfg.UseSendFilter<TenantSendFilter>(context);
+                    cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
+                    cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
+                    cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
                     cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
 
                     cfg.ConfigureEndpoints(context);
@@ -90,9 +90,9 @@ public static class WorkerServiceCollectionExtensions
             {
                 x.UsingInMemory((context, cfg) =>
                 {
-                    cfg.UseConsumeFilter<TenantConsumeFilter>(context);
-                    cfg.UsePublishFilter<TenantPublishFilter>(context);
-                    cfg.UseSendFilter<TenantSendFilter>(context);
+                    cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
+                    cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
+                    cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
                     cfg.ConfigureEndpoints(context);
                 });
             }

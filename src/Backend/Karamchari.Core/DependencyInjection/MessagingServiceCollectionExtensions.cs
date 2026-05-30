@@ -69,9 +69,9 @@ public static class MessagingServiceCollectionExtensions
 
     private static void ConfigureFilters(IBusFactoryConfigurator cfg, IBusRegistrationContext context)
     {
-        cfg.UseConsumeFilter<TenantConsumeFilter>(context);
-        cfg.UsePublishFilter<TenantPublishFilter>(context);
-        cfg.UseSendFilter<TenantSendFilter>(context);
+        cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
+        cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
+        cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
         cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
     }
 }

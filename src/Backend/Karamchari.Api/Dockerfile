@@ -25,6 +25,9 @@ RUN dotnet publish Karamchari.Api.csproj -c Release -o /app/publish /p:UseAppHos
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 WORKDIR /app
 
+# Install ICU libraries for globalization support (required by Microsoft.Data.SqlClient on Alpine)
+RUN apk add --no-cache icu-libs icu-data-full
+
 # Add a non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
@@ -39,6 +42,7 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "Karamchari.Api.dll"]

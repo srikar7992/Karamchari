@@ -59,7 +59,7 @@ public sealed class TenantMessageConsumerScope : IDisposable
             "Recreating tenant context from message {MessageId}, ConversationId {ConversationId}",
             consumeContext.MessageId, consumeContext.ConversationId);
 
-        if (!consumeContext.Headers.TryGetHeader(TenantMessageHeaderKeys.TenantId, out var tenantIdObj) ||
+        if (!consumeContext.Headers.TryGetHeader(ExecutionContextHeaders.TenantId, out var tenantIdObj) ||
             tenantIdObj is not string tenantId || string.IsNullOrWhiteSpace(tenantId))
         {
             _logger.LogWarning("Failed to recreate tenant context: Missing TenantId in message {MessageId}", consumeContext.MessageId);
@@ -69,7 +69,7 @@ public sealed class TenantMessageConsumerScope : IDisposable
         }
 
         TenantExecutionEnvelope? envelope = null;
-        if (consumeContext.Headers.TryGetHeader(TenantMessageHeaderKeys.ExecutionEnvelope, out var envelopeObj) &&
+        if (consumeContext.Headers.TryGetHeader(ExecutionContextHeaders.ExecutionEnvelope, out var envelopeObj) &&
             envelopeObj is string envelopeJson)
         {
             envelope = TenantExecutionEnvelope.FromJson(envelopeJson);
@@ -77,7 +77,7 @@ public sealed class TenantMessageConsumerScope : IDisposable
 
         if (envelope == null)
         {
-            consumeContext.Headers.TryGetHeader(TenantMessageHeaderKeys.CorrelationId, out var correlationIdObj);
+            consumeContext.Headers.TryGetHeader(ExecutionContextHeaders.CorrelationId, out var correlationIdObj);
             var correlationId = correlationIdObj as string ?? consumeContext.ConversationId?.ToString() ?? Guid.NewGuid().ToString();
             var requestId = consumeContext.MessageId?.ToString() ?? Guid.NewGuid().ToString();
 

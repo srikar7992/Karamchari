@@ -1,48 +1,37 @@
-using Karamchari.Billing.DependencyInjection;
-using Karamchari.Billing.Persistence;
-using Karamchari.Capability.DependencyInjection;
-using Karamchari.Capability.Persistence;
-using Karamchari.Compensation.DependencyInjection;
-using Karamchari.Compensation.Persistence;
-using Karamchari.Core.DependencyInjection;
-using Karamchari.Core.Messaging.Outbox;
+using Karamchari.Core.Multitenancy.Execution;
 using Karamchari.Core.Messaging.Tenant;
-using Karamchari.FinancialOps.Persistence;
-using Karamchari.Forecasting.DependencyInjection;
-using Karamchari.Forecasting.Persistence;
-using Karamchari.Governance.DependencyInjection;
-using Karamchari.Governance.Persistence;
-using Karamchari.HR.DependencyInjection;
 using Karamchari.HR.Persistence;
-using Karamchari.Intelligence.DependencyInjection;
-using Karamchari.Intelligence.Persistence;
-using Karamchari.Notifications.DependencyInjection;
-using Karamchari.Notifications.Persistence;
 using Karamchari.Payroll.Data;
-using Karamchari.Payroll.DependencyInjection;
-using Karamchari.Performance.DependencyInjection;
-using Karamchari.Performance.Persistence;
-using Karamchari.PSA.Persistence;
-using Karamchari.Recruitment.DependencyInjection;
-using Karamchari.Recruitment.Persistence;
-using Karamchari.TimeAttendance.DependencyInjection;
+using Karamchari.FinancialOps.Persistence;
 using Karamchari.TimeAttendance.Persistence;
-using Karamchari.Workflow.DependencyInjection;
+using Karamchari.PSA.Persistence;
+using Karamchari.Performance.Persistence;
+using Karamchari.Notifications.Persistence;
+using Karamchari.Compensation.Persistence;
+using Karamchari.Billing.Persistence;
+using Karamchari.Forecasting.Persistence;
 using Karamchari.Workflow.Persistence;
+using Karamchari.Recruitment.Persistence;
+using Karamchari.Capability.Persistence;
+using Karamchari.Intelligence.Persistence;
+using Karamchari.Governance.Persistence;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Karamchari.Api.DependencyInjection;
 
 /// <summary>
-/// Contains extension methods for configuring MassTransit with bounded contexts,
-/// outbox support, and tenant-aware messaging filters.
+/// MassTransit service collection extensions for the API.
+/// Registers the bus, transport (RabbitMQ/InMemory), transactional EF
+/// persistence outboxes, and cross-cutting tenant observability filters.
 /// </summary>
 public static class MassTransitExtensions
 {
     /// <summary>
-    /// Configures MassTransit for the platform, registering bounded context consumers,
-    /// persistence outboxes, and cross-cutting tenant observability filters.
+    /// Configures MassTransit for the API, enabling transactional outbox for all modules.
     /// </summary>
     public static IServiceCollection AddKaramchariMassTransit(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
@@ -52,6 +41,9 @@ public static class MassTransitExtensions
         {
             module.RegisterServices(services);
         }
+
+        services.AddSingleton(typeof(TenantPublishFilter<>));
+        services.AddSingleton(typeof(TenantSendFilter<>));
 
         services.AddMassTransit(x =>
         {
@@ -65,6 +57,7 @@ public static class MassTransitExtensions
             x.AddEntityFrameworkOutbox<HRDbContext>(o =>
             {
                 o.UseSqlServer();
+                o.UseBusOutbox();
             });
             x.AddEntityFrameworkOutbox<FinancialOpsDbContext>(o =>
             {
@@ -94,11 +87,11 @@ public static class MassTransitExtensions
             {
                 o.UseSqlServer();
             });
-            x.AddEntityFrameworkOutbox<RecruitmentDbContext>(o =>
+            x.AddEntityFrameworkOutbox<CapabilityDbContext>(o =>
             {
                 o.UseSqlServer();
             });
-            x.AddEntityFrameworkOutbox<CapabilityDbContext>(o =>
+            x.AddEntityFrameworkOutbox<RecruitmentDbContext>(o =>
             {
                 o.UseSqlServer();
             });
@@ -128,9 +121,10 @@ public static class MassTransitExtensions
                 x.UsingInMemory((context, cfg) =>
                 {
                     // No ConfigureEndpoints(context) here for API
-                    cfg.UseConsumeFilter<TenantConsumeFilter>(context);
+                    cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
+                    cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
                     cfg.UsePublishFilter<TenantPublishFilter>(context);
-                    cfg.UseSendFilter<TenantSendFilter>(context);
+                    cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
                     cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                 });
             }
@@ -147,9 +141,10 @@ public static class MassTransitExtensions
                         // same filters as the InMemory and Azure Service Bus branches. Omitting
                         // these previously meant messages published/consumed over RabbitMQ carried
                         // no enforced tenant context (cross-tenant leakage risk).
-                        cfg.UseConsumeFilter<TenantConsumeFilter>(context);
+                        cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
+                        cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
                         cfg.UsePublishFilter<TenantPublishFilter>(context);
-                        cfg.UseSendFilter<TenantSendFilter>(context);
+                        cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
                         cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
 
                         // Declare topology / receive endpoints for any registered consumers.
@@ -161,9 +156,10 @@ public static class MassTransitExtensions
                     x.UsingAzureServiceBus((context, cfg) =>
                     {
                         cfg.Host(configuration.GetConnectionString("AzureServiceBus"));
-                        cfg.UseConsumeFilter<TenantConsumeFilter>(context);
+                        cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
+                        cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
                         cfg.UsePublishFilter<TenantPublishFilter>(context);
-                        cfg.UseSendFilter<TenantSendFilter>(context);
+                        cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
                         cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                     });
                 }

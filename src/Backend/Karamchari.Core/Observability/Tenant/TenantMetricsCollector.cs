@@ -20,6 +20,9 @@ public sealed class TenantMetricsCollector : IDisposable
     private readonly Counter<long> _retryStormCounter;
     private readonly Counter<long> _tenantContextResolutionCounter;
     private readonly Histogram<double> _tenantOperationDurationHistogram;
+    private readonly Counter<long> _eventRejectionCounter;
+    private readonly Counter<long> _eventDlqCounter;
+    private readonly Histogram<double> _eventProcessingLatencyHistogram;
     private readonly Histogram<double> _workflowDurationHistogram;
     private readonly Counter<long> _workflowSlaBreachCounter;
     private readonly Counter<long> _workflowTransitionFailureCounter;
@@ -58,6 +61,19 @@ public sealed class TenantMetricsCollector : IDisposable
             unit: "ms",
             description: "Tenant-aware operation duration in milliseconds");
 
+        _eventRejectionCounter = _meter.CreateCounter<long>(
+            "tenant.event.rejection.count",
+            description: "Number of events rejected due to context or integrity failures");
+
+        _eventDlqCounter = _meter.CreateCounter<long>(
+            "tenant.event.dlq.count",
+            description: "Number of events moved to dead-letter queue");
+
+        _eventProcessingLatencyHistogram = _meter.CreateHistogram<double>(
+            "tenant.event.processing.latency.ms",
+            unit: "ms",
+            description: "End-to-end event processing latency for a tenant");
+
         _workflowDurationHistogram = _meter.CreateHistogram<double>(
             "workflow.duration.sec",
             unit: "s",
@@ -70,6 +86,40 @@ public sealed class TenantMetricsCollector : IDisposable
         _workflowTransitionFailureCounter = _meter.CreateCounter<long>(
             "workflow.transition.failure.count",
             description: "Number of failed workflow state transitions");
+    }
+
+    /// <summary>
+    /// Records an event rejection.
+    /// </summary>
+    public void RecordEventRejection(string? tenantId, string messageType, string reason)
+    {
+        _eventRejectionCounter.Add(
+            1,
+            new KeyValuePair<string, object?>("tenant.id", tenantId ?? "unknown"),
+            new KeyValuePair<string, object?>("message.type", messageType),
+            new KeyValuePair<string, object?>("reason", reason));
+    }
+
+    /// <summary>
+    /// Records an event being moved to DLQ.
+    /// </summary>
+    public void RecordEventDlq(string? tenantId, string messageType)
+    {
+        _eventDlqCounter.Add(
+            1,
+            new KeyValuePair<string, object?>("tenant.id", tenantId ?? "unknown"),
+            new KeyValuePair<string, object?>("message.type", messageType));
+    }
+
+    /// <summary>
+    /// Records event processing latency.
+    /// </summary>
+    public void RecordEventProcessingLatency(string tenantId, string messageType, double latencyMs)
+    {
+        _eventProcessingLatencyHistogram.Record(
+            latencyMs,
+            new KeyValuePair<string, object?>("tenant.id", tenantId),
+            new KeyValuePair<string, object?>("message.type", messageType));
     }
 
     /// <summary>

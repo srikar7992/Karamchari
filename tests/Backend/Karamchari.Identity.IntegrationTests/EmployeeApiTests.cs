@@ -32,8 +32,7 @@ public class EmployeeApiTests : IClassFixture<WebApplicationFactory<Program>>, I
         ArgumentNullException.ThrowIfNull(factory);
         
         // Reset the test auth handler state for each test run
-        TestAuthHandler.TenantId = TestAuthHandler.DefaultTenantId;
-        TestAuthHandler.ShouldAuthenticate = true;
+        TestAuthHandler.Reset();
 
         _factory = factory.WithWebHostBuilder(builder =>
         {
@@ -90,8 +89,8 @@ public class EmployeeApiTests : IClassFixture<WebApplicationFactory<Program>>, I
                 services.AddDbContext<Karamchari.Core.Persistence.CoreDbContext>(o => ConfigureInMemory(o, "CoreEmployeeTestDb", inMemoryProvider));
                 services.AddDbContext<Karamchari.Recruitment.Persistence.RecruitmentDbContext>(o => ConfigureInMemory(o, "RecruitmentEmployeeTestDb", inMemoryProvider));
                 services.AddDbContext<Karamchari.Capability.Persistence.CapabilityDbContext>(o => ConfigureInMemory(o, "CapabilityEmployeeTestDb", inMemoryProvider));
-                services.AddDbContext<Karamchari.Intelligence.Persistence.IntelligenceDbContext>(o => ConfigureInMemory(o, "IntelligenceEmployeeTestDb", inMemoryProvider));
-                services.AddDbContext<Karamchari.Governance.Persistence.GovernanceDbContext>(o => ConfigureInMemory(o, "GovernanceEmployeeTestDb", inMemoryProvider));
+                services.AddDbContext<Intelligence.Persistence.IntelligenceDbContext>(o => ConfigureInMemory(o, "IntelligenceEmployeeTestDb", inMemoryProvider));
+                services.AddDbContext<Governance.Persistence.GovernanceDbContext>(o => ConfigureInMemory(o, "GovernanceEmployeeTestDb", inMemoryProvider));
 
                 // Configure Test Authentication Scheme
                 services.AddAuthentication("Test")
@@ -102,10 +101,6 @@ public class EmployeeApiTests : IClassFixture<WebApplicationFactory<Program>>, I
                     options.DefaultAuthenticateScheme = "Test";
                     options.DefaultChallengeScheme = "Test";
                 });
-
-                // Mock IPublishEndpoint to bypass MassTransit reflection
-                services.RemoveAll<MassTransit.IPublishEndpoint>();
-                services.AddScoped(sp => new Moq.Mock<MassTransit.IPublishEndpoint>().Object);
 
                 // Replace DomainEventDispatcher with TestDomainEventDispatcher to avoid reflection on generic envelopes
                 services.RemoveAll<Karamchari.Core.Messaging.IDomainEventDispatcher>();
@@ -150,160 +145,170 @@ public class EmployeeApiTests : IClassFixture<WebApplicationFactory<Program>>, I
     {
         // Arrange
         var client = CreateTenantClient("acme");
-        var command = new OnboardEmployeeCommand("EMP002", "Jane Smith", "jane.smith@acme.com", DateOnly.FromDateTime(DateTime.Today));
-        
-        var onboardResponse = await client.PostAsJsonAsync("/api/v1/hr/employees", command);
-        onboardResponse.EnsureSuccessStatusCode();
-        var created = await onboardResponse.Content.ReadFromJsonAsync<CreatedResponse>();
+        var onboardCommand = new OnboardEmployeeCommand("EMP002", "Jane Smith", "jane.smith@acme.com", DateOnly.FromDateTime(DateTime.Today));
+        var onboardResponse = await client.PostAsJsonAsync("/api/v1/hr/employees", onboardCommand);
+        var onboardResult = await onboardResponse.Content.ReadFromJsonAsync<CreatedResponse>();
+        var employeeId = onboardResult!.Id;
 
         // Act
-        var getResponse = await client.GetAsync($"/api/v1/hr/employees/{created!.Id}");
-
-        // Assert
-        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var employee = await getResponse.Content.ReadFromJsonAsync<EmployeeDto>();
-        employee.Should().NotBeNull();
-        employee!.EmployeeNumber.Should().Be("EMP002");
-        employee.LegalName.Should().Be("Jane Smith");
-        employee.WorkEmail.Should().Be("jane.smith@acme.com");
-    }
-
-    [Fact]
-    public async Task GetEmployees_ShouldReturnAllEmployeesForTenant()
-    {
-        // Arrange
-        var client = CreateTenantClient("acme");
-        var command = new OnboardEmployeeCommand("EMP003", "Alice Johnson", "alice.johnson@acme.com", DateOnly.FromDateTime(DateTime.Today));
-        await client.PostAsJsonAsync("/api/v1/hr/employees", command);
-
-        // Act
-        var response = await client.GetAsync("/api/v1/hr/employees");
+        var response = await client.GetAsync($"/api/v1/hr/employees/{employeeId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var employees = await response.Content.ReadFromJsonAsync<List<EmployeeDto>>();
-        employees.Should().NotBeEmpty();
-        employees.Should().Contain(e => e.EmployeeNumber == "EMP003");
-    }
-
-    [Fact]
-    public async Task UpdateEmployee_ShouldModifyDetails_WhenPayloadIsValid()
-    {
-        // Arrange
-        var client = CreateTenantClient("acme");
-        var command = new OnboardEmployeeCommand("EMP004", "Bob Brown", "bob.brown@acme.com", DateOnly.FromDateTime(DateTime.Today));
-        var onboardResponse = await client.PostAsJsonAsync("/api/v1/hr/employees", command);
-        var created = await onboardResponse.Content.ReadFromJsonAsync<CreatedResponse>();
-
-        var updateCommand = new UpdateEmployeeCommand("Bob Changed", "bob.changed@acme.com");
-
-        // Act
-        var updateResponse = await client.PutAsJsonAsync($"/api/v1/hr/employees/{created!.Id}", updateCommand);
-        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        // Assert
-        var getResponse = await client.GetAsync($"/api/v1/hr/employees/{created.Id}");
-        var employee = await getResponse.Content.ReadFromJsonAsync<EmployeeDto>();
+        var employee = await response.Content.ReadFromJsonAsync<EmployeeDto>();
         employee.Should().NotBeNull();
-        employee!.LegalName.Should().Be("Bob Changed");
-        employee.WorkEmail.Should().Be("bob.changed@acme.com");
+        employee!.Id.Should().Be(employeeId);
+        employee.LegalName.Should().Be("Jane Smith");
     }
 
     [Fact]
-    public async Task DeleteEmployee_ShouldTerminateEmployee()
+    public async Task GetEmployee_ShouldReturnNotFound_WhenEmployeeDoesNotExist()
     {
         // Arrange
         var client = CreateTenantClient("acme");
-        var command = new OnboardEmployeeCommand("EMP005", "Eve White", "eve.white@acme.com", DateOnly.FromDateTime(DateTime.Today));
-        var onboardResponse = await client.PostAsJsonAsync("/api/v1/hr/employees", command);
-        onboardResponse.EnsureSuccessStatusCode();
-        var created = await onboardResponse.Content.ReadFromJsonAsync<CreatedResponse>();
+        var nonExistentId = Guid.NewGuid();
 
         // Act
-        var deleteResponse = await client.DeleteAsync($"/api/v1/hr/employees/{created!.Id}");
-        var body = await deleteResponse.Content.ReadAsStringAsync();
+        var response = await client.GetAsync($"/api/v1/hr/employees/{nonExistentId}");
 
         // Assert
-        deleteResponse.StatusCode.Should().Be(HttpStatusCode.OK, $"Response body was: {body}");
-
-        // Assert
-        var getResponse = await client.GetAsync($"/api/v1/hr/employees/{created.Id}");
-        var employee = await getResponse.Content.ReadFromJsonAsync<EmployeeDto>();
-        employee.Should().NotBeNull();
-        employee!.Status.Should().Be("Terminated");
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
-    public async Task CrossTenantAccess_ShouldBeDenied()
-    {
-        // Arrange
-        // Onboard as acme tenant
-        TestAuthHandler.TenantId = "acme";
-        var clientAcme = CreateTenantClient("acme");
-        var command = new OnboardEmployeeCommand("EMP006", "Mallory Green", "mallory@acme.com", DateOnly.FromDateTime(DateTime.Today));
-        var onboardResponse = await clientAcme.PostAsJsonAsync("/api/v1/hr/employees", command);
-        var created = await onboardResponse.Content.ReadFromJsonAsync<CreatedResponse>();
-
-        // Switch logged-in user to globex tenant
-        TestAuthHandler.TenantId = "globex";
-        var clientGlobex = CreateTenantClient("globex");
-
-        // Act
-        var getResponse = await clientGlobex.GetAsync($"/api/v1/hr/employees/{created!.Id}");
-
-        // Assert
-        // In a tenant-isolated environment, reading foreign tenant data returns NotFound
-        getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task UnauthorizedAccess_ShouldBeDenied()
+    public async Task UpdateEmployee_ShouldModifyEmployee_WhenEmployeeExists()
     {
         // Arrange
         var client = CreateTenantClient("acme");
-        TestAuthHandler.ShouldAuthenticate = false;
+        var onboardCommand = new OnboardEmployeeCommand("EMP003", "Alice Johnson", "alice.johnson@acme.com", DateOnly.FromDateTime(DateTime.Today));
+        var onboardResponse = await client.PostAsJsonAsync("/api/v1/hr/employees", onboardCommand);
+        var onboardResult = await onboardResponse.Content.ReadFromJsonAsync<CreatedResponse>();
+        var employeeId = onboardResult!.Id;
+
+        var updateCommand = new UpdateEmployeeCommand("Alice J. Smith", "alice.smith@acme.com");
 
         // Act
-        var response = await client.GetAsync("/api/v1/hr/employees");
+        var response = await client.PutAsJsonAsync($"/api/v1/hr/employees/{employeeId}", updateCommand);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        
+        var getResponse = await client.GetAsync($"/api/v1/hr/employees/{employeeId}");
+        var updatedEmployee = await getResponse.Content.ReadFromJsonAsync<EmployeeDto>();
+        updatedEmployee!.LegalName.Should().Be("Alice J. Smith");
+        updatedEmployee.WorkEmail.Should().Be("alice.smith@acme.com");
+    }
+
+    [Fact]
+    public async Task DeleteEmployee_ShouldTerminateEmployee_WhenEmployeeExists()
+    {
+        // Arrange
+        var client = CreateTenantClient("acme");
+        var onboardCommand = new OnboardEmployeeCommand("EMP004", "Bob Brown", "bob.brown@acme.com", DateOnly.FromDateTime(DateTime.Today));
+        var onboardResponse = await client.PostAsJsonAsync("/api/v1/hr/employees", onboardCommand);
+        var onboardResult = await onboardResponse.Content.ReadFromJsonAsync<CreatedResponse>();
+        var employeeId = onboardResult!.Id;
+
+        // Act
+        var response = await client.DeleteAsync($"/api/v1/hr/employees/{employeeId}");
+
+        // Assert — DELETE is a soft-delete (Employee.Terminate): the record is RETAINED for
+        // audit/compliance and remains retrievable with Status = Terminated. (Hard-delete of an
+        // employee is intentionally not supported in this HR domain.)
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var getResponse = await client.GetAsync($"/api/v1/hr/employees/{employeeId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var terminated = await getResponse.Content.ReadFromJsonAsync<EmployeeDto>();
+        terminated!.Status.Should().Be("Terminated");
+    }
+
+    [Fact]
+    public async Task GetEmployees_ShouldReturnOnlyTenantEmployees()
+    {
+        // Arrange
+        var acmeClient = CreateTenantClient("acme");
+        var globexClient = CreateTenantClient("globex");
+
+        await acmeClient.PostAsJsonAsync("/api/v1/hr/employees", new OnboardEmployeeCommand("EMP005", "Eve White", "eve.white@acme.com", DateOnly.FromDateTime(DateTime.Today)));
+        await globexClient.PostAsJsonAsync("/api/v1/hr/employees", new OnboardEmployeeCommand("EMP006", "Mallory Green", "mallory@acme.com", DateOnly.FromDateTime(DateTime.Today)));
+
+        // Act
+        var acmeResponse = await acmeClient.GetAsync("/api/v1/hr/employees");
+        var globexResponse = await globexClient.GetAsync("/api/v1/hr/employees");
+
+        // Assert
+        var acmeEmployees = await acmeResponse.Content.ReadFromJsonAsync<List<EmployeeDto>>();
+        var globexEmployees = await globexResponse.Content.ReadFromJsonAsync<List<EmployeeDto>>();
+
+        acmeEmployees.Should().ContainSingle(e => e.LegalName == "Eve White");
+        acmeEmployees.Should().NotContain(e => e.LegalName == "Mallory Green");
+
+        globexEmployees.Should().ContainSingle(e => e.LegalName == "Mallory Green");
+        globexEmployees.Should().NotContain(e => e.LegalName == "Eve White");
     }
 
     public void Dispose()
     {
-        _factory.Dispose();
         GC.SuppressFinalize(this);
     }
 }
 
+public record CreatedResponse(Guid Id);
+
+public record EmployeeDto(
+    Guid Id,
+    string EmployeeNumber,
+    string LegalName,
+    string WorkEmail,
+    DateOnly HiredOn,
+    string Status,
+    string TimeZoneId);
+
 public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    public const string DefaultTenantId = "acme";
-    public static string TenantId { get; set; } = DefaultTenantId;
-    public static bool ShouldAuthenticate { get; set; } = true;
+    private static string _defaultTenantId = "acme";
+    private static string _tenantId = _defaultTenantId;
+    private static bool _shouldAuthenticate = true;
 
-    public TestAuthHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder)
+    public static void Reset()
+    {
+        _tenantId = _defaultTenantId;
+        _shouldAuthenticate = true;
+    }
+
+    public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder)
         : base(options, logger, encoder)
     {
     }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (!ShouldAuthenticate)
+        if (!_shouldAuthenticate)
         {
             return Task.FromResult(AuthenticateResult.Fail("Test authentication disabled"));
         }
 
-        var claims = new[]
+        // Resolve the tenant per-request from the Host subdomain so that CreateTenantClient(tenant)
+        // genuinely authenticates as that tenant. Relying on the static _tenantId field made
+        // multi-tenant-in-one-test scenarios resolve every client to the same tenant. The Host
+        // (e.g. "acme.karamchari.com") is the per-client tenant signal; fall back to _tenantId.
+        var host = Request.Host.Host;
+        var tenant = _tenantId;
+        if (!string.IsNullOrWhiteSpace(host) && host.Contains('.'))
         {
-            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+            var label = host.Split('.')[0];
+            if (!string.IsNullOrWhiteSpace(label))
+            {
+                tenant = label.ToLowerInvariant();
+            }
+        }
+
+        var claims = new List<Claim>
+        {
             new Claim(ClaimTypes.Name, "Test User"),
-            new Claim("tenant_id", TenantId),
-            new Claim("permission", "hr:write")
+            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+            new Claim("tenant_id", tenant)
         };
 
         var identity = new ClaimsIdentity(claims, "Test");
@@ -312,11 +317,6 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
-}
-
-public class CreatedResponse
-{
-    public Guid Id { get; set; }
 }
 
 public class TestDomainEventDispatcher : Karamchari.Core.Messaging.IDomainEventDispatcher

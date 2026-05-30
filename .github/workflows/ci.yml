@@ -61,6 +61,9 @@ jobs:
       - name: Run ArchitectureTests (no coverage instrumentation)
         run: dotnet test tests/Backend/Karamchari.ArchitectureTests/Karamchari.ArchitectureTests.csproj --no-build -c Release --logger "trx;LogFilePrefix=arch_results"
 
+      - name: Run Tenant Isolation Certification (P0 Isolation Gate)
+        run: dotnet test tests/Backend/Karamchari.TenantIsolationCertification/Karamchari.TenantIsolationCertification.csproj --no-build -c Release --logger "trx;LogFilePrefix=isolation_results"
+
       - name: NuGet vulnerability audit
         run: dotnet list src/Backend/Karamchari.sln package --vulnerable --include-transitive
 

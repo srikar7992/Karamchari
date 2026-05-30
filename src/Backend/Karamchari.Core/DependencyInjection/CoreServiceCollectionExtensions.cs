@@ -86,11 +86,13 @@ public static class CoreServiceCollectionExtensions
         services.AddSingleton<Karamchari.Core.Messaging.Tenant.ReplayProtectionService>();
 
         // Messaging Context & Filters
+        services.AddSingleton(new Karamchari.Core.Messaging.Tenant.ExecutionContextSigner(
+            configuration["Messaging:SigningSecret"] ?? "karamchari-internal-platform-secret-2026"));
         services.AddScoped<Karamchari.Core.Messaging.Tenant.TenantMessageConsumerScope>();
         services.AddScoped<Karamchari.Core.Messaging.Tenant.ITenantMessageConsumerScopeFactory, Karamchari.Core.Messaging.Tenant.TenantMessageConsumerScopeFactory>();
-        services.AddSingleton<Karamchari.Core.Messaging.Tenant.TenantConsumeFilter>();
-        services.AddSingleton<Karamchari.Core.Messaging.Tenant.TenantPublishFilter>();
-        services.AddSingleton<Karamchari.Core.Messaging.Tenant.TenantSendFilter>();
+        services.AddSingleton(typeof(Karamchari.Core.Messaging.Tenant.TenantConsumeFilter<>));
+        services.AddSingleton(typeof(Karamchari.Core.Messaging.Tenant.TenantPublishFilter<>));
+        services.AddSingleton(typeof(Karamchari.Core.Messaging.Tenant.TenantSendFilter<>));
 
         // Background Job Infrastructure
         services.AddSingleton<Karamchari.Core.BackgroundJobs.Tenant.ITenantJobContextSerializer, Karamchari.Core.BackgroundJobs.Tenant.TenantJobContextSerializer>();

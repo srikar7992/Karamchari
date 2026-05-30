@@ -184,6 +184,12 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         Guid EntityId,
         string FinalStatus,
         DateTimeOffset CompletedAt);
+
+    /// <summary>Synthetic event used for platform-wide execution context propagation testing.</summary>
+    public record SyntheticPingIntegrationEvent(
+        Guid PingId,
+        string TenantId,
+        string Payload);
 }
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.V1
