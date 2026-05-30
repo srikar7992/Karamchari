@@ -52,8 +52,14 @@ jobs:
       - name: Build with analyzers and warnings as errors
         run: dotnet build src/Backend/Karamchari.sln --no-restore -c Release -warnaserror
 
-      - name: Run tests with coverage
-        run: dotnet test src/Backend/Karamchari.sln --no-build -c Release --logger "trx;LogFilePrefix=test_results" --collect:"XPlat Code Coverage"
+      # Architecture tests run WITHOUT coverage: Coverlet's "XPlat Code Coverage"
+      # instrumentation injects Tracker types that make NetArchTest throw
+      # TypeLoadException (reflects over all types), causing false failures.
+      - name: Run tests with coverage (excluding ArchitectureTests)
+        run: dotnet test src/Backend/Karamchari.sln --no-build -c Release --filter "FullyQualifiedName!~ArchitectureTests" --logger "trx;LogFilePrefix=test_results" --collect:"XPlat Code Coverage"
+
+      - name: Run ArchitectureTests (no coverage instrumentation)
+        run: dotnet test tests/Backend/Karamchari.ArchitectureTests/Karamchari.ArchitectureTests.csproj --no-build -c Release --logger "trx;LogFilePrefix=arch_results"
 
       - name: NuGet vulnerability audit
         run: dotnet list src/Backend/Karamchari.sln package --vulnerable --include-transitive
