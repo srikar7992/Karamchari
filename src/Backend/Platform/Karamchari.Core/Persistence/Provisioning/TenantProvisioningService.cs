@@ -113,21 +113,10 @@ public sealed class TenantProvisioningService
     private async Task VerifyProvisioningAsync(string schemaName, IReadOnlyCollection<TenantRelationalArtifact> expected)
     {
         // 1. Verify Table Existence (Artifact Set Verification)
-        var actualTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        
-        using var command = _dbContext.Database.GetDbConnection().CreateCommand();
-        command.CommandText = $"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{schemaName}'";
-        
-        if (command.Connection!.State != System.Data.ConnectionState.Open)
-        {
-            await command.Connection.OpenAsync();
-        }
-
-        using var reader = await command.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
-        {
-            actualTables.Add(reader.GetString(0));
-        }
+        var actualTablesList = await _dbContext.Database.SqlQueryRaw<string>(
+            "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = {0}",
+            schemaName).ToListAsync();
+        var actualTables = new HashSet<string>(actualTablesList, StringComparer.OrdinalIgnoreCase);
 
         var expectedTables = expected.Select(a => a.TableName).ToHashSet(StringComparer.OrdinalIgnoreCase);
         
@@ -143,26 +132,24 @@ public sealed class TenantProvisioningService
         // We compare the schema of the new tenant tables against the 'dbo' template.
         foreach (var table in expectedTables)
         {
-            using var columnCommand = _dbContext.Database.GetDbConnection().CreateCommand();
-            columnCommand.CommandText = $@"
-                SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_NAME = '{table}' AND TABLE_SCHEMA = '{schemaName}'
-                EXCEPT
-                SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_NAME = '{table}' AND TABLE_SCHEMA = 'dbo'";
+            var diffColumns = await _dbContext.Database.SqlQueryRaw<string>(
+                @"SELECT COLUMN_NAME FROM (
+                    SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = {0} AND TABLE_SCHEMA = {1}
+                    EXCEPT
+                    SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = {0} AND TABLE_SCHEMA = 'dbo'
+                ) AS Diff",
+                table, schemaName).ToListAsync();
 
-            var diffCount = 0;
-            using var diffReader = await columnCommand.ExecuteReaderAsync();
-            while (await diffReader.ReadAsync())
+            if (diffColumns.Count > 0)
             {
-                diffCount++;
-                _logger.LogWarning("Artifact Inequality detected in {Schema}.{Table}: Column {Column} differs from template.", schemaName, table, diffReader.GetString(0));
-            }
-
-            if (diffCount > 0)
-            {
+                foreach (var column in diffColumns)
+                {
+                    _logger.LogWarning("Artifact Inequality detected in {Schema}.{Table}: Column {Column} differs from template.", schemaName, table, column);
+                }
                 throw new InvalidOperationException($"Relational artifact equality failed for {schemaName}.{table}. Schema differs from 'dbo' template.");
             }
         }

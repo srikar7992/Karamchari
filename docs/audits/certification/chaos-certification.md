@@ -42,10 +42,10 @@ All core isolation mechanics scored above the mandatory **70%** efficiency/resil
 ## 3. Source References
 
 *   **Chaos Tests Suite**: [ChaosEngineeringTests.cs](tests/Backend/Karamchari.TenantIsolationCertification/ChaosEngineering/ChaosEngineeringTests.cs)
-*   **Chaos Configurations**: [ResilienceExtensions.cs](src/Backend/Karamchari.Api/DependencyInjection/ResilienceExtensions.cs)
+*   **Chaos Configurations**: [ResilienceExtensions.cs](src/Backend/Hosts/Karamchari.Api/DependencyInjection/ResilienceExtensions.cs)
 
 ---
 
 ## 4. Chaos Engineering Verdict
 
-**VERDICT**: **PASS** (100% of tested failure patterns handled gracefully with zero cross-tenant impact or data loss).
+**VERDICT**: **Proven** (100% of tested failure patterns handled gracefully with zero cross-tenant impact or data loss).

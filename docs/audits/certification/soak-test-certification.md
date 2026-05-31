@@ -43,4 +43,4 @@ During the intensive burst execution, the following resource profiles were obser
 
 ## 4. Soak Test Verdict
 
-**VERDICT**: **Partially Certified** (Time-compressed leak audits and baseline memory stability passed; 72-hour continuous run remains **NOT PROVEN**).
+**VERDICT**: **Partially Proven** (Time-compressed leak audits and baseline memory stability passed; 72-hour continuous run remains **NOT PROVEN**).

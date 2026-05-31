@@ -134,12 +134,12 @@ Output:
 ## 5. Source References & Configuration
 
 *   **Docker Compose Configuration File**: [docker-compose.yml](infrastructure/local/docker-compose.yml)
-*   **API Dockerfile**: [Dockerfile](src/Backend/Karamchari.Api/Dockerfile)
-*   **Worker Dockerfile**: [Dockerfile](src/Backend/Karamchari.Worker/Dockerfile)
+*   **API Dockerfile**: [Dockerfile](src/Backend/Hosts/Karamchari.Api/Dockerfile)
+*   **Worker Dockerfile**: [Dockerfile](src/Backend/Hosts/Karamchari.Worker/Dockerfile)
 *   **Build Warning Suppressions**: [Directory.Build.props](Directory.Build.props)
 
 ---
 
 ## 6. Deployment Verdict
 
-**VERDICT**: **PASS** (Runtime evidence observed via health check and service logs).
+**VERDICT**: **Partially Proven** (Local containerized deployment is fully verified and proven; remote production cloud pipelines are **Not Proven** due to local developer sandbox bounds).

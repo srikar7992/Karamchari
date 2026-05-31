@@ -18,9 +18,9 @@ $Unit = @(
   "tests/Backend/Karamchari.Core.UnitTests/Karamchari.Core.UnitTests.csproj",
   "tests/Backend/Karamchari.Api.UnitTests/Karamchari.Api.UnitTests.csproj",
   "tests/Backend/Karamchari.ArchitectureTests/Karamchari.ArchitectureTests.csproj",
-  "src/Backend/Karamchari.Payroll.Tests/Karamchari.Payroll.Tests.csproj",
-  "src/Backend/Karamchari.PSA.Tests/Karamchari.PSA.Tests.csproj",
-  "src/Backend/Karamchari.TimeAttendance.Tests/Karamchari.TimeAttendance.Tests.csproj",
+  "tests/Backend/Karamchari.Payroll.Tests/Karamchari.Payroll.Tests.csproj",
+  "tests/Backend/Karamchari.PSA.Tests/Karamchari.PSA.Tests.csproj",
+  "tests/Backend/Karamchari.TimeAttendance.Tests/Karamchari.TimeAttendance.Tests.csproj",
   "tests/Backend/Karamchari.FinancialChaosTests/Karamchari.FinancialChaosTests.csproj"
 )
 $Integration = @(

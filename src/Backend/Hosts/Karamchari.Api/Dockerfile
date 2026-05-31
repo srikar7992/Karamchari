@@ -4,18 +4,14 @@ WORKDIR /src
 # Copy directory build props/packages
 COPY Directory.Build.props Directory.Packages.props global.json ./
 
-# Copy the solution file (if it exists in the root, assuming src/Backend/Karamchari.sln)
+# Copy the solution file
 COPY src/Backend/Karamchari.sln src/Backend/
 
-# Copy all .csproj files preserving directory structure
-COPY src/Backend/*/*.csproj ./
-RUN for file in $(ls *.csproj); do mkdir -p src/Backend/${file%.*}/ && mv $file src/Backend/${file%.*}/; done
-
-# Alternatively, just copy the entire Backend folder (less efficient but guarantees all projects are there for the solution restore)
+# Copy the entire Backend folder
 COPY src/Backend/ src/Backend/
 
 # Restore dependencies
-WORKDIR /src/src/Backend/Karamchari.Api
+WORKDIR /src/src/Backend/Hosts/Karamchari.Api
 RUN dotnet restore Karamchari.Api.csproj
 
 # Build and publish

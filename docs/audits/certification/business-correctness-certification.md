@@ -47,12 +47,12 @@ Output summary of domain-specific tests:
 
 ## 3. Source References
 
-*   **PF/ESI/TDS Calculation Rules**: [ComplianceService.cs](src/Backend/Karamchari.Payroll/Services/Compliance/ComplianceService.cs)
-*   **Invoice Generator**: [InvoiceGenerationService.cs](src/Backend/Karamchari.Billing/Services/InvoiceGenerationService.cs)
-*   **Workflow State Machine**: [WorkflowOrchestrator.cs](src/Backend/Karamchari.Workflow/Consumers/WorkflowOrchestratorConsumer.cs)
+*   **PF/ESI/TDS Calculation Rules**: [ComplianceService.cs](src/Backend/Modules/Payroll/Karamchari.Payroll/Services/Compliance/ComplianceService.cs)
+*   **Invoice Generator**: [InvoiceGenerationService.cs](src/Backend/Modules/Billing/Karamchari.Billing/Services/InvoiceGenerationService.cs)
+*   **Workflow State Machine**: [WorkflowOrchestrator.cs](src/Backend/Modules/Workflow/Karamchari.Workflow/Consumers/WorkflowOrchestratorConsumer.cs)
 
 ---
 
 ## 4. Business Correctness Verdict
 
-**VERDICT**: **PASS** (All core business rules match statutory definitions and pass regression tests without deviation).
+**VERDICT**: **Proven** (All core business rules match statutory definitions and pass regression tests without deviation).

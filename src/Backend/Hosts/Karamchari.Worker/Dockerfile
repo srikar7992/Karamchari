@@ -8,7 +8,7 @@ COPY Directory.Build.props Directory.Packages.props global.json ./
 COPY src/Backend/ src/Backend/
 
 # Restore dependencies
-WORKDIR /src/src/Backend/Karamchari.Worker
+WORKDIR /src/src/Backend/Hosts/Karamchari.Worker
 RUN dotnet restore Karamchari.Worker.csproj
 
 # Build and publish

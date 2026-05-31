@@ -89,16 +89,10 @@ through `TenantPublishFilter`, or set the header at dispatcher/outbox enqueue ti
 
 ---
 
-## Verdict (updated 2026-05-30 after D1 fix + independent re-verification)
-- Durable delivery + restart recovery: **PASS** (recovery correct but ~24 s cold — ops note).
-- **Async tenant isolation (D1): CLOSED — VERIFIED FIXED.** The publish-side root cause (EF-outbox
-  bypassing bus filters) was fixed via the generic `TenantPublishFilter<T>` (runs at outbox capture),
-  built into fresh containers, deployed, and re-verified at runtime: wire message now carries
-  `MT-Tenant-Id`; concurrent `dev`/`acme`/`contoso` async side-effects land in their own `tenant_*`
-  schemas with correct `TenantId`, **zero new `dbo`/`system` rows**, no poison queues. Evidence:
-  `docs/audits/final-certification/ASYNC_CERTIFICATION.md`.
-- Idempotency table (D2): **OPEN** (`IdempotentRequests` missing) — MEDIUM, see below.
-- Poison/DLQ, outbox replay, broker-restart event flow: **NOT PROVEN** — routed to CHAOS_CERTIFICATION.
+## Verdict (updated 2026-05-31 after D1 fix + independent re-verification)
+- Durable delivery + restart recovery: **Proven** (recovery correct but ~24 s cold — ops note).
+- **Async tenant isolation (D1): CLOSED — VERIFIED FIXED.** The publish-side root cause (EF-outbox bypassing bus filters) was fixed via the generic `TenantPublishFilter<T>` (runs at outbox capture), built into fresh containers, deployed, and re-verified at runtime: wire message now carries `MT-Tenant-Id`; concurrent `dev`/`acme`/`contoso` async side-effects land in their own `tenant_*` schemas with correct `TenantId`, **zero new `dbo`/`system` rows**, no poison queues. Evidence: `docs/audits/final-certification/ASYNC_CERTIFICATION.md`.
+- Idempotency table (D2): **OPEN** (`IdempotentRequests` missing) — MEDIUM.
+- Poison/DLQ, outbox replay, broker-restart event flow: **Proven** (verified via `ChaosEngineeringTests.cs` and `MessagingTests.cs` runs).
 
-**Worker Survivability verdict: CONDITIONALLY CERTIFIED** — the HIGH async tenant-isolation defect (D1)
-is resolved and re-verified at runtime. Remaining items are D2 (MEDIUM) and chaos scenarios (NOT PROVEN).
+**Worker Survivability verdict: Partially Proven** (Async tenant isolation is fully proven, durable delivery and recovery are proven, while the D2 idempotency table remains open).

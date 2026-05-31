@@ -27,7 +27,7 @@ To verify the robust recovery of the Karamchari platform, we tested and analyzed
 
 ### Scenario C: Deploying with Missing Secrets
 *   **Method**: Deploying with the environment variable `Jwt__Secret` set to an empty string, or keeping it as the default placeholder `REPLACE_VIA_ENV` in a non-Development/Local environment.
-*   **Result**: The fail-fast validation check inside [Program.cs](src/Backend/Karamchari.Api/Program.cs#L19-L32) throws a `System.InvalidOperationException` immediately upon boot.
+*   **Result**: The fail-fast validation check inside [Program.cs](src/Backend/Hosts/Karamchari.Api/Program.cs#L19-L32) throws a `System.InvalidOperationException` immediately upon boot.
 *   **Logs**:
     ```plaintext
     System.InvalidOperationException: Jwt:Secret is missing, a placeholder, or shorter than 32 bytes. Supply a strong secret via environment variable 'Jwt__Secret' ...
@@ -66,4 +66,4 @@ docker compose -f infrastructure/local/docker-compose.yml up -d --no-deps karamc
 
 ## 4. Rollback Verdict
 
-**VERDICT**: **PASS** (Automatic transactional boundary rollback and fail-fast configuration verified).
+**VERDICT**: **Partially Proven** (Local transactional boundary rollback, fail-fast configuration, and image rollback are fully verified and proven; remote CI/CD automated rollback pipelines are **Not Proven** due to local developer sandbox bounds).
