@@ -10,7 +10,7 @@
 #   ./setup-local.sh --skip-seed     skip optional seed step
 #
 # Exit code 0 = system operational. Non-zero = a gate failed (see report).
-# Report written to: docs/hostile-audit/setup-report.txt
+# Report written to: docs/audits/hostile/setup-report.txt
 # =============================================================================
 set -uo pipefail
 

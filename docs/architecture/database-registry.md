@@ -8,7 +8,7 @@ This document lists and details every `DbContext` implementation in the Karamcha
 
 - **Database Engine**: Azure SQL Database (deployed in SQL Elastic Pools for cost/resource scaling).
 - **Tenancy Isolation Model**: Shared Database, Isolated Schemas (`tenant_<tenantId>`).
-- **Dynamic Schema Isolation**: Inherited from [KaramchariDbContext](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Core/Persistence/KaramchariDbContext.cs), which maps all models to the placeholder schema `__tenant__` at compile-time. The [TenantSchemaCommandInterceptor](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Core/Persistence/Interceptors/TenantSchemaCommandInterceptor.cs) rewrites this placeholder to the active tenant's schema before execution.
+- **Dynamic Schema Isolation**: Inherited from [KaramchariDbContext](src/Backend/Karamchari.Core/Persistence/KaramchariDbContext.cs), which maps all models to the placeholder schema `__tenant__` at compile-time. The [TenantSchemaCommandInterceptor](src/Backend/Karamchari.Core/Persistence/Interceptors/TenantSchemaCommandInterceptor.cs) rewrites this placeholder to the active tenant's schema before execution.
 - **Defensive Row-Level Security**: A session context interceptor writes `TenantId` on open connections, and SQL Server Row-Level Security (RLS) policies filter records as a failsafe backup.
 
 ---
@@ -72,6 +72,6 @@ Every domain context inherits from `KaramchariDbContext` and runs within the act
 
 ## Verdict: **PASS**
 
-The database mapping model is exceptionally structured. All context definitions cleanly extend [KaramchariDbContext](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Core/Persistence/KaramchariDbContext.cs), standardizing RLS and schema isolated queries. 
+The database mapping model is exceptionally structured. All context definitions cleanly extend [KaramchariDbContext](src/Backend/Karamchari.Core/Persistence/KaramchariDbContext.cs), standardizing RLS and schema isolated queries. 
 
 Migrations are cleanly owned by their respective modules. Data recovery is simplified because all schemas reside in a single SQL Server database instance, permitting unified point-in-time restores (PITR).

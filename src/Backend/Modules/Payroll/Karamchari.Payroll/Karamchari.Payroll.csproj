@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Karamchari.Payroll — Payroll bounded context.
+    Same isolation rules as HR: no cross-context EF/DbContext references.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Payroll</RootNamespace>
+    <AssemblyName>Karamchari.Payroll</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <!-- CS1591: XML doc coverage for the payroll bounded context is work-in-progress. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
+    <ProjectReference Include="..\Karamchari.Payroll.Contracts\Karamchari.Payroll.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="EFCore.BulkExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="QuestPDF" />
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="Azure.AI.DocumentIntelligence" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <!-- Design-time only: allows `dotnet ef migrations add` to discover PayrollDbContextDesignTimeFactory. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

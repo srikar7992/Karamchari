@@ -21,7 +21,7 @@ The "Bus Factor" represents the minimum number of engineers who must disappear f
 
 ## Supporting Evidence
 
-1. **CODEOWNERS Registry**: The [.github/CODEOWNERS](file:///Users/srikarbojji/Projects/Karamchari/.github/CODEOWNERS) file maps every path in the codebase to a single username:
+1. **CODEOWNERS Registry**: The [.github/CODEOWNERS](.github/CODEOWNERS) file maps every path in the codebase to a single username:
    ```
    * @srika
    /src/Backend/Karamchari.Payroll/ @srika

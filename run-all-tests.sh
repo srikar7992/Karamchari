@@ -10,7 +10,7 @@
 #
 # Exit code mirrors the pipeline: 0 = all passed, non-zero = at least one failed.
 # Artifacts: artifacts/test-results/*.trx, **/coverage.cobertura.xml,
-#            docs/hostile-audit/test-summary.txt
+#            docs/audits/hostile/test-summary.txt
 # =============================================================================
 # NOTE: intentionally NOT using `set -u`. macOS ships bash 3.2, which raises an
 # "unbound variable" error when expanding an *empty* array (e.g. "${cov_args[@]}"

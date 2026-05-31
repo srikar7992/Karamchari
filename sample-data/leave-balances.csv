@@ -1,0 +1,13 @@
+Employee Number,Leave Type,Balance,Effective Date
+EMP001,Annual Leave,12.5,2024-01-01
+EMP001,Sick Leave,8.0,2024-01-01
+EMP002,Annual Leave,15.0,2024-01-01
+EMP002,Sick Leave,10.0,2024-01-01
+EMP003,Annual Leave,20.0,2024-01-01
+EMP003,Sick Leave,10.0,2024-01-01
+EMP004,Annual Leave,18.0,2024-01-01
+EMP005,Annual Leave,10.0,2024-01-01
+EMP005,Sick Leave,6.0,2024-01-01
+EMP006,Annual Leave,5.0,2024-06-01
+EMP007,Annual Leave,3.0,2024-06-01
+EMP008,Annual Leave,8.0,2024-01-01

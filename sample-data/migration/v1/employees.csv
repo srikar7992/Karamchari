@@ -1,0 +1,4 @@
+Employee Number,First Name,Last Name,Email,Designation,Date Of Joining,Employment Type
+EMP-M-001,John,Doe,john.doe@dev.local,Software Engineer,2026-01-15,FullTime
+EMP-M-002,Jane,Smith,jane.smith@dev.local,Senior Engineer,2026-02-01,FullTime
+EMP-M-003,Bob,Wilson,bob.wilson@dev.local,Product Manager,2026-03-10,FullTime

@@ -141,7 +141,7 @@ public sealed class TenantMessageConsumerScopeTests
         var headers = Substitute.For<Headers>();
         var receiveContext = Substitute.For<ReceiveContext>();
 
-        headers.TryGetHeader(TenantMessageHeaderKeys.TenantId, out Arg.Any<object?>())
+        headers.TryGetHeader(ExecutionContextHeaders.TenantId, out Arg.Any<object?>())
             .Returns(x =>
             {
                 if (tenantId != null)

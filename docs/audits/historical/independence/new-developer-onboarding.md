@@ -13,7 +13,7 @@ Below are the estimated times to complete key developer tasks starting from a co
 | **Run** | **5 - 20 minutes** | **Dependency Pull**: First-time downloading of 9 Docker images (SQL Server 2022, Redis 7, RabbitMQ, OTel Collector, Seq, Prometheus, Grafana, Mailpit, Azurite) is highly bandwidth-dependent (~3GB total download). Once images are local, setup takes ~1-2 minutes. |
 | **Login** | **2 - 3 minutes** | Requires utilizing the Bruno collection under `tools/api-tests/` or constructing raw HTTP requests. JWT-based authentication is handled cleanly once the API is running. |
 | **Create Employee** | **2 - 3 minutes** | Accessible via the Scalar UI at `https://localhost:60462/scalar` or using the Bruno collection. |
-| **Debug Endpoint** | **5 minutes** | Endpoints are cleanly registered in `Karamchari.Api/BFF/` (e.g., [EmployeeEndpoints.cs](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Api/BFF/Employee/EmployeeEndpoints.cs)). Easy to set breakpoints and attach. |
+| **Debug Endpoint** | **5 minutes** | Endpoints are cleanly registered in `Karamchari.Api/BFF/` (e.g., [EmployeeEndpoints.cs](src/Backend/Karamchari.Api/BFF/Employee/EmployeeEndpoints.cs)). Easy to set breakpoints and attach. |
 | **Fix Bug** | **10 - 15 minutes** | Code is modular and typed, with nullable reference types enabled. Compiler/analyzers and NetArchTest enforce rules immediately, reducing feedback loops. |
 | **Create Feature** | **1 - 2 hours** | Monolith boundaries require creating/modifying classes in the Contracts class library first, adding database entities, running migrations, registering handlers, and exposing REST endpoints in BFF. |
 

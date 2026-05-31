@@ -1,41 +1,31 @@
-# Documentation Truthfulness Audit
+# Phase 2 — Documentation Truthfulness Audit
 
-## Documents Audited
+Every documented command/URL/port/env-var was executed or checked against the running system.
+Verdict per document: **Accurate / Partially Accurate / Incorrect**.
 
-| Document | Status | Evidence |
+## Per-document verdict
+
+| Document | Verdict | Evidence |
 |---|---|---|
-| `README.md` | Partially Accurate | Mentions `./setup.ps1`, `./scripts/runtime/run-local.ps1`, and `./scripts/validation/validate-runtime.ps1`. The verified working path was `./setup-local.sh`; `README.md` also claims "Day 1 scaffold" and only HR/Payroll layout while the repo now has many modules. |
-| `README-LOCAL.md` | Partially Accurate | Docker stack, build, provision, seed, and health commands match actual flow. It omits Prometheus/Grafana in the startup command even though ports are documented and `setup-local.sh` starts them. |
-| `docs/engineering/local_setup.md` | Not re-executed | Not enough time to execute every command in every engineering doc. Must not inherit prior certification. |
-| `docs/certification/*` | Not trusted | Prior certification docs exist, but this audit did not inherit PASS from them. |
-| `docs/hostile-audit/*` prior files | Superseded | Prior hostile-audit files existed before this pass and were replaced/updated where relevant. |
+| `README.md` | **Partially Accurate** | Status line "Day 1 scaffold. Foundations only — no business domain yet." is **stale** (16+ bounded contexts exist: HR, Payroll, Billing, Compensation, Recruitment, etc.). Lists API at `http://localhost:8080` (only true for the *containerized* compose), while the documented `dotnet run` dev workflow listens on `60462/60463` (launchSettings) — conflicting port story vs README-LOCAL. Referenced scripts (`setup.ps1`, `scripts/runtime/run-local.ps1`, `scripts/validation/validate-runtime.ps1`, `scripts/chaos/run-chaos.ps1`) all **exist**. |
+| `README-LOCAL.md` | **Partially Accurate** | Commands run, BUT the critical provisioning step omits the connection-string requirement → on a fresh non-Windows machine provisioning **crashes** (`PlatformNotSupportedException: LocalDB`). See `fresh-machine-validation.md`. The `dotnet run --project ... --provision-dev-tenants` form (no `--` separator) was tested and **does** forward the arg in .NET 10 (verified empirically) — so that part is fine. Ports/URLs (1433/6379/5672/15672/8081/3000/9090/8025, Scalar at `/scalar`) verified correct. |
+| `docs/seed/local-dev-seed.sql` (header) | **Incorrect / dangerously stale** | Header instructs `sqllocaldb start MSSQLLocalDB`, manual `CREATE SCHEMA [tenant_dev]`, and says *"Until the Provisioning service exists, create the tenant schema manually"* — contradicting the entire current automated provisioning model. A developer following it would diverge badly. |
+| `docs/certification/startup.md` | **Accurate (but mislocated)** | This is the **only** onboarding-relevant doc that shows `export ConnectionStrings__KaramchariDb='Server=localhost,1433;...'` — the step that actually makes provisioning work. It lives in a certification artifact, not the quick-start, so new devs never see it. |
+| `docs/engineering/local_setup.md` | **Redundant** | A *third* setup narrative alongside README + README-LOCAL. Doc sprawl; risks divergence. |
+| `infrastructure/local/docker-compose.yml` | **Accurate** | `docker compose up -d` brought up all 9 services; ports match README-LOCAL. (Emits a cosmetic warning: obsolete `version:` attribute.) |
+| Root `docker-compose.yml` | **Partially Accurate / confusing** | A *second* compose for containerized API+Worker (port 8080, `ASPNETCORE_ENVIRONMENT=Development`, mandatory `KARAMCHARI_SQL_PASSWORD`). Diverges from `infrastructure/local` (redis has no volume/appendonly here). Two compose files with different topologies is a footgun. |
 
-## Documented URL Checks
+## Documented surfaces verified live
+- `GET /health` → 200; `GET /health/live` → 200; `GET /health/ready` → 200 (and 503 under dependency loss — see `failure-injection.md`).
+- Scalar served at `/scalar` (302 redirect from `/`) in Development and Local.
+- Seq `:8081`, RabbitMQ mgmt `:15672`, Grafana `:3000`, Prometheus `:9090`, Mailpit `:8025` — all reachable.
+- Provisioning arg form `dotnet run ... -- --provision-dev-tenants` **and** `... --provision-dev-tenants` both forward correctly under .NET 10 (tested in an isolated probe).
 
-With infrastructure up:
-
-| URL | Result |
-|---|---|
-| `http://localhost:8081` Seq | HTTP 200 |
-| `http://localhost:15672` RabbitMQ | HTTP 200 |
-| `http://localhost:3000` Grafana | HTTP 302 |
-| `http://localhost:9090` Prometheus | HTTP 302 |
-| `http://localhost:8025` Mailpit | HTTP 200 |
-
-With API running in a live audit session:
-
-| URL | Result |
-|---|---|
-| `https://localhost:60462/health` | HTTP 200 |
-| `https://localhost:60462/scalar` | Not rechecked successfully after setup script exit; API process was not persistent in this execution harness. |
-
-## Broken or Risky Claims
-
-- `README.md` claims `./setup.ps1` is the one-command setup, but the requested and verified scripts are `setup-local.sh` / `setup-local.ps1`.
-- `README.md` says "Day 1 scaffold. Foundations only -- no business domain yet", which is outdated given Payroll, TimeAttendance, PSA, Performance, Billing, Forecasting, etc.
-- Documentation does not warn that Docker Desktop on Apple Silicon runs the SQL Server image under `linux/amd64` emulation.
-- Documentation does not explain the sandbox/host distinction needed for Docker, curl, and MSBuild in this environment.
+## Key truthfulness findings
+1. **README.md "Day 1 scaffold / no business domain"** — materially false; undersells (and misdescribes) a large platform.
+2. **Conflicting ports** across README (8080) vs README-LOCAL (60462) vs reality (launchSettings 60462, Kestrel default 5000 without launch profile, 8080 in container).
+3. **Missing connection-string step** in onboarding → fresh-machine bootstrap failure (the headline defect).
+4. **`local-dev-seed.sql` header** describes a provisioning model that no longer exists.
 
 ## Verdict
-
-Documentation Quality: Partially Accurate.
+Documentation = **Partially Accurate overall**, with one *Incorrect* (seed header) and one onboarding omission severe enough to break a fresh machine. Remediation (this audit) fixed the connection-string root cause; doc text corrections are recommended (see HOSTILE_AUDIT_REPORT.md).

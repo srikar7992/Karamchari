@@ -33,7 +33,7 @@ sequenceDiagram
 
 ## 2. Distributed Tracing (OpenTelemetry)
 
-OpenTelemetry is registered globally in [InfrastructureExtensions.cs](file:///Users/srikarbojji/Projects/Karamchari/src/Backend/Karamchari.Api/DependencyInjection/InfrastructureExtensions.cs) to capture request traces across boundaries:
+OpenTelemetry is registered globally in [InfrastructureExtensions.cs](src/Backend/Karamchari.Api/DependencyInjection/InfrastructureExtensions.cs) to capture request traces across boundaries:
 
 -   **Incoming HTTP Requests**: Captures ASP.NET Core request spans, excluding health check endpoints, and enriches traces with the active `tenant.id` claim.
 -   **Outbound HTTP Clients**: Traces external HTTP requests.
