@@ -5,20 +5,24 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <NoWarn>$(NoWarn);CA1707;CS1591;CA1869;CA2201</NoWarn>
+    <!-- CA1707: underscore test names are xUnit convention. CA1859: interface fields in tests are intentional (NSubstitute). -->
+    <NoWarn>$(NoWarn);CS1591;CA1707;CA1859</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="FluentAssertions" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Backend\Hosts\Karamchari.Api\Karamchari.Api.csproj" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Backend\Modules\Payroll\Karamchari.Payroll\Karamchari.Payroll.csproj" />
+  </ItemGroup>
 </Project>

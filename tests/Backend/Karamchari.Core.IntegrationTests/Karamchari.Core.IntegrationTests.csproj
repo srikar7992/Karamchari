@@ -25,7 +25,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <ProjectReference Include="..\..\..\src\Backend\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Platform\Karamchari.Core\Karamchari.Core.csproj" />
   </ItemGroup>
 
 </Project>

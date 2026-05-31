@@ -3,91 +3,99 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.0.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platform", "Platform", "{B0000002-0000-0000-0000-000000000002}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{B0000003-0000-0000-0000-000000000003}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hosts", "Hosts", "{B0000004-0000-0000-0000-000000000004}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B0000005-0000-0000-0000-000000000005}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B0000001-0000-0000-0000-000000000001}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Api", "Karamchari.Api\Karamchari.Api.csproj", "{A1000001-0000-0000-0000-000000000001}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Api", "Hosts\Karamchari.Api\Karamchari.Api.csproj", "{A1000001-0000-0000-0000-000000000001}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Core", "Karamchari.Core\Karamchari.Core.csproj", "{A1000002-0000-0000-0000-000000000002}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Core", "Platform\Karamchari.Core\Karamchari.Core.csproj", "{A1000002-0000-0000-0000-000000000002}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.HR", "Karamchari.HR\Karamchari.HR.csproj", "{A1000003-0000-0000-0000-000000000003}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.HR", "Modules\HR\Karamchari.HR\Karamchari.HR.csproj", "{A1000003-0000-0000-0000-000000000003}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Payroll", "Karamchari.Payroll\Karamchari.Payroll.csproj", "{A1000004-0000-0000-0000-000000000004}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Payroll", "Modules\Payroll\Karamchari.Payroll\Karamchari.Payroll.csproj", "{A1000004-0000-0000-0000-000000000004}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Core.UnitTests", "..\..\tests\Backend\Karamchari.Core.UnitTests\Karamchari.Core.UnitTests.csproj", "{A1000005-0000-0000-0000-000000000005}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Core.IntegrationTests", "..\..\tests\Backend\Karamchari.Core.IntegrationTests\Karamchari.Core.IntegrationTests.csproj", "{A1000006-0000-0000-0000-000000000006}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Core.Contracts", "Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj", "{A1000007-0000-0000-0000-000000000007}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Core.Contracts", "Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj", "{A1000007-0000-0000-0000-000000000007}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.TimeAttendance", "Karamchari.TimeAttendance\Karamchari.TimeAttendance.csproj", "{10B1710C-4E46-44AE-AF5B-38590F8B2E59}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.TimeAttendance", "Modules\TimeAttendance\Karamchari.TimeAttendance\Karamchari.TimeAttendance.csproj", "{10B1710C-4E46-44AE-AF5B-38590F8B2E59}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.PSA", "Karamchari.PSA\Karamchari.PSA.csproj", "{A1000008-0000-0000-0000-000000000008}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.PSA", "Modules\PSA\Karamchari.PSA\Karamchari.PSA.csproj", "{A1000008-0000-0000-0000-000000000008}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.TimeAttendance.Tests", "Karamchari.TimeAttendance.Tests\Karamchari.TimeAttendance.Tests.csproj", "{10B1710D-4E46-44AE-AF5B-38590F8B2E5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.TimeAttendance.Tests", "..\..\tests\Backend\Karamchari.TimeAttendance.Tests\Karamchari.TimeAttendance.Tests.csproj", "{10B1710D-4E46-44AE-AF5B-38590F8B2E5D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.PSA.Tests", "Karamchari.PSA.Tests\Karamchari.PSA.Tests.csproj", "{A1000009-0000-0000-0000-000000000009}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.PSA.Tests", "..\..\tests\Backend\Karamchari.PSA.Tests\Karamchari.PSA.Tests.csproj", "{A1000009-0000-0000-0000-000000000009}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Billing.Contracts", "Karamchari.Billing.Contracts\Karamchari.Billing.Contracts.csproj", "{A100000A-0000-0000-0000-00000000000A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Billing.Contracts", "Modules\Billing\Karamchari.Billing.Contracts\Karamchari.Billing.Contracts.csproj", "{A100000A-0000-0000-0000-00000000000A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Workflow", "Karamchari.Workflow\Karamchari.Workflow.csproj", "{A100000B-0000-0000-0000-00000000000B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Workflow", "Modules\Workflow\Karamchari.Workflow\Karamchari.Workflow.csproj", "{A100000B-0000-0000-0000-00000000000B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Payroll.Tests", "Karamchari.Payroll.Tests\Karamchari.Payroll.Tests.csproj", "{A100000C-0000-0000-0000-00000000000C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Payroll.Tests", "..\..\tests\Backend\Karamchari.Payroll.Tests\Karamchari.Payroll.Tests.csproj", "{A100000C-0000-0000-0000-00000000000C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.TimeAttendance.Contracts", "Karamchari.TimeAttendance.Contracts\Karamchari.TimeAttendance.Contracts.csproj", "{A100000D-0000-0000-0000-00000000000D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.TimeAttendance.Contracts", "Modules\TimeAttendance\Karamchari.TimeAttendance.Contracts\Karamchari.TimeAttendance.Contracts.csproj", "{A100000D-0000-0000-0000-00000000000D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Billing", "Karamchari.Billing\Karamchari.Billing.csproj", "{A100000E-0000-0000-0000-00000000000E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Billing", "Modules\Billing\Karamchari.Billing\Karamchari.Billing.csproj", "{A100000E-0000-0000-0000-00000000000E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Forecasting", "Karamchari.Forecasting\Karamchari.Forecasting.csproj", "{A100000F-0000-0000-0000-00000000000F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Forecasting", "Modules\Forecasting\Karamchari.Forecasting\Karamchari.Forecasting.csproj", "{A100000F-0000-0000-0000-00000000000F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Performance.Contracts", "Karamchari.Performance.Contracts\Karamchari.Performance.Contracts.csproj", "{A1000010-0000-0000-0000-000000000010}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Performance.Contracts", "Modules\Performance\Karamchari.Performance.Contracts\Karamchari.Performance.Contracts.csproj", "{A1000010-0000-0000-0000-000000000010}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Compensation.Contracts", "Karamchari.Compensation.Contracts\Karamchari.Compensation.Contracts.csproj", "{A1000011-0000-0000-0000-000000000011}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Compensation.Contracts", "Modules\Compensation\Karamchari.Compensation.Contracts\Karamchari.Compensation.Contracts.csproj", "{A1000011-0000-0000-0000-000000000011}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Performance", "Karamchari.Performance\Karamchari.Performance.csproj", "{A1000012-0000-0000-0000-000000000012}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Performance", "Modules\Performance\Karamchari.Performance\Karamchari.Performance.csproj", "{A1000012-0000-0000-0000-000000000012}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Notifications", "Karamchari.Notifications\Karamchari.Notifications.csproj", "{A1000013-0000-0000-0000-000000000013}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Notifications", "Modules\Notifications\Karamchari.Notifications\Karamchari.Notifications.csproj", "{A1000013-0000-0000-0000-000000000013}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Compensation", "Karamchari.Compensation\Karamchari.Compensation.csproj", "{A1000014-0000-0000-0000-000000000014}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Compensation", "Modules\Compensation\Karamchari.Compensation\Karamchari.Compensation.csproj", "{A1000014-0000-0000-0000-000000000014}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Api.UnitTests", "..\..\tests\Backend\Karamchari.Api.UnitTests\Karamchari.Api.UnitTests.csproj", "{6A9397B0-1C40-4031-ADC0-B0EE77180F68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Identity.Contracts", "Karamchari.Identity.Contracts\Karamchari.Identity.Contracts.csproj", "{08081E58-5598-4004-84E4-AE5CA2210A45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Identity.Contracts", "Platform\Karamchari.Identity.Contracts\Karamchari.Identity.Contracts.csproj", "{08081E58-5598-4004-84E4-AE5CA2210A45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Identity", "Karamchari.Identity\Karamchari.Identity.csproj", "{36345336-F6CB-4BC8-A28D-BBC026E4E84A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Identity", "Platform\Karamchari.Identity\Karamchari.Identity.csproj", "{36345336-F6CB-4BC8-A28D-BBC026E4E84A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Identity.Infrastructure", "Karamchari.Identity.Infrastructure\Karamchari.Identity.Infrastructure.csproj", "{19067105-2915-46EE-9316-1DF8F2373F61}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Identity.Infrastructure", "Platform\Karamchari.Identity.Infrastructure\Karamchari.Identity.Infrastructure.csproj", "{19067105-2915-46EE-9316-1DF8F2373F61}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Identity.IntegrationTests", "..\..\tests\Backend\Karamchari.Identity.IntegrationTests\Karamchari.Identity.IntegrationTests.csproj", "{CF3FDDAF-0E8C-4AC6-8A6B-8389093849D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Recruitment", "Karamchari.Recruitment\Karamchari.Recruitment.csproj", "{A1416CA3-1C7A-4EC7-ADBB-94CA9D1C92F5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Recruitment", "Modules\Recruitment\Karamchari.Recruitment\Karamchari.Recruitment.csproj", "{A1416CA3-1C7A-4EC7-ADBB-94CA9D1C92F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Recruitment.Contracts", "Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj", "{F6FBACCE-AB10-4ADA-BA4E-B1490EE1C2A1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Recruitment.Contracts", "Modules\Recruitment\Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj", "{F6FBACCE-AB10-4ADA-BA4E-B1490EE1C2A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Capability", "Karamchari.Capability\Karamchari.Capability.csproj", "{2FF780BA-9D3D-4FD3-A373-6B32F052C658}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Capability", "Modules\Capability\Karamchari.Capability\Karamchari.Capability.csproj", "{2FF780BA-9D3D-4FD3-A373-6B32F052C658}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Capability.Contracts", "Karamchari.Capability.Contracts\Karamchari.Capability.Contracts.csproj", "{DA96BEE0-EBE3-46AE-95EF-95D29E84C7F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Capability.Contracts", "Modules\Capability\Karamchari.Capability.Contracts\Karamchari.Capability.Contracts.csproj", "{DA96BEE0-EBE3-46AE-95EF-95D29E84C7F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Intelligence", "Karamchari.Intelligence\Karamchari.Intelligence.csproj", "{903DECF0-DD33-44B0-B921-8618A3111295}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Intelligence", "Modules\Intelligence\Karamchari.Intelligence\Karamchari.Intelligence.csproj", "{903DECF0-DD33-44B0-B921-8618A3111295}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Intelligence.Contracts", "Karamchari.Intelligence.Contracts\Karamchari.Intelligence.Contracts.csproj", "{10041B7D-01FA-4435-9B5B-1449D09A6CE8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Intelligence.Contracts", "Modules\Intelligence\Karamchari.Intelligence.Contracts\Karamchari.Intelligence.Contracts.csproj", "{10041B7D-01FA-4435-9B5B-1449D09A6CE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Governance", "Karamchari.Governance\Karamchari.Governance.csproj", "{8B860623-0610-441D-BDB6-2D0CD7050881}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Governance", "Modules\Governance\Karamchari.Governance\Karamchari.Governance.csproj", "{8B860623-0610-441D-BDB6-2D0CD7050881}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.TenantIsolationCertification", "..\..\tests\Backend\Karamchari.TenantIsolationCertification\Karamchari.TenantIsolationCertification.csproj", "{EDBCFE0B-D5F1-4644-8BA4-5384AB645703}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.FinancialOps", "Karamchari.FinancialOps\Karamchari.FinancialOps.csproj", "{F6F7DDF4-1A77-48C4-801F-E8268325B8FF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.FinancialOps", "Modules\FinancialOps\Karamchari.FinancialOps\Karamchari.FinancialOps.csproj", "{F6F7DDF4-1A77-48C4-801F-E8268325B8FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.FinancialOps.Contracts", "Karamchari.FinancialOps.Contracts\Karamchari.FinancialOps.Contracts.csproj", "{5915D2A1-0E5A-4306-9538-18B4106623CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.FinancialOps.Contracts", "Modules\FinancialOps\Karamchari.FinancialOps.Contracts\Karamchari.FinancialOps.Contracts.csproj", "{5915D2A1-0E5A-4306-9538-18B4106623CD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.FinancialChaosTests", "..\..\tests\Backend\Karamchari.FinancialChaosTests\Karamchari.FinancialChaosTests.csproj", "{A1000015-0000-0000-0000-000000000015}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Payroll.Contracts", "Karamchari.Payroll.Contracts\Karamchari.Payroll.Contracts.csproj", "{92B44B90-E87F-488E-8604-A3C1D7161D70}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Payroll.Contracts", "Modules\Payroll\Karamchari.Payroll.Contracts\Karamchari.Payroll.Contracts.csproj", "{92B44B90-E87F-488E-8604-A3C1D7161D70}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.ArchitectureTests", "..\..\tests\Backend\Karamchari.ArchitectureTests\Karamchari.ArchitectureTests.csproj", "{79D1BE36-8769-4423-820B-FA5DF7DC9D08}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.DataMigration.Contracts", "Karamchari.DataMigration.Contracts\Karamchari.DataMigration.Contracts.csproj", "{40455CBA-C74B-4EB5-A997-AB31F0E8447E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.DataMigration.Contracts", "Modules\DataMigration\Karamchari.DataMigration.Contracts\Karamchari.DataMigration.Contracts.csproj", "{40455CBA-C74B-4EB5-A997-AB31F0E8447E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.DataMigration", "Karamchari.DataMigration\Karamchari.DataMigration.csproj", "{16B138BB-42A4-409B-9B94-1C53E5EC8FFD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.DataMigration", "Modules\DataMigration\Karamchari.DataMigration\Karamchari.DataMigration.csproj", "{16B138BB-42A4-409B-9B94-1C53E5EC8FFD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.DataMigration.Tests", "..\..\tests\Backend\Karamchari.DataMigration.Tests\Karamchari.DataMigration.Tests.csproj", "{0DCDB855-9516-498D-9503-BC2AE2BF3BBC}"
 EndProject
@@ -518,26 +526,51 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{A1000001-0000-0000-0000-000000000001} = {B0000001-0000-0000-0000-000000000001}
-		{A1000002-0000-0000-0000-000000000002} = {B0000001-0000-0000-0000-000000000001}
-		{A1000003-0000-0000-0000-000000000003} = {B0000001-0000-0000-0000-000000000001}
-		{A1000004-0000-0000-0000-000000000004} = {B0000001-0000-0000-0000-000000000001}
-		{A1000005-0000-0000-0000-000000000005} = {B0000001-0000-0000-0000-000000000001}
-		{A1000006-0000-0000-0000-000000000006} = {B0000001-0000-0000-0000-000000000001}
-		{A1000007-0000-0000-0000-000000000007} = {B0000001-0000-0000-0000-000000000001}
-		{A1000008-0000-0000-0000-000000000008} = {B0000001-0000-0000-0000-000000000001}
-		{10B1710D-4E46-44AE-AF5B-38590F8B2E5D} = {B0000001-0000-0000-0000-000000000001}
-		{A1000009-0000-0000-0000-000000000009} = {B0000001-0000-0000-0000-000000000001}
-		{A100000A-0000-0000-0000-00000000000A} = {B0000001-0000-0000-0000-000000000001}
-		{A100000B-0000-0000-0000-00000000000B} = {B0000001-0000-0000-0000-000000000001}
-		{A100000C-0000-0000-0000-00000000000C} = {B0000001-0000-0000-0000-000000000001}
-		{A100000D-0000-0000-0000-00000000000D} = {B0000001-0000-0000-0000-000000000001}
-		{A100000E-0000-0000-0000-00000000000E} = {B0000001-0000-0000-0000-000000000001}
-		{A100000F-0000-0000-0000-00000000000F} = {B0000001-0000-0000-0000-000000000001}
-		{A1000010-0000-0000-0000-000000000010} = {B0000001-0000-0000-0000-000000000001}
-		{A1000011-0000-0000-0000-000000000011} = {B0000001-0000-0000-0000-000000000001}
-		{A1000012-0000-0000-0000-000000000012} = {B0000001-0000-0000-0000-000000000001}
-		{A1000013-0000-0000-0000-000000000013} = {B0000001-0000-0000-0000-000000000001}
-		{A1000014-0000-0000-0000-000000000014} = {B0000001-0000-0000-0000-000000000001}
+		{A1000001-0000-0000-0000-000000000001} = {B0000004-0000-0000-0000-000000000004}
+		{A1000002-0000-0000-0000-000000000002} = {B0000002-0000-0000-0000-000000000002}
+		{A1000003-0000-0000-0000-000000000003} = {B0000003-0000-0000-0000-000000000003}
+		{A1000004-0000-0000-0000-000000000004} = {B0000003-0000-0000-0000-000000000003}
+		{A1000005-0000-0000-0000-000000000005} = {B0000005-0000-0000-0000-000000000005}
+		{A1000006-0000-0000-0000-000000000006} = {B0000005-0000-0000-0000-000000000005}
+		{A1000007-0000-0000-0000-000000000007} = {B0000002-0000-0000-0000-000000000002}
+		{10B1710C-4E46-44AE-AF5B-38590F8B2E59} = {B0000003-0000-0000-0000-000000000003}
+		{A1000008-0000-0000-0000-000000000008} = {B0000003-0000-0000-0000-000000000003}
+		{10B1710D-4E46-44AE-AF5B-38590F8B2E5D} = {B0000005-0000-0000-0000-000000000005}
+		{A1000009-0000-0000-0000-000000000009} = {B0000005-0000-0000-0000-000000000005}
+		{A100000A-0000-0000-0000-00000000000A} = {B0000003-0000-0000-0000-000000000003}
+		{A100000B-0000-0000-0000-00000000000B} = {B0000003-0000-0000-0000-000000000003}
+		{A100000C-0000-0000-0000-00000000000C} = {B0000005-0000-0000-0000-000000000005}
+		{A100000D-0000-0000-0000-00000000000D} = {B0000003-0000-0000-0000-000000000003}
+		{A100000E-0000-0000-0000-00000000000E} = {B0000003-0000-0000-0000-000000000003}
+		{A100000F-0000-0000-0000-00000000000F} = {B0000003-0000-0000-0000-000000000003}
+		{A1000010-0000-0000-0000-000000000010} = {B0000003-0000-0000-0000-000000000003}
+		{A1000011-0000-0000-0000-000000000011} = {B0000003-0000-0000-0000-000000000003}
+		{A1000012-0000-0000-0000-000000000012} = {B0000003-0000-0000-0000-000000000003}
+		{A1000013-0000-0000-0000-000000000013} = {B0000003-0000-0000-0000-000000000003}
+		{A1000014-0000-0000-0000-000000000014} = {B0000003-0000-0000-0000-000000000003}
+		{6A9397B0-1C40-4031-ADC0-B0EE77180F68} = {B0000005-0000-0000-0000-000000000005}
+		{08081E58-5598-4004-84E4-AE5CA2210A45} = {B0000002-0000-0000-0000-000000000002}
+		{36345336-F6CB-4BC8-A28D-BBC026E4E84A} = {B0000002-0000-0000-0000-000000000002}
+		{19067105-2915-46EE-9316-1DF8F2373F61} = {B0000002-0000-0000-0000-000000000002}
+		{CF3FDDAF-0E8C-4AC6-8A6B-8389093849D9} = {B0000005-0000-0000-0000-000000000005}
+		{A1416CA3-1C7A-4EC7-ADBB-94CA9D1C92F5} = {B0000003-0000-0000-0000-000000000003}
+		{F6FBACCE-AB10-4ADA-BA4E-B1490EE1C2A1} = {B0000003-0000-0000-0000-000000000003}
+		{2FF780BA-9D3D-4FD3-A373-6B32F052C658} = {B0000003-0000-0000-0000-000000000003}
+		{DA96BEE0-EBE3-46AE-95EF-95D29E84C7F4} = {B0000003-0000-0000-0000-000000000003}
+		{903DECF0-DD33-44B0-B921-8618A3111295} = {B0000003-0000-0000-0000-000000000003}
+		{10041B7D-01FA-4435-9B5B-1449D09A6CE8} = {B0000003-0000-0000-0000-000000000003}
+		{8B860623-0610-441D-BDB6-2D0CD7050881} = {B0000003-0000-0000-0000-000000000003}
+		{EDBCFE0B-D5F1-4644-8BA4-5384AB645703} = {B0000005-0000-0000-0000-000000000005}
+		{F6F7DDF4-1A77-48C4-801F-E8268325B8FF} = {B0000003-0000-0000-0000-000000000003}
+		{5915D2A1-0E5A-4306-9538-18B4106623CD} = {B0000003-0000-0000-0000-000000000003}
+		{A1000015-0000-0000-0000-000000000015} = {B0000005-0000-0000-0000-000000000005}
+		{92B44B90-E87F-488E-8604-A3C1D7161D70} = {B0000003-0000-0000-0000-000000000003}
+		{79D1BE36-8769-4423-820B-FA5DF7DC9D08} = {B0000005-0000-0000-0000-000000000005}
+		{40455CBA-C74B-4EB5-A997-AB31F0E8447E} = {B0000003-0000-0000-0000-000000000003}
+		{16B138BB-42A4-409B-9B94-1C53E5EC8FFD} = {B0000003-0000-0000-0000-000000000003}
+		{0DCDB855-9516-498D-9503-BC2AE2BF3BBC} = {B0000005-0000-0000-0000-000000000005}
+		{B0000002-0000-0000-0000-000000000002} = {B0000001-0000-0000-0000-000000000001}
+		{B0000003-0000-0000-0000-000000000003} = {B0000001-0000-0000-0000-000000000001}
+		{B0000004-0000-0000-0000-000000000004} = {B0000001-0000-0000-0000-000000000001}
 	EndGlobalSection
 EndGlobal

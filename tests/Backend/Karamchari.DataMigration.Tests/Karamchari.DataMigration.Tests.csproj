@@ -32,10 +32,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Backend\Karamchari.Api\Karamchari.Api.csproj" />
-    <ProjectReference Include="..\..\..\src\Backend\Karamchari.DataMigration\Karamchari.DataMigration.csproj" />
-    <ProjectReference Include="..\..\..\src\Backend\Karamchari.Identity\Karamchari.Identity.csproj" />
-    <ProjectReference Include="..\..\..\src\Backend\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Hosts\Karamchari.Api\Karamchari.Api.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Modules\DataMigration\Karamchari.DataMigration\Karamchari.DataMigration.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Platform\Karamchari.Identity\Karamchari.Identity.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Platform\Karamchari.Core\Karamchari.Core.csproj" />
   </ItemGroup>
 
 </Project>
