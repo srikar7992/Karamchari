@@ -27,12 +27,26 @@ public sealed class SecurityHeadersMiddleware
             headers["X-Content-Type-Options"] = "nosniff";
             headers["X-Frame-Options"] = "DENY";
             headers["Referrer-Policy"] = "no-referrer";
-            headers["Content-Security-Policy"] =
-                "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'";
             headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=()";
-            headers["Cross-Origin-Opener-Policy"] = "same-origin";
-            headers["Cross-Origin-Resource-Policy"] = "same-origin";
-            headers["Cross-Origin-Embedder-Policy"] = "require-corp";
+
+            var isScalar = context.Request.Path.StartsWithSegments("/scalar", StringComparison.OrdinalIgnoreCase);
+            if (isScalar)
+            {
+                // Relax CSP to allow Scalar scripts, styles, fonts, and images to render
+                headers["Content-Security-Policy"] =
+                    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' *; frame-ancestors 'none'; object-src 'none'; base-uri 'self'";
+                headers["Cross-Origin-Opener-Policy"] = "unsafe-none";
+                headers["Cross-Origin-Resource-Policy"] = "cross-origin";
+            }
+            else
+            {
+                // Strict CSP for regular APIs
+                headers["Content-Security-Policy"] =
+                    "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'";
+                headers["Cross-Origin-Opener-Policy"] = "same-origin";
+                headers["Cross-Origin-Resource-Policy"] = "same-origin";
+                headers["Cross-Origin-Embedder-Policy"] = "require-corp";
+            }
 
             // HSTS only over HTTPS (avoid pinning on plain-HTTP dev endpoints).
             if (context.Request.IsHttps)
