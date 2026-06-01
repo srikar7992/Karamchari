@@ -7,8 +7,6 @@ using Karamchari.FinancialOps.Domain.Ledger;
 using Karamchari.FinancialOps.Domain.Periods;
 using Karamchari.FinancialOps.Domain.Reimbursements;
 using Karamchari.FinancialOps.Domain.Settlements;
-using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.FinancialOps.Persistence;
@@ -70,16 +68,6 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
-
-        const string MessagingSchema = "dbo";
-
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
-
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
 
         modelBuilder.Entity<WorkforceFinancialEntry>(b =>
         {
@@ -196,7 +184,7 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
             b.Property(x => x.ClaimIds).HasConversion(
                 v => string.Join(',', v.Select(id => id.Value)),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => new ExpenseClaimId(Guid.Parse(s))).ToList().AsReadOnly()
-            );
+            ).Metadata.SetValueComparer(ValueComparers.ReadOnlyCollectionComparer<ExpenseClaimId>());
 
             b.HasIndex(x => x.TenantId);
         });
@@ -224,14 +212,16 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
             b.Property(x => x.Holds)
                 .HasConversion(
                     v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                    v => System.Text.Json.JsonSerializer.Deserialize<List<FinancialOperationalHold>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
-                .HasColumnType("nvarchar(max)");
+                    v => (IReadOnlyList<FinancialOperationalHold>)(System.Text.Json.JsonSerializer.Deserialize<List<FinancialOperationalHold>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<FinancialOperationalHold>()))
+                .HasColumnType("nvarchar(max)")
+                .Metadata.SetValueComparer(ValueComparers.ReadOnlyListComparer<FinancialOperationalHold>());
 
             b.Property(x => x.Receipts)
                 .HasConversion(
                     v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                    v => System.Text.Json.JsonSerializer.Deserialize<List<ExpenseReceipt>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
-                .HasColumnType("nvarchar(max)");
+                    v => (IReadOnlyList<ExpenseReceipt>)(System.Text.Json.JsonSerializer.Deserialize<List<ExpenseReceipt>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<ExpenseReceipt>()))
+                .HasColumnType("nvarchar(max)")
+                .Metadata.SetValueComparer(ValueComparers.ReadOnlyListComparer<ExpenseReceipt>());
         });
 
         modelBuilder.Entity<FinancialOperationEvent>(b =>

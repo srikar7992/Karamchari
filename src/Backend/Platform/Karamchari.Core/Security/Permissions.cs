@@ -44,6 +44,14 @@ public static class Permissions
     public const string BulkImportExecute = "bulkimport.execute";
     public const string BulkImportCancel = "bulkimport.cancel";
 
+    // Recruitment Domain
+    public const string RecruitmentRead = "recruitment.read";
+    public const string RecruitmentCreate = "recruitment.create";
+    public const string RecruitmentUpdate = "recruitment.update";
+    public const string RecruitmentInterview = "recruitment.interview";
+    public const string RecruitmentOffer = "recruitment.offer";
+    public const string RecruitmentHire = "recruitment.hire";
+
     public static readonly IReadOnlySet<string> All = new HashSet<string>
     {
         EmployeeRead, EmployeeWrite, EmployeeDelete,
@@ -54,6 +62,7 @@ public static class Permissions
         AuditRead,
         CapabilityRead, CapabilityWrite,
         BillingRead, BillingWrite,
-        BulkImportRead, BulkImportCreate, BulkImportExecute, BulkImportCancel
+        BulkImportRead, BulkImportCreate, BulkImportExecute, BulkImportCancel,
+        RecruitmentRead, RecruitmentCreate, RecruitmentUpdate, RecruitmentInterview, RecruitmentOffer, RecruitmentHire
     };
 }

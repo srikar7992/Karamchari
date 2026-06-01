@@ -21,6 +21,8 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <RootNamespace>Karamchari.TimeAttendance</RootNamespace>
+    <AssemblyName>Karamchari.TimeAttendance</AssemblyName>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

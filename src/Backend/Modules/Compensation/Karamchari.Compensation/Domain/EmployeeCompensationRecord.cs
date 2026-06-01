@@ -82,6 +82,9 @@ public sealed class EmployeeCompensationRecord : AggregateRoot<Guid>, ITenantOwn
     {
         ArgumentNullException.ThrowIfNull(@event);
 
+        if (_revisions.Any(r => r.ExternalRevisionId == @event.RevisionId))
+            return;
+
         var revision = new CompensationRevision(
             Guid.NewGuid(), Id,
             @event.RevisionId,

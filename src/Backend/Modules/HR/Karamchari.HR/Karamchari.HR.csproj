@@ -30,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
+    <ProjectReference Include="..\..\Recruitment\Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

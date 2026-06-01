@@ -5,6 +5,8 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <RootNamespace>Karamchari.Capability.Contracts</RootNamespace>
+    <AssemblyName>Karamchari.Capability.Contracts</AssemblyName>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

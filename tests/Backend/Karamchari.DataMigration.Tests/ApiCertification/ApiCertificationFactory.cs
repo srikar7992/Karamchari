@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Multitenancy;
 using Karamchari.DataMigration.Persistence;
 using Karamchari.DataMigration.Services;
@@ -36,6 +37,31 @@ public sealed class ApiCertificationFactory : WebApplicationFactory<Program>, IA
         .Build();
 
     private string _connectionString = string.Empty;
+
+    internal string ConnectionString => _connectionString;
+
+    /// <summary>
+    /// Directly advances an import job to the given status via raw SQL, bypassing the
+    /// async worker pipeline. Required in tests where the MassTransit worker is disabled.
+    /// Throws if no row is matched (indicates table/schema mismatch or wrong ID).
+    /// </summary>
+    internal async Task AdvanceJobStatusAsync(Guid jobId, int statusValue)
+    {
+        await using var conn = new SqlConnection(_connectionString);
+        await conn.OpenAsync();
+
+        // Use parameterized query to avoid GUID string-format issues
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"UPDATE [tenant_{TestTenantId}].[Migration_ImportJobs] SET [Status] = @status WHERE [Id] = @id";
+        cmd.Parameters.AddWithValue("@status", statusValue);
+        cmd.Parameters.AddWithValue("@id", jobId);
+        var affected = await cmd.ExecuteNonQueryAsync();
+
+        if (affected == 0)
+            throw new InvalidOperationException(
+                $"AdvanceJobStatusAsync: 0 rows updated for Id={jobId} in [tenant_{TestTenantId}].[Migration_ImportJobs]. " +
+                "Job may not have been committed or schema name is wrong.");
+    }
 
     public async Task InitializeAsync()
     {
@@ -82,6 +108,24 @@ public sealed class ApiCertificationFactory : WebApplicationFactory<Program>, IA
         {
             // ── Replace all non-DataMigration DbContexts with InMemory ────────
             RemoveAndReplaceWithInMemory(services);
+
+            // ── Re-wire DataMigrationDbContext to the test container ──────────
+            // ConfigureAppConfiguration overrides run AFTER Program.cs service
+            // registration in .NET 6+ minimal APIs. The captured closure in
+            // AddKaramchariDataMigration already holds the appsettings value.
+            // We must re-register here (ConfigureServices runs after Program.cs)
+            // to guarantee the test-container connection string is actually used.
+            services.RemoveAll<DbContextOptions<DataMigrationDbContext>>();
+            services.RemoveAll<DataMigrationDbContext>();
+            services.AddDbContext<DataMigrationDbContext>((sp, opts) =>
+            {
+                opts.UseSqlServer(_connectionString, sql =>
+                {
+                    sql.MigrationsHistoryTable("__EFMigrationsHistory", "migration");
+                    sql.EnableRetryOnFailure();
+                });
+                opts.AddKaramchariInterceptors(sp);
+            });
 
             // ── Remove background hosted services that need real infrastructure ──
             services.RemoveAll<IHostedService>();

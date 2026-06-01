@@ -45,7 +45,8 @@ internal sealed class SkillTaxonomyConfiguration : IEntityTypeConfiguration<Skil
                     .HasConversion(
                         v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                         v => System.Text.Json.JsonSerializer.Deserialize<List<SkillProficiencyDescriptor>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
-                    .HasColumnType("nvarchar(max)");
+                    .HasColumnType("nvarchar(max)")
+                    .Metadata.SetValueComparer(Karamchari.Core.Persistence.ValueComparers.ReadOnlyCollectionComparer<SkillProficiencyDescriptor>());
             });
         });
     }

@@ -117,14 +117,10 @@ public sealed class HRDbContext : KaramchariDbContext
             b.HasKey(x => x.Id);
         });
 
-        // MassTransit's transactional outbox entities. Adding them registers the
-        // EF model types; pinning them to dbo keeps them out of the tenant
-        // schema rewrite path (the rewriter only substitutes KaramchariDbContext
-        // .PlaceholderSchema, so [dbo].[OutboxMessage] passes through untouched).
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
-
+        // MassTransit's transactional outbox entities. They are registered in the
+        // base KaramchariDbContext (pinned to dbo and excluded from migrations).
+        // HRDbContext is the designated authority for these tables, so we
+        // override the exclusion here so they are physically managed by this context.
         modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema));
         modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema));
         modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema));

@@ -9,6 +9,8 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <RootNamespace>Karamchari.Governance</RootNamespace>
+    <AssemblyName>Karamchari.Governance</AssemblyName>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

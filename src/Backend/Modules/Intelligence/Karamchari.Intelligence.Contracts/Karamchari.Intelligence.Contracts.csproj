@@ -5,6 +5,8 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <RootNamespace>Karamchari.Intelligence.Contracts</RootNamespace>
+    <AssemblyName>Karamchari.Intelligence.Contracts</AssemblyName>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

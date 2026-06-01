@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Domain.Workflows;
 using Karamchari.Core.Multitenancy;
@@ -31,6 +32,9 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
         Status = WorkflowStatus.Pending;
         StartedAt = DateTimeOffset.UtcNow;
     }
+
+    private static readonly JsonSerializerOptions SnapshotOptions =
+        new() { Converters = { new JsonStringEnumConverter() } };
 
     private WorkflowInstance()
     {
@@ -117,7 +121,7 @@ public sealed class WorkflowInstance : AggregateRoot<Guid>, ITenantOwned
                 s.QuorumThreshold,
                 ApproverRoles = s.GetApproverRoles()
             }),
-        });
+        }, SnapshotOptions);
 
         var instance = new WorkflowInstance(Guid.NewGuid(), tenantId, entityType, entityId, snapshot);
 

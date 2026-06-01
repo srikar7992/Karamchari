@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Recruitment.Api</RootNamespace>
+    <AssemblyName>Karamchari.Recruitment.Api</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karamchari.Recruitment.Application\Karamchari.Recruitment.Application.csproj" />
+    <ProjectReference Include="..\Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj" />
+    <ProjectReference Include="..\Karamchari.Recruitment.Infrastructure\Karamchari.Recruitment.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

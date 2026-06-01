@@ -11,6 +11,8 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <RootNamespace>Karamchari.Capability</RootNamespace>
+    <AssemblyName>Karamchari.Capability</AssemblyName>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

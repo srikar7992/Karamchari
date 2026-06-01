@@ -77,6 +77,7 @@ public static class CoreServiceCollectionExtensions
         services.AddScoped<RlsSessionContextInterceptor>();
         services.AddScoped<TenantSchemaCommandInterceptor>();
         services.AddScoped<TenantStampingInterceptor>();
+        services.AddScoped<AuditableStampingInterceptor>();
         services.AddScoped<AuditInterceptor>();
         services.AddScoped<DomainEventDispatchInterceptor>();
 
@@ -186,6 +187,7 @@ public static class CoreServiceCollectionExtensions
             serviceProvider.GetRequiredService<RlsSessionContextInterceptor>(),
             serviceProvider.GetRequiredService<TenantSchemaCommandInterceptor>(),
             serviceProvider.GetRequiredService<TenantStampingInterceptor>(),
+            serviceProvider.GetRequiredService<AuditableStampingInterceptor>(),
             serviceProvider.GetRequiredService<DomainEventDispatchInterceptor>());
 
         return builder;

@@ -3,8 +3,6 @@ using Karamchari.Billing.Domain.Contracts;
 using Karamchari.Billing.Domain.Invoices;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
-using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Billing.Persistence;
@@ -49,17 +47,6 @@ public sealed class BillingDbContext : KaramchariDbContext
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
-
-        const string MessagingSchema = "dbo";
-
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
-
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-
 
         modelBuilder.Entity<BillingContract>(b =>
         {

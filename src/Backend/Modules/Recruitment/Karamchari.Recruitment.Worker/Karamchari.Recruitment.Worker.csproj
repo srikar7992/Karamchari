@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Recruitment.Worker</RootNamespace>
+    <AssemblyName>Karamchari.Recruitment.Worker</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karamchari.Recruitment.Application\Karamchari.Recruitment.Application.csproj" />
+    <ProjectReference Include="..\Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj" />
+    <ProjectReference Include="..\Karamchari.Recruitment.Infrastructure\Karamchari.Recruitment.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.RabbitMQ" />
+  </ItemGroup>
+
+</Project>

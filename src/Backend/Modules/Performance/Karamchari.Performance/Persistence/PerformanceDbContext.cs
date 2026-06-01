@@ -12,8 +12,6 @@ using Karamchari.Performance.Domain.Reporting;
 using Karamchari.Performance.Domain.Reviews;
 using Karamchari.Performance.Domain.Skills;
 using Karamchari.Performance.Persistence.Configurations;
-using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Performance.Persistence;
@@ -224,16 +222,5 @@ public sealed class PerformanceDbContext : KaramchariDbContext
         modelBuilder.ApplyConfiguration(new TalentHeatmapEntryConfiguration());
         modelBuilder.ApplyConfiguration(new TeamGoalSummaryConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeSkillInventoryItemConfiguration());
-
-        const string MessagingSchema = "dbo";
-
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
-
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-
     }
 }

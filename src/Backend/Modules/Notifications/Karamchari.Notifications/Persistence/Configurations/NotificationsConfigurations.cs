@@ -134,7 +134,8 @@ internal sealed class DigestBatchConfiguration : IEntityTypeConfiguration<Digest
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => (IReadOnlyList<Guid>)(JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null)
                          ?? new List<Guid>()))
-            .HasColumnType("nvarchar(max)");
+            .HasColumnType("nvarchar(max)")
+            .Metadata.SetValueComparer(Karamchari.Core.Persistence.ValueComparers.ReadOnlyListComparer<Guid>());
 
         // One batch per recipient per digest type per window per tenant.
         b.HasIndex(x => new { x.TenantId, x.IdempotencyKey })

@@ -4,8 +4,6 @@ using Karamchari.Capability.Domain.Learning;
 using Karamchari.Capability.Domain.Skills;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
-using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Capability.Persistence;
@@ -60,17 +58,6 @@ public class CapabilityDbContext : KaramchariDbContext
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
-
-        const string MessagingSchema = "dbo";
-
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
-
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-
 
         modelBuilder.Entity<SkillDefinition>(b =>
         {

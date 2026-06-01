@@ -64,7 +64,11 @@
     <ProjectReference Include="..\..\Platform\Karamchari.Identity.Infrastructure\Karamchari.Identity.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\DataMigration\Karamchari.DataMigration\Karamchari.DataMigration.csproj" />
     <ProjectReference Include="..\..\Modules\DataMigration\Karamchari.DataMigration.Contracts\Karamchari.DataMigration.Contracts.csproj" />
-    <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment\Karamchari.Recruitment.csproj" />
+    <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment.Api\Karamchari.Recruitment.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment.Application\Karamchari.Recruitment.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment.Core\Karamchari.Recruitment.Core.csproj" />
+    <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment.Infrastructure\Karamchari.Recruitment.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Capability\Karamchari.Capability\Karamchari.Capability.csproj" />
     <ProjectReference Include="..\..\Modules\Intelligence\Karamchari.Intelligence\Karamchari.Intelligence.csproj" />
     <ProjectReference Include="..\..\Modules\Governance\Karamchari.Governance\Karamchari.Governance.csproj" />

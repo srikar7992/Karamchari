@@ -10,6 +10,7 @@ public static class Roles
     public const string Manager = "Manager";
     public const string Employee = "Employee";
     public const string ReadOnly = "ReadOnly";
+    public const string Recruiter = "Recruiter";
 
     public static readonly IReadOnlySet<string> All = new HashSet<string>
     {
@@ -17,6 +18,7 @@ public static class Roles
         Admin,
         Manager,
         Employee,
-        ReadOnly
+        ReadOnly,
+        Recruiter
     };
 }

@@ -46,7 +46,8 @@ internal sealed class CareerFrameworkConfiguration : IEntityTypeConfiguration<Ca
                     .HasConversion(
                         v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                         v => System.Text.Json.JsonSerializer.Deserialize<List<CompetencyRequirement>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
-                    .HasColumnType("nvarchar(max)");
+                    .HasColumnType("nvarchar(max)")
+                    .Metadata.SetValueComparer(Karamchari.Core.Persistence.ValueComparers.ReadOnlyCollectionComparer<CompetencyRequirement>());
             });
         });
     }

@@ -7,6 +7,7 @@ using Karamchari.FinancialOps.DependencyInjection;
 using Karamchari.Forecasting.DependencyInjection;
 using Karamchari.Governance.DependencyInjection;
 using Karamchari.HR.DependencyInjection;
+using Karamchari.Identity.Infrastructure;
 using Karamchari.Intelligence.DependencyInjection;
 using Karamchari.Notifications.DependencyInjection;
 using Karamchari.Payroll.DependencyInjection;
@@ -21,39 +22,27 @@ namespace Karamchari.Api.DependencyInjection;
 
 public static class CapabilityRegistry
 {
-    public static IReadOnlyList<ICapabilityModule> GetModules(IConfiguration configuration)
+    public static ICapabilityModule[] GetModules(IConfiguration configuration)
     {
         return new ICapabilityModule[]
         {
-            // Foundation
-            new WorkflowModule(configuration),
-            new NotificationsModule(configuration),
-            new DataMigrationModule(configuration),
-            
-            // Workforce Ops
             new HRModule(configuration),
-            new TimeAttendanceModule(configuration),
-            new FinancialOpsModule(configuration),
-            
-            // Payroll
             new PayrollModule(configuration),
-            
-            // Hiring
             new RecruitmentModule(configuration),
-            
-            // Performance
-            new PerformanceModule(configuration),
-            
-            // PSA
+            new TimeAttendanceModule(configuration),
+            new NotificationsModule(configuration),
+            new WorkflowModule(configuration),
             new PSAModule(configuration),
-            
-            // Deferred / Future Modules
-            new CapabilityModule(configuration),
+            new PerformanceModule(configuration),
             new IntelligenceModule(configuration),
+            new DataMigrationModule(configuration),
+            // Identity is registered manually in Program.cs to avoid authentication scheme collisions
+            new FinancialOpsModule(configuration),
             new GovernanceModule(configuration),
             new ForecastingModule(configuration),
             new CompensationModule(configuration),
-            new BillingModule(configuration)
+            new BillingModule(configuration),
+            new CapabilityModule(configuration)
         };
     }
 }

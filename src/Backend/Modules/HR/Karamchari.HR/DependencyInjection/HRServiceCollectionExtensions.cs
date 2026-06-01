@@ -85,5 +85,6 @@ public static class HRServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(busConfigurator);
         busConfigurator.AddConsumer<Karamchari.HR.Consumers.TenantProvisionedConsumer>();
+        busConfigurator.AddConsumer<Karamchari.HR.Consumers.CreateEmployeeOnCandidateHiredConsumer>();
     }
 }

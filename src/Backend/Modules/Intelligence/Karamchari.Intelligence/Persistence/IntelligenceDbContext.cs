@@ -3,8 +3,6 @@ using Karamchari.Core.Persistence;
 using Karamchari.Intelligence.Domain.Metrics;
 using Karamchari.Intelligence.Domain.Primitives;
 using Karamchari.Intelligence.Domain.Signals;
-using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Intelligence.Persistence;
@@ -50,17 +48,6 @@ public class IntelligenceDbContext : KaramchariDbContext
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
-
-        const string MessagingSchema = "dbo";
-
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
-
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-
 
         modelBuilder.Entity<IntelligenceSignal>(b =>
         {
@@ -158,7 +145,8 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.ContributingSignalIds).HasConversion(
                 v => string.Join(',', v),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList()
-            );
+            ).Metadata.SetValueComparer(Karamchari.Core.Persistence.ValueComparers.ReadOnlyListComparer<Guid>());
+
 
             b.Property(x => x.AggregateConfidence)
                 .HasConversion(

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Recruitment.Application</RootNamespace>
+    <AssemblyName>Karamchari.Recruitment.Application</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karamchari.Recruitment.Core\Karamchari.Recruitment.Core.csproj" />
+    <ProjectReference Include="..\Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation.AspNetCore" />
+  </ItemGroup>
+
+</Project>

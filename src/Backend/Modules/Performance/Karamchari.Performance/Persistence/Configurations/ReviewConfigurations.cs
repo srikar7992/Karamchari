@@ -23,7 +23,8 @@ internal sealed class ReviewTemplateConfiguration : IEntityTypeConfiguration<Rev
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                 v => System.Text.Json.JsonSerializer.Deserialize<List<ReviewSection>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
-            .HasColumnType("nvarchar(max)");
+            .HasColumnType("nvarchar(max)")
+            .Metadata.SetValueComparer(Karamchari.Core.Persistence.ValueComparers.ReadOnlyCollectionComparer<ReviewSection>());
     }
 }
 
@@ -63,7 +64,8 @@ internal sealed class ReviewAssignmentConfiguration : IEntityTypeConfiguration<R
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                 v => System.Text.Json.JsonSerializer.Deserialize<List<ReviewerSlot>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
-            .HasColumnType("nvarchar(max)");
+            .HasColumnType("nvarchar(max)")
+            .Metadata.SetValueComparer(Karamchari.Core.Persistence.ValueComparers.ReadOnlyCollectionComparer<ReviewerSlot>());
     }
 }
 
@@ -97,6 +99,7 @@ internal sealed class ReviewSubmissionConfiguration : IEntityTypeConfiguration<R
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                 v => System.Text.Json.JsonSerializer.Deserialize<List<ReopenRecord>>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
-            .HasColumnType("nvarchar(max)");
+            .HasColumnType("nvarchar(max)")
+            .Metadata.SetValueComparer(Karamchari.Core.Persistence.ValueComparers.ReadOnlyCollectionComparer<ReopenRecord>());
     }
 }

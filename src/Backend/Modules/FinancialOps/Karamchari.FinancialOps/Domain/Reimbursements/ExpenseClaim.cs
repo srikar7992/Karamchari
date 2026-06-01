@@ -121,12 +121,12 @@ public sealed class ExpenseClaim : AggregateRoot<ExpenseClaimId>, ITenantOwned
     /// <summary>
     /// Gets the collection of operational holds currently or historically placed on this claim.
     /// </summary>
-    public IReadOnlyCollection<FinancialOperationalHold> Holds => _holds.AsReadOnly();
+    public IReadOnlyList<FinancialOperationalHold> Holds => _holds.AsReadOnly();
 
     /// <summary>
     /// Gets the collection of receipts attached to this claim.
     /// </summary>
-    public IReadOnlyCollection<ExpenseReceipt> Receipts => _receipts.AsReadOnly();
+    public IReadOnlyList<ExpenseReceipt> Receipts => _receipts.AsReadOnly();
 
     /// <summary>
     /// Gets the version of the projection exported to other modules.

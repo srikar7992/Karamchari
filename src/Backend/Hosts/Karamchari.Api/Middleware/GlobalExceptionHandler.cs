@@ -66,6 +66,13 @@ public class GlobalExceptionHandler : IExceptionHandler
             problemDetails.Type = "https://karamchari.com/errors/tenant-resolution-failed";
             problemDetails.Detail = "The tenant context for this request could not be resolved.";
         }
+        else if (exception is InvalidOperationException)
+        {
+            problemDetails.Status = (int)HttpStatusCode.BadRequest;
+            problemDetails.Title = "Invalid Operation";
+            problemDetails.Type = "https://karamchari.com/errors/invalid-operation";
+            problemDetails.Detail = exception.Message;
+        }
         else if (exception is FluentValidation.ValidationException validationEx)
         {
             problemDetails.Status = (int)HttpStatusCode.BadRequest;

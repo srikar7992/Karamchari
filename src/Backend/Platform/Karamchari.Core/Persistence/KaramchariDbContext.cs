@@ -1,4 +1,6 @@
 using Karamchari.Core.Multitenancy;
+using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Core.Persistence;
@@ -11,16 +13,18 @@ namespace Karamchari.Core.Persistence;
 ///   <item>All tables map to the placeholder schema <see cref="PlaceholderSchema"/>.</item>
 ///   <item><see cref="Interceptors.TenantSchemaCommandInterceptor"/> rewrites
 ///         that placeholder to the active tenant's schema at command execution time.</item>
-///   <item>Derived contexts add MassTransit's transactional outbox entities
+///   <item>Base context adds MassTransit's transactional outbox entities
 ///         (<c>InboxState</c>, <c>OutboxMessage</c>, <c>OutboxState</c>) and
-///         pin them to <c>dbo</c> Ã¢â‚¬â€ the bus outbox is shared infrastructure,
-///         not tenant-owned.</item>
+///         pins them to <c>dbo</c> — the bus outbox is shared infrastructure,
+///         not tenant-owned. Migrations are excluded by default; one context
+///         (typically HR) should override this to own the physical tables.</item>
 /// </list>
 ///
 /// Derived contexts (e.g. <c>HRDbContext</c>) override <see cref="OnDomainModelCreating"/>
-/// Ã¢â‚¬â€ they must <b>not</b> override <see cref="OnModelCreating"/> directly, since
+/// — they must <b>not</b> override <see cref="OnModelCreating"/> directly, since
 /// it's sealed to guarantee the multi-tenant defaults are always applied first.
 /// </summary>
+
 public abstract class KaramchariDbContext : DbContext
 {
     /// <summary>
@@ -101,6 +105,17 @@ public abstract class KaramchariDbContext : DbContext
         // MassTransit's bus outbox tables to dbo), but must keep PlaceholderSchema
         // as the default so the interceptor's rewrite remains consistent.
         modelBuilder.HasDefaultSchema(PlaceholderSchema);
+
+        // Register MassTransit outbox entities in the base model so they're available
+        // to every context, preventing "type not included in model" runtime faults.
+        // We pin them to dbo and exclude from migrations by default.
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+
+        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", "dbo", t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", "dbo", t => t.ExcludeFromMigrations()));
+        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", "dbo", t => t.ExcludeFromMigrations()));
 
         OnDomainModelCreating(modelBuilder);
 

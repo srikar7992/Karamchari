@@ -29,9 +29,27 @@ for a in "$@"; do case "$a" in --no-integration) SKIP_INTEGRATION=1 ;; esac; don
 
 # Test projects classified. Integration/cert suites require Docker infra up.
 UNIT=(
+  # Platform
   "tests/Backend/Karamchari.Core.UnitTests/Karamchari.Core.UnitTests.csproj"
   "tests/Backend/Karamchari.Api.UnitTests/Karamchari.Api.UnitTests.csproj"
   "tests/Backend/Karamchari.ArchitectureTests/Karamchari.ArchitectureTests.csproj"
+  "tests/Backend/Karamchari.Identity.Tests/Karamchari.Identity.Tests.csproj"
+  # Domain modules — Sprint 1
+  "tests/Backend/Karamchari.Recruitment.Tests/Karamchari.Recruitment.Tests.csproj"
+  "tests/Backend/Karamchari.HR.Tests/Karamchari.HR.Tests.csproj"
+  "tests/Backend/Karamchari.DataMigration.Tests/Karamchari.DataMigration.Tests.csproj"
+  # Domain modules — Sprint 2
+  "tests/Backend/Karamchari.Billing.Tests/Karamchari.Billing.Tests.csproj"
+  "tests/Backend/Karamchari.Compensation.Tests/Karamchari.Compensation.Tests.csproj"
+  "tests/Backend/Karamchari.FinancialOps.Tests/Karamchari.FinancialOps.Tests.csproj"
+  "tests/Backend/Karamchari.Notifications.Tests/Karamchari.Notifications.Tests.csproj"
+  "tests/Backend/Karamchari.Governance.Tests/Karamchari.Governance.Tests.csproj"
+  "tests/Backend/Karamchari.Workflow.Tests/Karamchari.Workflow.Tests.csproj"
+  "tests/Backend/Karamchari.Intelligence.Tests/Karamchari.Intelligence.Tests.csproj"
+  "tests/Backend/Karamchari.Capability.Tests/Karamchari.Capability.Tests.csproj"
+  "tests/Backend/Karamchari.Forecasting.Tests/Karamchari.Forecasting.Tests.csproj"
+  "tests/Backend/Karamchari.Outbox.Tests/Karamchari.Outbox.Tests.csproj"
+  # Existing payroll / PSA / TA / chaos
   "tests/Backend/Karamchari.Payroll.Tests/Karamchari.Payroll.Tests.csproj"
   "tests/Backend/Karamchari.PSA.Tests/Karamchari.PSA.Tests.csproj"
   "tests/Backend/Karamchari.TimeAttendance.Tests/Karamchari.TimeAttendance.Tests.csproj"

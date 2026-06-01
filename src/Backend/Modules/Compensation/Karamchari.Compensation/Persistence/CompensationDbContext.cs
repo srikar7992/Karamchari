@@ -2,8 +2,6 @@ using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Compensation.Domain;
 using Karamchari.Compensation.Persistence.Configurations;
-using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Compensation.Persistence;
@@ -50,15 +48,5 @@ public sealed class CompensationDbContext : KaramchariDbContext
         modelBuilder.ApplyConfiguration(new MeritMatrixConfiguration());
         modelBuilder.ApplyConfiguration(new IncrementBudgetPoolConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeCompensationRecordConfiguration());
-
-        const string MessagingSchema = "dbo";
-
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
-
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
     }
 }

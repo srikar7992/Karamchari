@@ -41,6 +41,13 @@ public sealed class PermissionResolver : IPermissionResolver
                     Permissions.CapabilityRead
                 },
                 Roles.ReadOnly => Permissions.All.Where(p => p.EndsWith(".read", StringComparison.OrdinalIgnoreCase)),
+                Roles.Recruiter => new[]
+                {
+                    Permissions.RecruitmentRead, Permissions.RecruitmentCreate, Permissions.RecruitmentUpdate,
+                    Permissions.RecruitmentInterview, Permissions.RecruitmentOffer, Permissions.RecruitmentHire,
+                    Permissions.EmployeeRead,
+                    Permissions.AuditRead
+                },
                 _ => Array.Empty<string>()
             };
 

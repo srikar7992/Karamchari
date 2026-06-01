@@ -1,108 +1,65 @@
 # Repository Inventory
 **Generated:** 2026-05-31  
-**Baseline Tag:** `sprint1-certified-baseline`  
-**Branch:** `chore/repo-cleanup-consolidation`
+**Baseline Tag:** `sprint1-certified-baseline`
 
----
+## Source Projects (src/Backend/)
 
-## Summary
-
-| Category | Count |
-|---|---|
-| Source projects | 35 |
-| Test projects | 11 |
-| Correctly placed source projects | 0 (all flat in `src/Backend/`) |
-| Misplaced test projects | 3 (in `src/Backend/` instead of `tests/Backend/`) |
-| Bounded contexts | 20 |
-
----
-
-## Platform Projects
-
-| Project | Physical Path | Assembly | Root Namespace | Layer | References |
-|---|---|---|---|---|---|
-| Karamchari.Core | `src/Backend/Karamchari.Core` | Karamchari.Core | Karamchari.Core | Platform/Kernel | _(none)_ |
-| Karamchari.Core.Contracts | `src/Backend/Karamchari.Core.Contracts` | Karamchari.Core.Contracts | Karamchari.Core.Contracts | Platform/Contracts | _(none)_ |
-| Karamchari.Identity | `src/Backend/Karamchari.Identity` | Karamchari.Identity | Karamchari.Identity | Platform/Domain | Core, Identity.Contracts |
-| Karamchari.Identity.Contracts | `src/Backend/Karamchari.Identity.Contracts` | Karamchari.Identity.Contracts | Karamchari.Identity.Contracts | Platform/Contracts | _(none)_ |
-| Karamchari.Identity.Infrastructure | `src/Backend/Karamchari.Identity.Infrastructure` | Karamchari.Identity.Infrastructure | Karamchari.Identity.Infrastructure | Platform/Infrastructure | Identity |
-
----
-
-## Host Projects
-
-| Project | Physical Path | Assembly | Root Namespace | Layer | References |
-|---|---|---|---|---|---|
-| Karamchari.Api | `src/Backend/Karamchari.Api` | Karamchari.Api | Karamchari.Api | Host | All 20 modules + Platform |
-| Karamchari.Worker | `src/Backend/Karamchari.Worker` | Karamchari.Worker | Karamchari.Worker | Host | Core, Core.Contracts + 15 modules |
-
----
-
-## Module Projects
-
-| Project | Physical Path | Bounded Context | Layer | References |
-|---|---|---|---|---|
-| Karamchari.Billing | `src/Backend/Karamchari.Billing` | Billing | Core | Core, Billing.Contracts, TimeAttendance.Contracts |
-| Karamchari.Billing.Contracts | `src/Backend/Karamchari.Billing.Contracts` | Billing | Contracts | _(none)_ |
-| Karamchari.Capability | `src/Backend/Karamchari.Capability` | Capability | Core | Core, Capability.Contracts |
-| Karamchari.Capability.Contracts | `src/Backend/Karamchari.Capability.Contracts` | Capability | Contracts | Core |
-| Karamchari.Compensation | `src/Backend/Karamchari.Compensation` | Compensation | Core | Core, Core.Contracts, Compensation.Contracts |
-| Karamchari.Compensation.Contracts | `src/Backend/Karamchari.Compensation.Contracts` | Compensation | Contracts | _(none)_ |
-| Karamchari.DataMigration | `src/Backend/Karamchari.DataMigration` | DataMigration | Core | Core, Core.Contracts, DataMigration.Contracts, HR, TimeAttendance, Payroll |
-| Karamchari.DataMigration.Contracts | `src/Backend/Karamchari.DataMigration.Contracts` | DataMigration | Contracts | Core.Contracts |
-| Karamchari.FinancialOps | `src/Backend/Karamchari.FinancialOps` | FinancialOps | Core | Core, Core.Contracts, FinancialOps.Contracts |
-| Karamchari.FinancialOps.Contracts | `src/Backend/Karamchari.FinancialOps.Contracts` | FinancialOps | Contracts | _(none)_ |
-| Karamchari.Forecasting | `src/Backend/Karamchari.Forecasting` | Forecasting | Core | Core, Billing.Contracts, TimeAttendance.Contracts |
-| Karamchari.Governance | `src/Backend/Karamchari.Governance` | Governance | Core | Core |
-| Karamchari.HR | `src/Backend/Karamchari.HR` | HR | Core | Core, Core.Contracts |
-| Karamchari.Intelligence | `src/Backend/Karamchari.Intelligence` | Intelligence | Core | Core, Intelligence.Contracts |
-| Karamchari.Intelligence.Contracts | `src/Backend/Karamchari.Intelligence.Contracts` | Intelligence | Contracts | Core |
-| Karamchari.Notifications | `src/Backend/Karamchari.Notifications` | Notifications | Core | Core, Core.Contracts, Performance.Contracts, Payroll.Contracts |
-| Karamchari.Payroll | `src/Backend/Karamchari.Payroll` | Payroll | Core | Core, Core.Contracts, Payroll.Contracts |
-| Karamchari.Payroll.Contracts | `src/Backend/Karamchari.Payroll.Contracts` | Payroll | Contracts | _(none)_ |
-| Karamchari.Performance | `src/Backend/Karamchari.Performance` | Performance | Core | Core, Core.Contracts, Performance.Contracts |
-| Karamchari.Performance.Contracts | `src/Backend/Karamchari.Performance.Contracts` | Performance | Contracts | _(none)_ |
-| Karamchari.PSA | `src/Backend/Karamchari.PSA` | PSA | Core | Core, Core.Contracts |
-| Karamchari.Recruitment | `src/Backend/Karamchari.Recruitment` | Recruitment | Core | Core, Recruitment.Contracts |
-| Karamchari.Recruitment.Contracts | `src/Backend/Karamchari.Recruitment.Contracts` | Recruitment | Contracts | Core |
-| Karamchari.TimeAttendance | `src/Backend/Karamchari.TimeAttendance` | TimeAttendance | Core | Core, Core.Contracts, Billing.Contracts, TimeAttendance.Contracts |
-| Karamchari.TimeAttendance.Contracts | `src/Backend/Karamchari.TimeAttendance.Contracts` | TimeAttendance | Contracts | _(none)_ |
-| Karamchari.Workflow | `src/Backend/Karamchari.Workflow` | Workflow | Core | Core, Core.Contracts |
-
----
-
-## Test Projects — Correctly Placed (`tests/Backend/`)
-
-| Project | Physical Path | Type | Tests Subject |
+### Platform
+| Project | Physical Path | Root Namespace | Target |
 |---|---|---|---|
-| Karamchari.Api.UnitTests | `tests/Backend/Karamchari.Api.UnitTests` | Unit | Karamchari.Api |
-| Karamchari.ArchitectureTests | `tests/Backend/Karamchari.ArchitectureTests` | Architecture | All modules |
-| Karamchari.Core.IntegrationTests | `tests/Backend/Karamchari.Core.IntegrationTests` | Integration | Karamchari.Core |
-| Karamchari.Core.UnitTests | `tests/Backend/Karamchari.Core.UnitTests` | Unit | Karamchari.Core |
-| Karamchari.DataMigration.Tests | `tests/Backend/Karamchari.DataMigration.Tests` | Unit+Integration+Certification | DataMigration |
-| Karamchari.FinancialChaosTests | `tests/Backend/Karamchari.FinancialChaosTests` | Chaos | FinancialOps |
-| Karamchari.Identity.IntegrationTests | `tests/Backend/Karamchari.Identity.IntegrationTests` | Integration | Identity |
-| Karamchari.TenantIsolationCertification | `tests/Backend/Karamchari.TenantIsolationCertification` | Certification | Core+Platform |
+| Karamchari.Core | `src/Backend/Platform/Karamchari.Core` | Karamchari.Core | net10.0 |
+| Karamchari.Core.Contracts | `src/Backend/Platform/Karamchari.Core.Contracts` | Karamchari.Core.Contracts | net10.0 |
+| Karamchari.Identity | `src/Backend/Platform/Karamchari.Identity` | Karamchari.Identity | net10.0 |
+| Karamchari.Identity.Contracts | `src/Backend/Platform/Karamchari.Identity.Contracts` | Karamchari.Identity.Contracts | net10.0 |
+| Karamchari.Identity.Infrastructure | `src/Backend/Platform/Karamchari.Identity.Infrastructure` | Karamchari.Identity.Infrastructure | net10.0 |
 
----
-
-## Test Projects — MISPLACED (`src/Backend/` — incorrect!)
-
-| Project | Current Path | Expected Path | Violation |
+### Modules
+| Project | Physical Path | Root Namespace | Bounded Context |
 |---|---|---|---|
-| Karamchari.PSA.Tests | `src/Backend/Karamchari.PSA.Tests` | `tests/Backend/Karamchari.PSA.Tests` | Test in src/ |
-| Karamchari.Payroll.Tests | `src/Backend/Karamchari.Payroll.Tests` | `tests/Backend/Karamchari.Payroll.Tests` | Test in src/ |
-| Karamchari.TimeAttendance.Tests | `src/Backend/Karamchari.TimeAttendance.Tests` | `tests/Backend/Karamchari.TimeAttendance.Tests` | Test in src/ |
+| Karamchari.Billing | `src/Backend/Modules/Billing/Karamchari.Billing` | Karamchari.Billing | Billing |
+| Karamchari.Billing.Contracts | `src/Backend/Modules/Billing/Karamchari.Billing.Contracts` | Karamchari.Billing.Contracts | Billing |
+| Karamchari.Capability | `src/Backend/Modules/Capability/Karamchari.Capability` | Karamchari.Capability | Capability |
+| Karamchari.Capability.Contracts | `src/Backend/Modules/Capability/Karamchari.Capability.Contracts` | Karamchari.Capability.Contracts | Capability |
+| Karamchari.Compensation | `src/Backend/Modules/Compensation/Karamchari.Compensation` | Karamchari.Compensation | Compensation |
+| Karamchari.Compensation.Contracts | `src/Backend/Modules/Compensation/Karamchari.Compensation.Contracts` | Karamchari.Compensation.Contracts | Compensation |
+| Karamchari.DataMigration | `src/Backend/Modules/DataMigration/Karamchari.DataMigration` | Karamchari.DataMigration | DataMigration |
+| Karamchari.DataMigration.Contracts | `src/Backend/Modules/DataMigration/Karamchari.DataMigration.Contracts` | Karamchari.DataMigration.Contracts | DataMigration |
+| Karamchari.FinancialOps | `src/Backend/Modules/FinancialOps/Karamchari.FinancialOps` | Karamchari.FinancialOps | FinancialOps |
+| Karamchari.FinancialOps.Contracts | `src/Backend/Modules/FinancialOps/Karamchari.FinancialOps.Contracts` | Karamchari.FinancialOps.Contracts | FinancialOps |
+| Karamchari.Forecasting | `src/Backend/Modules/Forecasting/Karamchari.Forecasting` | Karamchari.Forecasting | Forecasting |
+| Karamchari.Governance | `src/Backend/Modules/Governance/Karamchari.Governance` | Karamchari.Governance | Governance |
+| Karamchari.HR | `src/Backend/Modules/HR/Karamchari.HR` | Karamchari.HR | HR |
+| Karamchari.Intelligence | `src/Backend/Modules/Intelligence/Karamchari.Intelligence` | Karamchari.Intelligence | Intelligence |
+| Karamchari.Intelligence.Contracts | `src/Backend/Modules/Intelligence/Karamchari.Intelligence.Contracts` | Karamchari.Intelligence.Contracts | Intelligence |
+| Karamchari.Notifications | `src/Backend/Modules/Notifications/Karamchari.Notifications` | Karamchari.Notifications | Notifications |
+| Karamchari.Payroll | `src/Backend/Modules/Payroll/Karamchari.Payroll` | Karamchari.Payroll | Payroll |
+| Karamchari.Payroll.Contracts | `src/Backend/Modules/Payroll/Karamchari.Payroll.Contracts` | Karamchari.Payroll.Contracts | Payroll |
+| Karamchari.Performance | `src/Backend/Modules/Performance/Karamchari.Performance` | Karamchari.Performance | Performance |
+| Karamchari.Performance.Contracts | `src/Backend/Modules/Performance/Karamchari.Performance.Contracts` | Karamchari.Performance.Contracts | Performance |
+| Karamchari.PSA | `src/Backend/Modules/PSA/Karamchari.PSA` | Karamchari.PSA | PSA |
+| Karamchari.Recruitment | `src/Backend/Modules/Recruitment/Karamchari.Recruitment` | Karamchari.Recruitment | Recruitment |
+| Karamchari.Recruitment.Contracts | `src/Backend/Modules/Recruitment/Karamchari.Recruitment.Contracts` | Karamchari.Recruitment.Contracts | Recruitment |
+| Karamchari.TimeAttendance | `src/Backend/Modules/TimeAttendance/Karamchari.TimeAttendance` | Karamchari.TimeAttendance | TimeAttendance |
+| Karamchari.TimeAttendance.Contracts | `src/Backend/Modules/TimeAttendance/Karamchari.TimeAttendance.Contracts` | Karamchari.TimeAttendance.Contracts | TimeAttendance |
+| Karamchari.Workflow | `src/Backend/Modules/Workflow/Karamchari.Workflow` | Karamchari.Workflow | Workflow |
 
----
-
-## Infrastructure Files
-
-| File | Location | Purpose |
+### Hosts
+| Project | Physical Path | Root Namespace |
 |---|---|---|
-| `Karamchari.sln` | `src/Backend/Karamchari.sln` | Solution file |
-| `Directory.Build.props` | repo root | Global MSBuild properties |
-| `Directory.Packages.props` | repo root | Central package management |
-| `docker-compose.yml` | repo root | Local development stack |
-| `Karamchari.Api/Dockerfile` | `src/Backend/Karamchari.Api/` | API container image |
-| `Karamchari.Worker/Dockerfile` | `src/Backend/Karamchari.Worker/` | Worker container image |
+| Karamchari.Api | `src/Backend/Hosts/Karamchari.Api` | Karamchari.Api |
+| Karamchari.Worker | `src/Backend/Hosts/Karamchari.Worker` | Karamchari.Worker |
+
+## Test Projects (tests/Backend/)
+| Project | Physical Path | Type |
+|---|---|---|
+| Karamchari.Api.UnitTests | `tests/Backend/Karamchari.Api.UnitTests` | Unit |
+| Karamchari.ArchitectureTests | `tests/Backend/Karamchari.ArchitectureTests` | Architecture |
+| Karamchari.Core.IntegrationTests | `tests/Backend/Karamchari.Core.IntegrationTests` | Integration |
+| Karamchari.Core.UnitTests | `tests/Backend/Karamchari.Core.UnitTests` | Unit |
+| Karamchari.DataMigration.Tests | `tests/Backend/Karamchari.DataMigration.Tests` | Integrated |
+| Karamchari.FinancialChaosTests | `tests/Backend/Karamchari.FinancialChaosTests` | Chaos |
+| Karamchari.Identity.IntegrationTests | `tests/Backend/Karamchari.Identity.IntegrationTests` | Integration |
+| Karamchari.PSA.Tests | `tests/Backend/Karamchari.PSA.Tests` | Integrated |
+| Karamchari.Payroll.Tests | `tests/Backend/Karamchari.Payroll.Tests` | Integrated |
+| Karamchari.TenantIsolationCertification | `tests/Backend/Karamchari.TenantIsolationCertification` | Certification |
+| Karamchari.TimeAttendance.Tests | `tests/Backend/Karamchari.TimeAttendance.Tests` | Integrated |

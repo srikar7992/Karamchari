@@ -158,15 +158,30 @@ public static class MassTransitExtensions
                 }
                 else
                 {
-                    x.UsingAzureServiceBus((context, cfg) =>
+                    var asbConnection = configuration.GetConnectionString("AzureServiceBus");
+                    if (!string.IsNullOrEmpty(asbConnection))
                     {
-                        cfg.Host(configuration.GetConnectionString("AzureServiceBus"));
-                        cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
-                        cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
-                        cfg.UsePublishFilter<TenantPublishFilter>(context);
-                        cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
-                        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
-                    });
+                        x.UsingAzureServiceBus((context, cfg) =>
+                        {
+                            cfg.Host(asbConnection);
+                            cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
+                            cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
+                            cfg.UsePublishFilter<TenantPublishFilter>(context);
+                            cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
+                            cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+                        });
+                    }
+                    else
+                    {
+                        x.UsingInMemory((context, cfg) =>
+                        {
+                            cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
+                            cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
+                            cfg.UsePublishFilter<TenantPublishFilter>(context);
+                            cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
+                            cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+                        });
+                    }
                 }
             }
         });

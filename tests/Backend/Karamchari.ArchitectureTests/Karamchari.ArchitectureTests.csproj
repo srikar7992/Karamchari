@@ -23,7 +23,12 @@
     <ProjectReference Include="..\..\..\src\Backend\Modules\Payroll\Karamchari.Payroll\Karamchari.Payroll.csproj" />
     <ProjectReference Include="..\..\..\src\Backend\Modules\TimeAttendance\Karamchari.TimeAttendance\Karamchari.TimeAttendance.csproj" />
     <ProjectReference Include="..\..\..\src\Backend\Modules\Performance\Karamchari.Performance\Karamchari.Performance.csproj" />
-    <ProjectReference Include="..\..\..\src\Backend\Modules\Recruitment\Karamchari.Recruitment\Karamchari.Recruitment.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Modules\Recruitment\Karamchari.Recruitment.Api\Karamchari.Recruitment.Api.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Modules\Recruitment\Karamchari.Recruitment.Application\Karamchari.Recruitment.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Modules\Recruitment\Karamchari.Recruitment.Core\Karamchari.Recruitment.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Modules\Recruitment\Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Modules\Recruitment\Karamchari.Recruitment.Infrastructure\Karamchari.Recruitment.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Modules\Recruitment\Karamchari.Recruitment.Worker\Karamchari.Recruitment.Worker.csproj" />
     <ProjectReference Include="..\..\..\src\Backend\Modules\Compensation\Karamchari.Compensation\Karamchari.Compensation.csproj" />
     <ProjectReference Include="..\..\..\src\Backend\Modules\Capability\Karamchari.Capability\Karamchari.Capability.csproj" />
     <ProjectReference Include="..\..\..\src\Backend\Modules\Intelligence\Karamchari.Intelligence\Karamchari.Intelligence.csproj" />

@@ -58,7 +58,7 @@ public static class MigrationEndpoints
         IFormFile file,
         ClaimsPrincipal user,
         IImportFileStore fileStore,
-        DataMigrationDbContext db)
+        [FromServices] DataMigrationDbContext db)
     {
         if (file == null || file.Length == 0) return Results.BadRequest("No file uploaded.");
 
@@ -67,132 +67,107 @@ public static class MigrationEndpoints
         using var stream = file.OpenReadStream();
         using var sha = SHA256.Create();
         var hashBytes = await sha.ComputeHashAsync(stream);
-        var fileHash = Convert.ToHexStringLower(hashBytes);
-        stream.Position = 0;
+        var fileHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
 
-        var fileId = await fileStore.SaveFileAsync(stream, file.FileName);
-
+        var storedFileId = await fileStore.SaveFileAsync(stream, file.FileName);
+        
         var job = ImportJob.Create(
             importType,
             file.FileName,
-            fileId,
+            storedFileId,
             fileHash,
             user.Identity?.Name ?? "system",
-            policy,
-            templateVersion ?? "1.0");
+            policy);
 
         db.ImportJobs.Add(job);
         await db.SaveChangesAsync();
 
-        return Results.Created($"/api/v1/migration/imports/{job.Id}", new { job.Id });
+        return Results.Created($"/api/v1/migration/imports/{job.Id}", new { id = job.Id });
     }
 
-    private static async Task<IResult> GetImportStatus(Guid id, DataMigrationDbContext db)
+    private static async Task<IResult> GetImportStatus(Guid id, [FromServices] DataMigrationDbContext db)
     {
-        var job = await db.ImportJobs.AsNoTracking().FirstOrDefaultAsync(j => j.Id == id);
-        if (job is null) return Results.NotFound();
-        return Results.Ok(job);
+        var job = await db.ImportJobs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        return job == null ? Results.NotFound() : Results.Ok(job);
     }
 
     private static async Task<IResult> GetImportPreview(
         Guid id,
-        DataMigrationDbContext db,
-        IImportFileStore fileStore,
-        IEnumerable<IImportFileParser> parsers,
-        IEnumerable<IImportPipeline> pipelines)
+        [FromServices] DataMigrationDbContext db,
+        [FromQuery] int limit = 10)
     {
-        var job = await db.ImportJobs.FindAsync(id);
-        if (job is null) return Results.NotFound();
+        var records = await db.ImportRecords
+            .AsNoTracking()
+            .Where(x => x.ImportJobId == id)
+            .Take(limit)
+            .ToListAsync();
 
-        var pipeline = pipelines.FirstOrDefault(p => p.ImportType == job.ImportType);
-        if (pipeline is null) return Results.Problem($"No pipeline registered for import type '{job.ImportType}'.");
-
-        var extension = Path.GetExtension(job.FileName);
-        var parser = parsers.FirstOrDefault(p => p.SupportedExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
-        if (parser is null) return Results.Problem($"No parser for file extension '{extension}'.");
-
-        using var stream = await fileStore.GetFileAsync(job.StoredFileId);
-        var rows = await pipeline.PreviewAsync(stream, parser);
-
-        return Results.Ok(new ImportPreviewResult(job.Id, job.ImportType, rows.Count(), rows));
+        return Results.Ok(records);
     }
 
     private static async Task<IResult> ValidateImport(
         Guid id,
-        DataMigrationDbContext db,
-        IImportFileStore fileStore,
-        IEnumerable<IImportFileParser> parsers,
-        IEnumerable<IImportPipeline> pipelines)
+        [FromServices] DataMigrationDbContext db,
+        [FromServices] MassTransit.IPublishEndpoint publishEndpoint)
     {
-        var job = await db.ImportJobs.FindAsync(id);
-        if (job is null) return Results.NotFound();
+        var job = await db.ImportJobs.FirstOrDefaultAsync(x => x.Id == id);
+        if (job == null) return Results.NotFound();
 
-        var pipeline = pipelines.FirstOrDefault(p => p.ImportType == job.ImportType);
-        if (pipeline is null) return Results.Problem($"No pipeline registered for import type '{job.ImportType}'.");
+        if (job.Status != ImportJobStatus.Created)
+            return Results.BadRequest("Only newly created jobs can be validated.");
 
-        var extension = Path.GetExtension(job.FileName);
-        var parser = parsers.FirstOrDefault(p => p.SupportedExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
-        if (parser is null) return Results.Problem($"No parser for file extension '{extension}'.");
+        // Handled by background worker
+        await publishEndpoint.Publish(new Contracts.Events.ImportJobQueued(job.Id, job.TenantId, job.ImportType));
 
-        using var stream = await fileStore.GetFileAsync(job.StoredFileId);
-        var (valid, invalid, errors) = await pipeline.ValidateAsync(stream, parser);
-
-        job.TransitionTo(errors.Count > 0 ? ImportJobStatus.ValidationFailed : ImportJobStatus.Validated);
-        job.UpdateProgress(valid, invalid, 0);
-        await db.SaveChangesAsync();
-
-        return Results.Ok(new ImportValidationSummary(job.Id, valid, invalid, errors.Take(100)));
+        return Results.Accepted();
     }
 
     private static async Task<IResult> ExecuteImport(
         Guid id,
-        DataMigrationDbContext db,
-        MassTransit.IPublishEndpoint publishEndpoint)
+        [FromServices] DataMigrationDbContext db,
+        [FromServices] MassTransit.IPublishEndpoint publishEndpoint)
     {
-        var job = await db.ImportJobs.FindAsync(id);
-        if (job is null) return Results.NotFound();
+        var job = await db.ImportJobs.FirstOrDefaultAsync(x => x.Id == id);
+        if (job == null) return Results.NotFound();
 
-        if (job.Status != ImportJobStatus.Validated && job.Status != ImportJobStatus.CompletedWithErrors)
-            return Results.BadRequest($"Job must be Validated to execute. Current status: {job.Status}");
+        if (job.Status != ImportJobStatus.Validated)
+            return Results.BadRequest("Only validated jobs can be executed.");
 
-        job.TransitionTo(ImportJobStatus.Queued);
+        job.TransitionTo(ImportJobStatus.Processing);
         await db.SaveChangesAsync();
 
+        // Handled by background worker
         await publishEndpoint.Publish(new Contracts.Events.ImportJobQueued(job.Id, job.TenantId, job.ImportType));
 
-        return Results.Accepted($"/api/v1/migration/imports/{job.Id}", new { job.Id, job.Status });
+        return Results.Accepted();
     }
 
-    private static async Task<IResult> CancelImport(Guid id, DataMigrationDbContext db)
+    private static async Task<IResult> CancelImport(Guid id, [FromServices] DataMigrationDbContext db)
     {
-        var job = await db.ImportJobs.FindAsync(id);
-        if (job is null) return Results.NotFound();
-
-        if (job.Status is ImportJobStatus.Completed or ImportJobStatus.Failed or ImportJobStatus.Cancelled)
-            return Results.BadRequest($"Cannot cancel a job in status '{job.Status}'.");
+        var job = await db.ImportJobs.FirstOrDefaultAsync(x => x.Id == id);
+        if (job == null) return Results.NotFound();
 
         job.TransitionTo(ImportJobStatus.Cancelled);
         await db.SaveChangesAsync();
 
-        return Results.Ok(new { job.Id, job.Status });
+        return Results.Ok(job);
     }
 
-    private static async Task<IResult> DownloadErrorReport(Guid id, DataMigrationDbContext db)
+    private static async Task<IResult> DownloadErrorReport(Guid id, [FromServices] DataMigrationDbContext db)
     {
-        var job = await db.ImportJobs.AsNoTracking().FirstOrDefaultAsync(j => j.Id == id);
-        if (job is null) return Results.NotFound();
-
-        var failedRecords = await db.ImportRecords
+        var records = await db.ImportRecords
             .AsNoTracking()
-            .Where(r => r.ImportJobId == id && r.Status == ImportRecordStatus.Failed)
-            .OrderBy(r => r.RowNumber)
+            .Where(x => x.ImportJobId == id && x.Status == ImportRecordStatus.Failed)
             .ToListAsync();
 
         var csv = new StringBuilder();
         csv.AppendLine("RowNumber,ErrorMessage");
-        foreach (var record in failedRecords)
+        foreach (var record in records)
         {
-            var safeError = (record.ErrorMessage ?? "Unknown error").Replace("\"", "\"\"");
+            var safeError = record.ErrorMessage?.Replace("\"", "\"\"");
             csv.AppendLine($"{record.RowNumber},\"{safeError}\"");
         }
 

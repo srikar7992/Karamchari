@@ -16,8 +16,6 @@ using Karamchari.Payroll.Domain.Simulation;
 using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.Payroll.Domain.VariablePay;
 using Karamchari.Payroll.StateMachines;
-using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Payroll.Data;
@@ -157,15 +155,6 @@ public class PayrollDbContext : KaramchariDbContext
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
 
-        const string MessagingSchema = "dbo";
-
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
-
-        modelBuilder.Entity<InboxState>(b => b.ToTable("InboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxMessage>(b => b.ToTable("OutboxMessage", MessagingSchema, t => t.ExcludeFromMigrations()));
-        modelBuilder.Entity<OutboxState>(b => b.ToTable("OutboxState", MessagingSchema, t => t.ExcludeFromMigrations()));
 
         modelBuilder.Entity<PayrollProfile>(b =>
         {
@@ -261,13 +250,15 @@ public class PayrollDbContext : KaramchariDbContext
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<Dictionary<string, decimal>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, decimal>())
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("nvarchar(max)")
+                .Metadata.SetValueComparer(ValueComparers.ReadOnlyDictionaryComparer);
 
             b.Property(x => x.Earnings)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<Dictionary<string, decimal>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, decimal>())
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("nvarchar(max)")
+                .Metadata.SetValueComparer(ValueComparers.ReadOnlyDictionaryComparer);
         });
 
         modelBuilder.Entity<ComplianceSnapshot>(b =>
@@ -334,7 +325,8 @@ public class PayrollDbContext : KaramchariDbContext
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<List<ArrearPeriodDiff>>(v, (JsonSerializerOptions?)null) ?? new List<ArrearPeriodDiff>())
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("nvarchar(max)")
+                .Metadata.SetValueComparer(ValueComparers.ReadOnlyCollectionComparer<ArrearPeriodDiff>());
         });
 
         // â”€â”€ Phase 1A: Corrections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -481,7 +473,8 @@ public class PayrollDbContext : KaramchariDbContext
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<List<SimulationEmployeeResult>>(v, (JsonSerializerOptions?)null) ?? new List<SimulationEmployeeResult>())
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("nvarchar(max)")
+                .Metadata.SetValueComparer(ValueComparers.ReadOnlyCollectionComparer<SimulationEmployeeResult>());
         });
 
         // â”€â”€ Phase 1A: Reconciliation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -498,7 +491,8 @@ public class PayrollDbContext : KaramchariDbContext
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<List<PayrollAnomaly>>(v, (JsonSerializerOptions?)null) ?? new List<PayrollAnomaly>())
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("nvarchar(max)")
+                .Metadata.SetValueComparer(ValueComparers.ReadOnlyCollectionComparer<PayrollAnomaly>());
         });
     }
 }
