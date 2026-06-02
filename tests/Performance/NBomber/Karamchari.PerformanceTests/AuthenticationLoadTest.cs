@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using NBomber.CSharp;
-using NBomber.Http.CSharp;
 using Xunit;
 
 namespace Karamchari.PerformanceTests;
@@ -45,19 +44,14 @@ public sealed class AuthenticationLoadTest
 
             using var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
-            using var step = await Step.Run("login", context, async () =>
-            {
-                var response = await httpClient.PostAsync(
-                    "/api/identity/login", content, context.CancellationToken);
+            var response = await httpClient.PostAsync(
+                "/api/identity/login", content, CancellationToken.None);
 
-                // 200 = authenticated, 401 = invalid creds (valid server behaviour).
-                // Only 5xx counts as a test failure.
-                return (int)response.StatusCode >= 500
-                    ? Response.Fail(statusCode: (int)response.StatusCode, message: "Server error on login")
-                    : Response.Ok(statusCode: (int)response.StatusCode);
-            });
-
-            return step;
+            // 200 = authenticated, 401 = invalid creds (valid server behaviour).
+            // Only 5xx counts as a test failure.
+            return (int)response.StatusCode >= 500
+                ? Response.Fail(message: "Server error on login")
+                : Response.Ok();
         })
         .WithWarmUpDuration(TimeSpan.FromSeconds(10))
         .WithLoadSimulations(
