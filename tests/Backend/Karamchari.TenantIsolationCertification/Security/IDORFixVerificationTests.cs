@@ -108,8 +108,11 @@ public sealed class IDORFixVerificationTests
         {
             ctxA.PayrollRunStates.Add(new PayrollRunState
             {
-                CorrelationId = runA, TenantId = tenantA,
-                CurrentState = "Completed", PeriodName = "Alpha Run", StartedAt = DateTime.UtcNow
+                CorrelationId = runA,
+                TenantId = tenantA,
+                CurrentState = "Completed",
+                PeriodName = "Alpha Run",
+                StartedAt = DateTime.UtcNow
             });
             await ctxA.SaveChangesAsync();
         }
@@ -118,8 +121,11 @@ public sealed class IDORFixVerificationTests
         {
             ctxB.PayrollRunStates.Add(new PayrollRunState
             {
-                CorrelationId = runB, TenantId = tenantB,
-                CurrentState = "Completed", PeriodName = "Beta Run", StartedAt = DateTime.UtcNow
+                CorrelationId = runB,
+                TenantId = tenantB,
+                CurrentState = "Completed",
+                PeriodName = "Beta Run",
+                StartedAt = DateTime.UtcNow
             });
             await ctxB.SaveChangesAsync();
         }

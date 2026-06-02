@@ -10,7 +10,7 @@ public record CreateOfferCommand(
     decimal BaseSalary,
     string Currency) : IRequest<OfferId>;
 
-public sealed class CreateOfferHandler(IRecruitmentDbContext dbContext) 
+public sealed class CreateOfferHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<CreateOfferCommand, OfferId>
 {
     public async Task<OfferId> Handle(CreateOfferCommand request, CancellationToken cancellationToken)
@@ -18,12 +18,12 @@ public sealed class CreateOfferHandler(IRecruitmentDbContext dbContext)
         var application = await dbContext.Applications
             .FirstOrDefaultAsync(a => a.Id == request.ApplicationId, cancellationToken)
             ?? throw new InvalidOperationException($"Application {request.ApplicationId.Value} not found.");
-        
+
         if (application.Status != ApplicationStatus.Interviewing)
             throw new InvalidOperationException("Can only draft offers for applications in interviewing stage.");
 
         var offer = Offer.Create(request.ApplicationId, request.BaseSalary, request.Currency);
-        
+
         dbContext.Offers.Add(offer);
 
         var auditEntry = new RecruitmentAuditEntry
@@ -39,7 +39,7 @@ public sealed class CreateOfferHandler(IRecruitmentDbContext dbContext)
         dbContext.AuditStream.Add(auditEntry);
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        
+
         return offer.Id;
     }
 }

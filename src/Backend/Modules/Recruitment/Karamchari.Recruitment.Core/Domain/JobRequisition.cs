@@ -42,7 +42,7 @@ public sealed class JobRequisition : AggregateRoot<RequisitionId>, ITenantOwned,
     {
         if (Status != RequisitionStatus.Draft)
             throw new InvalidOperationException("Only draft requisitions can be submitted for approval.");
-            
+
         Status = RequisitionStatus.PendingApproval;
     }
 
@@ -50,7 +50,7 @@ public sealed class JobRequisition : AggregateRoot<RequisitionId>, ITenantOwned,
     {
         if (Status != RequisitionStatus.PendingApproval)
             throw new InvalidOperationException("Only requisitions pending approval can be approved.");
-            
+
         Status = RequisitionStatus.Published;
         RaiseDomainEvent(new RequisitionPublishedDomainEvent(Id));
     }

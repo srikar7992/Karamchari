@@ -6,7 +6,7 @@ namespace Karamchari.Recruitment.Application.Commands;
 
 public record AdvanceApplicationCommand(Karamchari.Recruitment.Domain.ApplicationId ApplicationId) : IRequest;
 
-public sealed class AdvanceApplicationHandler(IRecruitmentDbContext dbContext) 
+public sealed class AdvanceApplicationHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<AdvanceApplicationCommand>
 {
     public async Task Handle(AdvanceApplicationCommand request, CancellationToken cancellationToken)
@@ -25,9 +25,9 @@ public sealed class AdvanceApplicationHandler(IRecruitmentDbContext dbContext)
         }
         else
         {
-             throw new InvalidOperationException($"Cannot advance application in status {application.Status}.");
+            throw new InvalidOperationException($"Cannot advance application in status {application.Status}.");
         }
-        
+
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

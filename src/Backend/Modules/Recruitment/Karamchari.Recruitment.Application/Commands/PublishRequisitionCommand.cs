@@ -8,7 +8,7 @@ namespace Karamchari.Recruitment.Application.Commands;
 
 public record PublishRequisitionCommand(RequisitionId RequisitionId) : IRequest;
 
-public sealed class PublishRequisitionHandler(IRecruitmentDbContext dbContext) 
+public sealed class PublishRequisitionHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<PublishRequisitionCommand>
 {
     public async Task Handle(PublishRequisitionCommand request, CancellationToken cancellationToken)
@@ -42,7 +42,7 @@ public sealed class PublishRequisitionHandler(IRecruitmentDbContext dbContext)
             UserId = "system"
         };
         dbContext.AuditStream.Add(auditEntry);
-        
+
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

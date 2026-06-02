@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
+using Karamchari.Core.Contracts.IntegrationEvents.V1;
+using Karamchari.Core.Messaging.Tenant;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using Karamchari.Core.Persistence;
@@ -8,8 +10,6 @@ using Karamchari.Core.Persistence.Interceptors;
 using Karamchari.Core.Persistence.Provisioning;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
-using Karamchari.Core.Contracts.IntegrationEvents.V1;
-using Karamchari.Core.Messaging.Tenant;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.Data.SqlClient;
@@ -53,7 +53,7 @@ public sealed class EndToEndIsolationCertificationTests(SqlServerEndToEndFixture
             .AddSingleton(typeof(TenantConsumeFilter<>))
             .AddSingleton(typeof(TenantPublishFilter<>))
             .AddSingleton<TenantPublishFilter>()
-            .AddDbContext<PayrollDbContext>(o => 
+            .AddDbContext<PayrollDbContext>(o =>
             {
                 o.UseSqlServer(fixture.ConnectionString);
                 o.AddInterceptors(new TenantSchemaCommandInterceptor(
@@ -135,10 +135,10 @@ public sealed class EndToEndIsolationCertificationTests(SqlServerEndToEndFixture
     private class AmbientTenantProvider : ITenantProvider
     {
         public string GetCurrentTenantId() => TenantExecutionContext.Current?.TenantId ?? "NULL";
-        public bool TryGetCurrentTenantId([NotNullWhen(true)] out string? tenantId) 
-        { 
-            tenantId = TenantExecutionContext.Current?.TenantId; 
-            return tenantId != null; 
+        public bool TryGetCurrentTenantId([NotNullWhen(true)] out string? tenantId)
+        {
+            tenantId = TenantExecutionContext.Current?.TenantId;
+            return tenantId != null;
         }
         public TenantExecutionEnvelope GetTenant() => TenantExecutionContext.Current?.Envelope ?? throw new InvalidOperationException("No tenant context");
         public bool TryGetTenant([NotNullWhen(true)] out TenantExecutionEnvelope? tenant)

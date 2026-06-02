@@ -26,14 +26,14 @@ public class MessagingPerformanceTests(ITestOutputHelper output)
     {
         // 1. Baseline: No Preservation Filters
         var baselineTime = await MeasurePublishThroughputAsync(messageCount, useFilters: false);
-        
+
         // 2. Optimized: With Context Preservation Filters
         var optimizedTime = await MeasurePublishThroughputAsync(messageCount, useFilters: true);
 
         // 3. Analysis
         var diff = optimizedTime - baselineTime;
         var perMessageOverhead = diff.TotalMilliseconds / messageCount;
-        var percentageIncrease = baselineTime.TotalMilliseconds > 0 
+        var percentageIncrease = baselineTime.TotalMilliseconds > 0
             ? (optimizedTime.TotalMilliseconds / baselineTime.TotalMilliseconds - 1) * 100
             : 0;
 
@@ -53,14 +53,14 @@ public class MessagingPerformanceTests(ITestOutputHelper output)
         var services = new ServiceCollection();
         var config = new ConfigurationBuilder().Build();
         services.AddSingleton<IConfiguration>(config);
-        
+
         services.AddSingleton<ReplayProtectionService>();
         services.AddSingleton<TenantMetricsCollector>();
         services.AddSingleton<TenantActivitySource>();
         services.AddSingleton(new ExecutionContextSigner(TestSecret));
         services.AddSingleton(typeof(TenantPublishFilter<>));
         services.AddSingleton<TenantPublishFilter>();
-        
+
         services.AddMassTransitTestHarness(x =>
         {
             x.UsingInMemory((context, cfg) =>
@@ -83,7 +83,7 @@ public class MessagingPerformanceTests(ITestOutputHelper output)
         var context = new TenantExecutionContext(envelope);
 
         var sw = Stopwatch.StartNew();
-        
+
         using (context.Establish())
         {
             for (int i = 0; i < count; i++)

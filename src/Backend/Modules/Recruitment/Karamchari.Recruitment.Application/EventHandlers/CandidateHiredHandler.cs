@@ -16,7 +16,7 @@ public sealed class CandidateHiredHandler(
     {
         var application = await dbContext.Applications
             .FirstOrDefaultAsync(a => a.Id == notification.ApplicationId, cancellationToken);
-            
+
         if (application == null) return;
 
         var tenantId = tenantProvider.GetCurrentTenantId();

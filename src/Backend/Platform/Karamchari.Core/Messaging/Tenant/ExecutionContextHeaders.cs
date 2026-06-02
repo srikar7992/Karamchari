@@ -39,7 +39,7 @@ public static class ExecutionContextHeaders
 
     /// <summary>The serialized execution envelope for legacy/fallback support.</summary>
     public const string ExecutionEnvelope = "MT-Execution-Envelope";
-    
+
     // Legacy mapping support
     public const string UserIdentity = "MT-User-Identity";
     public const string ExecutionSource = "MT-Execution-Source";

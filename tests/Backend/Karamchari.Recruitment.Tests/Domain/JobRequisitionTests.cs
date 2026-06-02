@@ -192,13 +192,13 @@ public class JobRequisitionTests
 
         // Act & Assert
         requisition.Status.Should().Be(Karamchari.Recruitment.Domain.RequisitionStatus.Draft);
-        
+
         requisition.SubmitForApproval();
         requisition.Status.Should().Be(Karamchari.Recruitment.Domain.RequisitionStatus.PendingApproval);
-        
+
         requisition.Approve();
         requisition.Status.Should().Be(Karamchari.Recruitment.Domain.RequisitionStatus.Published);
-        
+
         requisition.Close();
         requisition.Status.Should().Be(Karamchari.Recruitment.Domain.RequisitionStatus.Closed);
     }

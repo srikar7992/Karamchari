@@ -1,7 +1,8 @@
 using Karamchari.Billing.DependencyInjection;
-using Karamchari.Core.Messaging.Tenant;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Compensation.DependencyInjection;
+using Karamchari.Core.DependencyInjection;
+using Karamchari.Core.Messaging.Tenant;
 using Karamchari.DataMigration.DependencyInjection;
 using Karamchari.FinancialOps.DependencyInjection;
 using Karamchari.Forecasting.DependencyInjection;
@@ -17,7 +18,6 @@ using Karamchari.Recruitment.DependencyInjection;
 using Karamchari.Recruitment.Worker.DependencyInjection;
 using Karamchari.TimeAttendance.DependencyInjection;
 using Karamchari.Workflow.DependencyInjection;
-using Karamchari.Core.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -36,7 +36,7 @@ public static class WorkerServiceCollectionExtensions
         {
             new HRModule(configuration).RegisterConsumers(x);
             new PayrollModule(configuration).RegisterConsumers(x);
-            
+
             var recruitment = new RecruitmentModule(configuration);
             recruitment.RegisterConsumers(x);
             x.AddRecruitmentConsumers();
@@ -65,13 +65,13 @@ public static class WorkerServiceCollectionExtensions
     {
         // Internal platform-wide background services
         services.AddOutboxRelay(configuration);
-        
+
         // HR Workers
         services.AddHostedService<Karamchari.HR.Services.OrganizationHierarchyCleanupWorker>();
-        
+
         // Payroll Workers
         services.AddHostedService<Karamchari.Payroll.Services.PayrollCycleCloser>();
-        
+
         // Intelligence Workers
         services.AddHostedService<Karamchari.Intelligence.Services.DriftDetectionWorker>();
         services.AddHostedService<Karamchari.Notifications.BackgroundServices.DigestGenerationWorker>();

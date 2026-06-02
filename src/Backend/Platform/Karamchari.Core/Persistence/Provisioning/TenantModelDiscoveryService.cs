@@ -1,7 +1,7 @@
+using Karamchari.Core.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
-using Karamchari.Core.Persistence;
 
 namespace Karamchari.Core.Persistence.Provisioning;
 
@@ -21,7 +21,7 @@ public sealed class TenantModelDiscoveryService : ITenantModelDiscoveryService
     public IReadOnlyCollection<TenantRelationalArtifact> Discover()
     {
         var artifacts = new List<TenantRelationalArtifact>();
-        
+
         // We discover all DbContext types that inherit from KaramchariDbContext 
         // in the loaded assemblies. This ensures zero-manual-registration.
         var contextTypes = AppDomain.CurrentDomain.GetAssemblies()

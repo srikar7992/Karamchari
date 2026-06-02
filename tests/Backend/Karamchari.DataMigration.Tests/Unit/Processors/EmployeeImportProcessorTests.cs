@@ -23,13 +23,13 @@ public sealed class EmployeeImportProcessorTests
         string lastName = "Sharma",
         string email = "arjun@example.com",
         string dateOfJoining = "2022-01-15") => new()
-    {
-        EmployeeNumber = employeeNumber,
-        FirstName = firstName,
-        LastName = lastName,
-        Email = email,
-        DateOfJoining = dateOfJoining
-    };
+        {
+            EmployeeNumber = employeeNumber,
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email,
+            DateOfJoining = dateOfJoining
+        };
 
     // ------------------------------------------------------------------ ImportType
 

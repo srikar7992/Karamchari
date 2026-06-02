@@ -21,7 +21,7 @@ public class IncidentSimulationTests
     {
         var services = new ServiceCollection();
         services.AddLogging(l => l.AddConsole());
-        
+
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -61,7 +61,7 @@ public class IncidentSimulationTests
         await harness.Start();
 
         var tenantId = "bypass-tenant";
-        
+
         // 2. Act - Publish message with INVALID signature (simulating compromised/stale key)
         await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), tenantId, "Bypass Test"), context =>
         {
@@ -71,7 +71,7 @@ public class IncidentSimulationTests
 
         // 3. Assert
         (await harness.Consumed.Any<SyntheticPingIntegrationEvent>()).Should().BeTrue();
-        
+
         // Consumer SHOULD run because we are in AuditOnly mode
         SyntheticConsumer.ConsumeCount.Should().Be(1, "Emergency Bypass must allow processing even with invalid signatures.");
         SyntheticConsumer.LastObservedTenantId.Should().Be(tenantId);

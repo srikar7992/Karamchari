@@ -18,7 +18,7 @@ public sealed class IdempotencyTests : RecruitmentIntegrationTestBase
         app.AdvanceToScreening();
         app.AdvanceToInterviewing();
         DbContext.Applications.Add(app);
-        
+
         var offer = Offer.Create(app.Id, 1000, "USD");
         offer.SubmitForApproval();
         offer.Approve();
@@ -27,7 +27,7 @@ public sealed class IdempotencyTests : RecruitmentIntegrationTestBase
         await DbContext.SaveChangesAsync();
 
         var handler = new AcceptOfferHandler(DbContext);
-        
+
         // 2. Act: First accept
         await handler.Handle(new AcceptOfferCommand(offer.Id), default);
 
@@ -50,7 +50,7 @@ public sealed class IdempotencyTests : RecruitmentIntegrationTestBase
         await DbContext.SaveChangesAsync();
 
         var handler = new HireCandidateHandler(DbContext);
-        
+
         // 2. Act: First hire
         await handler.Handle(new HireCandidateCommand(app.Id, "user-1"), default);
 

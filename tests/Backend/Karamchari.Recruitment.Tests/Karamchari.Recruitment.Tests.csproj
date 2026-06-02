@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\..\src\Backend\Modules\Recruitment\Karamchari.Recruitment.Infrastructure\Karamchari.Recruitment.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Backend\Modules\Recruitment\Karamchari.Recruitment.Worker\Karamchari.Recruitment.Worker.csproj" />
     <ProjectReference Include="..\..\..\src\Backend\Hosts\Karamchari.Api\Karamchari.Api.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Modules\HR\Karamchari.HR\Karamchari.HR.csproj" />
   </ItemGroup>
 
 </Project>

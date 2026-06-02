@@ -10,7 +10,7 @@ public record ApplyCandidateCommand(
     CandidateId CandidateId,
     RequisitionId RequisitionId) : IRequest<Karamchari.Recruitment.Domain.ApplicationId>;
 
-public sealed class ApplyCandidateHandler(IRecruitmentDbContext dbContext) 
+public sealed class ApplyCandidateHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<ApplyCandidateCommand, Karamchari.Recruitment.Domain.ApplicationId>
 {
     public async Task<Karamchari.Recruitment.Domain.ApplicationId> Handle(ApplyCandidateCommand request, CancellationToken cancellationToken)
@@ -23,14 +23,14 @@ public sealed class ApplyCandidateHandler(IRecruitmentDbContext dbContext)
         var requisition = await dbContext.Requisitions
             .FirstOrDefaultAsync(r => r.Id == request.RequisitionId, cancellationToken)
             ?? throw new InvalidOperationException($"Requisition {request.RequisitionId.Value} not found.");
-        
+
         if (requisition.Status != RequisitionStatus.Published)
             throw new InvalidOperationException("Cannot apply to a requisition that is not published.");
 
         // 2. IDEMPOTENCY: Check for existing application
         var existing = await dbContext.Applications
             .AnyAsync(a => a.CandidateId == request.CandidateId && a.RequisitionId == request.RequisitionId, cancellationToken);
-            
+
         if (existing)
         {
             throw new InvalidOperationException("Candidate has already applied for this requisition.");
@@ -39,7 +39,7 @@ public sealed class ApplyCandidateHandler(IRecruitmentDbContext dbContext)
         // 3. Create Application with point-in-time snapshot
         var snapshot = candidate.CreateSnapshot();
         var application = Karamchari.Recruitment.Domain.Application.Create(request.CandidateId, request.RequisitionId, snapshot);
-        
+
         dbContext.Applications.Add(application);
 
         var auditEntry = new RecruitmentAuditEntry
@@ -55,7 +55,7 @@ public sealed class ApplyCandidateHandler(IRecruitmentDbContext dbContext)
         dbContext.AuditStream.Add(auditEntry);
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        
+
         return application.Id;
     }
 }

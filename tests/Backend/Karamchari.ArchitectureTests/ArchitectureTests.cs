@@ -36,7 +36,7 @@ public sealed class DependencyGovernanceTests
 
     private const string CoreNamespace = "Karamchari.Core";
 
-    private static readonly string[] CapabilityNamespaces = 
+    private static readonly string[] CapabilityNamespaces =
     {
         "Karamchari.HR",
         "Karamchari.Payroll",
@@ -173,8 +173,8 @@ public sealed class DependencyGovernanceTests
     public void DbContextsMustNotLeakAcrossCapabilities()
     {
         var allTypes = Types.InAssemblies(Assemblies).GetTypes();
-        var dbContexts = allTypes.Where(t => t.IsSubclassOf(typeof(Microsoft.EntityFrameworkCore.DbContext)) 
-                                        && t.Namespace != null 
+        var dbContexts = allTypes.Where(t => t.IsSubclassOf(typeof(Microsoft.EntityFrameworkCore.DbContext))
+                                        && t.Namespace != null
                                         && CapabilityNamespaces.Any(c => t.Namespace.StartsWith(c, StringComparison.Ordinal))).ToList();
 
         foreach (var dbContext in dbContexts)

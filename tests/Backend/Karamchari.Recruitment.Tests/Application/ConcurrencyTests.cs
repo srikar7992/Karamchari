@@ -24,9 +24,10 @@ public sealed class ConcurrencyTests : RecruitmentIntegrationTestBase
 
         // 2. Act: Execute 10 concurrent requests
         var tasks = Enumerable.Range(0, 10).Select(_ => applyHandler.Handle(command, default));
-        
+
         // Use Task.WhenAll and catch exceptions (expecting some to fail with "already applied")
-        var results = await Task.WhenAll(tasks.Select(async t => {
+        var results = await Task.WhenAll(tasks.Select(async t =>
+        {
             try { return await t; }
             catch { return default; }
         }));
@@ -34,7 +35,7 @@ public sealed class ConcurrencyTests : RecruitmentIntegrationTestBase
         // 3. Assert: Only one success (non-default ApplicationId)
         var successCount = results.Count(r => r != default);
         successCount.Should().Be(1, "Concurrent apply requests should be idempotent.");
-        
+
         var appsCount = await DbContext.Applications.CountAsync(a => a.CandidateId == candId && a.RequisitionId == reqId);
         appsCount.Should().Be(1);
     }

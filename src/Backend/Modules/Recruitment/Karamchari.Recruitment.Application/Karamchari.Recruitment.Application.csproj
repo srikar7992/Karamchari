@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MassTransit" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="FluentValidation.AspNetCore" />
   </ItemGroup>

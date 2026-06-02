@@ -75,14 +75,14 @@ public sealed class SalaryRevisionImportProcessorTests : IDisposable
         string effectiveDate = "2024-04-01",
         string revisionType = "AnnualIncrement",
         string? remarks = null) => new()
-    {
-        EmployeeNumber = employeeNumber,
-        PreviousCTC = previousCTC,
-        NewCTC = newCTC,
-        EffectiveDate = effectiveDate,
-        RevisionType = revisionType,
-        Remarks = remarks
-    };
+        {
+            EmployeeNumber = employeeNumber,
+            PreviousCTC = previousCTC,
+            NewCTC = newCTC,
+            EffectiveDate = effectiveDate,
+            RevisionType = revisionType,
+            Remarks = remarks
+        };
 
     // ------------------------------------------------------------------ ImportType
 

@@ -34,7 +34,7 @@ public sealed class TenantPublishFilter<T> : IFilter<PublishContext<T>>
                     tenantIdObj is string tenantId)
                 {
                     context.Headers.Set(ExecutionContextHeaders.TenantId, tenantId);
-                    
+
                     if (consumeContext.Headers.TryGetHeader(ExecutionContextHeaders.CorrelationId, out var correlationIdObj))
                     {
                         context.Headers.Set(ExecutionContextHeaders.CorrelationId, correlationIdObj);
@@ -44,7 +44,7 @@ public sealed class TenantPublishFilter<T> : IFilter<PublishContext<T>>
                     {
                         context.Headers.Set(ExecutionContextHeaders.ExecutionEnvelope, envelopeObj);
                     }
-                    
+
                     // Recover other Tier 2/3 if possible, but the signature from the original message is already lost or invalid for a new Fault
                     // For now, we don't re-sign Faults unless we have a full envelope.
                     // BUT! We should sign the Fault as a NEW infrastructure event.

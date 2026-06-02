@@ -90,7 +90,7 @@ public class IntelligenceDbContext : KaramchariDbContext
                     v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                     v => System.Text.Json.JsonSerializer.Deserialize<WorkforcePressureIndex>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
                 .HasColumnType("nvarchar(max)");
-                
+
             b.Property(x => x.StaffingStress)
                 .HasConversion(
                     v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),

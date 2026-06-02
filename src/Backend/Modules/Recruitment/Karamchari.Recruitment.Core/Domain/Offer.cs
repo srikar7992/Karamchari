@@ -43,7 +43,7 @@ public sealed class Offer : AggregateRoot<OfferId>, ITenantOwned, IAuditable
     {
         if (Status != OfferStatus.Draft)
             throw new InvalidOperationException("Only draft offers can be submitted for approval.");
-            
+
         Status = OfferStatus.PendingApproval;
     }
 
@@ -51,7 +51,7 @@ public sealed class Offer : AggregateRoot<OfferId>, ITenantOwned, IAuditable
     {
         if (Status != OfferStatus.PendingApproval)
             throw new InvalidOperationException("Only offers pending approval can be approved.");
-            
+
         Status = OfferStatus.Approved;
         RaiseDomainEvent(new OfferApprovedDomainEvent(Id));
     }
@@ -60,7 +60,7 @@ public sealed class Offer : AggregateRoot<OfferId>, ITenantOwned, IAuditable
     {
         if (Status != OfferStatus.Approved)
             throw new InvalidOperationException("Only approved offers can be issued.");
-            
+
         Status = OfferStatus.Issued;
         IssuedAt = DateTimeOffset.UtcNow;
         ExpiresAt = expiresAt;
@@ -71,10 +71,10 @@ public sealed class Offer : AggregateRoot<OfferId>, ITenantOwned, IAuditable
     {
         if (Status != OfferStatus.Issued)
             throw new InvalidOperationException("Only issued offers can be accepted.");
-            
+
         if (ExpiresAt.HasValue && DateTimeOffset.UtcNow > ExpiresAt.Value)
             throw new InvalidOperationException("Offer has expired.");
-            
+
         Status = OfferStatus.Accepted;
         RaiseDomainEvent(new OfferAcceptedDomainEvent(Id));
     }

@@ -180,7 +180,7 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
             b.Property(x => x.Id).HasConversion(id => id.Value, value => new SettlementBatchId(value));
             b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
             b.Property(x => x.PeriodId).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value)).IsRequired();
-            
+
             b.Property(x => x.ClaimIds).HasConversion(
                 v => string.Join(',', v.Select(id => id.Value)),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => new ExpenseClaimId(Guid.Parse(s))).ToList().AsReadOnly()

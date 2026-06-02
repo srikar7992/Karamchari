@@ -11,7 +11,7 @@ public record CreateCandidateCommand(
     string Email,
     string? PhoneNumber) : IRequest<CandidateId>;
 
-public sealed class CreateCandidateHandler(IRecruitmentDbContext dbContext) 
+public sealed class CreateCandidateHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<CreateCandidateCommand, CandidateId>
 {
     public async Task<CandidateId> Handle(CreateCandidateCommand request, CancellationToken cancellationToken)

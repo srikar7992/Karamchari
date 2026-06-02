@@ -5,7 +5,7 @@ namespace Karamchari.Recruitment.Domain;
 
 public abstract record RecruitmentDomainEvent(Guid EventId, DateTimeOffset OccurredOnUtc) : IDomainEvent, INotification
 {
-    protected RecruitmentDomainEvent() : this(Guid.NewGuid(), DateTimeOffset.UtcNow) {}
+    protected RecruitmentDomainEvent() : this(Guid.NewGuid(), DateTimeOffset.UtcNow) { }
 }
 
 public sealed record RequisitionCreatedDomainEvent(RequisitionId RequisitionId) : RecruitmentDomainEvent;

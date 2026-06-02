@@ -5,11 +5,11 @@ namespace Karamchari.Recruitment.Domain;
 
 public sealed class Candidate : AggregateRoot<CandidateId>, ITenantOwned, IAuditable
 {
-    private Candidate() : base(default) 
-    { 
-        FirstName = null!; 
-        LastName = null!; 
-        Email = null!; 
+    private Candidate() : base(default)
+    {
+        FirstName = null!;
+        LastName = null!;
+        Email = null!;
     }
 
     private Candidate(CandidateId id, string firstName, string lastName, string email)

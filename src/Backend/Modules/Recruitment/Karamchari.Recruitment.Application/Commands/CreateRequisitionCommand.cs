@@ -10,13 +10,13 @@ public record CreateRequisitionCommand(
     Guid DepartmentId,
     Guid HiringManagerId) : IRequest<RequisitionId>;
 
-public sealed class CreateRequisitionHandler(IRecruitmentDbContext dbContext) 
+public sealed class CreateRequisitionHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<CreateRequisitionCommand, RequisitionId>
 {
     public async Task<RequisitionId> Handle(CreateRequisitionCommand request, CancellationToken cancellationToken)
     {
         var requisition = JobRequisition.Create(request.Title, request.DepartmentId, request.HiringManagerId);
-        
+
         dbContext.Requisitions.Add(requisition);
 
         var auditEntry = new RecruitmentAuditEntry
@@ -32,7 +32,7 @@ public sealed class CreateRequisitionHandler(IRecruitmentDbContext dbContext)
         dbContext.AuditStream.Add(auditEntry);
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        
+
         return requisition.Id;
     }
 }

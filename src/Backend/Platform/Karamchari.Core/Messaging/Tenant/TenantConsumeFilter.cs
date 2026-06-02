@@ -3,9 +3,9 @@ using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using Karamchari.Core.Observability.Tenant;
 using MassTransit;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 
 namespace Karamchari.Core.Messaging.Tenant;
 
@@ -88,7 +88,7 @@ public sealed class TenantConsumeFilter<T> : IFilter<ConsumeContext<T>>
             {
                 _logger.LogWarning("Execution context signature missing for Tenant {TenantId}", safeTenantId);
                 _metrics.RecordEventRejection(safeTenantId, typeof(T).Name, "MissingSignature");
-                
+
                 if (_enforceValidation)
                 {
                     throw new MalformedTenantMessageException(
@@ -122,7 +122,7 @@ public sealed class TenantConsumeFilter<T> : IFilter<ConsumeContext<T>>
                     "Signature validation failed for Tenant {TenantId}. Possible tampering or manual injection detected.",
                     safeTenantId);
                 _metrics.RecordEventRejection(safeTenantId, typeof(T).Name, "InvalidSignature");
-                
+
                 if (_enforceValidation)
                 {
                     throw new MalformedTenantMessageException(
@@ -140,7 +140,7 @@ public sealed class TenantConsumeFilter<T> : IFilter<ConsumeContext<T>>
             {
                 _logger.LogWarning("Stale message detected for Tenant {TenantId}", safeTenantId);
                 _metrics.RecordEventRejection(safeTenantId, typeof(T).Name, "StaleMessage");
-                
+
                 if (_enforceValidation)
                 {
                     throw new MalformedTenantMessageException(
@@ -161,7 +161,7 @@ public sealed class TenantConsumeFilter<T> : IFilter<ConsumeContext<T>>
                     safeTenantId, originalMessageId);
                 _metrics.RecordReplayDetection(safeTenantId, typeof(T).Name);
                 _metrics.RecordEventRejection(safeTenantId, typeof(T).Name, "ReplayAttack");
-                
+
                 if (_enforceValidation)
                 {
                     throw new MalformedTenantMessageException(
@@ -219,14 +219,14 @@ public sealed class TenantConsumeFilter<T> : IFilter<ConsumeContext<T>>
         {
             _logger.LogError(ex, "Unexpected error establishing tenant context for message");
             _metrics.RecordEventRejection(tenantId, typeof(T).Name, "MalformedEnvelope");
-            
+
             if (_enforceValidation)
             {
                 throw new MalformedTenantMessageException(
                     "Unexpected error during tenant context validation",
                     tenantId, TenantMessageFailureReason.MalformedEnvelope);
             }
-            
+
             // If AuditOnly, we must try to construct SOME context or skip
             if (executionContext == null && tenantId != null)
             {
@@ -258,7 +258,7 @@ public sealed class TenantConsumeFilter<T> : IFilter<ConsumeContext<T>>
         try
         {
             await next.Send(context);
-            
+
             // 7. Record successful processing for replay protection
             if (!string.IsNullOrWhiteSpace(originalMessageId))
             {

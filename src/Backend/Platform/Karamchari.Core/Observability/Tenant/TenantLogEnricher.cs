@@ -29,10 +29,10 @@ public sealed class TenantLogEnricher : ILogEventEnricher
 
         AddPropertyIfAbsent(logEvent, propertyFactory, TenantTelemetryTags.TenantId, envelope.TenantId);
         AddPropertyIfAbsent(logEvent, propertyFactory, "TenantId", envelope.TenantId);
-        
+
         AddPropertyIfAbsent(logEvent, propertyFactory, TenantTelemetryTags.CorrelationId, envelope.CorrelationId);
         AddPropertyIfAbsent(logEvent, propertyFactory, "CorrelationId", envelope.CorrelationId);
-        
+
         AddPropertyIfAbsent(logEvent, propertyFactory, TenantTelemetryTags.RequestId, envelope.RequestId);
         AddPropertyIfAbsent(logEvent, propertyFactory, TenantTelemetryTags.ExecutionSource, envelope.ExecutionSource.ToString());
 

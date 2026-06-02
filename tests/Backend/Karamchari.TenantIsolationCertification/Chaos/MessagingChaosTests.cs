@@ -25,7 +25,7 @@ public sealed class MessagingChaosTests(MessagingChaosFixture fixture)
         // 1. Arrange
         var tenantId = "chaos-tenant";
         var correlationId = "chaos-corr-1";
-        
+
         // Setup Replica 1
         var services1 = CreateWorkerServices(fixture.ConnectionString);
         var provider1 = services1.BuildServiceProvider();
@@ -82,10 +82,10 @@ public sealed class MessagingChaosTests(MessagingChaosFixture fixture)
     {
         var services = new ServiceCollection();
         services.AddLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug));
-        
+
         var config = new ConfigurationBuilder().Build();
         services.AddSingleton<IConfiguration>(config);
-        
+
         services.AddSingleton<ReplayProtectionService>();
         services.AddSingleton<TenantMetricsCollector>();
         services.AddSingleton<TenantActivitySource>();

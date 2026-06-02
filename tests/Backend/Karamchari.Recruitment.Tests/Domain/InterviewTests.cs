@@ -70,7 +70,7 @@ public class InterviewTests
     {
         // Arrange
         var interview = Karamchari.Recruitment.Domain.Interview.Create(applicationId, scheduledAt, durationMinutes);
-        
+
         // Act
         interview.AddInterviewer(Guid.NewGuid());
         interview.AddInterviewer(Guid.NewGuid());

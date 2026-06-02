@@ -128,7 +128,7 @@ public class ApplicationTests
     {
         // Arrange
         var customSnapshot = new Karamchari.Recruitment.Domain.CandidateSnapshot("Jane", "Smith", "jane@example.com", "999", 5);
-        
+
         // Act
         var application = Karamchari.Recruitment.Domain.Application.Create(candidateId, requisitionId, customSnapshot);
 
@@ -178,7 +178,7 @@ public class ApplicationTests
     public void MultipleAdvancesShouldFollowHappyPath()
     {
         var application = Karamchari.Recruitment.Domain.Application.Create(candidateId, requisitionId, snapshot);
-        
+
         application.AdvanceToScreening();
         application.AdvanceToInterviewing();
         application.MarkAsOffered();
@@ -203,7 +203,7 @@ public class ApplicationTests
     {
         var app = Karamchari.Recruitment.Domain.Application.Create(candidateId, requisitionId, snapshot);
         if (status == Karamchari.Recruitment.Domain.ApplicationStatus.New) return app;
-        
+
         if (status == Karamchari.Recruitment.Domain.ApplicationStatus.Rejected)
         {
             app.Reject();

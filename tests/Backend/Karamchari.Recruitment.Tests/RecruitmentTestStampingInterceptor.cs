@@ -1,5 +1,5 @@
-using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Domain.Primitives;
+using Karamchari.Core.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

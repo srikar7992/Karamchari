@@ -10,7 +10,7 @@ public sealed class FailurePathTests
 {
     private static Karamchari.Recruitment.Domain.Application CreateApp() => Karamchari.Recruitment.Domain.Application.Create(Karamchari.Recruitment.Domain.CandidateId.New(), Karamchari.Recruitment.Domain.RequisitionId.New(), new Karamchari.Recruitment.Domain.CandidateSnapshot("J", "D", "j@d.com", null, 1));
     private static Karamchari.Recruitment.Domain.JobRequisition CreateReq() => Karamchari.Recruitment.Domain.JobRequisition.Create("Dev", Guid.NewGuid(), Guid.NewGuid());
-    private static Karamchari.Recruitment.Domain.Interview CreateInterview(Karamchari.Recruitment.Domain.ApplicationId appId) 
+    private static Karamchari.Recruitment.Domain.Interview CreateInterview(Karamchari.Recruitment.Domain.ApplicationId appId)
     {
         var interview = Karamchari.Recruitment.Domain.Interview.Create(appId, DateTimeOffset.UtcNow.AddDays(1), 60);
         interview.AddInterviewer(Guid.NewGuid());
@@ -83,7 +83,7 @@ public sealed class FailurePathTests
         // The method might be internal or not exist, let's use the handler or skip if it's purely application layer logic.
         // Assuming AddFeedback exists based on common patterns if SubmitFeedback didn't
         var actLow = () => interview.Complete(); // Fallback to complete to verify state transition
-        
+
         // Let's test completion without feedback if that's a rule, or just invalid state.
         interview.Cancel();
         var act = () => interview.Complete();
@@ -118,7 +118,8 @@ public sealed class FailurePathTests
             case Karamchari.Recruitment.Domain.ApplicationStatus.Hired: app.AdvanceToScreening(); app.AdvanceToInterviewing(); app.MarkAsOffered(); app.Hire("sys"); break;
         }
 
-        var act = () => {
+        var act = () =>
+        {
             switch (action)
             {
                 case "Hire": app.Hire("sys"); break;

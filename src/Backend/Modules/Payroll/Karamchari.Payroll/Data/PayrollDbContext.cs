@@ -245,7 +245,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.MonthlyGross).HasPrecision(18, 2);
             b.Property(x => x.TdsDeducted).HasPrecision(18, 2);
             b.Property(x => x.NetPay).HasPrecision(18, 2);
-            
+
             b.Property(x => x.Deductions)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
@@ -320,7 +320,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.TotalNetDelta).HasPrecision(18, 2);
             b.Property(x => x.TotalTdsDelta).HasPrecision(18, 2);
             b.Property(x => x.RowVersion).IsRowVersion();
-            
+
             b.Property(x => x.PeriodDiffs)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
@@ -468,7 +468,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.Property(x => x.TotalProjectedGross).HasPrecision(18, 2);
             b.Property(x => x.TotalProjectedNet).HasPrecision(18, 2);
             b.Property(x => x.TotalProjectedDelta).HasPrecision(18, 2);
-            
+
             b.Property(x => x.Results)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
@@ -486,7 +486,7 @@ public class PayrollDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.PeriodName });
             b.Property(x => x.Status).HasConversion<string>();
             b.Property(x => x.AnomalyScore).HasPrecision(5, 2);
-            
+
             b.Property(x => x.Anomalies)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),

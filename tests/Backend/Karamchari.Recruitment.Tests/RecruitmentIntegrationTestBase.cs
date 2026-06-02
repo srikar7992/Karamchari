@@ -14,16 +14,16 @@ public abstract class RecruitmentIntegrationTestBase : IDisposable
     protected RecruitmentIntegrationTestBase()
     {
         TenantProvider.GetCurrentTenantId().Returns(TestTenantId);
-        
+
         var envelope = new TenantExecutionEnvelope(
-            TestTenantId, 
-            Guid.NewGuid().ToString(), 
-            Guid.NewGuid().ToString(), 
-            ExecutionSource.Test, 
+            TestTenantId,
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            ExecutionSource.Test,
             TenantSource.AdminOverride);
-            
+
         TenantProvider.GetTenant().Returns(envelope);
-        
+
         var options = new DbContextOptionsBuilder<RecruitmentDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .AddInterceptors(new RecruitmentTestStampingInterceptor(TenantProvider))

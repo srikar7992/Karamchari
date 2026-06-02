@@ -48,7 +48,7 @@ public sealed class Interview : AggregateRoot<InterviewId>, ITenantOwned, IAudit
     {
         if (Status != InterviewStatus.Scheduled)
             throw new InvalidOperationException("Only scheduled interviews can be completed.");
-            
+
         Status = InterviewStatus.Completed;
         RaiseDomainEvent(new InterviewCompletedDomainEvent(Id));
     }

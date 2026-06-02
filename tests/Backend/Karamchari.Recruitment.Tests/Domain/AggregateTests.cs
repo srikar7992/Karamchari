@@ -48,7 +48,7 @@ public sealed class AggregateTests
         var candidate = Karamchari.Recruitment.Domain.Candidate.Create("John", "Doe", "john.doe@example.com");
         var requisition = Karamchari.Recruitment.Domain.JobRequisition.Create("Software Engineer", Guid.NewGuid(), Guid.NewGuid());
         var snapshot = candidate.CreateSnapshot();
-        
+
         var application = Karamchari.Recruitment.Domain.Application.Create(candidate.Id, requisition.Id, snapshot);
         application.Status.Should().Be(Karamchari.Recruitment.Domain.ApplicationStatus.New);
 
@@ -77,7 +77,7 @@ public sealed class AggregateTests
         var offer = Karamchari.Recruitment.Domain.Offer.Create(Karamchari.Recruitment.Domain.ApplicationId.New(), 100000, "USD");
         offer.SubmitForApproval();
         offer.Approve();
-        
+
         var pastDate = DateTimeOffset.UtcNow.AddDays(-1);
         offer.Issue(pastDate);
 

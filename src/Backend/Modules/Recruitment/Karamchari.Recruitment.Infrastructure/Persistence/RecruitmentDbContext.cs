@@ -2,6 +2,7 @@ using System.Text.Json;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Recruitment.Application;
+using Karamchari.Recruitment.Application.Analytics;
 using Karamchari.Recruitment.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,7 @@ public sealed class RecruitmentDbContext : KaramchariDbContext, IRecruitmentDbCo
     public DbSet<InterviewFeedback> InterviewFeedbacks => Set<InterviewFeedback>();
     public DbSet<Offer> Offers => Set<Offer>();
     public DbSet<RecruitmentAuditEntry> AuditStream => Set<RecruitmentAuditEntry>();
+    public DbSet<AnalyticsReadModel> AnalyticsReadModels => Set<AnalyticsReadModel>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,7 +68,7 @@ public sealed class RecruitmentDbContext : KaramchariDbContext, IRecruitmentDbCo
                     v => JsonSerializer.Deserialize<CandidateSnapshot>(v, (JsonSerializerOptions?)null)!)
                 .HasColumnType("nvarchar(max)")
                 .Metadata.SetValueComparer(ValueComparers.ObjectComparer<CandidateSnapshot>());
-            
+
             b.HasIndex(x => x.TenantId);
             b.HasIndex(x => new { x.TenantId, x.CandidateId, x.RequisitionId }).IsUnique();
         });
@@ -121,6 +123,17 @@ public sealed class RecruitmentDbContext : KaramchariDbContext, IRecruitmentDbCo
             b.Property(x => x.UserId).HasMaxLength(256).IsRequired();
             b.HasIndex(x => x.TenantId);
             b.HasIndex(x => x.EntityId);
+        });
+
+        modelBuilder.Entity<AnalyticsReadModel>(b =>
+        {
+            b.ToTable("Recruitment_AnalyticsReadModels");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.EventType).HasMaxLength(128).IsRequired();
+            b.Property(x => x.AdditionalData).HasColumnType("nvarchar(max)").IsRequired();
+            b.HasIndex(x => x.TenantId);
+            b.HasIndex(x => new { x.EventType, x.RequisitionId, x.CandidateId });
         });
     }
 }

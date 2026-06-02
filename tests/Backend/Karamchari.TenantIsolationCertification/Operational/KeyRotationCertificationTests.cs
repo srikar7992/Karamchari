@@ -22,7 +22,7 @@ public class KeyRotationCertificationTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        
+
         var config = new ConfigurationBuilder().Build();
         services.AddSingleton<IConfiguration>(config);
         services.AddSingleton<ReplayProtectionService>();
@@ -63,7 +63,7 @@ public class KeyRotationCertificationTests
         var conversationId = Guid.NewGuid().ToString();
         var sourceService = "OldService";
         var timestamp = DateTime.UtcNow.ToString("O");
-        
+
         var signatureOld = signerOld.Sign(tenantId, correlationId, conversationId, sourceService, timestamp);
 
         await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), tenantId, "Old Key Message"), context =>

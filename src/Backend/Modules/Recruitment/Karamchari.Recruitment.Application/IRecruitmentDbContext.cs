@@ -1,3 +1,4 @@
+using Karamchari.Recruitment.Application.Analytics;
 using Karamchari.Recruitment.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ public interface IRecruitmentDbContext
     DbSet<InterviewFeedback> InterviewFeedbacks { get; }
     DbSet<Offer> Offers { get; }
     DbSet<RecruitmentAuditEntry> AuditStream { get; }
+    DbSet<AnalyticsReadModel> AnalyticsReadModels { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

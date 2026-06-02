@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Karamchari.Core.Messaging.Tenant;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using Xunit;
 

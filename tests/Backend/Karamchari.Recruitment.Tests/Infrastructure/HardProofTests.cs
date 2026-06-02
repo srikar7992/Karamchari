@@ -22,14 +22,15 @@ public sealed class HardProofTests : RecruitmentIntegrationTestBase
         var command = new ApplyCandidateCommand(candId, reqId);
 
         int concurrentCount = 50;
-        
+
         // 2. Act: Blast the database with parallel requests
         var tasks = Enumerable.Range(0, concurrentCount).Select(_ => applyHandler.Handle(command, default));
-        
-        var results = await Task.WhenAll(tasks.Select(async t => {
-            try 
-            { 
-                var id = await t; 
+
+        var results = await Task.WhenAll(tasks.Select(async t =>
+        {
+            try
+            {
+                var id = await t;
                 return id;
             }
             catch (Exception)
@@ -40,10 +41,10 @@ public sealed class HardProofTests : RecruitmentIntegrationTestBase
 
         // 3. Assert: Integrity Proof
         var successIds = results.Where(r => r != default).ToList();
-        
+
         // Verify exactly one success
         successIds.Should().HaveCount(1, "Exactly one application should be created despite high concurrency.");
-        
+
         // Double check database state
         var dbAppsCount = await DbContext.Applications.CountAsync(a => a.CandidateId == candId && a.RequisitionId == reqId);
         dbAppsCount.Should().Be(1, "Database must not contain duplicate applications for the same candidate/job.");
@@ -57,7 +58,7 @@ public sealed class HardProofTests : RecruitmentIntegrationTestBase
         await new PublishRequisitionHandler(DbContext).Handle(new PublishRequisitionCommand(reqId), default);
         var candId = await new CreateCandidateHandler(DbContext).Handle(new CreateCandidateCommand("Outbox", "Verifier", "outbox@test.com", null), default);
         var appId = await new ApplyCandidateHandler(DbContext).Handle(new ApplyCandidateCommand(candId, reqId), default);
-        
+
         // Advance to hireable state
         var app = await DbContext.Applications.FindAsync(appId);
         app!.AdvanceToScreening();
@@ -71,7 +72,7 @@ public sealed class HardProofTests : RecruitmentIntegrationTestBase
         offer.Approve();
         offer.Issue(DateTimeOffset.UtcNow.AddDays(7));
         offer.Accept();
-        
+
         // Now mark application as offered so it can be hired
         app.MarkAsOffered();
         await DbContext.SaveChangesAsync();

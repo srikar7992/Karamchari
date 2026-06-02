@@ -131,7 +131,7 @@ public sealed class TenantProvisioningService
         var actualTables = new HashSet<string>(actualTablesList, StringComparer.OrdinalIgnoreCase);
 
         var expectedTables = expected.Select(a => a.TableName).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        
+
         var missing = expectedTables.Except(actualTables).ToList();
         if (missing.Count > 0)
         {

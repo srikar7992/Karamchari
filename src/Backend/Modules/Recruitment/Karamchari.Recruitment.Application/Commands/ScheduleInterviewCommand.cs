@@ -11,7 +11,7 @@ public record ScheduleInterviewCommand(
     int DurationMinutes,
     List<Guid> InterviewerIds) : IRequest<InterviewId>;
 
-public sealed class ScheduleInterviewHandler(IRecruitmentDbContext dbContext) 
+public sealed class ScheduleInterviewHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<ScheduleInterviewCommand, InterviewId>
 {
     public async Task<InterviewId> Handle(ScheduleInterviewCommand request, CancellationToken cancellationToken)
@@ -19,7 +19,7 @@ public sealed class ScheduleInterviewHandler(IRecruitmentDbContext dbContext)
         var application = await dbContext.Applications
             .FirstOrDefaultAsync(a => a.Id == request.ApplicationId, cancellationToken)
             ?? throw new InvalidOperationException($"Application {request.ApplicationId.Value} not found.");
-        
+
         if (application.Status != ApplicationStatus.Screening && application.Status != ApplicationStatus.Interviewing)
             throw new InvalidOperationException("Application must be in screening or interviewing stage to schedule an interview.");
 

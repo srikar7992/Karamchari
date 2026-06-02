@@ -70,7 +70,7 @@ public static class MigrationEndpoints
         var fileHash = Convert.ToHexString(hashBytes).ToLowerInvariant();
 
         var storedFileId = await fileStore.SaveFileAsync(stream, file.FileName);
-        
+
         var job = ImportJob.Create(
             importType,
             file.FileName,

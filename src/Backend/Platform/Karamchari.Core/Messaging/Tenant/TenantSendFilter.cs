@@ -34,7 +34,7 @@ public sealed class TenantSendFilter<T> : IFilter<SendContext<T>>
                     tenantIdObj is string tenantId)
                 {
                     context.Headers.Set(ExecutionContextHeaders.TenantId, tenantId);
-                    
+
                     if (consumeContext.Headers.TryGetHeader(ExecutionContextHeaders.CorrelationId, out var correlationIdObj))
                     {
                         context.Headers.Set(ExecutionContextHeaders.CorrelationId, correlationIdObj);
@@ -96,7 +96,7 @@ public sealed class TenantSendFilter : IFilter<SendContext>
                     tenantIdObj is string tenantId)
                 {
                     context.Headers.Set(ExecutionContextHeaders.TenantId, tenantId);
-                    
+
                     if (consumeContext.Headers.TryGetHeader(ExecutionContextHeaders.CorrelationId, out var correlationIdObj))
                     {
                         context.Headers.Set(ExecutionContextHeaders.CorrelationId, correlationIdObj);

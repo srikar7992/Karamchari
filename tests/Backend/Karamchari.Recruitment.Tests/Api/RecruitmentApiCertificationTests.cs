@@ -91,7 +91,7 @@ public sealed class RecruitmentApiCertificationTests : IClassFixture<Recruitment
         // 9. Verification
         using var scope = _factory.Services.CreateScope();
         var recruitDb = scope.ServiceProvider.GetRequiredService<Persistence.RecruitmentDbContext>();
-        
+
         // Audit Stream Verification
         var audit = await recruitDb.AuditStream.AnyAsync(a => a.EntityId == applicationId && a.Action == "Hired");
         // audit.Should().BeTrue("Audit record should be captured for Hiring.");
@@ -109,7 +109,7 @@ public sealed class RecruitmentApiCertificationTests : IClassFixture<Recruitment
 
         // 2. Act: Tenant B attempts to read Requisition from Tenant A
         SetUser("Recruiter", "tenant-b");
-        
+
         var readResponse = await _client.GetAsync($"/api/v1/recruitment/requisitions/{reqId}");
 
         // 3. Assert: 404
@@ -144,10 +144,10 @@ public sealed class RecruitmentApiCertificationTests : IClassFixture<Recruitment
         var candId = (await candResponse.Content.ReadFromJsonAsync<IdResult>())!.id;
 
         var applyRequest = new ApplyCandidateRequest(candId, reqId);
-        
+
         // Act: Apply once
         await _client.PostAsJsonAsync("/api/v1/recruitment/applications", applyRequest);
-        
+
         // Act: Apply again
         var secondResponse = await _client.PostAsJsonAsync("/api/v1/recruitment/applications", applyRequest);
 

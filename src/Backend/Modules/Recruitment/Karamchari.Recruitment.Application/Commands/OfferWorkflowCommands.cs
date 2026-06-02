@@ -8,7 +8,7 @@ namespace Karamchari.Recruitment.Application.Commands;
 public record ApproveOfferCommand(OfferId OfferId) : IRequest;
 public record IssueOfferCommand(OfferId OfferId, DateTimeOffset ExpiresAt) : IRequest;
 
-public sealed class OfferWorkflowHandler(IRecruitmentDbContext dbContext) 
+public sealed class OfferWorkflowHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<ApproveOfferCommand>, IRequestHandler<IssueOfferCommand>
 {
     public async Task Handle(ApproveOfferCommand request, CancellationToken cancellationToken)
@@ -30,7 +30,7 @@ public sealed class OfferWorkflowHandler(IRecruitmentDbContext dbContext)
             UserId = "system"
         };
         dbContext.AuditStream.Add(auditEntry);
-        
+
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
@@ -40,7 +40,7 @@ public sealed class OfferWorkflowHandler(IRecruitmentDbContext dbContext)
             ?? throw new InvalidOperationException("Offer not found.");
 
         offer.Issue(request.ExpiresAt);
-        
+
         var application = await dbContext.Applications.FirstOrDefaultAsync(a => a.Id == offer.ApplicationId, cancellationToken);
         application?.MarkAsOffered();
 

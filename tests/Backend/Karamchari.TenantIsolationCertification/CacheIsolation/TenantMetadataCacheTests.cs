@@ -76,7 +76,7 @@ public sealed class TenantMetadataCacheTests : IDisposable
         // Act & Assert
         // Set with a very short expiration
         await _metadataCache.SetAsync(key, metadata, TimeSpan.FromMilliseconds(50));
-        
+
         // Immediate get should succeed
         var retrievedBefore = await _metadataCache.GetAsync(key);
         retrievedBefore.Should().NotBeNull();

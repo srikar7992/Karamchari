@@ -16,7 +16,7 @@ public sealed class RecruitmentArchitectureTests
     private static readonly Assembly InfrastructureAssembly = typeof(Karamchari.Recruitment.Persistence.RecruitmentDbContext).Assembly;
     private static readonly Assembly WorkerAssembly = typeof(Karamchari.Recruitment.Worker.Consumers.RequisitionPublishedAuditConsumer).Assembly;
 
-    private static readonly Assembly[] AllRecruitmentAssemblies = 
+    private static readonly Assembly[] AllRecruitmentAssemblies =
     {
         ApiAssembly,
         ApplicationAssembly,
@@ -61,9 +61,9 @@ public sealed class RecruitmentArchitectureTests
     {
         var result = Types.InAssembly(CoreAssembly)
             .Should().NotHaveDependencyOnAny(
-                "Karamchari.Recruitment.Api", 
-                "Karamchari.Recruitment.Application", 
-                "Karamchari.Recruitment.Infrastructure", 
+                "Karamchari.Recruitment.Api",
+                "Karamchari.Recruitment.Application",
+                "Karamchari.Recruitment.Infrastructure",
                 "Karamchari.Recruitment.Worker")
             .GetResult();
 

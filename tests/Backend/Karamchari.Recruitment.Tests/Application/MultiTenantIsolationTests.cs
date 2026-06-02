@@ -17,14 +17,14 @@ public sealed class MultiTenantIsolationTests : RecruitmentIntegrationTestBase
         // 1. Arrange: Tenant A creates a candidate
         var candHandler = new CreateCandidateHandler(DbContext);
         var candId = await candHandler.Handle(new CreateCandidateCommand("Jane", "Doe", "jane@example.com", null), default);
-        
+
         var reqHandler = new CreateRequisitionHandler(DbContext);
         var reqId = await reqHandler.Handle(new CreateRequisitionCommand("Dev", Guid.NewGuid(), Guid.NewGuid()), default);
         await new PublishRequisitionHandler(DbContext).Handle(new PublishRequisitionCommand(reqId), default);
 
         // 2. Act: Tenant B attempts to apply with Tenant A's candidate
         TenantProvider.GetCurrentTenantId().Returns("tenant-b");
-        
+
         var applyHandler = new ApplyCandidateHandler(DbContext);
         var act = () => applyHandler.Handle(new ApplyCandidateCommand(candId, reqId), default);
 

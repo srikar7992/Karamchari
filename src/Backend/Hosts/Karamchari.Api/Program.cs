@@ -152,10 +152,10 @@ if (args.Contains("--provision-dev-tenants"))
     try
     {
 
-    logger.LogInformation("Starting database migrations for all contexts...");
+        logger.LogInformation("Starting database migrations for all contexts...");
 
-    var contextTypes = new Type[]
-    {
+        var contextTypes = new Type[]
+        {
         typeof(Karamchari.Identity.Infrastructure.Persistence.IdentityDbContext),
         typeof(Karamchari.HR.Persistence.HRDbContext),
         typeof(Karamchari.Payroll.Data.PayrollDbContext),
@@ -174,60 +174,60 @@ if (args.Contains("--provision-dev-tenants"))
         typeof(Karamchari.Workflow.Persistence.WorkflowDbContext),
         typeof(Karamchari.FinancialOps.Persistence.FinancialOpsDbContext),
         typeof(Karamchari.Core.Messaging.Outbox.OutboxRelayDbContext)
-    };
+        };
 
-    foreach (var type in contextTypes)
-    {
-        logger.LogInformation("Resolving {DbContext}...", type.Name);
-        var db = (DbContext)scope.ServiceProvider.GetRequiredService(type);
-        
-        logger.LogInformation("Migrating {DbContext}...", type.Name);
-        await db.Database.MigrateAsync();
-        logger.LogInformation("Migrated {DbContext}.", type.Name);
-    }
-
-    // Seed the JWT signing key (idempotent) so token validation has a DB-backed key
-    // that supports rotation. Falls back transparently to the configured Jwt:Secret.
-    var identityDb = scope.ServiceProvider.GetRequiredService<Karamchari.Identity.Infrastructure.Persistence.IdentityDbContext>();
-    if (!await identityDb.SigningKeys.AnyAsync())
-    {
-        var keyId = builder.Configuration["Jwt:ActiveKeyId"] ?? "primary";
-        var secret = builder.Configuration["Jwt:Secret"];
-        if (!string.IsNullOrWhiteSpace(secret))
+        foreach (var type in contextTypes)
         {
-            identityDb.SigningKeys.Add(
-                Karamchari.Identity.Domain.SigningKeyMetadata.Create(keyId, secret, DateTimeOffset.UtcNow));
-            await identityDb.SaveChangesAsync();
-            logger.LogInformation("Seeded JWT signing key '{KeyId}'.", keyId);
+            logger.LogInformation("Resolving {DbContext}...", type.Name);
+            var db = (DbContext)scope.ServiceProvider.GetRequiredService(type);
+
+            logger.LogInformation("Migrating {DbContext}...", type.Name);
+            await db.Database.MigrateAsync();
+            logger.LogInformation("Migrated {DbContext}.", type.Name);
         }
-    }
 
-    var provisioner = scope.ServiceProvider.GetRequiredService<Karamchari.Core.Persistence.Provisioning.TenantProvisioningService>();
+        // Seed the JWT signing key (idempotent) so token validation has a DB-backed key
+        // that supports rotation. Falls back transparently to the configured Jwt:Secret.
+        var identityDb = scope.ServiceProvider.GetRequiredService<Karamchari.Identity.Infrastructure.Persistence.IdentityDbContext>();
+        if (!await identityDb.SigningKeys.AnyAsync())
+        {
+            var keyId = builder.Configuration["Jwt:ActiveKeyId"] ?? "primary";
+            var secret = builder.Configuration["Jwt:Secret"];
+            if (!string.IsNullOrWhiteSpace(secret))
+            {
+                identityDb.SigningKeys.Add(
+                    Karamchari.Identity.Domain.SigningKeyMetadata.Create(keyId, secret, DateTimeOffset.UtcNow));
+                await identityDb.SaveChangesAsync();
+                logger.LogInformation("Seeded JWT signing key '{KeyId}'.", keyId);
+            }
+        }
 
-    logger.LogInformation("Bootstrapping RLS infrastructure...");
-    await provisioner.ProvisionRlsInfrastructureAsync();
+        var provisioner = scope.ServiceProvider.GetRequiredService<Karamchari.Core.Persistence.Provisioning.TenantProvisioningService>();
 
-    logger.LogInformation("Starting development tenant provisioning...");
+        logger.LogInformation("Bootstrapping RLS infrastructure...");
+        await provisioner.ProvisionRlsInfrastructureAsync();
 
-    // Provision 'dev' tenant
-    await provisioner.ProvisionTenantAsync("dev", "tenant_dev");
+        logger.LogInformation("Starting development tenant provisioning...");
 
-    // Add other test tenants
-    await provisioner.ProvisionTenantAsync("acme", "tenant_acme");
-    await provisioner.ProvisionTenantAsync("contoso", "tenant_contoso");
-    await provisioner.ProvisionTenantAsync("globex", "tenant_globex");
+        // Provision 'dev' tenant
+        await provisioner.ProvisionTenantAsync("dev", "tenant_dev");
 
-    logger.LogInformation("Provisioning complete. Seeding developer users...");
+        // Add other test tenants
+        await provisioner.ProvisionTenantAsync("acme", "tenant_acme");
+        await provisioner.ProvisionTenantAsync("contoso", "tenant_contoso");
+        await provisioner.ProvisionTenantAsync("globex", "tenant_globex");
 
-    // Seed documented developer login users (admin@{tenant}.local, etc.) so a new
-    // engineer can authenticate immediately without creating data by hand.
-    await Karamchari.Api.Seeding.DevDataSeeder.SeedAsync(scope.ServiceProvider, logger);
+        logger.LogInformation("Provisioning complete. Seeding developer users...");
 
-    logger.LogInformation("Provisioning + developer seeding complete.");
-    await Serilog.Log.CloseAndFlushAsync();
-    // Force a deterministic, successful exit. Returning would dispose the host and
-    // its background services, which previously aborted the process with exit 134.
-    Environment.Exit(0);
+        // Seed documented developer login users (admin@{tenant}.local, etc.) so a new
+        // engineer can authenticate immediately without creating data by hand.
+        await Karamchari.Api.Seeding.DevDataSeeder.SeedAsync(scope.ServiceProvider, logger);
+
+        logger.LogInformation("Provisioning + developer seeding complete.");
+        await Serilog.Log.CloseAndFlushAsync();
+        // Force a deterministic, successful exit. Returning would dispose the host and
+        // its background services, which previously aborted the process with exit 134.
+        Environment.Exit(0);
     }
     catch (Exception ex)
     {

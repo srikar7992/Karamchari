@@ -59,7 +59,7 @@ public class CandidateTests
 
         // Act again
         candidate.UpdateProfile("Jane", "Smith", "jane@example.com", null);
-        
+
         // Assert again
         candidate.ProfileVersion.Should().Be(3);
     }
@@ -138,7 +138,7 @@ public class CandidateTests
         // Arrange
         var candidate = Karamchari.Recruitment.Domain.Candidate.Create("John", "Doe", "john@example.com");
         var snapshot1 = candidate.CreateSnapshot();
-        
+
         // Act
         candidate.UpdateProfile("Jane", "Smith", "jane@example.com", "999");
         var snapshot2 = candidate.CreateSnapshot();
@@ -166,7 +166,7 @@ public class CandidateTests
     public void UpdateProfileMultipleCallsShouldKeepVersionConsistent()
     {
         var candidate = Karamchari.Recruitment.Domain.Candidate.Create("John", "Doe", "john@example.com");
-        for(int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
             candidate.UpdateProfile("John", "Doe", "john@example.com", i.ToString());
         }
@@ -185,8 +185,8 @@ public class CandidateTests
     [Fact]
     public void IdentityShouldBeSetOnCreation()
     {
-         var candidate = Karamchari.Recruitment.Domain.Candidate.Create("John", "Doe", "john@example.com");
-         candidate.Id.Should().NotBe(default(Karamchari.Recruitment.Domain.CandidateId));
+        var candidate = Karamchari.Recruitment.Domain.Candidate.Create("John", "Doe", "john@example.com");
+        candidate.Id.Should().NotBe(default(Karamchari.Recruitment.Domain.CandidateId));
     }
 
     [Fact]

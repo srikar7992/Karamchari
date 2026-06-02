@@ -11,7 +11,7 @@ public record SubmitFeedbackCommand(
     int Rating,
     string Comments) : IRequest<InterviewFeedbackId>;
 
-public sealed class SubmitFeedbackHandler(IRecruitmentDbContext dbContext) 
+public sealed class SubmitFeedbackHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<SubmitFeedbackCommand, InterviewFeedbackId>
 {
     public async Task<InterviewFeedbackId> Handle(SubmitFeedbackCommand request, CancellationToken cancellationToken)
@@ -19,7 +19,7 @@ public sealed class SubmitFeedbackHandler(IRecruitmentDbContext dbContext)
         var interview = await dbContext.Interviews
             .FirstOrDefaultAsync(i => i.Id == request.InterviewId, cancellationToken)
             ?? throw new InvalidOperationException($"Interview {request.InterviewId.Value} not found.");
-        
+
         if (interview.Status != InterviewStatus.Scheduled)
             throw new InvalidOperationException("Feedback can only be submitted for scheduled interviews.");
 
@@ -27,7 +27,7 @@ public sealed class SubmitFeedbackHandler(IRecruitmentDbContext dbContext)
             throw new InvalidOperationException("Interviewer is not assigned to this interview.");
 
         var feedback = InterviewFeedback.Create(request.InterviewId, request.InterviewerId, request.Rating, request.Comments);
-        
+
         // Auto-complete interview on first feedback for simplicity in Sprint 2
         interview.Complete();
 

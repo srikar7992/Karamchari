@@ -61,7 +61,7 @@ internal sealed partial class HttpTenantProvider : ITenantProvider
     public TenantExecutionEnvelope GetTenant()
     {
         var httpContext = _httpContextAccessor.HttpContext;
-        
+
         if (httpContext == null)
         {
             // Outside an HTTP request (message consumers in the Worker, background jobs),

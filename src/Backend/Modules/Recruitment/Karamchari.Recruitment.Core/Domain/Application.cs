@@ -22,7 +22,7 @@ public sealed class Application : AggregateRoot<ApplicationId>, ITenantOwned, IA
     public ApplicationStatus Status { get; private set; }
     public DateTimeOffset AppliedAt { get; private set; }
     public CandidateSnapshot CandidateSnapshot { get; private set; }
-    
+
     public DateTimeOffset? HiredAt { get; private set; }
     public string? HiredBy { get; private set; }
 
@@ -46,7 +46,7 @@ public sealed class Application : AggregateRoot<ApplicationId>, ITenantOwned, IA
     {
         if (Status != ApplicationStatus.New)
             throw new InvalidOperationException("Only new applications can be advanced to screening.");
-            
+
         Status = ApplicationStatus.Screening;
         RaiseDomainEvent(new ApplicationAdvancedDomainEvent(Id, Status));
     }
@@ -55,7 +55,7 @@ public sealed class Application : AggregateRoot<ApplicationId>, ITenantOwned, IA
     {
         if (Status != ApplicationStatus.Screening)
             throw new InvalidOperationException("Only screened applications can be advanced to interviewing.");
-            
+
         Status = ApplicationStatus.Interviewing;
         RaiseDomainEvent(new ApplicationAdvancedDomainEvent(Id, Status));
     }
@@ -64,7 +64,7 @@ public sealed class Application : AggregateRoot<ApplicationId>, ITenantOwned, IA
     {
         if (Status != ApplicationStatus.Interviewing)
             throw new InvalidOperationException("Only applications in interviewing stage can be marked as offered.");
-            
+
         Status = ApplicationStatus.Offered;
         RaiseDomainEvent(new ApplicationAdvancedDomainEvent(Id, Status));
     }
@@ -73,7 +73,7 @@ public sealed class Application : AggregateRoot<ApplicationId>, ITenantOwned, IA
     {
         if (Status != ApplicationStatus.Offered)
             throw new InvalidOperationException("Only applications with an accepted offer can be hired.");
-            
+
         Status = ApplicationStatus.Hired;
         HiredAt = DateTimeOffset.UtcNow;
         HiredBy = hiredBy;

@@ -73,7 +73,7 @@ public class SyntheticPlatformTests
 
         // Assert
         (await harness.Consumed.Any<SyntheticPingIntegrationEvent>()).Should().BeTrue();
-        
+
         SyntheticConsumer.LastObservedTenantId.Should().Be(tenantId);
         SyntheticConsumer.LastObservedCorrelationId.Should().Be(correlationId);
         SyntheticConsumer.WasContextEstablished.Should().BeTrue();
@@ -108,11 +108,11 @@ public class SyntheticPlatformTests
 
         // Assert
         (await harness.Consumed.Any<SyntheticPingIntegrationEvent>()).Should().BeTrue();
-        
+
         var consumed = harness.Consumed.Select<SyntheticPingIntegrationEvent>().First();
         consumed.Exception.Should().NotBeNull("Tampered message must be rejected by the filter.");
         consumed.Exception.Should().BeOfType<MalformedTenantMessageException>();
-        
+
         SyntheticConsumer.WasContextEstablished.Should().BeFalse("Consumer must NOT execute for tampered messages.");
     }
 
@@ -122,7 +122,7 @@ public class SyntheticPlatformTests
         // Arrange
         var oldSecret = "old-secret-2025";
         var currentSecret = "new-secret-2026";
-        
+
         SyntheticConsumer.Reset();
         await using var provider = new ServiceCollection()
             .AddLogging(l => l.AddConsole())

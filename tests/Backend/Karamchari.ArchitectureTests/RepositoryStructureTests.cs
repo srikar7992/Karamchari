@@ -14,7 +14,7 @@ public sealed class RepositoryStructureTests
 {
     private static readonly string RootPath = GetRepositoryRoot();
 
-    private static readonly string[] ApprovedRoots = 
+    private static readonly string[] ApprovedRoots =
     {
         "src/Backend/Platform",
         "src/Backend/Modules",

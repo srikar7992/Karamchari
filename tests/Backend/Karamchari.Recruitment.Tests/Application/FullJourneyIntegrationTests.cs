@@ -45,7 +45,7 @@ public sealed class FullJourneyIntegrationTests : RecruitmentIntegrationTestBase
 
         var interview = await DbContext.Interviews.FindAsync(interviewId);
         interview!.Status.Should().Be(InterviewStatus.Scheduled);
-        
+
         var appAfterInterview = await DbContext.Applications.FindAsync(applicationId);
         appAfterInterview!.Status.Should().Be(ApplicationStatus.Interviewing);
 
@@ -66,7 +66,7 @@ public sealed class FullJourneyIntegrationTests : RecruitmentIntegrationTestBase
 
         var offer = await DbContext.Offers.FindAsync(offerId);
         offer!.Status.Should().Be(OfferStatus.Issued);
-        
+
         var appAfterOffer = await DbContext.Applications.FindAsync(applicationId);
         appAfterOffer!.Status.Should().Be(ApplicationStatus.Offered);
 
@@ -96,7 +96,7 @@ public sealed class FullJourneyIntegrationTests : RecruitmentIntegrationTestBase
     {
         // 1. Arrange: Tenant A creates a requisition with same Title as Tenant B
         var reqIdA = await new CreateRequisitionHandler(DbContext).Handle(new CreateRequisitionCommand("Engineer", Guid.NewGuid(), Guid.NewGuid()), default);
-        
+
         TenantProvider.GetCurrentTenantId().Returns("tenant-b");
         var reqIdB = await new CreateRequisitionHandler(DbContext).Handle(new CreateRequisitionCommand("Engineer", Guid.NewGuid(), Guid.NewGuid()), default);
 

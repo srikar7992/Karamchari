@@ -12,7 +12,7 @@ namespace Karamchari.Recruitment.DependencyInjection;
 
 public class RecruitmentModule(IConfiguration configuration) : ICapabilityModule
 {
-    public void RegisterServices(IServiceCollection services) 
+    public void RegisterServices(IServiceCollection services)
     {
         if (!services.Any(d => d.ServiceType == typeof(DbContextOptions<RecruitmentDbContext>)))
         {
@@ -31,17 +31,17 @@ public class RecruitmentModule(IConfiguration configuration) : ICapabilityModule
         {
             services.AddScoped<IRecruitmentDbContext, RecruitmentDbContext>();
         }
-        
-        services.AddMediatR(cfg => 
+
+        services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(Karamchari.Recruitment.Application.Commands.CreateRequisitionCommand).Assembly));
     }
-    
-    public void MapEndpoints(IEndpointRouteBuilder app) 
+
+    public void MapEndpoints(IEndpointRouteBuilder app)
     {
         app.MapRecruitmentEndpoints();
     }
-    
-    public void RegisterConsumers(IBusRegistrationConfigurator configurator) 
+
+    public void RegisterConsumers(IBusRegistrationConfigurator configurator)
     {
         // NOTE: Consumers are registered directly in the Worker host or via Worker extension
         // to avoid Api -> Worker dependency.

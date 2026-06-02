@@ -11,7 +11,7 @@ namespace Karamchari.Recruitment.Application.EventHandlers;
 public sealed class RecruitmentAnalyticsHandler(
     IRecruitmentDbContext dbContext,
     IPublishEndpoint publishEndpoint,
-    ITenantProvider tenantProvider) : 
+    ITenantProvider tenantProvider) :
         INotificationHandler<RequisitionPublishedDomainEvent>,
         INotificationHandler<CandidateAppliedDomainEvent>,
         INotificationHandler<InterviewCompletedDomainEvent>,

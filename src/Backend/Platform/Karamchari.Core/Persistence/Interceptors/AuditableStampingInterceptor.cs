@@ -1,8 +1,8 @@
+using System.Security.Claims;
 using Karamchari.Core.Domain.Primitives;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 
 namespace Karamchari.Core.Persistence.Interceptors;
 
@@ -28,8 +28,8 @@ public sealed class AuditableStampingInterceptor(IHttpContextAccessor httpContex
     {
         if (context == null) return;
 
-        var userId = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-            ?? httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value 
+        var userId = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value
             ?? "system";
 
         var now = DateTimeOffset.UtcNow;
@@ -54,8 +54,8 @@ public sealed class AuditableStampingInterceptor(IHttpContextAccessor httpContex
 internal static class EntityEntryExtensions
 {
     public static bool HasChangedOwnedEntities(this Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry) =>
-        entry.References.Any(r => 
-            r.TargetEntry != null && 
-            r.TargetEntry.Metadata.IsOwned() && 
+        entry.References.Any(r =>
+            r.TargetEntry != null &&
+            r.TargetEntry.Metadata.IsOwned() &&
             (r.TargetEntry.State == EntityState.Added || r.TargetEntry.State == EntityState.Modified));
 }

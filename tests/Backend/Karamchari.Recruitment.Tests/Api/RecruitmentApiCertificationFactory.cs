@@ -1,19 +1,19 @@
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Recruitment.Persistence;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Xunit;
-using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Text.Encodings.Web;
-using Microsoft.Extensions.Configuration;
+using Xunit;
 
 namespace Karamchari.Recruitment.Tests.Api;
 
@@ -22,7 +22,7 @@ public sealed class RecruitmentApiCertificationFactory : WebApplicationFactory<P
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
-        
+
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -43,12 +43,13 @@ public sealed class RecruitmentApiCertificationFactory : WebApplicationFactory<P
             RemoveAndReplaceWithInMemory(services);
 
             // Add a test-only authentication handler that signs in a user based on the X-Test-User-Role header
-            services.AddAuthentication(options => {
+            services.AddAuthentication(options =>
+            {
                 options.DefaultAuthenticateScheme = "Test";
                 options.DefaultChallengeScheme = "Test";
             })
             .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", options => { });
-            
+
             services.AddAuthorization(options =>
             {
                 options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder("Test")
@@ -108,7 +109,7 @@ public sealed class RecruitmentApiCertificationFactory : WebApplicationFactory<P
             o => InMemory(o, "CertIdentity"), ServiceLifetime.Scoped, ServiceLifetime.Singleton);
         services.AddDbContextFactory<Karamchari.Identity.Infrastructure.Persistence.IdentityDbContext>(
             o => InMemory(o, "CertIdentity"), ServiceLifetime.Singleton);
-        
+
         services.AddDbContext<Karamchari.HR.Persistence.HRDbContext>(o => InMemory(o, "CertHR"));
         services.AddDbContext<Karamchari.Payroll.Data.PayrollDbContext>(o => InMemory(o, "CertPayroll"));
         services.AddDbContext<Karamchari.TimeAttendance.Persistence.TimeAttendanceDbContext>(o => InMemory(o, "CertTA"));

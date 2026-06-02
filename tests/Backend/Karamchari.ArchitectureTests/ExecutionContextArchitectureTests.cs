@@ -1,7 +1,7 @@
-using NetArchTest.Rules;
-using Xunit;
 using FluentAssertions;
 using Karamchari.Core.Messaging.Tenant;
+using NetArchTest.Rules;
+using Xunit;
 
 namespace Karamchari.ArchitectureTests;
 

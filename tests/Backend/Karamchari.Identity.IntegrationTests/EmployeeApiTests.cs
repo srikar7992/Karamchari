@@ -8,9 +8,9 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Karamchari.Core.Multitenancy;
 using Karamchari.HR.Contracts.Employees;
 using Karamchari.HR.Persistence;
-using Karamchari.Core.Multitenancy;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -30,7 +30,7 @@ public class EmployeeApiTests : IClassFixture<WebApplicationFactory<Program>>, I
     public EmployeeApiTests(WebApplicationFactory<Program> factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
-        
+
         // Reset the test auth handler state for each test run
         TestAuthHandler.Reset();
 
@@ -192,7 +192,7 @@ public class EmployeeApiTests : IClassFixture<WebApplicationFactory<Program>>, I
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var getResponse = await client.GetAsync($"/api/v1/hr/employees/{employeeId}");
         var updatedEmployee = await getResponse.Content.ReadFromJsonAsync<EmployeeDto>();
         updatedEmployee!.LegalName.Should().Be("Alice J. Smith");

@@ -7,7 +7,7 @@ namespace Karamchari.Recruitment.Application.Commands;
 
 public record AcceptOfferCommand(OfferId OfferId) : IRequest;
 
-public sealed class AcceptOfferHandler(IRecruitmentDbContext dbContext) 
+public sealed class AcceptOfferHandler(IRecruitmentDbContext dbContext)
     : IRequestHandler<AcceptOfferCommand>
 {
     public async Task Handle(AcceptOfferCommand request, CancellationToken cancellationToken)
@@ -28,7 +28,7 @@ public sealed class AcceptOfferHandler(IRecruitmentDbContext dbContext)
             UserId = "system"
         };
         dbContext.AuditStream.Add(auditEntry);
-        
+
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

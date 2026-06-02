@@ -115,7 +115,7 @@ public class OfferTests
         var offer = Karamchari.Recruitment.Domain.Offer.Create(applicationId, baseSalary, currency);
         offer.SubmitForApproval();
         offer.Approve();
-        
+
         var pastDate = DateTimeOffset.UtcNow.AddDays(-1);
         offer.Issue(pastDate);
 
@@ -176,7 +176,7 @@ public class OfferTests
     public void MultipleTransitionsShouldFollowHappyPath()
     {
         var offer = Karamchari.Recruitment.Domain.Offer.Create(applicationId, baseSalary, currency);
-        
+
         offer.SubmitForApproval();
         offer.Approve();
         offer.Issue(DateTimeOffset.UtcNow.AddDays(7));

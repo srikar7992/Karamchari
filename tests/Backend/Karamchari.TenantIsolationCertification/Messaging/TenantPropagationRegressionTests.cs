@@ -22,10 +22,10 @@ public class TenantPropagationRegressionTests
     {
         var services = new ServiceCollection();
         services.AddLogging(l => l.AddConsole());
-        
+
         var config = new ConfigurationBuilder().Build();
         services.AddSingleton<IConfiguration>(config);
-        
+
         services.AddSingleton<ReplayProtectionService>();
         services.AddSingleton<TenantMetricsCollector>();
         services.AddSingleton<TenantActivitySource>();
@@ -147,13 +147,13 @@ public class TenantPropagationRegressionTests
 
         var timestamp = DateTime.UtcNow.ToString("O");
         var signer = provider.GetRequiredService<ExecutionContextSigner>();
-        
+
         // Generate valid signature for ORIGINAL values
         var validSignature = signer.Sign("acme", "orig-corr", "orig-conv", "orig-src", timestamp);
 
         // Act - Publish with TAMPERED values but ORIGINAL signature
         await harness.Bus.Publish(new EmployeeOnboardedIntegrationEvent(
-            Guid.NewGuid(), tenantId, "EMP-X", testName, "t@acme.com", DateOnly.FromDateTime(DateTime.Today)), 
+            Guid.NewGuid(), tenantId, "EMP-X", testName, "t@acme.com", DateOnly.FromDateTime(DateTime.Today)),
             context =>
             {
                 context.Headers.Set(ExecutionContextHeaders.TenantId, tenantId);
@@ -263,7 +263,7 @@ public class TenantPropagationRegressionTests
         var signature = signer.Sign(tenantId, correlationId, conversationId, sourceService, timestamp);
 
         var publishAction = (Guid actualMessageId) => harness.Bus.Publish(new EmployeeOnboardedIntegrationEvent(
-            Guid.NewGuid(), tenantId, "EMP-R01", "Replay Test", "r@a.com", DateOnly.FromDateTime(DateTime.Today)), 
+            Guid.NewGuid(), tenantId, "EMP-R01", "Replay Test", "r@a.com", DateOnly.FromDateTime(DateTime.Today)),
             context =>
             {
                 context.MessageId = actualMessageId;
@@ -281,10 +281,10 @@ public class TenantPropagationRegressionTests
         await Task.Delay(1000);
         (await harness.Consumed.Any<EmployeeOnboardedIntegrationEvent>()).Should().BeTrue();
         TestConsumer.ConsumeCount.Should().Be(1);
-        
+
         // Act 2 - Second attempt (DIFFERENT MessageId, SAME OriginalMessageId) should be rejected
         await publishAction(Guid.NewGuid());
-        
+
         // Wait a bit
         await Task.Delay(1000);
 
@@ -331,7 +331,7 @@ public class TenantPropagationRegressionTests
             Interlocked.Increment(ref TotalCount);
             var message = context.Message;
             var executionContext = TenantExecutionContext.Current;
-            
+
             // Artificial delay
             await Task.Delay(Random.Shared.Next(1, 10));
 

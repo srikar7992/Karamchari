@@ -5,7 +5,7 @@ using MassTransit;
 
 namespace Karamchari.Recruitment.Worker.Consumers;
 
-public sealed class RequisitionPublishedAuditConsumer(IRecruitmentDbContext dbContext) 
+public sealed class RequisitionPublishedAuditConsumer(IRecruitmentDbContext dbContext)
     : IConsumer<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEvent>>
 {
     public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEvent>> context)

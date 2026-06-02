@@ -1,7 +1,7 @@
-using Karamchari.Core.Multitenancy;
-using Karamchari.Core.Persistence;
 using Karamchari.Compensation.Domain;
 using Karamchari.Compensation.Persistence.Configurations;
+using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Compensation.Persistence;
