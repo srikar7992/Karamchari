@@ -50,24 +50,32 @@ public static class SalaryRevisionEndpoints
     }
 
     private static async Task<IResult> GetRevision(
-        Guid id, PayrollDbContext db, CancellationToken ct)
+        Guid id, PayrollDbContext db, ClaimsPrincipal user, CancellationToken ct)
     {
+        var tenantId = user.GetTenantId();
+        if (tenantId is null) return Results.Unauthorized();
+
         var revision = await db.Set<SalaryRevision>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.Id == id, ct);
+            .FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenantId, ct);
 
         return revision is null ? Results.NotFound() : Results.Ok(MapToDto(revision));
     }
 
     private static async Task<IResult> ListRevisions(
         PayrollDbContext db,
+        ClaimsPrincipal user,
         [FromQuery] string? status,
         [FromQuery] Guid? employeeId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var query = db.Set<SalaryRevision>().AsNoTracking();
+        var tenantId = user.GetTenantId();
+        if (tenantId is null) return Results.Unauthorized();
+
+        var query = db.Set<SalaryRevision>().AsNoTracking()
+            .Where(r => r.TenantId == tenantId);
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<RevisionStatus>(status, out var s))
             query = query.Where(r => r.Status == s);

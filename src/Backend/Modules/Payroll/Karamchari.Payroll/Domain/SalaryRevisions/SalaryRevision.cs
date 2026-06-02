@@ -1,4 +1,5 @@
 using Karamchari.Core.Domain.Primitives;
+using Karamchari.Core.Multitenancy;
 using Karamchari.Payroll.Domain.SalaryRevisions.Events;
 
 namespace Karamchari.Payroll.Domain.SalaryRevisions;
@@ -31,7 +32,7 @@ public enum RevisionStatus
 /// Aggregate for a salary revision (increment, promotion, off-cycle, etc.).
 /// Effective date drives arrear generation if revision falls inside a processed period.
 /// </summary>
-public sealed class SalaryRevision : AggregateRoot<Guid>
+public sealed class SalaryRevision : AggregateRoot<Guid>, ITenantOwned
 {
     /// <summary>
     /// Provides required documentation for this member.

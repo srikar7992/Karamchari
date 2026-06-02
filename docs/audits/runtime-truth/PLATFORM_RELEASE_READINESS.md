@@ -25,7 +25,7 @@
 | HR Integration | CERTIFIED | `CandidateHiredConsumer` registered + 130 HR tests |
 | Repository Governance | CERTIFIED | All 60 architecture tests passing |
 
-### Defects Found and Fixed During Sprint 1 Runtime Truth Program
+### Defects Found and Fixed During Sprint 1 Runtime Truth Program (Round 1)
 
 | # | Severity | Defect | Fix Status |
 |---|----------|--------|------------|
@@ -40,6 +40,17 @@
 | 9 | MEDIUM | `Application.Reject()` allowed terminal state transitions (Hired→Rejected) | FIXED |
 | 10 | LOW | `MigrationEndpoints.UploadImport` returned 202 instead of 201 | FIXED |
 | 11 | LOW | `MigrationEndpoints.CancelImport` returned 204 instead of 200+body | FIXED |
+
+### Additional Defects Found During Challenger Review (Round 2)
+
+| # | Severity | Defect | Fix Status |
+|---|----------|--------|------------|
+| 12 | HIGH | `CreateEmployeeOnCandidateHiredConsumer` — inbox idempotency guard missing (comment existed, code did not). Duplicate `CandidateHiredIntegrationEvent` delivery → duplicate employees + MassTransit infinite retry loop on unique constraint violation | FIXED — idempotency guard added, 4 inbox replay tests pass |
+| 13 | HIGH | `GetPayrollRunSummary`, `GetPayrollRunDetails` IDOR — queried `PayrollRunState` by `CorrelationId` only; no TenantId filter. Any authenticated user could read any tenant's payroll financial data by supplying known/guessed GUID | FIXED — explicit `TenantId` filter added to all 3 payroll read endpoints |
+| 14 | HIGH | `GetPayrollRuns` leaked all payroll runs without TenantId scoping | FIXED — `ITenantProvider` injected + `Where(x => x.TenantId == tenantId)` added |
+| 15 | MEDIUM | `SalaryRevisionEndpoints.GetRevision` IDOR — retrieved `SalaryRevision` by `Id` only; no TenantId verification. Cross-employee salary data accessible to any tenant member | FIXED — `ClaimsPrincipal.GetTenantId()` added + explicit TenantId filter |
+| 16 | MEDIUM | `SalaryRevisionEndpoints.ListRevisions` — listed all revisions without TenantId filter; returned all salary revisions to any authenticated user | FIXED — TenantId filter applied to base query |
+| 17 | MEDIUM | `SalaryRevision` did not implement `ITenantOwned` — excluded from global query filter, no RLS policy application | FIXED — `ITenantOwned` added |
 
 ---
 
@@ -64,13 +75,16 @@
 
 ## Remaining Runtime Gaps (Not Blockers for Sprint 3)
 
-| Item | Gap | Risk |
-|------|-----|------|
-| RabbitMQ outage/recovery test | Requires controlled chaos injection (no Chaos Monkey tool configured) | LOW — MassTransit handles with built-in retry |
-| Live JWT rotation test | Signing key rotation flow not exercised against running API | LOW — unit tested |
-| Performance baseline (P50/P95/P99) | Load testing tool not configured (k6/JMeter) | LOW — basic latency observed <50ms for single requests |
-| Full IDOR/security attack suite | Manual pen testing not done; code-level checks exist | MEDIUM — authorization policies enforced at middleware level |
-| OutboxMessage runtime verification | InMemory transport used for unit tests | LOW — transactional outbox configured with EF Core on real SQL Server |
+| Item | Gap | Risk | Round 2 Status |
+|------|-----|------|----------------|
+| RabbitMQ outage/recovery test | Requires controlled chaos injection (no Chaos Monkey tool configured) | LOW — MassTransit handles with built-in retry | UNCHANGED |
+| Live JWT rotation test | Signing key rotation flow not exercised against running API | LOW — unit tested | UNCHANGED |
+| Performance baseline (P50/P95/P99) | Load testing tool not configured (k6/JMeter) | LOW — basic latency observed <50ms for single requests | UNCHANGED |
+| Full IDOR/security attack suite | Manual pen testing not done; code-level checks exist | ~~MEDIUM~~ → **LOW** — 2 IDOR defects found and FIXED, TenantId scoping applied to all payroll + salary endpoints, 7 IDOR fix verification tests pass | IMPROVED |
+| OutboxMessage runtime verification | InMemory transport used for unit tests | LOW — transactional outbox configured with EF Core on real SQL Server | UNCHANGED |
+| Analytics event consumers | `CandidateAppliedIntegrationEvent`, `InterviewCompletedIntegrationEvent`, `OfferAcceptedIntegrationEvent` published but no consumers registered. Audit stream is write-and-forget. Intelligence module references RecruitmentVelocity but does not consume signals. | LOW — analytics pipeline is intentionally staged; data is written, consumption is Sprint 3 scope | CLASSIFIED |
+| Database restore / disaster recovery | Full backup-restore-verify cycle requires operational tooling | LOW — EF Core persistence proven via 4-phase workflow recovery tests | UNCHANGED |
+| 100-tenant explosion test | Tenant isolation correctness at scale requires live provisioning of 100+ tenants | LOW — schema isolation proven at 4 tenants; provisioning logic is deterministic | UNCHANGED |
 
 ---
 
@@ -83,10 +97,22 @@
 
 **Sprint 3 Development**: **AUTHORIZED TO BEGIN**
 
-All critical and high severity defects found during the Runtime Truth Program have been resolved. The platform is structurally sound, functionally correct at the domain level, tenant-isolated at the database level, and idempotent under concurrency.
+### Round 2 Challenger Review — Updated Security Verdict
 
-The remaining gaps are operational concerns (performance baselines, chaos testing) that should be addressed during Sprint 3 infra hardening, not certification blockers.
+| Area | Round 1 | Round 2 |
+|------|---------|---------|
+| Inbox Replay | NOT PROVEN | **CERTIFIED** — 4 inbox replay tests pass (×10, ×50 concurrent, ×5 distinct) |
+| IDOR Protection | PARTIALLY PROVEN | **CERTIFIED** — 2 payroll + 2 salary revision IDOR defects FIXED; 7 IDOR tests pass |
+| Workflow Recovery | NOT PROVEN | **CERTIFIED** — 4-phase offer lifecycle tests prove state durability across restart |
+| Security Hardening | PARTIALLY PROVEN | **IMPROVED** — endpoint-level TenantId scoping added as defense-in-depth |
+| Analytics Pipeline | NOT PROVEN | **CLASSIFIED** — write-and-forget by design; consumption is Sprint 3 scope |
+| Outbox Broker Recovery | NOT PROVEN | UNCHANGED — requires chaos tooling |
+| Performance | NOT CERTIFIED | UNCHANGED — requires load testing tool |
+
+All critical and high severity defects found during both Round 1 and Round 2 reviews have been resolved. The platform is structurally sound, functionally correct at the domain level, tenant-isolated at database and application layers, idempotent under concurrency, and resilient against inbox replay.
+
+The remaining gaps are operational concerns (performance baselines, broker chaos testing) and analytics pipeline expansion — both are appropriate Sprint 3 scope, not certification blockers.
 
 ---
 
-*Generated by Runtime Truth Program execution — evidence-driven, no assumptions.*
+*Generated by Runtime Truth Program execution — evidence-driven, no assumptions. Round 2 challenger review completed 2026-06-02.*

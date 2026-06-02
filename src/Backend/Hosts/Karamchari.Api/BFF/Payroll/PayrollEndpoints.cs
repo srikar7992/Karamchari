@@ -52,17 +52,23 @@ public static class PayrollEndpoints
         return Results.Accepted($"/api/payroll/runs/{runId}", new { RunId = runId });
     }
 
-    private static async Task<IResult> GetPayrollRuns(PayrollDbContext dbContext)
+    private static async Task<IResult> GetPayrollRuns(
+        PayrollDbContext dbContext, ITenantProvider tenantProvider)
     {
+        var tenantId = tenantProvider.GetTenant().TenantId;
         var runs = await dbContext.PayrollRunStates
+            .Where(x => x.TenantId == tenantId)
             .OrderByDescending(x => x.StartedAt)
             .ToListAsync();
         return Results.Ok(runs);
     }
 
-    private static async Task<IResult> GetPayrollRunSummary(Guid id, PayrollDbContext dbContext)
+    private static async Task<IResult> GetPayrollRunSummary(
+        Guid id, PayrollDbContext dbContext, ITenantProvider tenantProvider)
     {
-        var run = await dbContext.PayrollRunStates.FirstOrDefaultAsync(r => r.CorrelationId == id);
+        var tenantId = tenantProvider.GetTenant().TenantId;
+        var run = await dbContext.PayrollRunStates
+            .FirstOrDefaultAsync(r => r.CorrelationId == id && r.TenantId == tenantId);
         if (run == null) return Results.NotFound();
 
         var ledgerTax = await dbContext.PayrollLedger
@@ -85,9 +91,12 @@ public static class PayrollEndpoints
         });
     }
 
-    private static async Task<IResult> GetPayrollRunDetails(Guid id, PayrollDbContext dbContext)
+    private static async Task<IResult> GetPayrollRunDetails(
+        Guid id, PayrollDbContext dbContext, ITenantProvider tenantProvider)
     {
-        var run = await dbContext.PayrollRunStates.FirstOrDefaultAsync(r => r.CorrelationId == id);
+        var tenantId = tenantProvider.GetTenant().TenantId;
+        var run = await dbContext.PayrollRunStates
+            .FirstOrDefaultAsync(r => r.CorrelationId == id && r.TenantId == tenantId);
         if (run == null) return Results.NotFound();
 
         var currentEntries = await dbContext.PayrollLedger
