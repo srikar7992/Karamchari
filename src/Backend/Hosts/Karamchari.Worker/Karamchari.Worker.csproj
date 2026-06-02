@@ -43,6 +43,8 @@
     <ProjectReference Include="..\..\Modules\Intelligence\Karamchari.Intelligence\Karamchari.Intelligence.csproj" />
     <ProjectReference Include="..\..\Modules\Governance\Karamchari.Governance\Karamchari.Governance.csproj" />
     <ProjectReference Include="..\..\Modules\DataMigration\Karamchari.DataMigration\Karamchari.DataMigration.csproj" />
+    <ProjectReference Include="..\..\Modules\FinancialOps\Karamchari.FinancialOps\Karamchari.FinancialOps.csproj" />
+    <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment.Api\Karamchari.Recruitment.Api.csproj" />
   </ItemGroup>
 
 </Project>

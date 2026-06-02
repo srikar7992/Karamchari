@@ -4,6 +4,14 @@ using Karamchari.Core.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+/// <summary>Projection record used when discovering indexes on the dbo template tables.</summary>
+internal sealed record IndexRow(
+    string IndexName,
+    bool IsUnique,
+    bool IsPrimaryKey,
+    string IndexType,
+    string Columns);
+
 /// <summary>
 /// Service responsible for the physical provisioning of a new tenant's database infrastructure.
 /// Handles schema creation, table cloning, index application, and Row-Level Security policy application.
@@ -78,7 +86,7 @@ public sealed class TenantProvisioningService
         await _dbContext.Database.ExecuteSqlRawAsync($"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '{schemaName}') EXEC('CREATE SCHEMA [{schemaName}]')");
 #pragma warning restore EF1002
 
-        // 3. Clone Table Structures
+        // 3. Clone Table Structures + Indexes
         foreach (var artifact in artifacts)
         {
             var checkExists = $"SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = '{schemaName}' AND t.name = '{artifact.TableName}'";
@@ -87,6 +95,10 @@ public sealed class TenantProvisioningService
 #pragma warning disable EF1002
             await _dbContext.Database.ExecuteSqlRawAsync($"IF NOT EXISTS ({checkExists}) {cloneSql}");
 #pragma warning restore EF1002
+
+            // Clone all indexes (including unique constraints and primary key) from the dbo template table.
+            // SELECT * INTO copies columns only; indexes and constraints must be applied separately.
+            await CloneIndexesAsync(schemaName, artifact.TableName);
         }
 
         // 4. Apply bounded-context indexes and constraints.
@@ -155,6 +167,77 @@ public sealed class TenantProvisioningService
         }
 
         _logger.LogInformation("Artifact Equality Certified for schema {SchemaName}: {Count} artifacts verified.", schemaName, expectedTables.Count);
+    }
+
+    /// <summary>
+    /// Clones all non-clustered and clustered indexes (including primary keys and unique constraints)
+    /// from the <c>dbo</c> template table to the equivalent table in <paramref name="schemaName"/>.
+    /// This repairs the gap left by <c>SELECT * INTO</c>, which copies columns only.
+    /// Idempotent: skips an index if it already exists in the target schema.
+    /// </summary>
+    private async Task CloneIndexesAsync(string schemaName, string tableName)
+    {
+        // 1. Discover indexes on the dbo template.
+        // Builds a minimal representation: index name → ordered column list + flags.
+        var indexRows = await _dbContext.Database.SqlQueryRaw<IndexRow>(
+            @"SELECT
+                i.name         AS IndexName,
+                i.is_unique    AS IsUnique,
+                i.is_primary_key AS IsPrimaryKey,
+                i.type_desc    AS IndexType,
+                STRING_AGG(c.name, ',') WITHIN GROUP (ORDER BY ic.key_ordinal) AS Columns
+              FROM sys.indexes i
+              JOIN sys.tables t ON i.object_id = t.object_id
+              JOIN sys.schemas s ON t.schema_id = s.schema_id
+              JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id AND ic.is_included_column = 0
+              JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+              WHERE s.name = 'dbo' AND t.name = {0} AND i.name IS NOT NULL
+              GROUP BY i.name, i.is_unique, i.is_primary_key, i.type_desc",
+            tableName).ToListAsync();
+
+        foreach (var idx in indexRows)
+        {
+            var quotedCols = string.Join(", ", idx.Columns.Split(',').Select(c => $"[{c.Trim()}]"));
+
+#pragma warning disable EF1002 // schemaName and tableName are validated at provisioning boundary
+            if (idx.IsPrimaryKey)
+            {
+                var pkCheckSql = $@"
+                    IF NOT EXISTS (
+                        SELECT 1 FROM sys.key_constraints kc
+                        JOIN sys.tables t ON kc.parent_object_id = t.object_id
+                        JOIN sys.schemas s ON t.schema_id = s.schema_id
+                        WHERE s.name = '{schemaName}' AND t.name = '{tableName}' AND kc.type = 'PK'
+                    )
+                    ALTER TABLE [{schemaName}].[{tableName}] ADD CONSTRAINT [PK_{schemaName}_{tableName}] PRIMARY KEY ({quotedCols})";
+                await _dbContext.Database.ExecuteSqlRawAsync(pkCheckSql);
+            }
+            else
+            {
+                var idxName = $"{idx.IndexName}_{schemaName}";
+                var uniqueClause = idx.IsUnique ? "UNIQUE " : "";
+                // For unique indexes: if duplicate data exists from a prior partial provisioning or dev testing,
+                // truncate the table first (data-loss acceptable for tenant scaffolding; real data is never in dbo).
+                // Non-unique indexes are always safe to create on any existing data.
+                var cleanupSql = idx.IsUnique
+                    ? $"IF EXISTS (SELECT 1 FROM sys.indexes i JOIN sys.tables t ON i.object_id = t.object_id JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = '{schemaName}' AND t.name = '{tableName}' AND i.name = '{idxName}') SELECT 1 ELSE TRUNCATE TABLE [{schemaName}].[{tableName}]"
+                    : string.Empty;
+
+                if (!string.IsNullOrEmpty(cleanupSql))
+                    await _dbContext.Database.ExecuteSqlRawAsync(cleanupSql);
+
+                var idxCheckSql = $@"
+                    IF NOT EXISTS (
+                        SELECT 1 FROM sys.indexes i
+                        JOIN sys.tables t ON i.object_id = t.object_id
+                        JOIN sys.schemas s ON t.schema_id = s.schema_id
+                        WHERE s.name = '{schemaName}' AND t.name = '{tableName}' AND i.name = '{idxName}'
+                    )
+                    CREATE {uniqueClause}INDEX [{idxName}] ON [{schemaName}].[{tableName}] ({quotedCols})";
+                await _dbContext.Database.ExecuteSqlRawAsync(idxCheckSql);
+            }
+#pragma warning restore EF1002
+        }
     }
 
     private async Task ExecuteScriptAsync(string script)

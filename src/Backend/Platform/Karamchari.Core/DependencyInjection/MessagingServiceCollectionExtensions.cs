@@ -16,19 +16,14 @@ public static class MessagingServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration,
         IHostEnvironment environment,
-        bool includeConsumers = true)
+        Action<IBusRegistrationConfigurator>? configureConsumers = null)
     {
+        var hasConsumers = configureConsumers is not null;
+
         services.AddMassTransit(x =>
         {
-            if (includeConsumers)
-            {
-                // Register consumers from all modules
-                // Note: Modules must provide extension methods that accept IBusRegistrationConfigurator
-
-                // Example registrations (should be called for each module)
-                // services.AddKaramchariHR(configuration, x);
-                // ...
-            }
+            // Allow callers (e.g. Worker host) to register module consumers via callback.
+            configureConsumers?.Invoke(x);
 
             var isDev = environment.IsDevelopment();
 
@@ -40,7 +35,7 @@ public static class MessagingServiceCollectionExtensions
             {
                 x.UsingInMemory((context, cfg) =>
                 {
-                    if (includeConsumers) cfg.ConfigureEndpoints(context);
+                    if (hasConsumers) cfg.ConfigureEndpoints(context);
                     ConfigureFilters(cfg, context);
                 });
             }
@@ -49,7 +44,7 @@ public static class MessagingServiceCollectionExtensions
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(rabbitMqConnection);
-                    if (includeConsumers) cfg.ConfigureEndpoints(context);
+                    if (hasConsumers) cfg.ConfigureEndpoints(context);
                     ConfigureFilters(cfg, context);
                 });
             }
@@ -58,7 +53,7 @@ public static class MessagingServiceCollectionExtensions
                 x.UsingAzureServiceBus((context, cfg) =>
                 {
                     cfg.Host(serviceBusConnection);
-                    if (includeConsumers) cfg.ConfigureEndpoints(context);
+                    if (hasConsumers) cfg.ConfigureEndpoints(context);
                     ConfigureFilters(cfg, context);
                 });
             }

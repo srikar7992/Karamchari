@@ -144,8 +144,8 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.Category });
             b.Property(x => x.ContributingSignalIds).HasConversion(
                 v => string.Join(',', v),
-                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList()
-            ).Metadata.SetValueComparer(Karamchari.Core.Persistence.ValueComparers.ReadOnlyListComparer<Guid>());
+                v => (IReadOnlyCollection<Guid>)v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList()
+            ).Metadata.SetValueComparer(Karamchari.Core.Persistence.ValueComparers.ReadOnlyCollectionComparer<Guid>());
 
 
             b.Property(x => x.AggregateConfidence)
