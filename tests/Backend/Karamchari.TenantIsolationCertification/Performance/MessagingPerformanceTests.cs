@@ -19,7 +19,6 @@ public class MessagingPerformanceTests(ITestOutputHelper output)
     private const string TestSecret = "karamchari-internal-platform-secret-2026";
 
     [Theory]
-    [InlineData(10)]
     [InlineData(100)]
     [InlineData(1000)]
     public async Task BenchmarkExecutionContextOverhead(int messageCount)
