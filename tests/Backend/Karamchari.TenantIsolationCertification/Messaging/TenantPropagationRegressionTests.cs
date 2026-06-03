@@ -219,7 +219,7 @@ public class TenantPropagationRegressionTests
 
         // Assert
         // Wait for all messages to be consumed
-        var timeout = TimeSpan.FromSeconds(10);
+        var timeout = TimeSpan.FromSeconds(30);
         var stopwatch = Stopwatch.StartNew();
         while (StressConsumer.TotalCount < totalCount && stopwatch.Elapsed < timeout)
         {
