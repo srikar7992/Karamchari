@@ -7,7 +7,7 @@ echo "Running Karamchari Pre-Push Validation..."
 dotnet restore src/Backend/Karamchari.sln --locked-mode || exit 1
 dotnet format src/Backend/Karamchari.sln --verify-no-changes --severity warn --no-restore || exit 1
 dotnet build src/Backend/Karamchari.sln --no-restore -c Release -warnaserror || exit 1
-dotnet test src/Backend/Karamchari.sln --no-build -c Release --logger "trx;LogFileName=test_results.trx" --collect:"XPlat Code Coverage" || exit 1
+dotnet test src/Backend/Karamchari.sln --no-build -c Release --logger "trx;LogFileName=test_results.trx" || exit 1
 dotnet list src/Backend/Karamchari.sln package --vulnerable --include-transitive || exit 1
 
 if [ -f src/Frontend/portal/package-lock.json ]; then
