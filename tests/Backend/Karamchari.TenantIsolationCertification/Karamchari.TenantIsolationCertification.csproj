@@ -38,4 +38,8 @@
     <ProjectReference Include="..\..\..\src\Backend\Hosts\Karamchari.Api\Karamchari.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="xunit.runner.json" />
+  </ItemGroup>
+
 </Project>
