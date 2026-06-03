@@ -20,6 +20,7 @@ public sealed class RepositoryStructureTests
         "src/Backend/Modules",
         "src/Backend/Hosts",
         "tests/Backend",
+        "tests/Performance",
         "tools",
         "docs",
         "scripts"
