@@ -1,19 +1,31 @@
 namespace Karamchari.TimeAttendance.Domain.Leaves;
 
 /// <summary>
-/// Authoritative business status for leave requests.
+/// Full lifecycle status for a leave request.
 /// </summary>
 public enum LeaveRequestStatus
 {
-    /// <summary>The request is being drafted or is awaiting coordination.</summary>
+    /// <summary>Saved but not yet submitted. Employee still editing.</summary>
     Draft = 1,
 
-    /// <summary>The request has been approved and is authoritative truth.</summary>
-    Approved = 2,
+    /// <summary>Submitted by employee. Awaiting manager action.</summary>
+    Submitted = 2,
 
-    /// <summary>The request was rejected.</summary>
-    Rejected = 3,
+    /// <summary>In a multi-level approval workflow. At least one approver pending.</summary>
+    PendingApproval = 3,
 
-    /// <summary>The request was cancelled by the employee.</summary>
-    Cancelled = 4
+    /// <summary>All approvers approved. Business truth is authoritative.</summary>
+    Approved = 4,
+
+    /// <summary>Rejected by manager or HR.</summary>
+    Rejected = 5,
+
+    /// <summary>Cancelled by employee before approval.</summary>
+    Cancelled = 6,
+
+    /// <summary>Pulled back by employee after submission (before approval started).</summary>
+    Withdrawn = 7,
+
+    /// <summary>Auto-expired: submitted but no action taken within policy window.</summary>
+    Expired = 8
 }

@@ -59,6 +59,7 @@ public static class EndpointExtensions
         app.MapApprovalEndpoints();
         app.MapAttendanceEndpoints();
         app.MapLeaveEndpoints();
+        app.MapRosterEndpoints();
         app.MapCapabilityEndpoints();
         app.MapStrategyEndpoints();
         app.MapPayrollEndpoints();

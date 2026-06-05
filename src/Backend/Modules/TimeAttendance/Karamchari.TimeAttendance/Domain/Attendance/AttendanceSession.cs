@@ -21,6 +21,9 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public Guid EmployeeId { get; private set; }
     public Guid? ShiftId { get; private set; } // Reference to ShiftDefinition
+    // Split-shift support: unique per assignment, not per calendar day.
+    // Guid.Empty for walk-in (unscheduled) sessions.
+    public Guid ShiftAssignmentId { get; private set; }
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -56,7 +59,8 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public static AttendanceSession CreateScheduled(string tenantId, Guid employeeId, Guid shiftId, DateOnly workDate)
+    public static AttendanceSession CreateScheduled(
+        string tenantId, Guid employeeId, Guid shiftId, Guid shiftAssignmentId, DateOnly workDate)
     {
         return new AttendanceSession
         {
@@ -64,6 +68,7 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
             TenantId = tenantId,
             EmployeeId = employeeId,
             ShiftId = shiftId,
+            ShiftAssignmentId = shiftAssignmentId,
             WorkDate = workDate,
             Status = AttendanceStatus.Scheduled
         };

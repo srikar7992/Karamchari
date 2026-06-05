@@ -3,18 +3,15 @@ namespace Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Domain.Holidays;
 
 /// <summary>
-/// Domain service for processing leave requests and calculating actual leave days.
+/// Domain service for leave day calculations: full-day, half-day, hourly, proration.
 /// </summary>
 public sealed class LeaveRequestService
 {
+    private const double HoursPerDay = 8.0;
+
     /// <summary>
-    /// Calculates the number of leave days between two dates, excluding weekends and holidays.
+    /// Calculates working days between two dates, excluding weekends and holidays.
     /// </summary>
-    /// <param name="start">The start date.</param>
-    /// <param name="end">The end date.</param>
-    /// <param name="holidays">The list of holiday dates.</param>
-    /// <param name="allowHalfDays">Whether half-days are allowed (reserved for future use).</param>
-    /// <returns>The total number of leave days.</returns>
     public static double CalculateActualLeaveDays(
         DateOnly start,
         DateOnly end,
@@ -23,12 +20,13 @@ public sealed class LeaveRequestService
     {
         double totalDays = 0;
         var current = start;
+        var holidaySet = holidays as ISet<DateOnly> ?? new HashSet<DateOnly>(holidays);
 
         while (current <= end)
         {
             if (current.DayOfWeek != DayOfWeek.Saturday &&
                 current.DayOfWeek != DayOfWeek.Sunday &&
-                !holidays.Contains(current))
+                !holidaySet.Contains(current))
             {
                 totalDays += 1.0;
             }
@@ -37,4 +35,59 @@ public sealed class LeaveRequestService
 
         return totalDays;
     }
+
+    /// <summary>
+    /// Prorates annual entitlement for mid-year joins.
+    /// E.g. join July 1 (month 7) with annual = 24 → 24 * (6/12) = 12.
+    /// </summary>
+    public static decimal ProrateAnnualEntitlement(decimal annualDays, DateOnly joinDate, DateOnly yearEnd)
+    {
+        if (joinDate > yearEnd) return 0;
+
+        var totalMonths = ((yearEnd.Year - joinDate.Year) * 12) + yearEnd.Month - joinDate.Month;
+
+        // Include partial month if joined before the 15th (common convention; configurable in future)
+        if (joinDate.Day <= 15) totalMonths++;
+
+        totalMonths = Math.Min(totalMonths, 12);
+        return Math.Round(annualDays * totalMonths / 12, 2, MidpointRounding.AwayFromZero);
+    }
+
+    /// <summary>
+    /// Calculates monthly accrual amount for a given month.
+    /// Returns 0 if employee was on LOP the full month and policy stops accrual during LOP.
+    /// </summary>
+    public static decimal CalculateMonthlyAccrual(
+        decimal annualDays,
+        int year,
+        int month,
+        bool employeeOnLop,
+        bool accrualContinuesDuringLop)
+    {
+        if (employeeOnLop && !accrualContinuesDuringLop) return 0;
+        return Math.Round(annualDays / 12, 4, MidpointRounding.AwayFromZero);
+    }
+
+    /// <summary>
+    /// Returns entitlement for employee's tenure using bracket configuration.
+    /// </summary>
+    public static double GetTenureBasedEntitlement(
+        IEnumerable<TenureEntitlementBracket> brackets,
+        int completedYears)
+    {
+        foreach (var bracket in brackets.OrderByDescending(b => b.FromYears))
+        {
+            if (completedYears >= bracket.FromYears &&
+                (bracket.ToYears is null || completedYears <= bracket.ToYears))
+            {
+                return bracket.AnnualDays;
+            }
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Converts hourly leave to fractional days.
+    /// </summary>
+    public static double HoursToDays(double hours) => hours / HoursPerDay;
 }

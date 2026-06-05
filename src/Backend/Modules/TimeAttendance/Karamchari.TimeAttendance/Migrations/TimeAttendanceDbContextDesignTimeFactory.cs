@@ -9,26 +9,27 @@ using Microsoft.Extensions.Configuration;
 
 /// <summary>
 /// Design-time factory for <see cref="TimeAttendanceDbContext"/>.
-/// Used exclusively by the EF Core CLI tools (<c>dotnet ef</c>) â€” never resolved
+/// Used exclusively by the EF Core CLI tools (<c>dotnet ef</c>) - never resolved
 /// at runtime by the application's DI container.
 /// </summary>
 /// <remarks>
 /// <para>
-/// After running <c>dotnet ef migrations add &lt;Name&gt;</c>, open the generated
-/// migration file and replace every <c>[__tenant__]</c> with <c>[dbo]</c>.
-/// See <c>PayrollDbContextDesignTimeFactory</c> for the full workflow explanation.
+/// Migrations are generated with <c>dbo</c> schema (not <c>__tenant__</c>) because EF Core 10
+/// does not support JSON columns on owned entities mapped to tables in a non-<c>dbo</c> schema
+/// at design time. The <c>TenantSchemaCommandInterceptor</c> handles schema rewriting at runtime.
 /// </para>
 /// <para>
 /// <b>Commands (from <c>src/Backend/</c>)</b>
 /// <code>
 /// dotnet ef migrations add &lt;Name&gt; --project Karamchari.TimeAttendance --startup-project Karamchari.Api
-/// # Edit: replace [__tenant__] â†’ [dbo] in the generated migration file
 /// dotnet ef database update          --project Karamchari.TimeAttendance --startup-project Karamchari.Api
 /// </code>
 /// </para>
 /// </remarks>
 public sealed class TimeAttendanceDbContextDesignTimeFactory : IDesignTimeDbContextFactory<TimeAttendanceDbContext>
 {
+    private const string DesignTimeSchema = "dbo";
+
     /// <inheritdoc/>
     public TimeAttendanceDbContext CreateDbContext(string[] args)
     {
@@ -44,9 +45,23 @@ public sealed class TimeAttendanceDbContextDesignTimeFactory : IDesignTimeDbCont
 
         var optionsBuilder = new DbContextOptionsBuilder<TimeAttendanceDbContext>();
         optionsBuilder.UseSqlServer(connectionString);
-        // Karamchari interceptors intentionally omitted â€” see PayrollDbContextDesignTimeFactory.
+        // Karamchari interceptors intentionally omitted - see PayrollDbContextDesignTimeFactory.
 
-        return new TimeAttendanceDbContext(optionsBuilder.Options, DesignTimeTenantProvider.Instance);
+        // DesignTimeDbContext overrides ModelSchema so EF 10 can scaffold migrations even when
+        // owned entities have JSON columns (unsupported in non-dbo schemas at design time).
+        return new DesignTimeDbContext(optionsBuilder.Options, DesignTimeTenantProvider.Instance);
+    }
+
+    /// <summary>
+    /// Thin subclass used only by dotnet ef tooling.
+    /// Overrides ModelSchema to dbo so migrations are scaffolded against the physical schema.
+    /// </summary>
+    private sealed class DesignTimeDbContext(
+        DbContextOptions<TimeAttendanceDbContext> options,
+        ITenantProvider tenantProvider)
+        : TimeAttendanceDbContext(options, tenantProvider)
+    {
+        protected override string ModelSchema => DesignTimeSchema;
     }
 
     private sealed class DesignTimeTenantProvider : ITenantProvider

@@ -34,7 +34,9 @@ public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedInteg
         // these operations target the new tenant's schema based on the event's TenantId header.
 
         // 1. Seed Default Leave Policies
+        // LeaveTypeId is Guid.Empty here; full seeding should create LeaveType records first.
         var sickLeave = LeavePolicy.Create(
+            Guid.Empty, PolicyLevel.Global,
             "Standard Sick Leave",
             "10 days of paid sick leave per year.",
             new LeavePolicyRules
@@ -47,6 +49,7 @@ public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedInteg
             });
 
         var casualLeave = LeavePolicy.Create(
+            Guid.Empty, PolicyLevel.Global,
             "Casual Leave",
             "Standard casual leave allowance for personal matters.",
             new LeavePolicyRules

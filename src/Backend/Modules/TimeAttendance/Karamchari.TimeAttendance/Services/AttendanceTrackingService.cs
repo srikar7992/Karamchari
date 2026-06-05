@@ -44,7 +44,7 @@ public sealed class AttendanceTrackingService
         if (session == null)
         {
             // Auto-create session if not scheduled (Ad-hoc work)
-            session = AttendanceSession.CreateScheduled(tenantId, submission.EmployeeId, Guid.Empty, workDate);
+            session = AttendanceSession.CreateScheduled(tenantId, submission.EmployeeId, Guid.Empty, Guid.Empty, workDate);
             _db.AttendanceSessions.Add(session);
         }
 

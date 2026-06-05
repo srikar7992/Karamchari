@@ -15,11 +15,7 @@ if [ -f src/Frontend/portal/package-lock.json ]; then
 fi
 
 if [ -f src/Mobile/karamchari-mobile/package-lock.json ]; then
-  # Mobile Expo SDK has 24 pre-existing transitive vulnerabilities requiring a
-  # breaking Expo major version upgrade. This is tracked as a planned Sprint 3
-  # dependency task. Skip mobile audit in pre-push until the Expo upgrade lands.
-  # npm audit --prefix src/Mobile/karamchari-mobile --audit-level=moderate || exit 1
-  true
+  npm audit --prefix src/Mobile/karamchari-mobile --audit-level=moderate || exit 1
 fi
 
 echo "Pre-push validation passed."

@@ -1,10 +1,8 @@
 namespace Karamchari.TimeAttendance.Domain.Attendance;
 
-/// <summary>
-/// Provides required documentation for this member.
-/// </summary>
 public enum AttendanceStatus
 {
+    // Session-level (raw punch states)
     Scheduled,
     CheckedIn,
     OnBreak,
@@ -14,13 +12,16 @@ public enum AttendanceStatus
     Corrected,
     Disputed,
 
-    // Finalized statuses
-    Present,
-    Absent,
-    HalfDay,
-    OnLeave,
-    Holiday,
-    WeekOff
+    // Record-level (finalized states)
+    Pending,      // Shift assigned, awaiting attendance
+    Present,      // On time and completed shift
+    Late,         // Arrived after tolerance window
+    Absent,       // No show
+    HalfDay,      // Worked >= half-day threshold but < full-day
+    Incomplete,   // Checked in, never checked out (end of day)
+    OnLeave,      // Approved leave exists for this date
+    Holiday,      // Public holiday
+    WeekOff       // Scheduled day off
 }
 
 /// <summary>

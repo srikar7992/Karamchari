@@ -37,6 +37,15 @@ public abstract class KaramchariDbContext : DbContext
     /// </summary>
     public const string PlaceholderSchema = "__tenant__";
 
+    /// <summary>
+    /// Schema used in <see cref="OnModelCreating"/>. Returns <see cref="PlaceholderSchema"/>
+    /// at runtime. Design-time factories override this to <c>"dbo"</c> so that
+    /// <c>dotnet ef migrations add</c> generates migrations against the physical schema —
+    /// EF 10 does not support JSON columns on owned entities mapped to non-<c>dbo</c> schemas
+    /// at design time.
+    /// </summary>
+    protected virtual string ModelSchema => PlaceholderSchema;
+
     private readonly ITenantProvider _tenantProvider;
 
     /// <summary>
@@ -104,7 +113,7 @@ public abstract class KaramchariDbContext : DbContext
         // Derived contexts can still override on a per-entity basis (e.g. pinning
         // MassTransit's bus outbox tables to dbo), but must keep PlaceholderSchema
         // as the default so the interceptor's rewrite remains consistent.
-        modelBuilder.HasDefaultSchema(PlaceholderSchema);
+        modelBuilder.HasDefaultSchema(ModelSchema);
 
         // Register MassTransit outbox entities in the base model so they're available
         // to every context, preventing "type not included in model" runtime faults.

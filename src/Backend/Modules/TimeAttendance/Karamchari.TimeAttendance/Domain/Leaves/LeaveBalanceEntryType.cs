@@ -1,34 +1,41 @@
 namespace Karamchari.TimeAttendance.Domain.Leaves;
 
 /// <summary>
-/// Defines the types of entries that can be recorded in the leave balance ledger.
+/// Defines the types of entries in the leave balance ledger (immutable, append-only).
 /// </summary>
 public enum LeaveBalanceEntryType
 {
-    /// <summary>Automatic or manual leave accrual.</summary>
     Accrual = 1,
-
-    /// <summary>Deduction due to leave consumption.</summary>
     Consumption = 2,
-
-    /// <summary>Balance carried forward from previous period.</summary>
     CarryForward = 3,
-
-    /// <summary>Deduction due to balance expiry.</summary>
     Expiry = 4,
-
-    /// <summary>Deduction due to leave encashment.</summary>
     Encashment = 5,
-
-    /// <summary>Balance restoration due to leave cancellation.</summary>
     CancellationRestore = 6,
-
-    /// <summary>Manual adjustment by administrator.</summary>
     ManualAdjustment = 7,
-
-    /// <summary>Credit given for working on a holiday/weekend.</summary>
     CompOffCredit = 8,
+    CompOffConsumption = 9,
 
-    /// <summary>Consumption of comp-off credit.</summary>
-    CompOffConsumption = 9
+    /// <summary>Balance imported from a legacy system during data migration.</summary>
+    Migration = 10,
+
+    /// <summary>HR-initiated correction to fix a ledger error. Requires audit justification.</summary>
+    Correction = 11,
+
+    /// <summary>Balance deducted for Loss Of Pay. Authorised to go negative — payroll deducts salary.</summary>
+    LOPConversion = 12,
+
+    /// <summary>Payroll-system correction (e.g. salary change retroactive). Authorised to go negative.</summary>
+    PayrollCorrection = 13,
+}
+
+/// <summary>
+/// Reason codes for LeaveBalance.Adjust(). Replaces magic ForceAdjust bypass.
+/// Auditors can filter ledger by reason; LOPConversion and PayrollCorrection bypass balance guard.
+/// </summary>
+public enum AdjustmentReason
+{
+    ManualCorrection = 1,
+    PayrollCorrection = 2,
+    Migration = 3,
+    LOPConversion = 4,
 }

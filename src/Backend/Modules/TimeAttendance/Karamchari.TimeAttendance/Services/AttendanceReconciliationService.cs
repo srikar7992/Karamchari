@@ -37,7 +37,7 @@ public sealed class AttendanceReconciliationService
         var status = EvaluateStatus(session, shift);
         var overtime = CalculateOvertime(session, shift);
 
-        var record = AttendanceRecord.Finalize(
+        var record = AttendanceRecord.FinalizeLegacy(
             session.TenantId,
             session.EmployeeId,
             session.WorkDate,
