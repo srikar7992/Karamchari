@@ -15,6 +15,10 @@ namespace Karamchari.Payroll.Consumers;
 /// <summary>
 /// Consumer that handles the bulk calculation of payroll for all active profiles.
 /// Implements the "Scatter" part of the Scatter-Gather pattern.
+///
+/// Resumability: on restart, already-calculated employees (present in EmployeePayrollResults
+/// or PayrollLedger for the same RunId) are excluded from new batches so no employee is
+/// calculated twice and the run continues from where it left off.
 /// </summary>
 public class CalculateAllEmployeePayCommandConsumer : IConsumer<CalculateAllEmployeePayCommand>
 {
@@ -61,18 +65,52 @@ public class CalculateAllEmployeePayCommandConsumer : IConsumer<CalculateAllEmpl
         var message = context.Message;
 
         // 1. Fetch all active employee IDs for the current tenant
-        var employeeIds = await _dbContext.PayrollProfiles
+        var allEmployeeIds = await _dbContext.PayrollProfiles
             .Where(p => p.IsActive)
             .Select(p => p.EmployeeId)
             .ToListAsync(context.CancellationToken);
 
-        if (_logger.IsEnabled(LogLevel.Information))
+        // 2. Resume support: exclude employees already calculated for this run.
+        //    Checks both Phase 4 EmployeePayrollResults and legacy PayrollLedger so the
+        //    scatter is safe to re-deliver (e.g. after worker crash or saga retry).
+        var alreadyDonePhase4 = await _dbContext.EmployeePayrollResults
+            .AsNoTracking()
+            .Where(r => r.PayrollRunId == message.RunId)
+            .Select(r => r.EmployeeId)
+            .ToListAsync(context.CancellationToken);
+
+        var alreadyDoneLegacy = await _dbContext.PayrollLedger
+            .AsNoTracking()
+            .Where(e => e.RunId == message.RunId)
+            .Select(e => e.EmployeeId)
+            .ToListAsync(context.CancellationToken);
+
+        var alreadyDone = alreadyDonePhase4.Union(alreadyDoneLegacy).ToHashSet();
+        var pendingIds = allEmployeeIds.Where(id => !alreadyDone.Contains(id)).ToList();
+
+        if (pendingIds.Count == 0)
         {
-            _logger.LogInformation("Dispatching payroll batches for Run {RunId}. Total employees: {Count}", message.RunId, employeeIds.Count);
+            _logger.LogInformation(
+                "Run {RunId}: all {Total} employees already calculated. Scatter skipped (resume complete).",
+                message.RunId, allEmployeeIds.Count);
+            return;
         }
 
-        // 2. Chunk into batches (Pattern: 100 employees per batch)
-        var batches = employeeIds.Chunk(100);
+        if (alreadyDone.Count > 0)
+        {
+            _logger.LogInformation(
+                "Run {RunId}: resuming — {Done} already done, {Pending} remaining.",
+                message.RunId, alreadyDone.Count, pendingIds.Count);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Run {RunId}: starting fresh — {Count} employees.",
+                message.RunId, pendingIds.Count);
+        }
+
+        // 3. Chunk pending employees into batches (100 per batch)
+        var batches = pendingIds.Chunk(100);
 
         foreach (var batch in batches)
         {

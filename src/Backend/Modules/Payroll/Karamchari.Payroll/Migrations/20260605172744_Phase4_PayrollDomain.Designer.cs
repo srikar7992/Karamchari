@@ -4,6 +4,7 @@ using Karamchari.Payroll.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Karamchari.Payroll.Migrations
 {
     [DbContext(typeof(PayrollDbContext))]
-    partial class PayrollDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260605172744_Phase4_PayrollDomain")]
+    partial class Phase4_PayrollDomain
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1202,9 +1205,6 @@ namespace Karamchari.Payroll.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("PayrollResultId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("PayrollRunId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1230,8 +1230,6 @@ namespace Karamchari.Payroll.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PayrollResultId");
 
                     b.HasIndex("PayrollRunId", "EmployeeId")
                         .IsUnique();
@@ -1405,182 +1403,6 @@ namespace Karamchari.Payroll.Migrations
                     b.ToTable("ReimbursementClaims", "__tenant__");
                 });
 
-            modelBuilder.Entity("Karamchari.Payroll.Domain.Results.EmployeePayrollResult", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("AllowancePay")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset?>("ApprovedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("ApprovedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("BasePay")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BonusPay")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset>("CalculatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EmployeeName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<decimal>("EmployeeStateInsurance")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("GrossPay")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("HolidayPay")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset?>("LockedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<decimal>("ManualAdjustments")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("NetPay")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("OtherDeductions")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("OvertimePay")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<Guid>("PayrollRunId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("PeriodName")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<decimal>("ProfessionalTax")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("ProvidentFund")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("RetroAdjustments")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<decimal>("ShiftPremium")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("SnapshotId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("TaxDeductedAtSource")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("TotalDeductions")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("PayrollRunId", "EmployeeId")
-                        .IsUnique();
-
-                    b.HasIndex("TenantId", "EmployeeId");
-
-                    b.ToTable("EmployeePayrollResults", "__tenant__");
-                });
-
-            modelBuilder.Entity("Karamchari.Payroll.Domain.Runs.PayrollApproval", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("ApprovedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("ApprovedBy")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("Comments")
-                        .HasMaxLength(1024)
-                        .HasColumnType("nvarchar(1024)");
-
-                    b.Property<int>("EmployeeCount")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("PayrollRunId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("TotalGrossApproved")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TotalNetApproved")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PayrollRunId")
-                        .IsUnique();
-
-                    b.ToTable("PayrollApprovals", "__tenant__");
-                });
-
             modelBuilder.Entity("Karamchari.Payroll.Domain.Runs.PayrollLock", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1612,50 +1434,6 @@ namespace Karamchari.Payroll.Migrations
                         .IsUnique();
 
                     b.ToTable("PayrollLocks", "__tenant__");
-                });
-
-            modelBuilder.Entity("Karamchari.Payroll.Domain.Runs.PayrollPublication", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("BankFileId")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("BankFileReference")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<int>("EmployeeCount")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("PayrollRunId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("PublishedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("PublishedBy")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("TotalAmountDispatched")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PayrollRunId")
-                        .IsUnique();
-
-                    b.ToTable("PayrollPublications", "__tenant__");
                 });
 
             modelBuilder.Entity("Karamchari.Payroll.Domain.Runs.PayrollRun", b =>
@@ -2148,6 +1926,14 @@ namespace Karamchari.Payroll.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<decimal>("DailyMultiplier")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("DailyThresholdHours")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -2159,6 +1945,14 @@ namespace Karamchari.Payroll.Migrations
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("WeeklyMultiplier")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("WeeklyThresholdHours")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.HasKey("Id");
 
@@ -2173,14 +1967,11 @@ namespace Karamchari.Payroll.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("AppliesToPublicHolidays")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("AppliesToWeekends")
-                        .HasColumnType("bit");
-
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -2194,18 +1985,12 @@ namespace Karamchari.Payroll.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<int>("PremiumType")
-                        .HasColumnType("int");
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<TimeOnly?>("WindowEnd")
-                        .HasColumnType("time");
-
-                    b.Property<TimeOnly?>("WindowStart")
-                        .HasColumnType("time");
 
                     b.HasKey("Id");
 
@@ -2833,43 +2618,6 @@ namespace Karamchari.Payroll.Migrations
                         });
 
                     b.Navigation("Components");
-                });
-
-            modelBuilder.Entity("Karamchari.Payroll.Domain.WorkRules.OvertimePolicy", b =>
-                {
-                    b.OwnsMany("Karamchari.Payroll.Domain.WorkRules.OvertimeRule", "Rules", b1 =>
-                        {
-                            b1.Property<Guid>("OvertimePolicyId");
-
-                            b1.Property<int>("__synthesizedOrdinal")
-                                .ValueGeneratedOnAddOrUpdate();
-
-                            b1.Property<int>("Context");
-
-                            b1.Property<decimal>("FromHours")
-                                .HasPrecision(18, 2);
-
-                            b1.Property<decimal>("Multiplier")
-                                .HasPrecision(18, 2);
-
-                            b1.Property<int>("Priority");
-
-                            b1.Property<decimal?>("ToHours")
-                                .HasPrecision(18, 2);
-
-                            b1.HasKey("OvertimePolicyId", "__synthesizedOrdinal");
-
-                            b1.ToTable("OvertimePolicies", "__tenant__");
-
-                            b1
-                                .ToJson("Rules")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OvertimePolicyId");
-                        });
-
-                    b.Navigation("Rules");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>

@@ -2,11 +2,14 @@ using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Persistence.Provisioning;
 using Karamchari.Payroll.Consumers;
 using Karamchari.Payroll.Data;
+using Karamchari.Payroll.Domain.DeductionRules;
 using Karamchari.Payroll.Domain.Disbursement;
 using Karamchari.Payroll.Persistence;
 using Karamchari.Payroll.Services;
 using Karamchari.Payroll.Services.Arrears;
+using Karamchari.Payroll.Services.Calculation;
 using Karamchari.Payroll.Services.Declarations;
+using Karamchari.Payroll.Services.Deductions;
 using Karamchari.Payroll.Services.Disbursement;
 using Karamchari.Payroll.Services.Disbursement.BankAdapters;
 using Karamchari.Payroll.Services.FnF;
@@ -54,6 +57,37 @@ public static class PayrollServiceCollectionExtensions
         services.AddSingleton<CTCTemplateCompiler>();
         services.AddSingleton<CTCBreakdownService>();
         services.AddSingleton<StatutoryPipelineEngine>();
+
+        // Phase 4: Calculation engine + tax + deductions + retro + snapshot + bank recon
+        services.AddScoped<IPayrollCalculationEngine, PayrollCalculationEngine>();
+        services.AddScoped<ITaxCalculatorService, TaxCalculatorService>();
+        services.AddScoped<IPayrollSnapshotBuilder, PayrollSnapshotBuilder>();
+        services.AddScoped<IRetroPayrollProcessor, RetroPayrollProcessor>();
+        services.AddScoped<PayrollBankReconciliator>();
+
+        // IDeductionCalculator strategy — all registered; engine resolves via IEnumerable<IDeductionCalculator>
+        services.AddScoped<IDeductionCalculator, ProvidentFundCalculator>();
+        services.AddScoped<IDeductionCalculator, EsiCalculator>();
+        services.AddScoped<IDeductionCalculator, ProfessionalTaxCalculator>();
+
+        // Phase 4 RLS tables
+        services.RegisterTenantTable("PayPeriods");
+        services.RegisterTenantTable("PayrollRuns");
+        services.RegisterTenantTable("PayrollLocks");
+        services.RegisterTenantTable("CompensationProfiles");
+        services.RegisterTenantTable("OvertimePolicies");
+        services.RegisterTenantTable("ShiftPremiumRules");
+        services.RegisterTenantTable("PayrollCalculationSnapshots");
+        services.RegisterTenantTable("PayrollEarnings");
+        services.RegisterTenantTable("TaxRuleVersions");
+        services.RegisterTenantTable("DeductionRules");
+        services.RegisterTenantTable("PayrollAdjustments");
+        services.RegisterTenantTable("RetroPayrollAdjustments");
+        services.RegisterTenantTable("Payslips");
+        services.RegisterTenantTable("PayrollAuditEvents");
+        services.RegisterTenantTable("EmployeePayrollResults");
+        services.RegisterTenantTable("PayrollApprovals");
+        services.RegisterTenantTable("PayrollPublications");
 
         // Phase 1A services
         services.AddScoped<FnFCalculationService>();

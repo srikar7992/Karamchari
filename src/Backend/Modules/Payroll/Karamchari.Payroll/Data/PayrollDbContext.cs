@@ -2,19 +2,29 @@ using System.Text.Json;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Payroll.Domain;
+using Karamchari.Payroll.Domain.Adjustments;
 using Karamchari.Payroll.Domain.Arrears;
+using Karamchari.Payroll.Domain.Results;
+using Karamchari.Payroll.Domain.Audit;
+using Karamchari.Payroll.Domain.Calculation;
+using Karamchari.Payroll.Domain.Compensation;
 using Karamchari.Payroll.Domain.Compliance;
 using Karamchari.Payroll.Domain.Corrections;
+using Karamchari.Payroll.Domain.DeductionRules;
 using Karamchari.Payroll.Domain.Disbursement;
 using Karamchari.Payroll.Domain.FnF;
 using Karamchari.Payroll.Domain.Loans;
+using Karamchari.Payroll.Domain.PayPeriods;
+using Karamchari.Payroll.Domain.Payslips;
 using Karamchari.Payroll.Domain.Reconciliation;
 using Karamchari.Payroll.Domain.Reimbursements;
+using Karamchari.Payroll.Domain.Runs;
 using Karamchari.Payroll.Domain.SalaryRevisions;
 using Karamchari.Payroll.Domain.SalaryStructures;
 using Karamchari.Payroll.Domain.Simulation;
 using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.Payroll.Domain.VariablePay;
+using Karamchari.Payroll.Domain.WorkRules;
 using Karamchari.Payroll.StateMachines;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,6 +53,46 @@ public class PayrollDbContext : KaramchariDbContext
     /// Gets the payroll run states set (Saga state).
     /// </summary>
     public DbSet<PayrollRunState> PayrollRunStates => Set<PayrollRunState>();
+
+    // ── Phase 4: Pay Periods ────────────────────────────────────────────────
+    public DbSet<PayPeriod> PayPeriods => Set<PayPeriod>();
+
+    // ── Phase 4: Payroll Runs (domain aggregate) ───────────────────────────
+    public DbSet<PayrollRun> PayrollRuns => Set<PayrollRun>();
+    public DbSet<PayrollLock> PayrollLocks => Set<PayrollLock>();
+
+    // ── Phase 4: Compensation Profile (versioned) ──────────────────────────
+    public DbSet<CompensationProfile> CompensationProfiles => Set<CompensationProfile>();
+
+    // ── Phase 4: Work Rules ────────────────────────────────────────────────
+    public DbSet<OvertimePolicy> OvertimePolicies => Set<OvertimePolicy>();
+    public DbSet<ShiftPremiumRule> ShiftPremiumRules => Set<ShiftPremiumRule>();
+
+    // ── Phase 4: Calculation ───────────────────────────────────────────────
+    public DbSet<PayrollCalculationSnapshot> PayrollCalculationSnapshots => Set<PayrollCalculationSnapshot>();
+    public DbSet<PayrollEarning> PayrollEarnings => Set<PayrollEarning>();
+    public DbSet<TaxRuleVersion> TaxRuleVersions => Set<TaxRuleVersion>();
+
+    // ── Phase 4: Deduction Rules ───────────────────────────────────────────
+    public DbSet<DeductionRule> DeductionRules => Set<DeductionRule>();
+
+    // ── Phase 4: Adjustments ───────────────────────────────────────────────
+    public DbSet<PayrollAdjustment> PayrollAdjustments => Set<PayrollAdjustment>();
+    public DbSet<RetroPayrollAdjustment> RetroPayrollAdjustments => Set<RetroPayrollAdjustment>();
+
+    // ── Phase 4: Payslips ──────────────────────────────────────────────────
+    public DbSet<Payslip> Payslips => Set<Payslip>();
+
+    // ── Phase 4: Audit Trail ───────────────────────────────────────────────
+    public DbSet<PayrollAuditEvent> PayrollAuditEvents => Set<PayrollAuditEvent>();
+
+    // ── Phase 4: Employee Payroll Result (per-employee financial record) ───
+    public DbSet<EmployeePayrollResult> EmployeePayrollResults => Set<EmployeePayrollResult>();
+
+    // ── Phase 4: Approval + Publication artifacts ──────────────────────────
+    public DbSet<PayrollApproval> PayrollApprovals => Set<PayrollApproval>();
+    public DbSet<PayrollPublication> PayrollPublications => Set<PayrollPublication>();
+
     /// <summary>
     /// Gets the payroll deductions set.
     /// </summary>
@@ -493,6 +543,245 @@ public class PayrollDbContext : KaramchariDbContext
                     v => JsonSerializer.Deserialize<List<PayrollAnomaly>>(v, (JsonSerializerOptions?)null) ?? new List<PayrollAnomaly>())
                 .HasColumnType("nvarchar(max)")
                 .Metadata.SetValueComparer(ValueComparers.ReadOnlyCollectionComparer<PayrollAnomaly>());
+        });
+
+        // ── Phase 4: Pay Periods ─────────────────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<PayPeriod>(b =>
+        {
+            b.ToTable("PayPeriods");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.StartDate, x.EndDate });
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.Frequency).HasConversion<string>();
+            b.Property(x => x.Name).HasMaxLength(128);
+        });
+
+        // ── Phase 4: Payroll Runs (domain aggregate) ─────────────────────────────────────────────────
+
+        modelBuilder.Entity<PayrollRun>(b =>
+        {
+            b.ToTable("PayrollRuns");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.PayPeriodId });
+            b.HasIndex(x => x.Status);
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.PeriodName).HasMaxLength(128);
+            b.Property(x => x.TotalGross).HasPrecision(18, 2);
+            b.Property(x => x.TotalDeductions).HasPrecision(18, 2);
+            b.Property(x => x.TotalNet).HasPrecision(18, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        modelBuilder.Entity<PayrollLock>(b =>
+        {
+            b.ToTable("PayrollLocks");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.PayrollRunId).IsUnique();
+            b.Property(x => x.LockedBy).HasMaxLength(256);
+        });
+
+        // ── Phase 4: Compensation Profile ────────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<CompensationProfile>(b =>
+        {
+            b.ToTable("CompensationProfiles");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.EffectiveFrom });
+            b.HasIndex(x => new { x.EmployeeId, x.IsActive });
+            b.Property(x => x.HourlyRate).HasPrecision(18, 4);
+            b.Property(x => x.MonthlySalary).HasPrecision(18, 2);
+            b.Property(x => x.OvertimeMultiplier).HasPrecision(5, 2);
+            b.Property(x => x.Currency).HasMaxLength(10);
+        });
+
+        // ── Phase 4: Work Rules ───────────────────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<OvertimePolicy>(b =>
+        {
+            b.ToTable("OvertimePolicies");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.IsActive });
+            b.Property(x => x.Name).HasMaxLength(128);
+        });
+
+        modelBuilder.Entity<ShiftPremiumRule>(b =>
+        {
+            b.ToTable("ShiftPremiumRules");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.IsActive });
+            b.Property(x => x.Name).HasMaxLength(128);
+            b.Property(x => x.PremiumPercentage).HasPrecision(5, 2);
+        });
+
+        // ── Phase 4: Calculation Snapshot + Earnings ──────────────────────────────────────────────────
+
+        modelBuilder.Entity<PayrollCalculationSnapshot>(b =>
+        {
+            b.ToTable("PayrollCalculationSnapshots");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.PayrollRunId).IsUnique();
+            b.Property(x => x.SerializedData).HasColumnType("nvarchar(max)");
+        });
+
+        modelBuilder.Entity<PayrollEarning>(b =>
+        {
+            b.ToTable("PayrollEarnings");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.PayrollRunId, x.EmployeeId });
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.Amount).HasPrecision(18, 2);
+            b.Property(x => x.Description).HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<TaxRuleVersion>(b =>
+        {
+            b.ToTable("TaxRuleVersions");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.FinancialYear, x.Regime });
+            b.Property(x => x.Regime).HasMaxLength(32);
+            b.Property(x => x.JsonDefinition).HasColumnType("nvarchar(max)");
+        });
+
+        // ── Phase 4: Deduction Rules ──────────────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<DeductionRule>(b =>
+        {
+            b.ToTable("DeductionRules");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Type, x.IsActive });
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.Percentage).HasPrecision(5, 4);
+            b.Property(x => x.CapAmount).HasPrecision(18, 2);
+            b.Property(x => x.MinGrossForApplicability).HasPrecision(18, 2);
+        });
+
+        // ── Phase 4: Adjustments ──────────────────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<PayrollAdjustment>(b =>
+        {
+            b.ToTable("PayrollAdjustments");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.HasIndex(x => x.Status);
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.Amount).HasPrecision(18, 2);
+            b.Property(x => x.Reason).HasMaxLength(512);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        modelBuilder.Entity<RetroPayrollAdjustment>(b =>
+        {
+            b.ToTable("RetroPayrollAdjustments");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.HasIndex(x => x.SourcePayrollRunId);
+            b.HasIndex(x => x.Status);
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.AmountPaid).HasPrecision(18, 2);
+            b.Property(x => x.AmountShouldBePaid).HasPrecision(18, 2);
+            b.Property(x => x.Difference).HasPrecision(18, 2);
+            b.Property(x => x.Reason).HasMaxLength(512);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 4: Payslips ─────────────────────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<Payslip>(b =>
+        {
+            b.ToTable("Payslips");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.PayrollRunId, x.EmployeeId }).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            // FK to EmployeePayrollResult — Payslip is a projection; result is the source of truth
+            b.HasIndex(x => x.PayrollResultId);
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.EmployeeName).HasMaxLength(256);
+            b.Property(x => x.PeriodName).HasMaxLength(128);
+            b.Property(x => x.GrossPay).HasPrecision(18, 2);
+            b.Property(x => x.TotalDeductions).HasPrecision(18, 2);
+            b.Property(x => x.NetPay).HasPrecision(18, 2);
+            b.Property(x => x.StoragePath).HasMaxLength(1024);
+        });
+
+        // ── Phase 4: Audit Trail ──────────────────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<PayrollAuditEvent>(b =>
+        {
+            b.ToTable("PayrollAuditEvents");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.PayrollRunId);
+            b.HasIndex(x => new { x.TenantId, x.Timestamp });
+            b.Property(x => x.Action).HasMaxLength(128);
+            b.Property(x => x.Actor).HasMaxLength(256);
+            b.Property(x => x.Payload).HasColumnType("nvarchar(max)");
+        });
+
+        // ── Phase 4: Employee Payroll Result ──────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<EmployeePayrollResult>(b =>
+        {
+            b.ToTable("EmployeePayrollResults");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.PayrollRunId, x.EmployeeId }).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.HasIndex(x => x.Status);
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.EmployeeName).HasMaxLength(256);
+            b.Property(x => x.PeriodName).HasMaxLength(128);
+            b.Property(x => x.SnapshotId).HasMaxLength(64);
+            b.Property(x => x.BasePay).HasPrecision(18, 2);
+            b.Property(x => x.OvertimePay).HasPrecision(18, 2);
+            b.Property(x => x.HolidayPay).HasPrecision(18, 2);
+            b.Property(x => x.ShiftPremium).HasPrecision(18, 2);
+            b.Property(x => x.AllowancePay).HasPrecision(18, 2);
+            b.Property(x => x.BonusPay).HasPrecision(18, 2);
+            b.Property(x => x.GrossPay).HasPrecision(18, 2);
+            b.Property(x => x.ProvidentFund).HasPrecision(18, 2);
+            b.Property(x => x.EmployeeStateInsurance).HasPrecision(18, 2);
+            b.Property(x => x.ProfessionalTax).HasPrecision(18, 2);
+            b.Property(x => x.TaxDeductedAtSource).HasPrecision(18, 2);
+            b.Property(x => x.OtherDeductions).HasPrecision(18, 2);
+            b.Property(x => x.TotalDeductions).HasPrecision(18, 2);
+            b.Property(x => x.RetroAdjustments).HasPrecision(18, 2);
+            b.Property(x => x.ManualAdjustments).HasPrecision(18, 2);
+            b.Property(x => x.NetPay).HasPrecision(18, 2);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 4: Payroll Approval ─────────────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<PayrollApproval>(b =>
+        {
+            b.ToTable("PayrollApprovals");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.PayrollRunId).IsUnique();
+            b.Property(x => x.ApprovedBy).HasMaxLength(256);
+            b.Property(x => x.TotalGrossApproved).HasPrecision(18, 2);
+            b.Property(x => x.TotalNetApproved).HasPrecision(18, 2);
+            b.Property(x => x.Comments).HasMaxLength(1024);
+        });
+
+        // ── Phase 4: Payroll Publication ──────────────────────────────────────────────────────────────
+
+        modelBuilder.Entity<PayrollPublication>(b =>
+        {
+            b.ToTable("PayrollPublications");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.PayrollRunId).IsUnique();
+            b.Property(x => x.PublishedBy).HasMaxLength(256);
+            b.Property(x => x.BankFileId).HasMaxLength(256);
+            b.Property(x => x.BankFileReference).HasMaxLength(512);
+            b.Property(x => x.TotalAmountDispatched).HasPrecision(18, 2);
+        });
+
+        // ── Phase 4: OvertimePolicy tiered rules (owned collection → JSON) ───────────────────────────
+
+        modelBuilder.Entity<OvertimePolicy>(b =>
+        {
+            b.OwnsMany(x => x.Rules, r => r.ToJson());
         });
     }
 }

@@ -4,6 +4,7 @@ using Karamchari.Payroll.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Karamchari.Payroll.Migrations
 {
     [DbContext(typeof(PayrollDbContext))]
-    partial class PayrollDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260605174803_Phase4cResultImmutabilityHardening")]
+    partial class Phase4cResultImmutabilityHardening
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1202,9 +1205,6 @@ namespace Karamchari.Payroll.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("PayrollResultId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("PayrollRunId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1230,8 +1230,6 @@ namespace Karamchari.Payroll.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PayrollResultId");
 
                     b.HasIndex("PayrollRunId", "EmployeeId")
                         .IsUnique();
@@ -1451,9 +1449,6 @@ namespace Karamchari.Payroll.Migrations
                     b.Property<decimal>("HolidayPay")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset?>("LockedAtUtc")
-                        .HasColumnType("datetimeoffset");
 
                     b.Property<decimal>("ManualAdjustments")
                         .HasPrecision(18, 2)
