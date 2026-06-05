@@ -23,6 +23,21 @@ public sealed record AttendanceTrendPoint(
     int PresentCount,
     int AssignedCount);
 
+/// <summary>
+/// Predicted absence risk for one employee on one future date.
+/// Risk score ∈ [0,1]. Based on historical day-of-week absence rate and recent trend direction.
+/// This is statistical inference from existing records, not ML — treat score as a probability estimate.
+/// </summary>
+public sealed record AbsenceRiskForecast(
+    Guid EmployeeId,
+    DateOnly TargetDate,
+    DayOfWeek DayOfWeek,
+    decimal RiskScore,
+    AbsenceRiskLevel RiskLevel,
+    string Rationale);
+
+public enum AbsenceRiskLevel { Low, Medium, High }
+
 public sealed record ManagerAlertRecord(
     Guid EmployeeId,
     string AlertType,
@@ -47,17 +62,20 @@ public sealed class AttendanceIntelligenceService
     private readonly CoverageAnalyzer _coverage;
     private readonly AbsenceTrendAnalyzer _absenceTrend;
     private readonly AlertGenerator _alerts;
+    private readonly AbsenceRiskPredictor _riskPredictor;
 
     public AttendanceIntelligenceService(
         TrendAnalyzer trends,
         CoverageAnalyzer coverage,
         AbsenceTrendAnalyzer absenceTrend,
-        AlertGenerator alerts)
+        AlertGenerator alerts,
+        AbsenceRiskPredictor riskPredictor)
     {
         _trends = trends;
         _coverage = coverage;
         _absenceTrend = absenceTrend;
         _alerts = alerts;
+        _riskPredictor = riskPredictor;
     }
 
     public Task<IReadOnlyList<HabitualLatenessRecord>> GetHabitualLatenessAsync(
@@ -87,4 +105,14 @@ public sealed class AttendanceIntelligenceService
     public Task<IReadOnlyList<ManagerAlertRecord>> GetManagerAlertsAsync(
         string tenantId, int maxAlerts = 50, CancellationToken ct = default)
         => _alerts.GetManagerAlertsAsync(tenantId, maxAlerts, ct);
+
+    /// <summary>
+    /// Predicts absence risk for a list of employees on a future date.
+    /// Combines historical day-of-week rates with reliability trend direction.
+    /// Returns only employees with Medium or High risk unless includeAll is true.
+    /// </summary>
+    public Task<IReadOnlyList<AbsenceRiskForecast>> GetAbsenceRiskForecastAsync(
+        string tenantId, IReadOnlyList<Guid> employeeIds, DateOnly targetDate,
+        bool includeAll = false, CancellationToken ct = default)
+        => _riskPredictor.ForecastAsync(tenantId, employeeIds, targetDate, includeAll, ct);
 }

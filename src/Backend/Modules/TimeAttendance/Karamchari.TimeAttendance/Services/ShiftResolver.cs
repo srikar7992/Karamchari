@@ -1,4 +1,5 @@
 using Karamchari.TimeAttendance.Domain.Attendance;
+using Karamchari.TimeAttendance.Observability;
 using Karamchari.TimeAttendance.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -27,11 +28,13 @@ public sealed class ShiftResolver
 
     private readonly TimeAttendanceDbContext _db;
     private readonly ILogger<ShiftResolver> _logger;
+    private readonly AttendanceMetrics _metrics;
 
-    public ShiftResolver(TimeAttendanceDbContext db, ILogger<ShiftResolver> logger)
+    public ShiftResolver(TimeAttendanceDbContext db, ILogger<ShiftResolver> logger, AttendanceMetrics metrics)
     {
         _db = db;
         _logger = logger;
+        _metrics = metrics;
     }
 
     public async Task<ShiftAssignmentCache?> ResolveAsync(
@@ -56,6 +59,7 @@ public sealed class ShiftResolver
         {
             // SLO metric: cache miss — no shift assignments found for this employee+date.
             // Indicates ScheduledShiftCreatedConsumer may be behind, or employee is walk-in.
+            _metrics.ShiftResolverCacheMisses.Add(1);
             _logger.LogWarning(
                 "ShiftResolver: cache miss. Employee={EmployeeId} PunchTime={PunchTime} WorkDate={WorkDate} Yesterday={Yesterday}",
                 employeeId, punchTime, workDate, yesterday);

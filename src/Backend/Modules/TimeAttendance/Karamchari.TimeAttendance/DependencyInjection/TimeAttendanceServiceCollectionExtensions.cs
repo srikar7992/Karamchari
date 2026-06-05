@@ -188,6 +188,7 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.AddScoped<Karamchari.TimeAttendance.Services.PolicySimulationService>();
 
         // Phase 3: Attendance Intelligence
+        services.AddSingleton<Karamchari.TimeAttendance.Observability.AttendanceMetrics>();
         services.AddScoped<Karamchari.TimeAttendance.Services.AttendanceProcessingEngine>();
         services.AddScoped<Karamchari.TimeAttendance.Services.AttendanceScoreCalculator>();
         services.AddScoped<Karamchari.TimeAttendance.Services.ShiftResolver>();
@@ -199,6 +200,7 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.AddScoped<Karamchari.TimeAttendance.Services.CoverageAnalyzer>();
         services.AddScoped<Karamchari.TimeAttendance.Services.AbsenceTrendAnalyzer>();
         services.AddScoped<Karamchari.TimeAttendance.Services.AlertGenerator>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.AbsenceRiskPredictor>();
         services.AddScoped<Karamchari.TimeAttendance.Services.AttendanceIntelligenceService>();
 
         return services;

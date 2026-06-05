@@ -3,6 +3,7 @@ using System.Text.Json;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.TimeAttendance.Domain.Attendance;
 using Karamchari.TimeAttendance.Domain.Schedules;
+using Karamchari.TimeAttendance.Observability;
 using Karamchari.TimeAttendance.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -28,17 +29,20 @@ public sealed class AttendanceProcessingEngine
     private readonly ShiftResolver _shiftResolver;
     private readonly AttendanceScoreCalculator _scoreCalculator;
     private readonly ILogger<AttendanceProcessingEngine> _logger;
+    private readonly AttendanceMetrics _metrics;
 
     public AttendanceProcessingEngine(
         TimeAttendanceDbContext db,
         ShiftResolver shiftResolver,
         AttendanceScoreCalculator scoreCalculator,
-        ILogger<AttendanceProcessingEngine> logger)
+        ILogger<AttendanceProcessingEngine> logger,
+        AttendanceMetrics metrics)
     {
         _db = db;
         _shiftResolver = shiftResolver;
         _scoreCalculator = scoreCalculator;
         _logger = logger;
+        _metrics = metrics;
     }
 
     /// <summary>
@@ -156,6 +160,12 @@ public sealed class AttendanceProcessingEngine
             "CheckIn processed. Employee={EmployeeId} Shift={ShiftId} SessionNew={SessionNew} ShiftResolved={ShiftResolved} ElapsedMs={ElapsedMs}",
             employeeId, shiftAssignment?.ShiftAssignmentId, sessionWasNew, shiftAssignment != null, sw.ElapsedMilliseconds);
 
+        _metrics.PunchLatencyMs.Record(sw.ElapsedMilliseconds,
+            new KeyValuePair<string, object?>("punch.type", "checkin"),
+            new KeyValuePair<string, object?>("shift.resolved", shiftAssignment != null));
+        if (sessionWasNew)
+            _metrics.AttendanceSessionsCreated.Add(1);
+
         return session;
     }
 
@@ -258,6 +268,10 @@ public sealed class AttendanceProcessingEngine
             "CheckOut processed. Employee={EmployeeId} FinalStatus={Status} WorkedMin={WorkedMin} OTMin={OTMin} ElapsedMs={ElapsedMs}",
             employeeId, finalStatus, totalWorkedMinutes, overtimeMinutes, sw.ElapsedMilliseconds);
 
+        _metrics.PunchLatencyMs.Record(sw.ElapsedMilliseconds,
+            new KeyValuePair<string, object?>("punch.type", "checkout"),
+            new KeyValuePair<string, object?>("final.status", finalStatus.ToString()));
+
         return record;
     }
 
@@ -281,104 +295,117 @@ public sealed class AttendanceProcessingEngine
         //     on the second writer; unique index (TenantId, EmployeeId, ShiftId) prevents
         //     duplicate Absent inserts from two nodes racing on the no-show path.
         var sw = Stopwatch.StartNew();
-        var cutoff = DateTimeOffset.UtcNow.AddMinutes(-gracePeriodMinutes);
-
-        // True no-shows: shifts in cache where no AttendanceRecord was ever created
-        var cachedShifts = await _db.ShiftAssignmentCache
-            .Where(s =>
-                s.TenantId == tenantId &&
-                s.WorkDate == workDate &&
-                s.ExpectedEnd < cutoff)
-            .ToListAsync(ct);
-
-        var existingShiftIds = await _db.AttendanceRecords
-            .Where(r =>
-                r.TenantId == tenantId &&
-                r.WorkDate == workDate)
-            .Select(r => r.ShiftId)
-            .ToListAsync(ct);
-
-        var noShowShifts = cachedShifts
-            .Where(s => !existingShiftIds.Contains(s.ShiftId))
-            .ToList();
-
-        foreach (var shift in noShowShifts)
+        try
         {
-            var record = AttendanceRecord.CreatePending(
-                tenantId,
-                shift.EmployeeId,
-                shift.ShiftId,
-                shift.ShiftAssignmentId,
-                shift.WorkDate,
-                shift.ExpectedStart,
-                shift.ExpectedEnd);
-            _db.AttendanceRecords.Add(record);
-            record.MarkAbsent();
+            var cutoff = DateTimeOffset.UtcNow.AddMinutes(-gracePeriodMinutes);
 
-            var noShowEx = AttendanceViolation.Raise(
-                tenantId,
-                record.Id,
-                shift.EmployeeId,
-                AttendanceExceptionType.NoShow,
-                AttendanceExceptionSeverity.Critical,
-                $"Employee did not report for shift on {workDate:yyyy-MM-dd}. Expected: {shift.ExpectedStart:HH:mm}-{shift.ExpectedEnd:HH:mm} UTC.");
+            // True no-shows: shifts in cache where no AttendanceRecord was ever created
+            var cachedShifts = await _db.ShiftAssignmentCache
+                .Where(s =>
+                    s.TenantId == tenantId &&
+                    s.WorkDate == workDate &&
+                    s.ExpectedEnd < cutoff)
+                .ToListAsync(ct);
 
-            _db.AttendanceViolations.Add(noShowEx);
+            var existingShiftIds = await _db.AttendanceRecords
+                .Where(r =>
+                    r.TenantId == tenantId &&
+                    r.WorkDate == workDate)
+                .Select(r => r.ShiftId)
+                .ToListAsync(ct);
 
-            var audit = AttendanceAuditLog.Record(
-                tenantId, record.Id, shift.EmployeeId,
-                "NoShow",
-                null,
-                AttendanceStatus.Absent.ToString(),
-                "System",
-                "Finalization job: no check-in recorded past grace period.");
-            _db.AttendanceAuditLog.Add(audit);
+            var noShowShifts = cachedShifts
+                .Where(s => !existingShiftIds.Contains(s.ShiftId))
+                .ToList();
 
-            await _scoreCalculator.ApplyIncrementalAsync(
-                tenantId, shift.EmployeeId, AttendanceStatus.Absent,
-                false, false, false, false, ct);
+            foreach (var shift in noShowShifts)
+            {
+                var record = AttendanceRecord.CreatePending(
+                    tenantId,
+                    shift.EmployeeId,
+                    shift.ShiftId,
+                    shift.ShiftAssignmentId,
+                    shift.WorkDate,
+                    shift.ExpectedStart,
+                    shift.ExpectedEnd);
+                _db.AttendanceRecords.Add(record);
+                record.MarkAbsent();
+
+                var noShowEx = AttendanceViolation.Raise(
+                    tenantId,
+                    record.Id,
+                    shift.EmployeeId,
+                    AttendanceExceptionType.NoShow,
+                    AttendanceExceptionSeverity.Critical,
+                    $"Employee did not report for shift on {workDate:yyyy-MM-dd}. Expected: {shift.ExpectedStart:HH:mm}-{shift.ExpectedEnd:HH:mm} UTC.");
+
+                _db.AttendanceViolations.Add(noShowEx);
+
+                var audit = AttendanceAuditLog.Record(
+                    tenantId, record.Id, shift.EmployeeId,
+                    "NoShow",
+                    null,
+                    AttendanceStatus.Absent.ToString(),
+                    "System",
+                    "Finalization job: no check-in recorded past grace period.");
+                _db.AttendanceAuditLog.Add(audit);
+
+                await _scoreCalculator.ApplyIncrementalAsync(
+                    tenantId, shift.EmployeeId, AttendanceStatus.Absent,
+                    false, false, false, false, ct);
+            }
+
+            // Incomplete: sessions still CheckedIn past shift end + grace period
+            var incompleteRecords = await _db.AttendanceRecords
+                .Where(r =>
+                    r.TenantId == tenantId &&
+                    r.WorkDate == workDate &&
+                    r.Status == AttendanceStatus.CheckedIn &&
+                    r.ExpectedEnd < cutoff)
+                .ToListAsync(ct);
+
+            foreach (var record in incompleteRecords)
+            {
+                var previousStatus = record.Status;
+                var estimatedMinutes = record.ActualStart.HasValue
+                    ? Math.Max(0, (int)(record.ExpectedEnd - record.ActualStart.Value).TotalMinutes)
+                    : 0;
+
+                record.MarkIncomplete(estimatedMinutes);
+
+                _db.AttendanceViolations.Add(AttendanceViolation.Raise(
+                    tenantId,
+                    record.Id,
+                    record.EmployeeId,
+                    AttendanceExceptionType.MissingCheckOut,
+                    AttendanceExceptionSeverity.High,
+                    $"No check-out recorded for {workDate:yyyy-MM-dd}. Estimated {estimatedMinutes} worked minutes."));
+
+                _db.AttendanceAuditLog.Add(AttendanceAuditLog.Record(
+                    tenantId, record.Id, record.EmployeeId,
+                    "MissingCheckout",
+                    previousStatus.ToString(),
+                    AttendanceStatus.Incomplete.ToString(),
+                    "System",
+                    "Finalization job: no check-out past grace period."));
+            }
+
+            await _db.SaveChangesAsync(ct);
+
+            _logger.LogInformation(
+                "Finalized {WorkDate} for tenant {TenantId}: {NoShowCount} no-shows, {IncompleteCount} incomplete. ElapsedMs={ElapsedMs}",
+                workDate, tenantId, noShowShifts.Count, incompleteRecords.Count, sw.ElapsedMilliseconds);
+
+            _metrics.FinalizationLatencyMs.Record(sw.ElapsedMilliseconds);
         }
-
-        // Incomplete: sessions still CheckedIn past shift end + grace period
-        var incompleteRecords = await _db.AttendanceRecords
-            .Where(r =>
-                r.TenantId == tenantId &&
-                r.WorkDate == workDate &&
-                r.Status == AttendanceStatus.CheckedIn &&
-                r.ExpectedEnd < cutoff)
-            .ToListAsync(ct);
-
-        foreach (var record in incompleteRecords)
+        catch (Exception ex)
         {
-            var previousStatus = record.Status;
-            var estimatedMinutes = record.ActualStart.HasValue
-                ? Math.Max(0, (int)(record.ExpectedEnd - record.ActualStart.Value).TotalMinutes)
-                : 0;
-
-            record.MarkIncomplete(estimatedMinutes);
-
-            _db.AttendanceViolations.Add(AttendanceViolation.Raise(
-                tenantId,
-                record.Id,
-                record.EmployeeId,
-                AttendanceExceptionType.MissingCheckOut,
-                AttendanceExceptionSeverity.High,
-                $"No check-out recorded for {workDate:yyyy-MM-dd}. Estimated {estimatedMinutes} worked minutes."));
-
-            _db.AttendanceAuditLog.Add(AttendanceAuditLog.Record(
-                tenantId, record.Id, record.EmployeeId,
-                "MissingCheckout",
-                previousStatus.ToString(),
-                AttendanceStatus.Incomplete.ToString(),
-                "System",
-                "Finalization job: no check-out past grace period."));
+            _metrics.FinalizationFailures.Add(1,
+                new KeyValuePair<string, object?>("tenant", tenantId),
+                new KeyValuePair<string, object?>("work_date", workDate.ToString()));
+            _logger.LogError(ex, "FinalizeShiftsForDateAsync failed for {WorkDate} tenant {TenantId}.", workDate, tenantId);
+            throw;
         }
-
-        await _db.SaveChangesAsync(ct);
-
-        _logger.LogInformation(
-            "Finalized {WorkDate} for tenant {TenantId}: {NoShowCount} no-shows, {IncompleteCount} incomplete. ElapsedMs={ElapsedMs}",
-            workDate, tenantId, noShowShifts.Count, incompleteRecords.Count, sw.ElapsedMilliseconds);
     }
 
     // Keep old name as alias so scheduled job callers using ProcessNoShowsAsync still compile.
@@ -444,8 +471,16 @@ public sealed class AttendanceProcessingEngine
             $"Regularization approved. {openExceptions.Count} violations resolved.",
             changedFields));
 
-        await _scoreCalculator.RecalculateAsync(tenantId, employeeId, ct);
+        // Delta adjustment: O(1), no full record scan.
+        // RecalculateAsync (full scan) runs nightly and corrects any counter drift.
+        var resolvedViolationTypes = openExceptions
+            .Select(e => e.ExceptionType)
+            .ToList();
+        await _scoreCalculator.ApplyRegularizationDeltaAsync(
+            tenantId, employeeId, previousStatus, resolvedViolationTypes, ct);
         await _db.SaveChangesAsync(ct);
+
+        _metrics.RegularizationsApproved.Add(1);
 
         _logger.LogInformation(
             "Regularization applied for record {RecordId}: {PreviousStatus} → Present. {ExceptionCount} exceptions resolved.",

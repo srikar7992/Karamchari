@@ -77,6 +77,32 @@ public sealed class AttendanceScoreCalculator
     }
 
     /// <summary>
+    /// Delta adjustment for regularization approvals. O(1) — no record scan.
+    /// Uses stored counters on AttendanceScore to compute the delta.
+    /// Falls back to RecalculateAsync on nightly batch if counters ever drift.
+    /// </summary>
+    public async Task<AttendanceScore> ApplyRegularizationDeltaAsync(
+        string tenantId,
+        Guid employeeId,
+        AttendanceStatus previousStatus,
+        IReadOnlyList<AttendanceExceptionType> resolvedViolations,
+        CancellationToken ct = default)
+    {
+        var score = await _db.AttendanceScores
+            .FirstOrDefaultAsync(s => s.EmployeeId == employeeId, ct);
+
+        if (score is null)
+        {
+            score = AttendanceScore.Create(tenantId, employeeId);
+            _db.AttendanceScores.Add(score);
+        }
+
+        score.ApplyRegularizationDelta(previousStatus, resolvedViolations);
+
+        return score;
+    }
+
+    /// <summary>
     /// Incremental update — faster path for real-time use. Called after each punch finalization.
     /// </summary>
     public async Task<AttendanceScore> ApplyIncrementalAsync(

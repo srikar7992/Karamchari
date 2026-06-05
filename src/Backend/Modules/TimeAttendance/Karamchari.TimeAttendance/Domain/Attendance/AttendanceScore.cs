@@ -121,6 +121,59 @@ public sealed class AttendanceScore : AggregateRoot<Guid>, ITenantOwned
     }
 
     /// <summary>
+    /// Delta adjustment for a regularization approval.
+    /// O(1) — adjusts stored counters without scanning all records.
+    /// Correctness relies on counters being accurate; nightly RecalculateAsync provides
+    /// a course-correction path if counters ever drift.
+    /// </summary>
+    public void ApplyRegularizationDelta(
+        AttendanceStatus previousStatus,
+        IReadOnlyList<AttendanceExceptionType> resolvedViolations)
+    {
+        // Undo the previous status contribution
+        if (previousStatus == AttendanceStatus.Absent)
+            TotalNoShows = Math.Max(0, TotalNoShows - 1);
+        else if (previousStatus is AttendanceStatus.Present or AttendanceStatus.Late or AttendanceStatus.HalfDay)
+            TotalPresentShifts = Math.Max(0, TotalPresentShifts - 1); // was already present-ish, still will be
+
+        // Regularization always results in Present — add it back
+        TotalPresentShifts++;
+
+        // Undo resolved violation counters
+        foreach (var violationType in resolvedViolations)
+        {
+            switch (violationType)
+            {
+                case AttendanceExceptionType.LateArrival:
+                    TotalLateArrivals = Math.Max(0, TotalLateArrivals - 1);
+                    break;
+                case AttendanceExceptionType.MissingCheckIn:
+                case AttendanceExceptionType.MissingCheckOut:
+                    TotalMissingPunches = Math.Max(0, TotalMissingPunches - 1);
+                    break;
+                case AttendanceExceptionType.Overtime:
+                    TotalUnauthorizedOvertime = Math.Max(0, TotalUnauthorizedOvertime - 1);
+                    break;
+                case AttendanceExceptionType.LocationViolation:
+                    TotalLocationViolations = Math.Max(0, TotalLocationViolations - 1);
+                    break;
+                case AttendanceExceptionType.NoShow:
+                    // NoShow is a status outcome already handled above via TotalNoShows
+                    break;
+            }
+        }
+
+        Recalculate(
+            TotalAssignedShifts,
+            TotalPresentShifts,
+            TotalLateArrivals,
+            TotalNoShows,
+            TotalMissingPunches,
+            TotalUnauthorizedOvertime,
+            TotalLocationViolations);
+    }
+
+    /// <summary>
     /// Incremental update for a single finalized attendance record.
     /// More efficient than full recalculation for real-time updates.
     /// </summary>
