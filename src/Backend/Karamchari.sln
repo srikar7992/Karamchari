@@ -181,6 +181,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.SecurityTests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.PerformanceTests", "..\..\tests\Performance\NBomber\Karamchari.PerformanceTests\Karamchari.PerformanceTests.csproj", "{65E2CA4A-51E1-9079-678D-6A7A8D7A7404}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.PlatformIntelligence", "Modules\PlatformIntelligence\Karamchari.PlatformIntelligence\Karamchari.PlatformIntelligence.csproj", "{52B54835-1E45-4853-AF20-60B019D2C06B}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Payroll.IntegrationTests", "..\..\tests\Backend\Karamchari.Payroll.IntegrationTests\Karamchari.Payroll.IntegrationTests.csproj", "{EFB15821-6808-4F80-A8FC-DC6C06A20FAA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Forecasting.IntegrationTests", "..\..\tests\Backend\Karamchari.Forecasting.IntegrationTests\Karamchari.Forecasting.IntegrationTests.csproj", "{0A438731-7B8D-4935-BAB7-08DFEBD125DF}"

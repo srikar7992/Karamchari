@@ -1,6 +1,7 @@
 using Karamchari.Billing.DependencyInjection;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Compensation.DependencyInjection;
+using Karamchari.Compliance.DependencyInjection;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.DataMigration.DependencyInjection;
 using Karamchari.FinancialOps.DependencyInjection;
@@ -12,6 +13,7 @@ using Karamchari.Intelligence.DependencyInjection;
 using Karamchari.Notifications.DependencyInjection;
 using Karamchari.Payroll.DependencyInjection;
 using Karamchari.Performance.DependencyInjection;
+using Karamchari.PlatformIntelligence.DependencyInjection;
 using Karamchari.PSA.DependencyInjection;
 using Karamchari.Recruitment.DependencyInjection;
 using Karamchari.TimeAttendance.DependencyInjection;
@@ -42,7 +44,9 @@ public static class CapabilityRegistry
             new ForecastingModule(configuration),
             new CompensationModule(configuration),
             new BillingModule(configuration),
-            new CapabilityModule(configuration)
+            new CapabilityModule(configuration),
+            new ComplianceModule(configuration),
+            new PlatformIntelligenceModule(configuration)
         };
     }
 }

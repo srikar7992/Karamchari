@@ -71,6 +71,8 @@
     <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment.Infrastructure\Karamchari.Recruitment.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Capability\Karamchari.Capability\Karamchari.Capability.csproj" />
     <ProjectReference Include="..\..\Modules\Intelligence\Karamchari.Intelligence\Karamchari.Intelligence.csproj" />
+    <ProjectReference Include="..\..\Modules\Compliance\Karamchari.Compliance\Karamchari.Compliance.csproj" />
+    <ProjectReference Include="..\..\Modules\PlatformIntelligence\Karamchari.PlatformIntelligence\Karamchari.PlatformIntelligence.csproj" />
     <ProjectReference Include="..\..\Modules\Governance\Karamchari.Governance\Karamchari.Governance.csproj" />
     <ProjectReference Include="..\..\Modules\FinancialOps\Karamchari.FinancialOps\Karamchari.FinancialOps.csproj" />
   </ItemGroup>

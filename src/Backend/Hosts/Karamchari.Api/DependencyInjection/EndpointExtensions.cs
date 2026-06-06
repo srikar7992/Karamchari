@@ -3,6 +3,7 @@ using Karamchari.Api.BFF.Billing;
 using Karamchari.Api.BFF.Capability;
 using Karamchari.Api.BFF.Common;
 using Karamchari.Api.BFF.Compliance;
+using Karamchari.Api.BFF.PlatformIntelligence;
 using Karamchari.Api.BFF.Employee;
 using Karamchari.Api.BFF.ESS;
 using Karamchari.Api.BFF.Executive;
@@ -65,6 +66,8 @@ public static class EndpointExtensions
         app.MapWorkforceIntelligenceEndpoints();
         app.MapPayrollEndpoints();
         app.MapComplianceEndpoints();
+        app.MapGovernanceEndpoints();
+        app.MapPlatformIntelligenceEndpoints();
         app.MapPSAEndpoints();
         app.MapBillingEndpoints();
         app.MapESSEndpoints();
