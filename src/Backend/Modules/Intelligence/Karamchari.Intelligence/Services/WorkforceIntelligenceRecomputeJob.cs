@@ -49,6 +49,8 @@ public sealed class WorkforceIntelligenceRecomputeJob : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IntelligenceDbContext>();
         var signalService = scope.ServiceProvider.GetRequiredService<WorkforceSignalService>();
+        var hotspotService = scope.ServiceProvider.GetRequiredService<HotspotDetectionService>();
+        var interventionService = scope.ServiceProvider.GetRequiredService<InterventionTrackerService>();
 
         var tenantIds = await db.WorkforceSignalRecords
             .Select(s => s.TenantId)
@@ -62,6 +64,8 @@ public sealed class WorkforceIntelligenceRecomputeJob : BackgroundService
             try
             {
                 await signalService.RecalculateTenantAsync(tenantId, ct);
+                await hotspotService.RecalculateTenantHotspotAsync(tenantId, ct);
+                await interventionService.EvaluateTenantInterventionsAsync(tenantId, ct);
             }
             catch (Exception ex)
             {

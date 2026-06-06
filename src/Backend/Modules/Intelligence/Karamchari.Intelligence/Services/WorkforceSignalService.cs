@@ -249,6 +249,28 @@ public sealed class WorkforceSignalService
         _db.WorkforceScoreSnapshots.Add(WorkforceScoreSnapshot.Record(
             tenantId, input.EmployeeId, "Burnout", result.Score, result.RiskLevel));
 
+        // Persist audit trail so managers can challenge any historical score
+        var rootCauses = result.ComponentScores
+            .OrderByDescending(kv => kv.Value)
+            .Select(kv => kv.Key)
+            .ToList();
+        var signalValues = new Dictionary<string, decimal>
+        {
+            ["ConsecutiveWorkDays"] = input.ConsecutiveWorkDays,
+            ["OvertimeHours28d"] = input.OvertimeHours28d,
+            ["DaysWithoutLeave"] = input.DaysWithoutLeave,
+            ["LateArrivalsThisMonth"] = input.LateArrivalsCurrentMonth,
+            ["ShiftSwaps30d"] = input.ShiftSwaps30d,
+            ["HighIntensityRatio"] = input.HighIntensityShiftRatio,
+            ["EmergencyFillIns90d"] = input.EmergencyFillIns90d
+        };
+        _db.ScoreCalculationAudits.Add(ScoreCalculationAudit.Record(
+            tenantId, input.EmployeeId, "Burnout",
+            result.Score, result.RiskLevel,
+            componentsJson,
+            JsonSerializer.Serialize(rootCauses),
+            JsonSerializer.Serialize(signalValues)));
+
         // Raise recommendations for High/Critical employees
         if (result.RiskLevel >= WorkforceRiskLevel.High)
         {
@@ -297,6 +319,28 @@ public sealed class WorkforceSignalService
         // Append to history for velocity / forecast computation
         _db.WorkforceScoreSnapshots.Add(WorkforceScoreSnapshot.Record(
             tenantId, input.EmployeeId, "Attrition", result.Score, result.RiskLevel));
+
+        // Persist audit trail
+        var attritionRootCauses = result.ComponentScores
+            .OrderByDescending(kv => kv.Value)
+            .Select(kv => kv.Key)
+            .ToList();
+        var attritionSignalValues = new Dictionary<string, decimal>
+        {
+            ["LateArrivalSlope"] = input.LateArrivalSlope,
+            ["LeaveFrequencyRatio"] = input.LeaveFrequencyRatio,
+            ["SickLeaveDays30d"] = input.SickLeaveDays30d,
+            ["ShiftSwaps30d"] = input.ShiftSwaps30d,
+            ["OvertimeRejections30d"] = input.OvertimeRejections30d,
+            ["PeerAttendanceGap"] = input.PeerAttendanceGap,
+            ["ManagerFrictionScore"] = input.ManagerFrictionScore
+        };
+        _db.ScoreCalculationAudits.Add(ScoreCalculationAudit.Record(
+            tenantId, input.EmployeeId, "Attrition",
+            result.Score, result.RiskLevel,
+            JsonSerializer.Serialize(result.ComponentScores),
+            JsonSerializer.Serialize(attritionRootCauses),
+            JsonSerializer.Serialize(attritionSignalValues)));
 
         if (result.RiskLevel >= WorkforceRiskLevel.High)
         {

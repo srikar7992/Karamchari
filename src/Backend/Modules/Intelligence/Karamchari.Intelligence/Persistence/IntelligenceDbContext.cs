@@ -87,6 +87,17 @@ public class IntelligenceDbContext : KaramchariDbContext
     /// <summary>Ground-truth outcome labels for supervised ML training.</summary>
     public DbSet<WorkforceOutcomeLabel> WorkforceOutcomeLabels => Set<WorkforceOutcomeLabel>();
 
+    // ── Phase 6.2: Workforce Intelligence Optimization ───────────────────────
+
+    /// <summary>Append-only per-recalculation audit: component scores, root causes, signal values.</summary>
+    public DbSet<ScoreCalculationAudit> ScoreCalculationAudits => Set<ScoreCalculationAudit>();
+
+    /// <summary>Intervention effectiveness outcomes for resolved recommendations.</summary>
+    public DbSet<InterventionOutcome> InterventionOutcomes => Set<InterventionOutcome>();
+
+    /// <summary>Org-level hotspot aggregates per scope (tenant / site / team).</summary>
+    public DbSet<WorkforceHotspot> WorkforceHotspots => Set<WorkforceHotspot>();
+
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -403,6 +414,52 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.BurnoutScoreAtOutcome).HasPrecision(5, 1);
             b.Property(x => x.AttritionScoreAtOutcome).HasPrecision(5, 1);
             b.Property(x => x.Notes).HasMaxLength(500);
+        });
+
+        // ── Phase 6.2: Workforce Intelligence Optimization ──────────────────
+
+        modelBuilder.Entity<ScoreCalculationAudit>(b =>
+        {
+            b.ToTable("Intel_ScoreAudits");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.ScoreType, x.CalculatedAt });
+            b.HasIndex(x => new { x.TenantId, x.CalculatedAt });
+            b.Property(x => x.ScoreType).HasMaxLength(20);
+            b.Property(x => x.Score).HasPrecision(5, 1);
+            b.Property(x => x.RiskLevel).HasConversion<string>();
+            b.Property(x => x.ComponentScoresJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.RootCauseRankingJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.SignalValuesJson).HasColumnType("nvarchar(max)");
+        });
+
+        modelBuilder.Entity<InterventionOutcome>(b =>
+        {
+            b.ToTable("Intel_InterventionOutcomes");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.RecommendationId }).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.Property(x => x.ScoreType).HasMaxLength(20);
+            b.Property(x => x.ScoreAtRecommendation).HasPrecision(5, 1);
+            b.Property(x => x.ScoreAtEvaluation).HasPrecision(5, 1);
+            b.Property(x => x.ScoreDelta).HasPrecision(6, 1);
+            b.Property(x => x.Status).HasConversion<string>();
+        });
+
+        modelBuilder.Entity<WorkforceHotspot>(b =>
+        {
+            b.ToTable("Intel_WorkforceHotspots");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.ScopeKey }).IsUnique();
+            b.Property(x => x.ScopeKey).HasMaxLength(100);
+            b.Property(x => x.MeanBurnoutScore).HasPrecision(5, 1);
+            b.Property(x => x.MeanAttritionScore).HasPrecision(5, 1);
+            b.Property(x => x.BurnoutStdDev).HasPrecision(5, 1);
+            b.Property(x => x.AttritionStdDev).HasPrecision(5, 1);
+            b.Property(x => x.HighCriticalBurnoutPct).HasPrecision(5, 1);
+            b.Property(x => x.HighCriticalAttritionPct).HasPrecision(5, 1);
+            b.Property(x => x.BurnoutSeverity).HasConversion<string>();
+            b.Property(x => x.AttritionSeverity).HasConversion<string>();
+            b.Property(x => x.RowVersion).IsRowVersion();
         });
     }
 }
