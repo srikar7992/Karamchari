@@ -3,6 +3,7 @@ using Karamchari.Core.Persistence;
 using Karamchari.Intelligence.Domain.Metrics;
 using Karamchari.Intelligence.Domain.Primitives;
 using Karamchari.Intelligence.Domain.Signals;
+using Karamchari.Intelligence.Domain.Workforce;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Intelligence.Persistence;
@@ -42,6 +43,26 @@ public class IntelligenceDbContext : KaramchariDbContext
     /// Provides required documentation for this member.
     /// </summary>
     public DbSet<StrategicWorkforceScenario> StrategicWorkforceScenarios => Set<StrategicWorkforceScenario>();
+
+    // ── Phase 6: Workforce Intelligence ─────────────────────────────────────
+
+    /// <summary>Raw workforce signal measurements per employee.</summary>
+    public DbSet<WorkforceSignalRecord> WorkforceSignalRecords => Set<WorkforceSignalRecord>();
+
+    /// <summary>Latest burnout score per employee.</summary>
+    public DbSet<WorkforceBurnoutScore> WorkforceBurnoutScores => Set<WorkforceBurnoutScore>();
+
+    /// <summary>Latest attrition risk score per employee.</summary>
+    public DbSet<WorkforceAttritionScore> WorkforceAttritionScores => Set<WorkforceAttritionScore>();
+
+    /// <summary>Org/site-level workforce health scores.</summary>
+    public DbSet<WorkforceHealthScore> WorkforceHealthScores => Set<WorkforceHealthScore>();
+
+    /// <summary>Manager effectiveness scores.</summary>
+    public DbSet<ManagerEffectivenessScore> ManagerEffectivenessScores => Set<ManagerEffectivenessScore>();
+
+    /// <summary>Open and resolved workforce recommendations.</summary>
+    public DbSet<WorkforceRecommendation> WorkforceRecommendations => Set<WorkforceRecommendation>();
 
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -160,6 +181,102 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.ToTable("Strategy_StrategicScenarios");
             b.HasKey(x => x.Id);
             b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 6: Workforce Intelligence ─────────────────────────────────
+
+        modelBuilder.Entity<WorkforceSignalRecord>(b =>
+        {
+            b.ToTable("Intel_WorkforceSignals");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.SignalType, x.SignalDate });
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.Property(x => x.SignalType).HasConversion<string>();
+            b.Property(x => x.Value).HasPrecision(18, 4);
+        });
+
+        modelBuilder.Entity<WorkforceBurnoutScore>(b =>
+        {
+            b.ToTable("Intel_BurnoutScores");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId }).IsUnique();
+            b.Property(x => x.Score).HasPrecision(5, 1);
+            b.Property(x => x.RiskLevel).HasConversion<string>();
+            b.Property(x => x.Confidence).HasConversion<string>();
+            b.Property(x => x.RowVersion).IsRowVersion();
+            b.Property(x => x.Explanation)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<Domain.Signals.ScoreExplanation>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+        });
+
+        modelBuilder.Entity<WorkforceAttritionScore>(b =>
+        {
+            b.ToTable("Intel_AttritionScores");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId }).IsUnique();
+            b.Property(x => x.Score).HasPrecision(5, 1);
+            b.Property(x => x.RiskLevel).HasConversion<string>();
+            b.Property(x => x.Confidence).HasConversion<string>();
+            b.Property(x => x.RowVersion).IsRowVersion();
+            b.Property(x => x.Explanation)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<Domain.Signals.ScoreExplanation>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+        });
+
+        modelBuilder.Entity<WorkforceHealthScore>(b =>
+        {
+            b.ToTable("Intel_WorkforceHealthScores");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.SiteCode }).IsUnique();
+            b.Property(x => x.Score).HasPrecision(5, 1);
+            b.Property(x => x.AttendanceHealth).HasPrecision(5, 1);
+            b.Property(x => x.BurnoutHealth).HasPrecision(5, 1);
+            b.Property(x => x.StaffingHealth).HasPrecision(5, 1);
+            b.Property(x => x.LeaveHealth).HasPrecision(5, 1);
+            b.Property(x => x.PayrollHealth).HasPrecision(5, 1);
+            b.Property(x => x.StabilityHealth).HasPrecision(5, 1);
+            b.Property(x => x.RowVersion).IsRowVersion();
+            b.Property(x => x.Explanation)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<Domain.Signals.ScoreExplanation>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+        });
+
+        modelBuilder.Entity<ManagerEffectivenessScore>(b =>
+        {
+            b.ToTable("Intel_ManagerScores");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.ManagerId }).IsUnique();
+            b.Property(x => x.Score).HasPrecision(5, 1);
+            b.Property(x => x.AttendanceDimension).HasPrecision(5, 1);
+            b.Property(x => x.BurnoutDimension).HasPrecision(5, 1);
+            b.Property(x => x.AttritionDimension).HasPrecision(5, 1);
+            b.Property(x => x.LeaveHealthDimension).HasPrecision(5, 1);
+            b.Property(x => x.StabilityDimension).HasPrecision(5, 1);
+            b.Property(x => x.OvertimeDimension).HasPrecision(5, 1);
+            b.Property(x => x.RowVersion).IsRowVersion();
+            b.Property(x => x.Explanation)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<Domain.Signals.ScoreExplanation>(v, (System.Text.Json.JsonSerializerOptions?)null)!)
+                .HasColumnType("nvarchar(max)");
+        });
+
+        modelBuilder.Entity<WorkforceRecommendation>(b =>
+        {
+            b.ToTable("Intel_WorkforceRecommendations");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.Type, x.ResolvedAt });
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.Priority).HasConversion<string>();
+            b.Property(x => x.TriggerScore).HasPrecision(5, 1);
+            b.Property(x => x.Rationale).HasMaxLength(1000);
         });
     }
 }

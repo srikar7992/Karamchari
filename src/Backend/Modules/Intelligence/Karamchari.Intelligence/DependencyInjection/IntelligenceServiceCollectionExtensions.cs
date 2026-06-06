@@ -1,5 +1,7 @@
 using Karamchari.Core.DependencyInjection;
+using Karamchari.Intelligence.Consumers;
 using Karamchari.Intelligence.Persistence;
+using Karamchari.Intelligence.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +38,13 @@ public static class IntelligenceServiceCollectionExtensions
         services.RegisterTenantTable("Strategy_WorkforceRiskSignals");
         services.RegisterTenantTable("Strategy_ExecutiveInsights");
         services.RegisterTenantTable("Strategy_StrategicScenarios");
+        // Phase 6
+        services.RegisterTenantTable("Intel_WorkforceSignals");
+        services.RegisterTenantTable("Intel_BurnoutScores");
+        services.RegisterTenantTable("Intel_AttritionScores");
+        services.RegisterTenantTable("Intel_WorkforceHealthScores");
+        services.RegisterTenantTable("Intel_ManagerScores");
+        services.RegisterTenantTable("Intel_WorkforceRecommendations");
 
         services.AddDbContext<IntelligenceDbContext>((sp, options) =>
         {
@@ -61,6 +70,10 @@ public static class IntelligenceServiceCollectionExtensions
         services.AddScoped<Karamchari.Intelligence.Services.IWorkforcePlanningService,
                             Karamchari.Intelligence.Services.WorkforcePlanningService>();
 
+        // Phase 6
+        services.AddScoped<WorkforceSignalService>();
+        services.AddHostedService<WorkforceIntelligenceRecomputeJob>();
+
         return services;
     }
 
@@ -70,5 +83,6 @@ public static class IntelligenceServiceCollectionExtensions
     public static void AddKaramchariIntelligenceConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
     {
         ArgumentNullException.ThrowIfNull(busConfigurator);
+        busConfigurator.AddConsumer<WorkforceIntelligenceConsumer>();
     }
 }

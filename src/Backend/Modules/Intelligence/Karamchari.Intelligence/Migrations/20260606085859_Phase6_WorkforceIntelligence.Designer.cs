@@ -4,6 +4,7 @@ using Karamchari.Intelligence.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Karamchari.Intelligence.Migrations
 {
     [DbContext(typeof(IntelligenceDbContext))]
-    partial class IntelligenceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260606085859_Phase6_WorkforceIntelligence")]
+    partial class Phase6_WorkforceIntelligence
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

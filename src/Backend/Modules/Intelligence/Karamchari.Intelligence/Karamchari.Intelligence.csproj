@@ -2,12 +2,18 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
     <ProjectReference Include="..\Karamchari.Intelligence.Contracts\Karamchari.Intelligence.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MassTransit" />
     <PackageReference Include="MassTransit.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <PropertyGroup>
@@ -16,6 +22,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- CA1707: EF migration class names contain underscores by design. CS1591: XML docs in progress. -->
+    <NoWarn>$(NoWarn);CA1707;CS1591</NoWarn>
   </PropertyGroup>
 
 </Project>
