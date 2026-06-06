@@ -62,6 +62,7 @@ public static class EndpointExtensions
         app.MapRosterEndpoints();
         app.MapCapabilityEndpoints();
         app.MapStrategyEndpoints();
+        app.MapWorkforceIntelligenceEndpoints();
         app.MapPayrollEndpoints();
         app.MapComplianceEndpoints();
         app.MapPSAEndpoints();

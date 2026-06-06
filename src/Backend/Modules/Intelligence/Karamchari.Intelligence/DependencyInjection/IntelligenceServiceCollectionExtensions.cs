@@ -62,6 +62,10 @@ public static class IntelligenceServiceCollectionExtensions
         services.RegisterTenantTable("Intel_DependencyScores");
         services.RegisterTenantTable("Intel_ScheduleQualityScores");
         services.RegisterTenantTable("Intel_EmployeeSegments");
+        // Phase 6.4
+        services.RegisterTenantTable("Intel_EmployeeScopes");
+        services.RegisterTenantTable("Intel_CoverageFragility");
+        services.RegisterTenantTable("Intel_CausalChains");
 
         services.AddDbContext<IntelligenceDbContext>((sp, options) =>
         {
@@ -102,6 +106,10 @@ public static class IntelligenceServiceCollectionExtensions
         services.AddScoped<DependencyRiskService>();
         services.AddScoped<ScheduleQualityService>();
         services.AddScoped<RecommendationEffectivenessService>();
+        // Phase 6.4
+        services.AddScoped<CoverageFragilityService>();
+        services.AddScoped<CausalChainService>();
+        services.AddScoped<WorkforceDashboardQueryService>();
 
         return services;
     }

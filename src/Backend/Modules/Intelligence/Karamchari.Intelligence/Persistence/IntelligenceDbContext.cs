@@ -109,6 +109,17 @@ public class IntelligenceDbContext : KaramchariDbContext
     /// <summary>Workforce segment assignments per employee.</summary>
     public DbSet<EmployeeSegmentProfile> EmployeeSegmentProfiles => Set<EmployeeSegmentProfile>();
 
+    // ── Phase 6.4: Workforce Decision Intelligence ───────────────────────────
+
+    /// <summary>Site / department / manager scope assignments per employee.</summary>
+    public DbSet<WorkforceEmployeeScope> WorkforceEmployeeScopes => Set<WorkforceEmployeeScope>();
+
+    /// <summary>Site-level coverage fragility aggregates.</summary>
+    public DbSet<SiteCoverageFragility> SiteCoverageFragilities => Set<SiteCoverageFragility>();
+
+    /// <summary>Per-employee active causal chain detection snapshots.</summary>
+    public DbSet<EmployeeCausalChain> EmployeeCausalChains => Set<EmployeeCausalChain>();
+
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -510,6 +521,43 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.EmployeeId }).IsUnique();
             b.Property(x => x.Segment).HasConversion<string>();
             b.Property(x => x.AssignedBy).HasMaxLength(200);
+        });
+
+        // ── Phase 6.4: Workforce Decision Intelligence ───────────────────────
+
+        modelBuilder.Entity<WorkforceEmployeeScope>(b =>
+        {
+            b.ToTable("Intel_EmployeeScopes");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId }).IsUnique();
+            b.Property(x => x.SiteCode).HasMaxLength(50);
+            b.Property(x => x.DepartmentCode).HasMaxLength(50);
+            b.Property(x => x.ManagerId).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<SiteCoverageFragility>(b =>
+        {
+            b.ToTable("Intel_CoverageFragility");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.ScopeKey }).IsUnique();
+            b.Property(x => x.ScopeKey).HasMaxLength(100);
+            b.Property(x => x.FragilityScore).HasPrecision(5, 1);
+            b.Property(x => x.FragilityLevel).HasConversion<string>();
+            b.Property(x => x.BurnoutPressureComponent).HasPrecision(5, 1);
+            b.Property(x => x.DependencyConcentrationComponent).HasPrecision(5, 1);
+            b.Property(x => x.CriticalExposureComponent).HasPrecision(5, 1);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        modelBuilder.Entity<EmployeeCausalChain>(b =>
+        {
+            b.ToTable("Intel_CausalChains");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId }).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.ChainSeverity });
+            b.Property(x => x.ActiveLinksJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.ChainSeverity).HasConversion<string>();
+            b.Property(x => x.RowVersion).IsRowVersion();
         });
     }
 }
