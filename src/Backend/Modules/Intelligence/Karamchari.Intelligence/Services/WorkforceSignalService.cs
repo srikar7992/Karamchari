@@ -41,6 +41,7 @@ public sealed class WorkforceSignalService
     public async Task RecalculateEmployeeAsync(
         string tenantId,
         Guid employeeId,
+        IReadOnlyDictionary<WorkforceRecommendationType, decimal>? effectivenessRates = null,
         CancellationToken ct = default)
     {
         var signals = await _db.WorkforceSignalRecords
@@ -56,8 +57,8 @@ public sealed class WorkforceSignalService
         var burnoutInput = BuildBurnoutInput(employeeId, signals);
         var attritionInput = BuildAttritionInput(employeeId, signals);
 
-        await UpsertBurnoutScoreAsync(tenantId, burnoutInput, ct);
-        await UpsertAttritionScoreAsync(tenantId, attritionInput, ct);
+        await UpsertBurnoutScoreAsync(tenantId, burnoutInput, effectivenessRates, ct);
+        await UpsertAttritionScoreAsync(tenantId, attritionInput, effectivenessRates, ct);
 
         await _db.SaveChangesAsync(ct);
     }
@@ -65,8 +66,12 @@ public sealed class WorkforceSignalService
     /// <summary>
     /// Full tenant recalculation — called nightly by WorkforceIntelligenceRecomputeJob.
     /// Processes all employees in batches of 500 to avoid full-table scans.
+    /// Pass <paramref name="effectivenessRates"/> (loaded once per tenant) to rank recommendations.
     /// </summary>
-    public async Task RecalculateTenantAsync(string tenantId, CancellationToken ct = default)
+    public async Task RecalculateTenantAsync(
+        string tenantId,
+        IReadOnlyDictionary<WorkforceRecommendationType, decimal>? effectivenessRates = null,
+        CancellationToken ct = default)
     {
         var employeeIds = await _db.WorkforceSignalRecords
             .Where(s => s.TenantId == tenantId)
@@ -83,7 +88,7 @@ public sealed class WorkforceSignalService
             {
                 try
                 {
-                    await RecalculateEmployeeAsync(tenantId, employeeId, ct);
+                    await RecalculateEmployeeAsync(tenantId, employeeId, effectivenessRates, ct);
                 }
                 catch (Exception ex)
                 {
@@ -225,6 +230,7 @@ public sealed class WorkforceSignalService
     private async Task UpsertBurnoutScoreAsync(
         string tenantId,
         BurnoutSignalInput input,
+        IReadOnlyDictionary<WorkforceRecommendationType, decimal>? effectivenessRates,
         CancellationToken ct)
     {
         var result = BurnoutScoreCalculator.Calculate(input);
@@ -274,7 +280,7 @@ public sealed class WorkforceSignalService
         // Raise recommendations for High/Critical employees
         if (result.RiskLevel >= WorkforceRiskLevel.High)
         {
-            var recs = RecommendationEngine.ForBurnout(result, input);
+            var recs = RecommendationEngine.ForBurnout(result, input, effectivenessRates);
             foreach (var (type, priority, rationale) in recs)
             {
                 // Avoid duplicate open recommendations of the same type
@@ -296,6 +302,7 @@ public sealed class WorkforceSignalService
     private async Task UpsertAttritionScoreAsync(
         string tenantId,
         AttritionSignalInput input,
+        IReadOnlyDictionary<WorkforceRecommendationType, decimal>? effectivenessRates,
         CancellationToken ct)
     {
         var result = AttritionScoreCalculator.Calculate(input);
@@ -344,7 +351,7 @@ public sealed class WorkforceSignalService
 
         if (result.RiskLevel >= WorkforceRiskLevel.High)
         {
-            var recs = RecommendationEngine.ForAttrition(result, input);
+            var recs = RecommendationEngine.ForAttrition(result, input, effectivenessRates);
             foreach (var (type, priority, rationale) in recs)
             {
                 var alreadyOpen = await _db.WorkforceRecommendations

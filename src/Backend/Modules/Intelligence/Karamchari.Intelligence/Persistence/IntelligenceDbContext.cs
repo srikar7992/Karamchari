@@ -98,6 +98,17 @@ public class IntelligenceDbContext : KaramchariDbContext
     /// <summary>Org-level hotspot aggregates per scope (tenant / site / team).</summary>
     public DbSet<WorkforceHotspot> WorkforceHotspots => Set<WorkforceHotspot>();
 
+    // ── Phase 6.3: Structural Intelligence ──────────────────────────────────
+
+    /// <summary>Business-continuity dependency risk scores per employee.</summary>
+    public DbSet<EmployeeDependencyScore> EmployeeDependencyScores => Set<EmployeeDependencyScore>();
+
+    /// <summary>Schedule ergonomic quality scores per employee.</summary>
+    public DbSet<EmployeeScheduleQuality> EmployeeScheduleQualities => Set<EmployeeScheduleQuality>();
+
+    /// <summary>Workforce segment assignments per employee.</summary>
+    public DbSet<EmployeeSegmentProfile> EmployeeSegmentProfiles => Set<EmployeeSegmentProfile>();
+
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -460,6 +471,45 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.BurnoutSeverity).HasConversion<string>();
             b.Property(x => x.AttritionSeverity).HasConversion<string>();
             b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 6.3: Structural Intelligence ──────────────────────────────
+
+        modelBuilder.Entity<EmployeeDependencyScore>(b =>
+        {
+            b.ToTable("Intel_DependencyScores");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId }).IsUnique();
+            b.Property(x => x.Score).HasPrecision(5, 1);
+            b.Property(x => x.RiskLevel).HasConversion<string>();
+            b.Property(x => x.CriticalShiftComponent).HasPrecision(5, 1);
+            b.Property(x => x.CrossTrainingComponent).HasPrecision(5, 1);
+            b.Property(x => x.UniqueRoleComponent).HasPrecision(5, 1);
+            b.Property(x => x.ApprovalComponent).HasPrecision(5, 1);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        modelBuilder.Entity<EmployeeScheduleQuality>(b =>
+        {
+            b.ToTable("Intel_ScheduleQualityScores");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId }).IsUnique();
+            b.Property(x => x.QualityScore).HasPrecision(5, 1);
+            b.Property(x => x.PoorScheduleRiskLevel).HasConversion<string>();
+            b.Property(x => x.RotationStressComponent).HasPrecision(5, 1);
+            b.Property(x => x.RestViolationComponent).HasPrecision(5, 1);
+            b.Property(x => x.WeekendClusterComponent).HasPrecision(5, 1);
+            b.Property(x => x.SplitShiftComponent).HasPrecision(5, 1);
+            b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        modelBuilder.Entity<EmployeeSegmentProfile>(b =>
+        {
+            b.ToTable("Intel_EmployeeSegments");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId }).IsUnique();
+            b.Property(x => x.Segment).HasConversion<string>();
+            b.Property(x => x.AssignedBy).HasMaxLength(200);
         });
     }
 }

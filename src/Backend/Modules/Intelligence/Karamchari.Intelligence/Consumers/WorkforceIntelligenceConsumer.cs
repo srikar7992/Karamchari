@@ -13,22 +13,22 @@ namespace Karamchari.Intelligence.Consumers;
 /// and triggers incremental score recalculation.
 ///
 /// Signal coverage:
-///   TimesheetApprovedIntegrationEvent   → OvertimeHours28d proxy (hours above 40h/week)
-///   LeaveCancelledIntegrationEvent      → LeaveFrequencyRatio bookkeeping
-///   EmployeeOnboardedIntegrationEvent   → Baseline seed (ConsecutiveWorkDays = 0)
-///   EmployeeTerminatedIntegrationEvent  → Preserve scores, no new recalculation
+///   TimesheetApprovedIntegrationEvent   â†’ OvertimeHours28d proxy (hours above 40h/week)
+///   LeaveCancelledIntegrationEvent      â†’ LeaveFrequencyRatio bookkeeping
+///   EmployeeOnboardedIntegrationEvent   â†’ Baseline seed (ConsecutiveWorkDays = 0)
+///   EmployeeTerminatedIntegrationEvent  â†’ Preserve scores, no new recalculation
 ///
 /// Signals NOT covered by real-time events (nightly job only):
-///   ConsecutiveWorkDays      — requires ordered shift history
-///   DaysWithoutLeave         — computed from roster + approved leave history
-///   LateArrivalsMonthly      — requires finalized attendance records
-///   HighIntensityShiftRatio  — requires full roster snapshot
-///   EmergencyFillIns90d      — sourced from WFP CoverageRisk table
-///   PeerAttendanceGap        — requires team-level aggregation
+///   ConsecutiveWorkDays      â€” requires ordered shift history
+///   DaysWithoutLeave         â€” computed from roster + approved leave history
+///   LateArrivalsMonthly      â€” requires finalized attendance records
+///   HighIntensityShiftRatio  â€” requires full roster snapshot
+///   EmergencyFillIns90d      â€” sourced from WFP CoverageRisk table
+///   PeerAttendanceGap        â€” requires team-level aggregation
 ///
 /// Phase 6.1 additions:
-///   ShiftSwapApprovedIntegrationEvent → ShiftSwaps30d signal (real-time)
-///   OvertimeRejectedIntegrationEvent  → OvertimeRejections30d signal (real-time)
+///   ShiftSwapApprovedIntegrationEvent â†’ ShiftSwaps30d signal (real-time)
+///   OvertimeRejectedIntegrationEvent  â†’ OvertimeRejections30d signal (real-time)
 ///
 /// NOTE: LeaveRequestApprovedIntegrationEvent is NOT consumed here because
 /// the V1 contract does not include TenantId. The DaysWithoutLeave signal is
@@ -75,19 +75,19 @@ public sealed class WorkforceIntelligenceConsumer :
             otThisWeek,
             ev.WeekStartDate, ct);
 
-        await _signalService.RecalculateEmployeeAsync(ev.TenantId, ev.EmployeeId, ct);
+        await _signalService.RecalculateEmployeeAsync(ev.TenantId, ev.EmployeeId, ct: ct);
 
         _logger.LogDebug("Timesheet {Id}: OT proxy {OT:F1}h for employee {EmpId}",
             ev.TimesheetId, otThisWeek, ev.EmployeeId);
     }
 
     /// <summary>
-    /// Cancelled leave may indicate leave avoidance — no signal change needed;
+    /// Cancelled leave may indicate leave avoidance â€” no signal change needed;
     /// the DaysWithoutLeave counter continues accumulating. Logged for audit.
     /// </summary>
     public Task Consume(ConsumeContext<LeaveCancelledIntegrationEvent> context)
     {
-        _logger.LogDebug("Leave cancelled for employee {EmployeeId} (tenant {TenantId}) — DaysWithoutLeave unchanged",
+        _logger.LogDebug("Leave cancelled for employee {EmployeeId} (tenant {TenantId}) â€” DaysWithoutLeave unchanged",
             context.Message.EmployeeId, context.Message.TenantId);
         return Task.CompletedTask;
     }
@@ -123,7 +123,7 @@ public sealed class WorkforceIntelligenceConsumer :
             notes: "Recorded from EmployeeTerminatedIntegrationEvent",
             ct: ct);
 
-        _logger.LogDebug("Employee {EmployeeId} terminated on {Date} — workforce scores frozen, outcome label recorded",
+        _logger.LogDebug("Employee {EmployeeId} terminated on {Date} â€” workforce scores frozen, outcome label recorded",
             ev.EmployeeId, ev.TerminatedOn);
     }
 
@@ -147,9 +147,9 @@ public sealed class WorkforceIntelligenceConsumer :
             currentCount + 1m,
             ev.SwapDate, ct);
 
-        await _signalService.RecalculateEmployeeAsync(ev.TenantId, ev.RequestingEmployeeId, ct);
+        await _signalService.RecalculateEmployeeAsync(ev.TenantId, ev.RequestingEmployeeId, ct: ct);
 
-        _logger.LogDebug("Shift swap approved for employee {EmployeeId} — ShiftSwaps30d incremented",
+        _logger.LogDebug("Shift swap approved for employee {EmployeeId} â€” ShiftSwaps30d incremented",
             ev.RequestingEmployeeId);
     }
 
@@ -171,9 +171,10 @@ public sealed class WorkforceIntelligenceConsumer :
             currentCount + 1m,
             ev.WorkDate, ct);
 
-        await _signalService.RecalculateEmployeeAsync(ev.TenantId, ev.EmployeeId, ct);
+        await _signalService.RecalculateEmployeeAsync(ev.TenantId, ev.EmployeeId, ct: ct);
 
-        _logger.LogDebug("OT rejected by employee {EmployeeId} ({Hours:F1}h) — OvertimeRejections30d incremented",
+        _logger.LogDebug("OT rejected by employee {EmployeeId} ({Hours:F1}h) â€” OvertimeRejections30d incremented",
             ev.EmployeeId, ev.OfferedHours);
     }
 }
+

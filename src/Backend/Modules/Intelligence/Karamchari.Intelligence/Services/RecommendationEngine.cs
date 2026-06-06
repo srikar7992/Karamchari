@@ -13,9 +13,14 @@ public static class RecommendationEngine
     /// <summary>
     /// Derives recommendations from a burnout score.
     /// Returns an empty list if score is Low risk.
+    /// If <paramref name="effectivenessRates"/> is provided, recommendations are sorted
+    /// by historical effectiveness (highest first) so managers see the most impactful action first.
     /// </summary>
     public static IReadOnlyList<(WorkforceRecommendationType Type, RecommendationPriority Priority, string Rationale)>
-        ForBurnout(BurnoutScoreResult result, BurnoutSignalInput input)
+        ForBurnout(
+            BurnoutScoreResult result,
+            BurnoutSignalInput input,
+            IReadOnlyDictionary<WorkforceRecommendationType, decimal>? effectivenessRates = null)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(input);
@@ -47,15 +52,20 @@ public static class RecommendationEngine
                 RecommendationPriority.Low,
                 $"Burnout score {result.Score:F0} (Moderate). Continue monitoring — no immediate action required."));
 
-        return recs;
+        return RankByEffectiveness(recs, effectivenessRates);
     }
 
     /// <summary>
     /// Derives recommendations from an attrition score.
     /// Returns an empty list if score is Low risk.
+    /// If <paramref name="effectivenessRates"/> is provided, recommendations are sorted
+    /// by historical effectiveness (highest first).
     /// </summary>
     public static IReadOnlyList<(WorkforceRecommendationType Type, RecommendationPriority Priority, string Rationale)>
-        ForAttrition(AttritionScoreResult result, AttritionSignalInput input)
+        ForAttrition(
+            AttritionScoreResult result,
+            AttritionSignalInput input,
+            IReadOnlyDictionary<WorkforceRecommendationType, decimal>? effectivenessRates = null)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(input);
@@ -79,7 +89,7 @@ public static class RecommendationEngine
             RecommendationPriority.Medium,
             $"Attrition risk elevated. Conduct workload analysis and compare against team peers."));
 
-        return recs;
+        return RankByEffectiveness(recs, effectivenessRates);
     }
 
     /// <summary>
@@ -123,4 +133,22 @@ public static class RecommendationEngine
         WorkforceRiskLevel.Critical => RecommendationPriority.Critical,
         _ => RecommendationPriority.Low
     };
+
+    /// <summary>
+    /// Sorts a recommendation list by descending effectiveness rate.
+    /// Types without a rate entry default to 0.5 (neutral) so they interleave
+    /// without being penalised relative to unscored types.
+    /// </summary>
+    private static List<(WorkforceRecommendationType Type, RecommendationPriority Priority, string Rationale)>
+        RankByEffectiveness(
+            List<(WorkforceRecommendationType Type, RecommendationPriority Priority, string Rationale)> recs,
+            IReadOnlyDictionary<WorkforceRecommendationType, decimal>? effectivenessRates)
+    {
+        if (effectivenessRates == null || effectivenessRates.Count == 0 || recs.Count <= 1)
+            return recs;
+
+        return recs
+            .OrderByDescending(r => effectivenessRates.TryGetValue(r.Type, out var rate) ? rate : 0.5m)
+            .ToList();
+    }
 }

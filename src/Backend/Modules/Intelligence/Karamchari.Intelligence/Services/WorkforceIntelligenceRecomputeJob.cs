@@ -51,6 +51,9 @@ public sealed class WorkforceIntelligenceRecomputeJob : BackgroundService
         var signalService = scope.ServiceProvider.GetRequiredService<WorkforceSignalService>();
         var hotspotService = scope.ServiceProvider.GetRequiredService<HotspotDetectionService>();
         var interventionService = scope.ServiceProvider.GetRequiredService<InterventionTrackerService>();
+        var dependencyService = scope.ServiceProvider.GetRequiredService<DependencyRiskService>();
+        var scheduleQualityService = scope.ServiceProvider.GetRequiredService<ScheduleQualityService>();
+        var effectivenessService = scope.ServiceProvider.GetRequiredService<RecommendationEffectivenessService>();
 
         var tenantIds = await db.WorkforceSignalRecords
             .Select(s => s.TenantId)
@@ -63,9 +66,15 @@ public sealed class WorkforceIntelligenceRecomputeJob : BackgroundService
         {
             try
             {
-                await signalService.RecalculateTenantAsync(tenantId, ct);
+                // Load effectiveness rates once per tenant — passed into scoring so recommendations
+                // are ranked by historical success before being persisted.
+                var effectivenessRates = await effectivenessService.GetEffectivenessRatesAsync(tenantId, ct);
+
+                await signalService.RecalculateTenantAsync(tenantId, effectivenessRates, ct);
                 await hotspotService.RecalculateTenantHotspotAsync(tenantId, ct);
                 await interventionService.EvaluateTenantInterventionsAsync(tenantId, ct);
+                await dependencyService.RecalculateTenantDependencyAsync(tenantId, ct);
+                await scheduleQualityService.RecalculateTenantScheduleQualityAsync(tenantId, ct);
             }
             catch (Exception ex)
             {

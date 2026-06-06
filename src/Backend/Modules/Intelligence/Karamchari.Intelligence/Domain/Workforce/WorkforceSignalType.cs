@@ -25,5 +25,16 @@ public enum WorkforceSignalType
     ManagerFrictionScore,      // normalised count of transfer requests + shift appeals + escalations (90d)
 
     // ── Phase 6.1 signals ────────────────────────────────────────────────────
-    CriticalShiftCoverageRatio  // fraction of critical shifts that only this employee can fill (0–1)
+    CriticalShiftCoverageRatio, // fraction of critical shifts that only this employee can fill (0–1)
+
+    // ── Phase 6.3: Dependency Risk signals ───────────────────────────────────
+    CrossTrainingDepth,         // number of distinct roles the employee can cover (0–10+)
+    UniqueRoleFlag,             // 1 if sole practitioner; 0 otherwise
+    ApprovalAuthorityIndex,     // 0=none, 1=minor, 2=major, 3=exclusive approvals held
+
+    // ── Phase 6.3: Schedule Quality signals ──────────────────────────────────
+    NightToMorningTransitions7d, // night-shift followed by morning-shift in same 7-day window (count)
+    ShortRestViolations7d,       // shifts with less than 11h rest gap preceding them (count)
+    WeekendShiftClustering,      // fraction of rolling 4-week windows where both Sat + Sun were worked (0–1)
+    SplitShiftCount30d           // shifts split across two blocks in the same calendar day (count)
 }

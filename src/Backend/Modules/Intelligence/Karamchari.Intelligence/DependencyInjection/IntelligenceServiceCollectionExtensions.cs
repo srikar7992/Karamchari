@@ -58,6 +58,10 @@ public static class IntelligenceServiceCollectionExtensions
         services.RegisterTenantTable("Intel_ScoreAudits");
         services.RegisterTenantTable("Intel_InterventionOutcomes");
         services.RegisterTenantTable("Intel_WorkforceHotspots");
+        // Phase 6.3
+        services.RegisterTenantTable("Intel_DependencyScores");
+        services.RegisterTenantTable("Intel_ScheduleQualityScores");
+        services.RegisterTenantTable("Intel_EmployeeSegments");
 
         services.AddDbContext<IntelligenceDbContext>((sp, options) =>
         {
@@ -94,6 +98,10 @@ public static class IntelligenceServiceCollectionExtensions
         services.AddScoped<HotspotDetectionService>();
         services.AddScoped<InterventionTrackerService>();
         services.AddHostedService<FeatureSnapshotRetentionJob>();
+        // Phase 6.3
+        services.AddScoped<DependencyRiskService>();
+        services.AddScoped<ScheduleQualityService>();
+        services.AddScoped<RecommendationEffectivenessService>();
 
         return services;
     }
