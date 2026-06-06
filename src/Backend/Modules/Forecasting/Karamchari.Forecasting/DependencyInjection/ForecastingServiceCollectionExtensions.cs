@@ -30,6 +30,31 @@ public static class ForecastingServiceCollectionExtensions
         services.RegisterTenantTable("Forecast_Metrics");
         services.RegisterTenantTable("Forecast_ClientPaymentProfiles");
 
+        // Phase 5: Workforce Planning tables
+        services.RegisterTenantTable("WFP_EmployeeIndex");
+        services.RegisterTenantTable("WFP_SkillExpiries");
+        services.RegisterTenantTable("WFP_AttendanceSnapshots");
+        services.RegisterTenantTable("WFP_AttritionSnapshots");
+        services.RegisterTenantTable("WFP_Projections");
+        services.RegisterTenantTable("WFP_ApprovedLeaves");
+        services.RegisterTenantTable("WFP_DemandForecasts");
+        services.RegisterTenantTable("WFP_SupplyForecasts");
+        services.RegisterTenantTable("WFP_CoverageRisks");
+        services.RegisterTenantTable("WFP_HiringGaps");
+        services.RegisterTenantTable("WFP_ScenarioForecasts");
+        services.RegisterTenantTable("WFP_ScenarioResults");
+        // Phase 5.1
+        services.RegisterTenantTable("WFP_SkillSubstitutions");
+        services.RegisterTenantTable("WFP_OvertimePolicies");
+        services.RegisterTenantTable("WFP_ForecastAccuracies");
+        services.RegisterTenantTable("WFP_RecomputeQueue");
+        // Phase 5.x Enterprise Enhancements
+        services.RegisterTenantTable("WFP_FutureHires");
+        services.RegisterTenantTable("WFP_ContractExpiries");
+        services.RegisterTenantTable("WFP_RetirementRisks");
+        // Phase 5.2
+        services.RegisterTenantTable("WFP_RetirementPolicies");
+
         services.AddDbContext<ForecastingDbContext>((serviceProvider, options) =>
         {
             var connectionString = configuration.GetConnectionString(ConnectionStringName)
@@ -48,6 +73,15 @@ public static class ForecastingServiceCollectionExtensions
 
         services.AddScoped<ForecastingEngine>();
 
+        // Phase 5: Workforce Planning
+        services.AddScoped<Karamchari.Forecasting.Services.DemandForecastGenerator>();
+        services.AddScoped<Karamchari.Forecasting.Services.SupplyForecastCalculator>();
+        services.AddScoped<Karamchari.Forecasting.Services.ScenarioEngine>();
+        services.AddScoped<Karamchari.Forecasting.Services.WorkforcePlanningService>();
+        services.AddScoped<Karamchari.Forecasting.Services.ForecastAccuracyCalculator>();
+        services.AddHostedService<Karamchari.Forecasting.Services.WorkforceRecomputeJob>();
+        services.AddHostedService<Karamchari.Forecasting.Services.RecomputeQueueDrainer>();
+
         return services;
     }
 
@@ -58,5 +92,6 @@ public static class ForecastingServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(busConfigurator);
         busConfigurator.AddConsumer<Karamchari.Forecasting.Consumers.ForecastUpdateConsumer>();
+        busConfigurator.AddConsumer<Karamchari.Forecasting.Consumers.WorkforcePlanningConsumer>();
     }
 }

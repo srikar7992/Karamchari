@@ -190,6 +190,63 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         Guid PingId,
         string TenantId,
         string Payload);
+
+    // ── Phase 5: Workforce Planning Events ──────────────────────────────────
+
+    /// <summary>
+    /// Published when an offer is accepted and a future start date is known.
+    /// Consumed by Forecasting to track future workforce supply before the employee onboards.
+    /// </summary>
+    /// <param name="OfferId">Stable offer identifier. Used as idempotency key by the WFP consumer.</param>
+    /// <param name="TenantId">Tenant owning this hire.</param>
+    /// <param name="LocationCode">Work location the candidate will join.</param>
+    /// <param name="SkillCode">Primary skill associated with this offer.</param>
+    /// <param name="ExpectedStartDate">Date on which the candidate is expected to begin work.</param>
+    /// <param name="JoiningProbability">
+    /// Probability the accepted offer converts to an actual join (0.0–1.0). Default 1.0.
+    /// Set lower for graduate/external hires with higher drop-off rates (e.g. 0.75).
+    /// WFP supply contribution = SUM(JoiningProbability) rounded to nearest integer.
+    /// </param>
+    public record HireOfferAcceptedIntegrationEvent(
+        Guid OfferId,
+        string TenantId,
+        string LocationCode,
+        string SkillCode,
+        DateOnly ExpectedStartDate,
+        decimal JoiningProbability = 1.0m);
+
+    /// <summary>Published when an approved leave request is cancelled before it starts.</summary>
+    public record LeaveCancelledIntegrationEvent(
+        Guid RequestId,
+        string TenantId,
+        Guid EmployeeId,
+        DateOnly StartDate,
+        DateOnly EndDate);
+
+    /// <summary>Published when an employee is terminated or their contract ends.</summary>
+    public record EmployeeTerminatedIntegrationEvent(
+        Guid EmployeeId,
+        string TenantId,
+        string EmployeeNumber,
+        DateOnly TerminatedOn,
+        string TerminationReason);
+
+    /// <summary>Published when a skill is assigned or renewed for an employee.</summary>
+    public record SkillAssignedIntegrationEvent(
+        Guid EmployeeId,
+        string TenantId,
+        Guid SkillId,
+        string SkillCode,
+        string SkillName,
+        int Level,
+        DateOnly? ExpiryDate);
+
+    /// <summary>Published when a skill certification expires for an employee.</summary>
+    public record SkillExpiredIntegrationEvent(
+        Guid EmployeeId,
+        string TenantId,
+        Guid SkillId,
+        string SkillCode);
 }
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.V1
@@ -204,13 +261,17 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
     /// <param name="LegalName">The employee's legal full name.</param>
     /// <param name="WorkEmail">The employee's work email address. Null until provisioned.</param>
     /// <param name="HiredOn">The date the employee was hired.</param>
+    /// <param name="DateOfBirth">Optional date of birth. Used by WFP to derive retirement forecast dates.</param>
+    /// <param name="ContractEndDate">Optional fixed-term contract end date. Used by WFP to forecast contract expiry deductions.</param>
     public record EmployeeOnboardedIntegrationEvent(
         Guid EmployeeId,
         string TenantId,
         string EmployeeNumber,
         string LegalName,
         string? WorkEmail,
-        DateOnly HiredOn);
+        DateOnly HiredOn,
+        DateOnly? DateOfBirth = null,
+        DateOnly? ContractEndDate = null);
 
     /// <summary>
     /// V1: does NOT include EmployeeName â€” consumers must look it up separately.
