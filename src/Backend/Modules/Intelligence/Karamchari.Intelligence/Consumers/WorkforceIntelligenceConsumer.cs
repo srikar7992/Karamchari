@@ -1,5 +1,6 @@
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Contracts.IntegrationEvents.V1;
+using Karamchari.Core.Contracts.IntegrationEvents.Workforce;
 using Karamchari.Intelligence.Domain.Workforce;
 using Karamchari.Intelligence.Services;
 using MassTransit;
@@ -21,10 +22,13 @@ namespace Karamchari.Intelligence.Consumers;
 ///   ConsecutiveWorkDays      — requires ordered shift history
 ///   DaysWithoutLeave         — computed from roster + approved leave history
 ///   LateArrivalsMonthly      — requires finalized attendance records
-///   ShiftSwaps30d            — no cross-module integration event published yet
 ///   HighIntensityShiftRatio  — requires full roster snapshot
 ///   EmergencyFillIns90d      — sourced from WFP CoverageRisk table
 ///   PeerAttendanceGap        — requires team-level aggregation
+///
+/// Phase 6.1 additions:
+///   ShiftSwapApprovedIntegrationEvent → ShiftSwaps30d signal (real-time)
+///   OvertimeRejectedIntegrationEvent  → OvertimeRejections30d signal (real-time)
 ///
 /// NOTE: LeaveRequestApprovedIntegrationEvent is NOT consumed here because
 /// the V1 contract does not include TenantId. The DaysWithoutLeave signal is
@@ -34,16 +38,21 @@ public sealed class WorkforceIntelligenceConsumer :
     IConsumer<TimesheetApprovedIntegrationEvent>,
     IConsumer<LeaveCancelledIntegrationEvent>,
     IConsumer<EmployeeOnboardedIntegrationEvent>,
-    IConsumer<EmployeeTerminatedIntegrationEvent>
+    IConsumer<EmployeeTerminatedIntegrationEvent>,
+    IConsumer<ShiftSwapApprovedIntegrationEvent>,
+    IConsumer<OvertimeRejectedIntegrationEvent>
 {
     private readonly WorkforceSignalService _signalService;
+    private readonly OutcomeLabelService _outcomeLabelService;
     private readonly ILogger<WorkforceIntelligenceConsumer> _logger;
 
     public WorkforceIntelligenceConsumer(
         WorkforceSignalService signalService,
+        OutcomeLabelService outcomeLabelService,
         ILogger<WorkforceIntelligenceConsumer> logger)
     {
         _signalService = signalService;
+        _outcomeLabelService = outcomeLabelService;
         _logger = logger;
     }
 
@@ -100,12 +109,71 @@ public sealed class WorkforceIntelligenceConsumer :
 
     /// <summary>
     /// Terminated employees: final scores preserved for historical reporting.
-    /// No new recalculation after termination.
+    /// Records outcome label for ML training data.
     /// </summary>
-    public Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEvent> context)
     {
-        _logger.LogDebug("Employee {EmployeeId} terminated on {Date} — workforce scores frozen",
-            context.Message.EmployeeId, context.Message.TerminatedOn);
-        return Task.CompletedTask;
+        var ev = context.Message;
+        var ct = context.CancellationToken;
+
+        await _outcomeLabelService.RecordOutcomeAsync(
+            ev.TenantId, ev.EmployeeId,
+            Domain.Workforce.WorkforceOutcome.Termination,
+            ev.TerminatedOn,
+            notes: "Recorded from EmployeeTerminatedIntegrationEvent",
+            ct: ct);
+
+        _logger.LogDebug("Employee {EmployeeId} terminated on {Date} — workforce scores frozen, outcome label recorded",
+            ev.EmployeeId, ev.TerminatedOn);
+    }
+
+    /// <summary>
+    /// Approved shift swap: increments ShiftSwaps30d proxy for the requesting employee.
+    /// The daily rolling count is aggregated by the nightly job; this upserts today's record.
+    /// </summary>
+    public async Task Consume(ConsumeContext<ShiftSwapApprovedIntegrationEvent> context)
+    {
+        var ev = context.Message;
+        var ct = context.CancellationToken;
+
+        // Load current rolling count, add 1, re-upsert
+        var currentCount = await _signalService.GetLatestSignalValueAsync(
+            ev.TenantId, ev.RequestingEmployeeId,
+            WorkforceSignalType.ShiftSwaps30d, ct);
+
+        await _signalService.UpsertSignalAsync(
+            ev.TenantId, ev.RequestingEmployeeId,
+            WorkforceSignalType.ShiftSwaps30d,
+            currentCount + 1m,
+            ev.SwapDate, ct);
+
+        await _signalService.RecalculateEmployeeAsync(ev.TenantId, ev.RequestingEmployeeId, ct);
+
+        _logger.LogDebug("Shift swap approved for employee {EmployeeId} — ShiftSwaps30d incremented",
+            ev.RequestingEmployeeId);
+    }
+
+    /// <summary>
+    /// Declined overtime offer: increments OvertimeRejections30d signal for the employee.
+    /// </summary>
+    public async Task Consume(ConsumeContext<OvertimeRejectedIntegrationEvent> context)
+    {
+        var ev = context.Message;
+        var ct = context.CancellationToken;
+
+        var currentCount = await _signalService.GetLatestSignalValueAsync(
+            ev.TenantId, ev.EmployeeId,
+            WorkforceSignalType.OvertimeRejections30d, ct);
+
+        await _signalService.UpsertSignalAsync(
+            ev.TenantId, ev.EmployeeId,
+            WorkforceSignalType.OvertimeRejections30d,
+            currentCount + 1m,
+            ev.WorkDate, ct);
+
+        await _signalService.RecalculateEmployeeAsync(ev.TenantId, ev.EmployeeId, ct);
+
+        _logger.LogDebug("OT rejected by employee {EmployeeId} ({Hours:F1}h) — OvertimeRejections30d incremented",
+            ev.EmployeeId, ev.OfferedHours);
     }
 }

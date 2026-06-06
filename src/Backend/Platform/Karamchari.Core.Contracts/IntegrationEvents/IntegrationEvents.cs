@@ -324,3 +324,52 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V2
         Dictionary<string, decimal> Deductions,
         string TaxRegime);
 }
+
+namespace Karamchari.Core.Contracts.IntegrationEvents.Workforce
+{
+    // ── Phase 6.1: Shift swap and overtime event contracts ───────────────────
+    // These fill the real-time signal gaps identified in Phase 6.
+    // TenantId is required on all events to support multi-tenant RLS.
+
+    /// <summary>Published when a requested shift swap is approved by a manager.</summary>
+    public record ShiftSwapApprovedIntegrationEvent(
+        Guid SwapId,
+        Guid RequestingEmployeeId,
+        Guid TargetEmployeeId,
+        string TenantId,
+        DateOnly SwapDate,
+        Guid RequestingShiftId,
+        Guid TargetShiftId,
+        DateTime ApprovedAt);
+
+    /// <summary>Published when a requested shift swap is rejected by a manager.</summary>
+    public record ShiftSwapRejectedIntegrationEvent(
+        Guid SwapId,
+        Guid RequestingEmployeeId,
+        string TenantId,
+        DateOnly SwapDate,
+        string RejectionReason,
+        DateTime RejectedAt);
+
+    /// <summary>Published when an employee accepts an overtime offer.</summary>
+    public record OvertimeAcceptedIntegrationEvent(
+        Guid OvertimeOfferId,
+        Guid EmployeeId,
+        string TenantId,
+        DateOnly WorkDate,
+        decimal OfferedHours,
+        DateTime AcceptedAt);
+
+    /// <summary>
+    /// Published when an employee declines an overtime offer.
+    /// Consumed by Intelligence module to update OvertimeRejections30d signal.
+    /// </summary>
+    public record OvertimeRejectedIntegrationEvent(
+        Guid OvertimeOfferId,
+        Guid EmployeeId,
+        string TenantId,
+        DateOnly WorkDate,
+        decimal OfferedHours,
+        string? RejectionReason,
+        DateTime RejectedAt);
+}

@@ -22,5 +22,8 @@ public enum WorkforceSignalType
     ShiftSwapAttritionScore,   // qualitative: shift-away pattern weight (computed from swap direction)
     OvertimeRejections30d,     // overtime offers declined in rolling 30-day window
     PeerAttendanceGap,         // employee attendance % minus team average % (negative = below team)
-    ManagerFrictionScore       // normalised count of transfer requests + shift appeals + escalations (90d)
+    ManagerFrictionScore,      // normalised count of transfer requests + shift appeals + escalations (90d)
+
+    // ── Phase 6.1 signals ────────────────────────────────────────────────────
+    CriticalShiftCoverageRatio  // fraction of critical shifts that only this employee can fill (0–1)
 }

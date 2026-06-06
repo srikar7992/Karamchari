@@ -93,6 +93,22 @@ public sealed class WorkforceSignalService
         }
     }
 
+    /// <summary>Returns the most recent value for a signal type, or 0 if none exists.</summary>
+    public async Task<decimal> GetLatestSignalValueAsync(
+        string tenantId,
+        Guid employeeId,
+        WorkforceSignalType signalType,
+        CancellationToken ct = default)
+    {
+        return await _db.WorkforceSignalRecords
+            .Where(s => s.TenantId == tenantId
+                     && s.EmployeeId == employeeId
+                     && s.SignalType == signalType)
+            .OrderByDescending(s => s.SignalDate)
+            .Select(s => s.Value)
+            .FirstOrDefaultAsync(ct);
+    }
+
     /// <summary>
     /// Upserts a raw signal record for an employee.
     /// Called by event consumers when a new signal measurement arrives.
@@ -229,6 +245,10 @@ public sealed class WorkforceSignalService
             existing.Refresh(result.Score, result.RiskLevel, result.Confidence, result.Explanation, componentsJson);
         }
 
+        // Append to history for velocity / forecast computation
+        _db.WorkforceScoreSnapshots.Add(WorkforceScoreSnapshot.Record(
+            tenantId, input.EmployeeId, "Burnout", result.Score, result.RiskLevel));
+
         // Raise recommendations for High/Critical employees
         if (result.RiskLevel >= WorkforceRiskLevel.High)
         {
@@ -273,6 +293,10 @@ public sealed class WorkforceSignalService
         {
             existing.Refresh(result.Score, result.RiskLevel, result.Confidence, result.Explanation, componentsJson);
         }
+
+        // Append to history for velocity / forecast computation
+        _db.WorkforceScoreSnapshots.Add(WorkforceScoreSnapshot.Record(
+            tenantId, input.EmployeeId, "Attrition", result.Score, result.RiskLevel));
 
         if (result.RiskLevel >= WorkforceRiskLevel.High)
         {

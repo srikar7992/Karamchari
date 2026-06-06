@@ -45,6 +45,14 @@ public static class IntelligenceServiceCollectionExtensions
         services.RegisterTenantTable("Intel_WorkforceHealthScores");
         services.RegisterTenantTable("Intel_ManagerScores");
         services.RegisterTenantTable("Intel_WorkforceRecommendations");
+        // Phase 6.1
+        services.RegisterTenantTable("Intel_ScoreSnapshots");
+        services.RegisterTenantTable("Intel_Forecasts");
+        services.RegisterTenantTable("Intel_TalentRiskScores");
+        services.RegisterTenantTable("Intel_WorkloadFairness");
+        services.RegisterTenantTable("Intel_AbsenceContagion");
+        services.RegisterTenantTable("Intel_FeatureSnapshots");
+        services.RegisterTenantTable("Intel_OutcomeLabels");
 
         services.AddDbContext<IntelligenceDbContext>((sp, options) =>
         {
@@ -73,6 +81,10 @@ public static class IntelligenceServiceCollectionExtensions
         // Phase 6
         services.AddScoped<WorkforceSignalService>();
         services.AddHostedService<WorkforceIntelligenceRecomputeJob>();
+        // Phase 6.1
+        services.AddScoped<WorkforceForecasterService>();
+        services.AddScoped<OutcomeLabelService>();
+        services.AddHostedService<FeatureSnapshotJob>();
 
         return services;
     }
