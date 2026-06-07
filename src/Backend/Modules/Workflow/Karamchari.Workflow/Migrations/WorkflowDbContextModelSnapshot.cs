@@ -38,6 +38,9 @@ namespace Karamchari.Workflow.Migrations
                         .HasDefaultValue("[]")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ExpressionJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -48,6 +51,18 @@ namespace Karamchari.Workflow.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasDefaultValue("Published")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("EffectiveFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -55,6 +70,8 @@ namespace Karamchari.Workflow.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId", "EntityType", "IsActive");
+
+                    b.HasIndex("TenantId", "Status");
 
                     b.ToTable("Workflow_Definitions", "__tenant__");
                 });

@@ -41,10 +41,25 @@ public sealed class WorkflowDbContext : KaramchariDbContext
             b.ToTable("Workflow_Definitions");
             b.HasKey(x => x.Id);
             b.HasIndex(x => new { x.TenantId, x.EntityType, x.IsActive });
+            b.HasIndex(x => new { x.TenantId, x.Status }); // governance lifecycle queries
             b.Property(x => x.ConditionsJson)
                 .HasColumnType("nvarchar(max)")
                 .HasDefaultValue("[]");
+            b.Property(x => x.ExpressionJson)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired(false);
+            b.Property(x => x.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50)
+                .HasDefaultValue("Published");
+            b.Property(x => x.EffectiveFrom)
+                .HasColumnType("datetime2")
+                .IsRequired(false);
+            b.Property(x => x.EffectiveTo)
+                .HasColumnType("datetime2")
+                .IsRequired(false);
             b.Ignore(x => x.Conditions);
+            b.Ignore(x => x.Expression);
             b.OwnsMany(x => x.Steps, s =>
             {
                 s.ToTable("Workflow_Steps");

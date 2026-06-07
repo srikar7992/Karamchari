@@ -4,7 +4,7 @@ namespace Karamchari.Workflow.Domain;
 
 /// <summary>
 /// Routing request. <see cref="Context"/> is the attribute dictionary used to evaluate
-/// <see cref="WorkflowCondition"/> expressions on each candidate definition.
+/// <see cref="ConditionGroup"/> expressions on each candidate definition.
 /// Keys are case-sensitive strings matching the <c>Field</c> property of each condition.
 /// Common keys: <c>Amount</c>, <c>EmployeeType</c>, <c>Location</c>, <c>Department</c>, <c>Tenure</c>.
 /// </summary>
@@ -16,7 +16,12 @@ public sealed record WorkflowRoutingRequest(
 /// <summary>
 /// Selects the correct <see cref="WorkflowDefinition"/> for an entity at submission time.
 /// Definitions are scored by Priority desc, then Name asc (deterministic tie-break).
-/// Conditions within a definition use AND semantics; definitions with no conditions always match.
+/// Routing eligibility requires:
+/// <list type="bullet">
+///   <item><see cref="WorkflowDefinition.IsActive"/> is true.</item>
+///   <item>Current UTC time falls within <see cref="WorkflowDefinition.EffectiveFrom"/>/<see cref="WorkflowDefinition.EffectiveTo"/> window.</item>
+///   <item>The expression evaluates to true against the supplied context.</item>
+/// </list>
 /// </summary>
 public sealed class WorkflowRouter
 {
@@ -31,9 +36,13 @@ public sealed class WorkflowRouter
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(request);
 
+        var now = DateTime.UtcNow;
+
         return candidates
             .Where(d => d.IsActive
                 && d.EntityType == request.EntityType
+                && (d.EffectiveFrom == null || d.EffectiveFrom.Value <= now)
+                && (d.EffectiveTo == null || d.EffectiveTo.Value >= now)
                 && d.Matches(request.Context))
             .OrderByDescending(d => d.Priority)
             .ThenBy(d => d.Name, StringComparer.Ordinal)

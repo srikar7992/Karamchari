@@ -16,6 +16,7 @@ using Karamchari.Api.BFF.Integration;
 using Karamchari.Api.BFF.Intelligence;
 using Karamchari.Api.BFF.Manager;
 using Karamchari.Api.BFF.Notifications;
+using Karamchari.Api.BFF.Ops;
 using Karamchari.Api.BFF.Payroll;
 using Karamchari.Api.BFF.PlatformIntelligence;
 using Karamchari.Api.BFF.PSA;
@@ -93,6 +94,7 @@ public static class EndpointExtensions
         app.MapAuditEndpoints();
         app.MapComplianceGateEndpoints();
         app.MapWorkflowRuleEndpoints();
+        app.MapOpsEndpoints();
 
         // BFF Workspaces (Phase 1A)
         app.MapManagerWorkspace();
