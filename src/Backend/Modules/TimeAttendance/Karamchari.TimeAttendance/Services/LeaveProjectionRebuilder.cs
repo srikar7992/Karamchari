@@ -17,16 +17,10 @@ using Microsoft.Extensions.Logging;
 /// TeamLeaveProjection requires team headcount data from HR module —
 /// that rebuild is triggered via a dedicated endpoint in HR workspace.
 /// </summary>
-public sealed class LeaveProjectionRebuilder : IProjectionRebuilder
+public sealed class LeaveProjectionRebuilder(TimeAttendanceDbContext db, ILogger<LeaveProjectionRebuilder> logger) : IProjectionRebuilder
 {
-    private readonly TimeAttendanceDbContext _db;
-    private readonly ILogger<LeaveProjectionRebuilder> _logger;
-
-    public LeaveProjectionRebuilder(TimeAttendanceDbContext db, ILogger<LeaveProjectionRebuilder> logger)
-    {
-        _db = db;
-        _logger = logger;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
+    private readonly ILogger<LeaveProjectionRebuilder> _logger = logger;
 
     public ProjectionMetadata Metadata => new()
     {
@@ -55,22 +49,22 @@ public sealed class LeaveProjectionRebuilder : IProjectionRebuilder
     private async Task RebuildCalendarEntriesAsync(string tenantId, CancellationToken ct)
     {
         // Delete existing calendar entries for this tenant
-        var existing = await _db.LeaveCalendarEntries
+        List<LeaveCalendarEntry> existing = await _db.LeaveCalendarEntries
             .Where(e => e.TenantId == tenantId)
             .ToListAsync(ct);
         _db.LeaveCalendarEntries.RemoveRange(existing);
 
         // Rebuild from approved leave requests
-        var approvedRequests = await _db.LeaveRequests
+        List<LeaveRequest> approvedRequests = await _db.LeaveRequests
             .Where(r => r.TenantId == tenantId && r.Status == LeaveRequestStatus.Approved)
             .ToListAsync(ct);
 
-        foreach (var request in approvedRequests)
+        foreach (LeaveRequest? request in approvedRequests)
         {
-            var current = request.StartDate;
+            DateOnly current = request.StartDate;
             while (current <= request.EndDate)
             {
-                var duration = request.Mode == LeaveMode.HalfDay ? 0.5m : 1.0m;
+                decimal duration = request.Mode == LeaveMode.HalfDay ? 0.5m : 1.0m;
                 if (request.Mode == LeaveMode.Hourly && request.HoursRequested.HasValue)
                     duration = (decimal)(request.HoursRequested.Value / 8.0);
 
@@ -99,24 +93,24 @@ public sealed class LeaveProjectionRebuilder : IProjectionRebuilder
         // Full historical rebuild can be triggered per-employee via separate endpoint
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var leaveYear = await _db.LeaveYears
+        LeaveYear? leaveYear = await _db.LeaveYears
             .Where(y => y.TenantId == tenantId && y.IsActive && y.StartDate <= today && y.EndDate >= today)
             .FirstOrDefaultAsync(ct);
 
         if (leaveYear is null) return;
 
-        var approvedRequests = await _db.LeaveRequests
+        List<LeaveRequest> approvedRequests = await _db.LeaveRequests
             .Where(r => r.TenantId == tenantId
                 && r.Status == LeaveRequestStatus.Approved
                 && r.StartDate >= leaveYear.StartDate
                 && r.EndDate <= leaveYear.EndDate)
             .ToListAsync(ct);
 
-        var grouped = approvedRequests.GroupBy(r => r.EmployeeId);
+        IEnumerable<IGrouping<Guid, LeaveRequest>> grouped = approvedRequests.GroupBy(r => r.EmployeeId);
 
-        foreach (var group in grouped)
+        foreach (IGrouping<Guid, LeaveRequest> group in grouped)
         {
-            var summary = await _db.EmployeeLeaveSummaries
+            EmployeeLeaveSummary? summary = await _db.EmployeeLeaveSummaries
                 .FirstOrDefaultAsync(s => s.TenantId == tenantId
                     && s.EmployeeId == group.Key
                     && s.LeaveYearId == leaveYear.Id, ct);

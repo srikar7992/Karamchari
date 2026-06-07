@@ -8,16 +8,10 @@ using Karamchari.TimeAttendance.Persistence;
 /// MinCoveragePercent is stored on LeaveBlackoutPeriod or fetched from team policy (future).
 /// For now uses a simple count: if team calendar already has &gt;= threshold entries on any day, block.
 /// </summary>
-public sealed class TeamCoverageRule : ILeaveValidationRule
+public sealed class TeamCoverageRule(int teamSize, int maxAbsencePercent = 30) : ILeaveValidationRule
 {
-    private readonly int _teamSize;
-    private readonly int _maxAbsencePercent;
-
-    public TeamCoverageRule(int teamSize, int maxAbsencePercent = 30)
-    {
-        _teamSize = teamSize;
-        _maxAbsencePercent = maxAbsencePercent;
-    }
+    private readonly int _teamSize = teamSize;
+    private readonly int _maxAbsencePercent = maxAbsencePercent;
 
     public string RuleName => "TeamCoverage";
 
@@ -25,14 +19,14 @@ public sealed class TeamCoverageRule : ILeaveValidationRule
     {
         if (_teamSize <= 0) return Task.FromResult(LeaveValidationResult.Pass());
 
-        var maxAllowed = (int)Math.Floor(_teamSize * _maxAbsencePercent / 100.0);
-        var start = context.Request.StartDate;
-        var end = context.Request.EndDate;
+        int maxAllowed = (int)Math.Floor(_teamSize * _maxAbsencePercent / 100.0);
+        DateOnly start = context.Request.StartDate;
+        DateOnly end = context.Request.EndDate;
 
-        var current = start;
+        DateOnly current = start;
         while (current <= end)
         {
-            var onLeaveCount = context.TeamCalendar.Count(e =>
+            int onLeaveCount = context.TeamCalendar.Count(e =>
                 e.Date == current &&
                 e.EmployeeId != context.Request.EmployeeId &&
                 e.Status is not (LeaveCalendarEntryStatus.Cancelled

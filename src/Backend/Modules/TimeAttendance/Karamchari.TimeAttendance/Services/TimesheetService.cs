@@ -15,16 +15,10 @@ namespace Karamchari.TimeAttendance.Services;
 ///   aggregate are drained by DomainEventDispatchInterceptor inside SaveChangesAsync
 ///   and captured by MassTransit's transactional outbox atomically.
 /// </summary>
-public sealed class TimesheetService
+public sealed class TimesheetService(TimeAttendanceDbContext dbContext, ICapacityProvider capacityProvider)
 {
-    private readonly TimeAttendanceDbContext _dbContext;
-    private readonly ICapacityProvider _capacityProvider;
-
-    public TimesheetService(TimeAttendanceDbContext dbContext, ICapacityProvider capacityProvider)
-    {
-        _dbContext = dbContext;
-        _capacityProvider = capacityProvider;
-    }
+    private readonly TimeAttendanceDbContext _dbContext = dbContext;
+    private readonly ICapacityProvider _capacityProvider = capacityProvider;
 
     // â”€â”€ Create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -35,7 +29,7 @@ public sealed class TimesheetService
         string employeeTimeZoneId = "UTC",
         CancellationToken cancellationToken = default)
     {
-        var exists = await _dbContext.Timesheets.AnyAsync(
+        bool exists = await _dbContext.Timesheets.AnyAsync(
             t => t.EmployeeId == employeeId && t.WeekStartDate == weekStartDate,
             cancellationToken);
 
@@ -64,7 +58,7 @@ public sealed class TimesheetService
         IEnumerable<TimeEntry> rawEntries,
         CancellationToken cancellationToken = default)
     {
-        var timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
+        Timesheet timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
 
         // 1. Normalise cross-midnight spans into per-day segments.
         var normalized = rawEntries
@@ -72,7 +66,7 @@ public sealed class TimesheetService
             .ToList();
 
         // 2. Capacity check â€” null means no cap configured.
-        var capacity = await _capacityProvider.GetBillableCapacityAsync(
+        decimal? capacity = await _capacityProvider.GetBillableCapacityAsync(
             timesheet.EmployeeId, timesheet.WeekStartDate, cancellationToken);
         TimesheetValidator.ValidateCapacity(normalized, capacity);
 
@@ -89,7 +83,7 @@ public sealed class TimesheetService
     /// </summary>
     public async Task SubmitAsync(Guid timesheetId, Guid actorId, CancellationToken cancellationToken = default)
     {
-        var timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
+        Timesheet timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
         timesheet.Submit(actorId);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -101,7 +95,7 @@ public sealed class TimesheetService
     /// </summary>
     public async Task ApproveAsync(Guid timesheetId, Guid approverId, CancellationToken cancellationToken = default)
     {
-        var timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
+        Timesheet timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
         timesheet.Approve(approverId);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -115,7 +109,7 @@ public sealed class TimesheetService
         Guid approverId,
         CancellationToken cancellationToken = default)
     {
-        var timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
+        Timesheet timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
         timesheet.ApproveEntry(entryId, approverId);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -129,7 +123,7 @@ public sealed class TimesheetService
         Guid actorId,
         CancellationToken cancellationToken = default)
     {
-        var timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
+        Timesheet timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
         timesheet.Reject(reason, actorId);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -145,7 +139,7 @@ public sealed class TimesheetService
         Guid adminId,
         CancellationToken cancellationToken = default)
     {
-        var timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
+        Timesheet timesheet = await RequireTimesheetAsync(timesheetId, cancellationToken);
         timesheet.Reopen(reason, adminId);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -171,7 +165,7 @@ public sealed class TimesheetService
 
     private async Task<Timesheet> RequireTimesheetAsync(Guid timesheetId, CancellationToken cancellationToken)
     {
-        var timesheet = await _dbContext.Timesheets.FindAsync([timesheetId], cancellationToken);
+        Timesheet? timesheet = await _dbContext.Timesheets.FindAsync([timesheetId], cancellationToken);
         return timesheet ?? throw new InvalidOperationException($"Timesheet {timesheetId} not found.");
     }
 }

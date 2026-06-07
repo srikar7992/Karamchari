@@ -9,18 +9,13 @@ using MassTransit;
 /// <summary>
 /// Seeds default Time &amp; Attendance data (policies, calendars) for a newly provisioned tenant.
 /// </summary>
-public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedIntegrationEvent>
+/// <remarks>
+/// Initializes a new instance of the <see cref="TenantProvisionedConsumer"/> class.
+/// </remarks>
+/// <param name="dbContext">The time attendance database context.</param>
+public sealed class TenantProvisionedConsumer(TimeAttendanceDbContext dbContext) : IConsumer<TenantProvisionedIntegrationEvent>
 {
-    private readonly TimeAttendanceDbContext _dbContext;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TenantProvisionedConsumer"/> class.
-    /// </summary>
-    /// <param name="dbContext">The time attendance database context.</param>
-    public TenantProvisionedConsumer(TimeAttendanceDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly TimeAttendanceDbContext _dbContext = dbContext;
 
     /// <summary>
     /// Consumes the tenant provisioned event and seeds defaults.
@@ -67,7 +62,7 @@ public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedInteg
         var calendar = HolidayCalendar.Create("Default Calendar", "Standard Organizational Calendar");
 
         // Add some base global holidays
-        var year = DateTime.UtcNow.Year;
+        int year = DateTime.UtcNow.Year;
         calendar.AddHoliday(new DateOnly(year, 1, 1), "New Year's Day");
         calendar.AddHoliday(new DateOnly(year, 12, 25), "Christmas Day");
 

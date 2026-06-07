@@ -25,9 +25,9 @@ public sealed class ShiftAwareLeaveCalculator
         WorkPattern workPattern,
         IEnumerable<DateOnly> holidays)
     {
-        var holidaySet = holidays as ISet<DateOnly> ?? new HashSet<DateOnly>(holidays);
+        ISet<DateOnly> holidaySet = holidays as ISet<DateOnly> ?? new HashSet<DateOnly>(holidays);
         double totalDays = 0;
-        var current = start;
+        DateOnly current = start;
 
         while (current <= end)
         {

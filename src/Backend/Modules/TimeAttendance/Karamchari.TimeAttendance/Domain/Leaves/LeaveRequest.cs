@@ -93,7 +93,7 @@ public sealed class LeaveRequest : AggregateRoot<Guid>, ITenantOwned
         double hours, string? reason = null)
     {
         if (hours <= 0 || hours > 24) throw new ArgumentOutOfRangeException(nameof(hours));
-        var days = hours / 8.0;
+        double days = hours / 8.0;
         var request = new LeaveRequest(Guid.NewGuid(), employeeId, policyId, date, date, days,
             LeaveMode.Hourly, reason?.Trim())
         {
@@ -162,7 +162,7 @@ public sealed class LeaveRequest : AggregateRoot<Guid>, ITenantOwned
     public void Cancel()
     {
         LeaveStateMachine.Guard(Status, LeaveRequestStatus.Cancelled);
-        var wasApproved = Status == LeaveRequestStatus.Approved;
+        bool wasApproved = Status == LeaveRequestStatus.Approved;
         Status = LeaveRequestStatus.Cancelled;
         DecidedOnUtc = DateTime.UtcNow;
         RaiseDomainEvent(new LeaveRequestCancelled(Id, TenantId, EmployeeId, wasApproved));

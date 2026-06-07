@@ -62,8 +62,8 @@ public sealed class LeaveYear : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public (DateOnly From, DateOnly To)? Clip(DateOnly from, DateOnly to)
     {
-        var clippedFrom = from < StartDate ? StartDate : from;
-        var clippedTo = to > EndDate ? EndDate : to;
+        DateOnly clippedFrom = from < StartDate ? StartDate : from;
+        DateOnly clippedTo = to > EndDate ? EndDate : to;
         if (clippedFrom > clippedTo) return null;
         return (clippedFrom, clippedTo);
     }

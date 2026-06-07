@@ -27,9 +27,9 @@ public static class AssignmentContextLoader
     {
         if (employeeIds.Count == 0) return [];
 
-        var weekStart = workDate.AddDays(-(int)workDate.DayOfWeek);
-        var weekEnd = weekStart.AddDays(6);
-        var fairnessStart = weekStart.AddDays(-21);
+        DateOnly weekStart = workDate.AddDays(-(int)workDate.DayOfWeek);
+        DateOnly weekEnd = weekStart.AddDays(6);
+        DateOnly fairnessStart = weekStart.AddDays(-21);
 
         // Query 1: Leaves covering workDate
         var leavesByEmployee = (await db.LeaveRequests
@@ -91,16 +91,16 @@ public static class AssignmentContextLoader
 
         return employeeIds.ToDictionary(empId => empId, empId =>
         {
-            var weekly = weeklyByEmployee.TryGetValue(empId, out var w) ? w : (List<AssignedShiftWindow>)[];
+            List<AssignedShiftWindow> weekly = weeklyByEmployee.TryGetValue(empId, out List<AssignedShiftWindow>? w) ? w : (List<AssignedShiftWindow>)[];
             return new AssignmentContext
             {
-                ApprovedLeaves = leavesByEmployee.TryGetValue(empId, out var l) ? l : [],
-                AvailabilityWindows = availabilityByEmployee.TryGetValue(empId, out var av) ? av : [],
-                Skills = skillsByEmployee.TryGetValue(empId, out var sk) ? sk : [],
+                ApprovedLeaves = leavesByEmployee.TryGetValue(empId, out List<LeaveWindow>? l) ? l : [],
+                AvailabilityWindows = availabilityByEmployee.TryGetValue(empId, out List<AvailabilityWindow>? av) ? av : [],
+                Skills = skillsByEmployee.TryGetValue(empId, out List<EmployeeSkill>? sk) ? sk : [],
                 WeeklyAssignments = weekly,
                 WeeklyHoursWorked = ComputeWeeklyHoursFromWindows(weekly),
                 OvertimePolicy = OvertimePolicy.Default,
-                FairnessHistoryAssignments = fairnessByEmployee.TryGetValue(empId, out var fh) ? fh : [],
+                FairnessHistoryAssignments = fairnessByEmployee.TryGetValue(empId, out List<AssignedShiftWindow>? fh) ? fh : [],
             };
         });
     }
@@ -113,14 +113,14 @@ public static class AssignmentContextLoader
         TimeAttendanceDbContext db,
         CancellationToken ct = default)
     {
-        var map = await BulkAsync([employeeId], tenantId, workDate, db, ct);
-        return map.TryGetValue(employeeId, out var ctx) ? ctx : new AssignmentContext();
+        Dictionary<Guid, AssignmentContext> map = await BulkAsync([employeeId], tenantId, workDate, db, ct);
+        return map.TryGetValue(employeeId, out AssignmentContext? ctx) ? ctx : new AssignmentContext();
     }
 
     public static decimal ComputeWeeklyHoursFromWindows(IReadOnlyList<AssignedShiftWindow> windows) =>
         windows.Sum(w =>
         {
-            var isOvernight = w.EndTime < w.StartTime;
+            bool isOvernight = w.EndTime < w.StartTime;
             return isOvernight
                 ? (decimal)(TimeSpan.FromHours(24) - w.StartTime.ToTimeSpan() + w.EndTime.ToTimeSpan()).TotalHours
                 : (decimal)(w.EndTime - w.StartTime).TotalHours;

@@ -9,33 +9,28 @@ namespace Karamchari.TimeAttendance.Services;
 /// Hardened reconciliation engine that derives attendance truth from raw signals.
 /// Implements Priority 4 Step 22.
 /// </summary>
-public sealed class AttendanceReconciliationService
+public sealed class AttendanceReconciliationService(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public AttendanceReconciliationService(TimeAttendanceDbContext db)
-    {
-        _db = db;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
 
     /// <summary>
     /// Reconciles an attendance session against its shift definition to produce a finalized record.
     /// </summary>
     public async Task<AttendanceRecord> ReconcileAsync(Guid sessionId, CancellationToken ct = default)
     {
-        var session = await _db.AttendanceSessions
+        AttendanceSession session = await _db.AttendanceSessions
             .Include(s => s.Events)
             .FirstOrDefaultAsync(s => s.Id == sessionId, ct)
             ?? throw new InvalidOperationException($"Session {sessionId} not found.");
 
-        var shift = await _db.ShiftDefinitions.FindAsync([session.ShiftId], ct)
+        ShiftDefinition shift = await _db.ShiftDefinitions.FindAsync([session.ShiftId], ct)
             ?? throw new InvalidOperationException($"Shift {session.ShiftId} not found.");
 
         // 1. Logic to handle duplicate punches, missing check-outs, etc.
         // For V1, we use the aggregate's own calculated values.
 
-        var status = EvaluateStatus(session, shift);
-        var overtime = CalculateOvertime(session, shift);
+        AttendanceStatus status = EvaluateStatus(session, shift);
+        decimal overtime = CalculateOvertime(session, shift);
 
         var record = AttendanceRecord.FinalizeLegacy(
             session.TenantId,
@@ -62,7 +57,7 @@ public sealed class AttendanceReconciliationService
     private static decimal CalculateOvertime(AttendanceSession session, ShiftDefinition shift)
     {
         // Simple logic for V1
-        var expectedHours = shift.MinimumHoursForFullDay;
+        decimal expectedHours = shift.MinimumHoursForFullDay;
         return Math.Max(0, session.TotalWorkHours - expectedHours);
     }
 }

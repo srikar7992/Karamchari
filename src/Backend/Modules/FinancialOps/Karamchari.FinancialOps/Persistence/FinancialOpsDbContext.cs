@@ -3,6 +3,7 @@ using Karamchari.Core.Persistence;
 using Karamchari.FinancialOps.Contracts.Primitives;
 using Karamchari.FinancialOps.Contracts.Reimbursements;
 using Karamchari.FinancialOps.Contracts.Settlements;
+using Karamchari.FinancialOps.Domain.ExpensePolicy;
 using Karamchari.FinancialOps.Domain.Ledger;
 using Karamchari.FinancialOps.Domain.Periods;
 using Karamchari.FinancialOps.Domain.Reimbursements;
@@ -60,6 +61,7 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
     /// Provides required documentation for this member.
     /// </summary>
     public DbSet<FinancialFinalizationSnapshot> FinalizationSnapshots => Set<FinancialFinalizationSnapshot>();
+    public DbSet<ExpenseCategory> ExpenseCategories => Set<ExpenseCategory>();
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -247,6 +249,24 @@ public sealed class FinancialOpsDbContext : KaramchariDbContext
             b.Property(x => x.PeriodId).HasConversion(id => id.Value, value => new FinancialOperationalPeriodId(value)).IsRequired();
             b.Property(x => x.FinalizedTotal).HasPrecision(18, 4).IsRequired();
             b.HasIndex(x => new { x.TenantId, x.PeriodId }).IsUnique();
+        });
+
+        modelBuilder.Entity<ExpenseCategory>(b =>
+        {
+            b.ToTable("ExpenseCategories");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Id).HasConversion(id => id.Value, v => new ExpenseCategoryId(v));
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            b.Property(x => x.Description).HasMaxLength(1000);
+            b.Property(x => x.MaxSingleClaimAmount).HasPrecision(18, 4);
+            b.Property(x => x.DailyCapAmount).HasPrecision(18, 4);
+            b.Property(x => x.MonthlyCapAmount).HasPrecision(18, 4);
+            b.Property(x => x.ReceiptRequiredAbove).HasPrecision(18, 4);
+            b.Property(x => x.ApprovalRequiredAbove).HasPrecision(18, 4);
+            b.Property(x => x.MileageRatePerUnit).HasPrecision(10, 4);
+            b.Property(x => x.MileageUnit).HasConversion<string>();
+            b.HasIndex(x => new { x.TenantId, x.Name }).IsUnique();
         });
     }
 }

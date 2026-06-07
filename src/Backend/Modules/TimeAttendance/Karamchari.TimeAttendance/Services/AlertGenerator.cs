@@ -8,11 +8,9 @@ namespace Karamchari.TimeAttendance.Services;
 /// Manager alert queue — surfaces items needing human attention right now.
 /// Combines open Critical/High violations with SLA-breached regularization requests.
 /// </summary>
-public sealed class AlertGenerator
+public sealed class AlertGenerator(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public AlertGenerator(TimeAttendanceDbContext db) => _db = db;
+    private readonly TimeAttendanceDbContext _db = db;
 
     public async Task<IReadOnlyList<ManagerAlertRecord>> GetManagerAlertsAsync(
         string tenantId,
@@ -21,8 +19,8 @@ public sealed class AlertGenerator
     {
         var alerts = new List<ManagerAlertRecord>();
 
-        var since = DateTimeOffset.UtcNow.AddDays(-7);
-        var openViolations = await _db.AttendanceViolations
+        DateTimeOffset since = DateTimeOffset.UtcNow.AddDays(-7);
+        List<AttendanceViolation> openViolations = await _db.AttendanceViolations
             .Where(v =>
                 v.TenantId == tenantId &&
                 v.Status == AttendanceExceptionStatus.Open &&
@@ -32,7 +30,7 @@ public sealed class AlertGenerator
             .Take(maxAlerts)
             .ToListAsync(ct);
 
-        foreach (var v in openViolations)
+        foreach (AttendanceViolation? v in openViolations)
         {
             alerts.Add(new ManagerAlertRecord(
                 v.EmployeeId,
@@ -43,8 +41,8 @@ public sealed class AlertGenerator
         }
 
         // Regularizations pending > 24h = SLA breach risk
-        var regularizationCutoff = DateTimeOffset.UtcNow.AddHours(-24);
-        var stalePending = await _db.RegularizationRequests
+        DateTimeOffset regularizationCutoff = DateTimeOffset.UtcNow.AddHours(-24);
+        List<RegularizationRequest> stalePending = await _db.RegularizationRequests
             .Where(r =>
                 r.TenantId == tenantId &&
                 r.Status == RegularizationStatus.Submitted &&
@@ -52,7 +50,7 @@ public sealed class AlertGenerator
             .Take(maxAlerts)
             .ToListAsync(ct);
 
-        foreach (var r in stalePending)
+        foreach (RegularizationRequest? r in stalePending)
         {
             alerts.Add(new ManagerAlertRecord(
                 r.EmployeeId,

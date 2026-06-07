@@ -44,7 +44,7 @@ public sealed class PolicySimulationService(TimeAttendanceDbContext db)
         ArgumentNullException.ThrowIfNull(request);
 
         // All active employee-policy assignments for this leave type
-        var assignments = await db.EmployeeLeavePolicies
+        List<EmployeeLeavePolicy> assignments = await db.EmployeeLeavePolicies
             .Where(p => p.TenantId == request.TenantId
                      && p.LeaveTypeId == request.LeaveTypeId
                      && p.IsActive
@@ -59,13 +59,13 @@ public sealed class PolicySimulationService(TimeAttendanceDbContext db)
         var employeeIds = assignments.Select(a => a.EmployeeId).ToList();
 
         // Current balances keyed by employeeId
-        var balances = await db.LeaveBalances
+        Dictionary<Guid, LeaveBalance> balances = await db.LeaveBalances
             .Where(b => b.TenantId == request.TenantId
                      && employeeIds.Contains(b.EmployeeId))
             .ToDictionaryAsync(b => b.EmployeeId, ct);
 
         // Active carry forwards
-        var carryForwards = await db.LeaveCarryForwards
+        Dictionary<Guid, decimal> carryForwards = await db.LeaveCarryForwards
             .Where(cf => cf.TenantId == request.TenantId
                       && employeeIds.Contains(cf.EmployeeId))
             .GroupBy(cf => cf.EmployeeId)
@@ -75,27 +75,27 @@ public sealed class PolicySimulationService(TimeAttendanceDbContext db)
         decimal totalCurrentCarryForward = 0;
         decimal totalEstimatedCarryForward = 0;
 
-        foreach (var assignment in assignments)
+        foreach (EmployeeLeavePolicy? assignment in assignments)
         {
-            var currentBalance = balances.TryGetValue(assignment.EmployeeId, out var b)
+            decimal currentBalance = balances.TryGetValue(assignment.EmployeeId, out LeaveBalance? b)
                 ? b.AvailableBalance
                 : 0m;
 
-            var currentEntitlement = assignment.ResolvedEntitlement;
-            var proposedEntitlement = (decimal)request.ProposedRules.AnnualAllowance;
-            var entitlementDelta = proposedEntitlement - currentEntitlement;
+            decimal currentEntitlement = assignment.ResolvedEntitlement;
+            decimal proposedEntitlement = (decimal)request.ProposedRules.AnnualAllowance;
+            decimal entitlementDelta = proposedEntitlement - currentEntitlement;
 
-            var projectedBalance = currentBalance + entitlementDelta;
+            decimal projectedBalance = currentBalance + entitlementDelta;
 
             // Carry forward under proposed rules
-            var currentCf = carryForwards.TryGetValue(assignment.EmployeeId, out var cf) ? cf : 0m;
+            decimal currentCf = carryForwards.TryGetValue(assignment.EmployeeId, out decimal cf) ? cf : 0m;
             totalCurrentCarryForward += currentCf;
 
-            var maxCf = (decimal)request.ProposedRules.MaximumCarryForward;
-            var estimatedCf = Math.Min(projectedBalance, maxCf);
+            decimal maxCf = (decimal)request.ProposedRules.MaximumCarryForward;
+            decimal estimatedCf = Math.Min(projectedBalance, maxCf);
             totalEstimatedCarryForward += estimatedCf;
 
-            var summary = entitlementDelta switch
+            string summary = entitlementDelta switch
             {
                 > 0 => $"+{entitlementDelta:F1} days entitlement increase",
                 < 0 => $"{entitlementDelta:F1} days entitlement decrease",
@@ -112,9 +112,9 @@ public sealed class PolicySimulationService(TimeAttendanceDbContext db)
                 summary));
         }
 
-        var avgCurrentEntitlement = assignments.Average(a => a.ResolvedEntitlement);
-        var avgProposedEntitlement = (decimal)request.ProposedRules.AnnualAllowance;
-        var financialImpactDays = impacts.Sum(i => Math.Max(0, i.BalanceDelta));
+        decimal avgCurrentEntitlement = assignments.Average(a => a.ResolvedEntitlement);
+        decimal avgProposedEntitlement = (decimal)request.ProposedRules.AnnualAllowance;
+        decimal financialImpactDays = impacts.Sum(i => Math.Max(0, i.BalanceDelta));
 
         return new PolicySimulationResult(
             assignments.Count,

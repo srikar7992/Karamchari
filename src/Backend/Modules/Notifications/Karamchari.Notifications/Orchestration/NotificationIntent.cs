@@ -53,6 +53,13 @@ public sealed record NotificationIntent(
         NotificationIntentType.ArrearApproved => "payroll.arrear-approved",
         NotificationIntentType.ReimbursementApproved => "payroll.reimbursement-approved",
         NotificationIntentType.SalaryRevisionApproved => "payroll.salary-revision-approved",
+        NotificationIntentType.AttendanceLateArrival => "attendance.late-arrival",
+        NotificationIntentType.AttendanceNoShow => "attendance.no-show",
+        NotificationIntentType.AttendanceMissingCheckout => "attendance.missing-checkout",
+        NotificationIntentType.AttendanceRegularizationApproved => "attendance.regularization-approved",
+        NotificationIntentType.AttendanceRegularizationRejected => "attendance.regularization-rejected",
+        NotificationIntentType.AttendanceGeoFraudDetected => "attendance.geo-fraud-detected",
+        NotificationIntentType.AttendanceConsecutiveAbsenceEscalated => "attendance.consecutive-absence-escalated",
         _ => throw new ArgumentOutOfRangeException(nameof(IntentType), IntentType, "No template code mapping.")
     };
 }

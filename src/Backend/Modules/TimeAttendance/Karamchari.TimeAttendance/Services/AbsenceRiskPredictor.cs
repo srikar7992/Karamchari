@@ -24,7 +24,7 @@ namespace Karamchari.TimeAttendance.Services;
 /// Minimum data requirement: 4+ finalized records for the target day-of-week in the 90-day window.
 /// Employees with insufficient data are returned with RiskScore=0, RiskLevel=Low, Rationale explains why.
 /// </summary>
-public sealed class AbsenceRiskPredictor
+public sealed class AbsenceRiskPredictor(TimeAttendanceDbContext db)
 {
     private const int LookbackDays = 90;
     private const int TrendWeeksTotal = 12;
@@ -37,9 +37,7 @@ public sealed class AbsenceRiskPredictor
     private const decimal HighRiskThreshold = 0.40m;
     private const decimal MediumRiskThreshold = 0.20m;
 
-    private readonly TimeAttendanceDbContext _db;
-
-    public AbsenceRiskPredictor(TimeAttendanceDbContext db) => _db = db;
+    private readonly TimeAttendanceDbContext _db = db;
 
     public async Task<IReadOnlyList<AbsenceRiskForecast>> ForecastAsync(
         string tenantId,
@@ -48,7 +46,7 @@ public sealed class AbsenceRiskPredictor
         bool includeAll = false,
         CancellationToken ct = default)
     {
-        var targetDow = targetDate.DayOfWeek;
+        DayOfWeek targetDow = targetDate.DayOfWeek;
         var since90 = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-LookbackDays));
         var since12w = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-TrendWeeksTotal * 7));
         var recentCutoff = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-RecentWeeks * 7));
@@ -84,7 +82,7 @@ public sealed class AbsenceRiskPredictor
 
         var results = new List<AbsenceRiskForecast>(employeeIds.Count);
 
-        foreach (var employeeId in employeeIds)
+        foreach (Guid employeeId in employeeIds)
         {
             // ── Base rate: historical absence rate for this day-of-week ────────────
             var dowForEmployee = dowRecords
@@ -104,8 +102,8 @@ public sealed class AbsenceRiskPredictor
                 continue;
             }
 
-            var absentCount = dowForEmployee.Count(r => r.Status == AttendanceStatus.Absent);
-            var baseRate = (decimal)absentCount / dowForEmployee.Count;
+            int absentCount = dowForEmployee.Count(r => r.Status == AttendanceStatus.Absent);
+            decimal baseRate = (decimal)absentCount / dowForEmployee.Count;
 
             // ── Trend multiplier: recent reliability vs prior baseline ─────────────
             var trendForEmployee = trendRecords
@@ -120,17 +118,17 @@ public sealed class AbsenceRiskPredictor
 
             if (recentRecords.Count >= 4 && priorRecords.Count >= 8)
             {
-                var recentReliability = (decimal)recentRecords.Count(r =>
+                decimal recentReliability = (decimal)recentRecords.Count(r =>
                     r.Status is AttendanceStatus.Present or AttendanceStatus.Late or AttendanceStatus.HalfDay)
                     / recentRecords.Count;
 
-                var priorReliability = (decimal)priorRecords.Count(r =>
+                decimal priorReliability = (decimal)priorRecords.Count(r =>
                     r.Status is AttendanceStatus.Present or AttendanceStatus.Late or AttendanceStatus.HalfDay)
                     / priorRecords.Count;
 
                 if (priorReliability > 0)
                 {
-                    var ratio = recentReliability / priorReliability;
+                    decimal ratio = recentReliability / priorReliability;
                     if (ratio < DeteriorationThreshold)
                     {
                         trendMultiplier = TrendMultiplierDeteriorating;
@@ -145,15 +143,15 @@ public sealed class AbsenceRiskPredictor
             }
 
             // ── Final score ───────────────────────────────────────────────────────
-            var score = Math.Min(1m, Math.Round(baseRate * trendMultiplier, 4));
-            var level = score >= HighRiskThreshold ? AbsenceRiskLevel.High
+            decimal score = Math.Min(1m, Math.Round(baseRate * trendMultiplier, 4));
+            AbsenceRiskLevel level = score >= HighRiskThreshold ? AbsenceRiskLevel.High
                       : score >= MediumRiskThreshold ? AbsenceRiskLevel.Medium
                       : AbsenceRiskLevel.Low;
 
             if (!includeAll && level == AbsenceRiskLevel.Low)
                 continue;
 
-            var rationale =
+            string rationale =
                 $"{targetDow} absence rate {baseRate:P0} over last {LookbackDays} days ({absentCount}/{dowForEmployee.Count}); {trendRationale}.";
 
             results.Add(new AbsenceRiskForecast(employeeId, targetDate, targetDow, score, level, rationale));

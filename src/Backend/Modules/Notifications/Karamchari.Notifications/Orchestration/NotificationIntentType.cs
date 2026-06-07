@@ -93,4 +93,27 @@ public enum NotificationIntentType
 
     /// <summary>HR alerted to a compliance issue.</summary>
     ComplianceIssueDetected = 660,
+
+    // ── Attendance ────────────────────────────────────────────────────────────
+
+    /// <summary>Employee notified of a late arrival exception raised on their record.</summary>
+    AttendanceLateArrival = 700,
+
+    /// <summary>Employee notified of a no-show marked on their record.</summary>
+    AttendanceNoShow = 701,
+
+    /// <summary>Employee notified of a missing checkout marked on their record.</summary>
+    AttendanceMissingCheckout = 702,
+
+    /// <summary>Employee notified their regularization request was approved.</summary>
+    AttendanceRegularizationApproved = 703,
+
+    /// <summary>Employee notified their regularization request was rejected.</summary>
+    AttendanceRegularizationRejected = 704,
+
+    /// <summary>Manager alerted a geo fraud signal of High/Critical severity was detected for a direct report.</summary>
+    AttendanceGeoFraudDetected = 705,
+
+    /// <summary>Manager/HR alerted when employee breaches consecutive absence threshold.</summary>
+    AttendanceConsecutiveAbsenceEscalated = 706,
 }

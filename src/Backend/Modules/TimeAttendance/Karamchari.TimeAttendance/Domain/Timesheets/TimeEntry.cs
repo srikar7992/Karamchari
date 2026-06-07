@@ -71,7 +71,7 @@ public sealed record TimeEntry
                 throw new InvalidOperationException(
                     $"EndTimeUtc ({EndTimeUtc:O}) must be after StartTimeUtc ({StartTimeUtc:O}).");
 
-            var duration = (decimal)(EndTimeUtc.Value - StartTimeUtc.Value).TotalHours;
+            decimal duration = (decimal)(EndTimeUtc.Value - StartTimeUtc.Value).TotalHours;
             if (Math.Abs(duration - Hours) > 0.02m)
                 throw new InvalidOperationException(
                     $"Hours ({Hours}) must match the UTC start/end duration ({duration:F2}h). Drift > 0.02h detected.");

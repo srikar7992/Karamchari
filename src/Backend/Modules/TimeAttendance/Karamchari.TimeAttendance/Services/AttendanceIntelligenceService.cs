@@ -56,27 +56,18 @@ public sealed record ManagerAlertRecord(
 ///
 /// When any of these grows toward 500 lines, extract further. This facade stays thin.
 /// </summary>
-public sealed class AttendanceIntelligenceService
+public sealed class AttendanceIntelligenceService(
+    TrendAnalyzer trends,
+    CoverageAnalyzer coverage,
+    AbsenceTrendAnalyzer absenceTrend,
+    AlertGenerator alerts,
+    AbsenceRiskPredictor riskPredictor)
 {
-    private readonly TrendAnalyzer _trends;
-    private readonly CoverageAnalyzer _coverage;
-    private readonly AbsenceTrendAnalyzer _absenceTrend;
-    private readonly AlertGenerator _alerts;
-    private readonly AbsenceRiskPredictor _riskPredictor;
-
-    public AttendanceIntelligenceService(
-        TrendAnalyzer trends,
-        CoverageAnalyzer coverage,
-        AbsenceTrendAnalyzer absenceTrend,
-        AlertGenerator alerts,
-        AbsenceRiskPredictor riskPredictor)
-    {
-        _trends = trends;
-        _coverage = coverage;
-        _absenceTrend = absenceTrend;
-        _alerts = alerts;
-        _riskPredictor = riskPredictor;
-    }
+    private readonly TrendAnalyzer _trends = trends;
+    private readonly CoverageAnalyzer _coverage = coverage;
+    private readonly AbsenceTrendAnalyzer _absenceTrend = absenceTrend;
+    private readonly AlertGenerator _alerts = alerts;
+    private readonly AbsenceRiskPredictor _riskPredictor = riskPredictor;
 
     public Task<IReadOnlyList<HabitualLatenessRecord>> GetHabitualLatenessAsync(
         string tenantId, int minLateCount = 3, int rollingDays = 30, CancellationToken ct = default)

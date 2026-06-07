@@ -25,21 +25,21 @@ public static class TimesheetValidator
         if (!entry.StartTimeUtc.HasValue || !entry.EndTimeUtc.HasValue)
             return [entry];
 
-        var start = entry.StartTimeUtc.Value;
-        var end = entry.EndTimeUtc.Value;
+        DateTime start = entry.StartTimeUtc.Value;
+        DateTime end = entry.EndTimeUtc.Value;
 
         // Same calendar day â€” nothing to split.
         if (start.Date == end.Date)
             return [entry];
 
         var results = new List<TimeEntry>();
-        var cursor = start;
+        DateTime cursor = start;
 
         // Walk day-by-day until we reach the end date.
         while (cursor.Date < end.Date)
         {
-            var midnight = cursor.Date.AddDays(1); // UTC midnight ending the current day
-            var segmentHours = Math.Round((decimal)(midnight - cursor).TotalHours, 2);
+            DateTime midnight = cursor.Date.AddDays(1); // UTC midnight ending the current day
+            decimal segmentHours = Math.Round((decimal)(midnight - cursor).TotalHours, 2);
 
             results.Add(entry with
             {
@@ -54,7 +54,7 @@ public static class TimesheetValidator
         }
 
         // Final segment on the last day.
-        var finalHours = Math.Round((decimal)(end - cursor).TotalHours, 2);
+        decimal finalHours = Math.Round((decimal)(end - cursor).TotalHours, 2);
         if (finalHours > 0)
         {
             results.Add(entry with
@@ -82,9 +82,9 @@ public static class TimesheetValidator
         var list = entries.ToList();
 
         // 1. Daily total â‰¤ 24 h per calendar date.
-        foreach (var day in list.GroupBy(e => e.Date))
+        foreach (IGrouping<DateOnly, TimeEntry> day in list.GroupBy(e => e.Date))
         {
-            var total = day.Sum(e => e.Hours);
+            decimal total = day.Sum(e => e.Hours);
             if (total > 24)
                 throw new InvalidOperationException(
                     $"Total hours for {day.Key:d} ({total}h) exceeds the 24-hour daily limit.");
@@ -96,10 +96,10 @@ public static class TimesheetValidator
             .OrderBy(e => e.StartTimeUtc)
             .ToList();
 
-        for (var i = 0; i < timed.Count - 1; i++)
+        for (int i = 0; i < timed.Count - 1; i++)
         {
-            var a = timed[i];
-            var b = timed[i + 1];
+            TimeEntry a = timed[i];
+            TimeEntry b = timed[i + 1];
 
             if (b.StartTimeUtc < a.EndTimeUtc)
                 throw new InvalidOperationException(
@@ -119,7 +119,7 @@ public static class TimesheetValidator
         if (maxBillableHours is null)
             return;
 
-        var billable = entries.Where(e => e.IsBillable).Sum(e => e.Hours);
+        decimal billable = entries.Where(e => e.IsBillable).Sum(e => e.Hours);
         if (billable > maxBillableHours.Value)
             throw new InvalidOperationException(
                 $"Billable hours ({billable}h) exceed assigned weekly capacity ({maxBillableHours}h). " +

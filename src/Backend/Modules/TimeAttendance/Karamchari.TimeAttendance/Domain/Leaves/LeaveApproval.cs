@@ -57,7 +57,7 @@ public sealed class LeaveApproval : AggregateRoot<Guid>, ITenantOwned
         if (Status != ApprovalChainStatus.InProgress)
             throw new InvalidOperationException("Chain already completed.");
 
-        var step = _steps.FirstOrDefault(s => s.Sequence == sequence)
+        LeaveApprovalStep step = _steps.FirstOrDefault(s => s.Sequence == sequence)
             ?? throw new InvalidOperationException($"Step {sequence} not found.");
 
         step.Decide(decision, comments);
@@ -70,7 +70,7 @@ public sealed class LeaveApproval : AggregateRoot<Guid>, ITenantOwned
         }
 
         // Check if all steps approved
-        var remaining = _steps.Any(s => s.Decision == ApprovalDecision.Pending);
+        bool remaining = _steps.Any(s => s.Decision == ApprovalDecision.Pending);
         if (!remaining)
         {
             Status = ApprovalChainStatus.Approved;
@@ -84,7 +84,7 @@ public sealed class LeaveApproval : AggregateRoot<Guid>, ITenantOwned
     public void ReassignPendingSteps(Guid fromApproverId, Guid toApproverId, string reason)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
-        foreach (var step in _steps.Where(s =>
+        foreach (LeaveApprovalStep? step in _steps.Where(s =>
             s.ApproverId == fromApproverId && s.Decision == ApprovalDecision.Pending))
         {
             step.Reassign(toApproverId, reason);

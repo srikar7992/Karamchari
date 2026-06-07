@@ -11,21 +11,16 @@ using Microsoft.EntityFrameworkCore;
 /// Scenario: Employee on leave May 10-15. Government declares May 12 as holiday.
 /// Result: ActualDays drops by 1. Balance restored by 1.
 /// </summary>
-public sealed class HolidayRecalculationService
+public sealed class HolidayRecalculationService(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public HolidayRecalculationService(TimeAttendanceDbContext db)
-    {
-        _db = db;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
 
     public async Task<HolidayRecalculationResult> RecalculateForNewHolidayAsync(
         DateOnly holidayDate,
         CancellationToken ct = default)
     {
         // Find approved leaves that span the new holiday
-        var affected = await _db.LeaveRequests
+        List<LeaveRequest> affected = await _db.LeaveRequests
             .Where(r => r.Status == LeaveRequestStatus.Approved
                 && r.StartDate <= holidayDate
                 && r.EndDate >= holidayDate)
@@ -33,16 +28,16 @@ public sealed class HolidayRecalculationService
 
         var adjustments = new List<HolidayRecalculationAdjustment>();
 
-        foreach (var request in affected)
+        foreach (LeaveRequest? request in affected)
         {
             // Skip hourly and half-day — their calculations are different
             if (request.Mode is LeaveMode.Hourly or LeaveMode.HalfDay) continue;
 
-            var adjustment = 1.0m;
+            decimal adjustment = 1.0m;
             request.AdjustActualDaysForHoliday(holidayDate, (double)adjustment);
 
             // Restore balance
-            var balance = await _db.LeaveBalances
+            LeaveBalance? balance = await _db.LeaveBalances
                 .Include(b => b.Entries)
                 .FirstOrDefaultAsync(b => b.EmployeeId == request.EmployeeId
                     && b.PolicyId == request.PolicyId, ct);
@@ -51,7 +46,7 @@ public sealed class HolidayRecalculationService
                 $"HolidayRecalc:{holidayDate:yyyy-MM-dd}:{request.Id}");
 
             // Update calendar projection
-            var calendarEntry = await _db.LeaveCalendarEntries
+            LeaveCalendarEntry? calendarEntry = await _db.LeaveCalendarEntries
                 .FirstOrDefaultAsync(e => e.LeaveRequestId == request.Id
                     && e.Date == holidayDate, ct);
 

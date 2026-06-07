@@ -72,11 +72,20 @@ public sealed class AuditPackageService
                 EmployeeId = package.EmployeeId,
                 Violations = violations.Select(v => new
                 {
-                    v.Id, v.PolicyCode, v.Severity, v.Status, v.DetectedAt, v.ResolvedAt
+                    v.Id,
+                    v.PolicyCode,
+                    v.Severity,
+                    v.Status,
+                    v.DetectedAt,
+                    v.ResolvedAt
                 }),
                 LegalHolds = legalHolds.Select(h => new
                 {
-                    h.Id, h.CaseReference, h.Status, h.StartDate, h.ReleasedAt
+                    h.Id,
+                    h.CaseReference,
+                    h.Status,
+                    h.StartDate,
+                    h.ReleasedAt
                 }),
                 TotalViolations = violations.Count,
                 CriticalViolations = violations.Count(v => v.Severity == ViolationSeverity.Critical)

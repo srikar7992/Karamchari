@@ -19,8 +19,8 @@ public sealed class LeaveRequestService
         bool allowHalfDays)
     {
         double totalDays = 0;
-        var current = start;
-        var holidaySet = holidays as ISet<DateOnly> ?? new HashSet<DateOnly>(holidays);
+        DateOnly current = start;
+        ISet<DateOnly> holidaySet = holidays as ISet<DateOnly> ?? new HashSet<DateOnly>(holidays);
 
         while (current <= end)
         {
@@ -44,7 +44,7 @@ public sealed class LeaveRequestService
     {
         if (joinDate > yearEnd) return 0;
 
-        var totalMonths = ((yearEnd.Year - joinDate.Year) * 12) + yearEnd.Month - joinDate.Month;
+        int totalMonths = ((yearEnd.Year - joinDate.Year) * 12) + yearEnd.Month - joinDate.Month;
 
         // Include partial month if joined before the 15th (common convention; configurable in future)
         if (joinDate.Day <= 15) totalMonths++;
@@ -75,7 +75,7 @@ public sealed class LeaveRequestService
         IEnumerable<TenureEntitlementBracket> brackets,
         int completedYears)
     {
-        foreach (var bracket in brackets.OrderByDescending(b => b.FromYears))
+        foreach (TenureEntitlementBracket? bracket in brackets.OrderByDescending(b => b.FromYears))
         {
             if (completedYears >= bracket.FromYears &&
                 (bracket.ToYears is null || completedYears <= bracket.ToYears))

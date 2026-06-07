@@ -35,7 +35,7 @@ public static class LeaveStateMachine
     };
 
     public static bool CanTransition(LeaveRequestStatus from, LeaveRequestStatus to)
-        => Transitions.TryGetValue(from, out var targets) && targets.Contains(to);
+        => Transitions.TryGetValue(from, out HashSet<LeaveRequestStatus>? targets) && targets.Contains(to);
 
     /// <summary>Throws InvalidOperationException for illegal transitions.</summary>
     public static void Guard(LeaveRequestStatus from, LeaveRequestStatus to)
@@ -46,5 +46,5 @@ public static class LeaveStateMachine
     }
 
     public static IReadOnlySet<LeaveRequestStatus> AllowedTransitionsFrom(LeaveRequestStatus status)
-        => Transitions.TryGetValue(status, out var targets) ? targets : new HashSet<LeaveRequestStatus>();
+        => Transitions.TryGetValue(status, out HashSet<LeaveRequestStatus>? targets) ? targets : [];
 }

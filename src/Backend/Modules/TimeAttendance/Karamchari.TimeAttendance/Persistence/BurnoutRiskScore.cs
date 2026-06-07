@@ -58,7 +58,7 @@ public sealed class BurnoutRiskScore : ITenantOwned
         // Weekend work: 20 pts max (>8 days → 20, >4 → 10)
         // Anomaly/violations: 10 pts max
 
-        var noLeaveScore = daysSinceLastLeave switch
+        decimal noLeaveScore = daysSinceLastLeave switch
         {
             > 120 => 40m,
             > 90 => 25m,
@@ -66,7 +66,7 @@ public sealed class BurnoutRiskScore : ITenantOwned
             _ => 0m,
         };
 
-        var overtimeScore = overtimeHoursLast90Days switch
+        decimal overtimeScore = overtimeHoursLast90Days switch
         {
             > 60 => 30m,
             > 40 => 20m,
@@ -74,18 +74,18 @@ public sealed class BurnoutRiskScore : ITenantOwned
             _ => 0m,
         };
 
-        var weekendScore = weekendWorkDaysLast90Days switch
+        decimal weekendScore = weekendWorkDaysLast90Days switch
         {
             > 8 => 20m,
             > 4 => 10m,
             _ => 0m,
         };
 
-        var anomalyScore = Math.Min(10m, (anomalyFindingsLast90Days + rosterViolationsLast90Days) * 2m);
+        decimal anomalyScore = Math.Min(10m, (anomalyFindingsLast90Days + rosterViolationsLast90Days) * 2m);
 
-        var score = noLeaveScore + overtimeScore + weekendScore + anomalyScore;
+        decimal score = noLeaveScore + overtimeScore + weekendScore + anomalyScore;
 
-        var riskLevel = score switch
+        BurnoutRiskLevel riskLevel = score switch
         {
             >= 80 => BurnoutRiskLevel.Critical,
             >= 55 => BurnoutRiskLevel.High,

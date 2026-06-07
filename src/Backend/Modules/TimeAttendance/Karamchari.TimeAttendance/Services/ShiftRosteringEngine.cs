@@ -8,14 +8,9 @@ namespace Karamchari.TimeAttendance.Services;
 /// <summary>
 /// Resolves the active shift for a given employee and date from enterprise rosters.
 /// </summary>
-public sealed class ShiftRosteringEngine
+public sealed class ShiftRosteringEngine(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public ShiftRosteringEngine(TimeAttendanceDbContext db)
-    {
-        _db = db;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -23,7 +18,7 @@ public sealed class ShiftRosteringEngine
     public async Task<ShiftDefinition?> ResolveShiftAsync(Guid employeeId, DateOnly workDate, CancellationToken ct = default)
     {
         // 1. Resolve from Enterprise Rosters (Workforce_ShiftAssignments)
-        var assignment = await _db.WorkforceSchedules
+        ShiftAssignment? assignment = await _db.WorkforceSchedules
             .SelectMany(s => s.Assignments)
             .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.Date == workDate, ct);
 
@@ -31,6 +26,6 @@ public sealed class ShiftRosteringEngine
             return null;
 
         // 2. Load Shift Definition
-        return await _db.ShiftDefinitions.FindAsync(new object[] { assignment.ShiftId }, ct);
+        return await _db.ShiftDefinitions.FindAsync([assignment.ShiftId], ct);
     }
 }

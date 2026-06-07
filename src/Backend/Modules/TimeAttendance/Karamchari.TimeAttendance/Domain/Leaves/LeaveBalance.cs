@@ -120,7 +120,7 @@ public sealed class LeaveBalance : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public void Adjust(decimal quantity, DateOnly effectiveDate, string adjustedBy, AdjustmentReason reason)
     {
-        var entryType = reason switch
+        LeaveBalanceEntryType entryType = reason switch
         {
             AdjustmentReason.LOPConversion => LeaveBalanceEntryType.LOPConversion,
             AdjustmentReason.PayrollCorrection => LeaveBalanceEntryType.PayrollCorrection,

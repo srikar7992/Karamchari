@@ -9,7 +9,7 @@ public sealed class BalanceValidationRule : ILeaveValidationRule
         if (context.PolicyRules.AllowNegativeBalance)
             return Task.FromResult(LeaveValidationResult.Pass());
 
-        var required = (decimal)context.Request.ActualDays;
+        decimal required = (decimal)context.Request.ActualDays;
         if (context.CurrentBalance < required)
         {
             return Task.FromResult(LeaveValidationResult.Fail(

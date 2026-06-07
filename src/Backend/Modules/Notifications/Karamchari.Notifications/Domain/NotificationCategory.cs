@@ -35,4 +35,7 @@ public enum NotificationCategory
 
     /// <summary>Payroll-related notifications (salary, FnF, arrears, reimbursements).</summary>
     Payroll = 10,
+
+    /// <summary>Attendance exceptions, regularizations, geo fraud, consecutive absence alerts.</summary>
+    Attendance = 11,
 }

@@ -19,7 +19,7 @@ public sealed class TimesheetApprovedConsumer : IConsumer<TimesheetApproved>
     public async Task Consume(ConsumeContext<TimesheetApproved> context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        var msg = context.Message;
+        TimesheetApproved msg = context.Message;
 
         var integrationEvent = new TimesheetApprovedIntegrationEvent(
             TimesheetId: msg.TimesheetId,

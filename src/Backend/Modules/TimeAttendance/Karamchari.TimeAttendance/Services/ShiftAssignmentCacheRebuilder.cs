@@ -14,18 +14,12 @@ namespace Karamchari.TimeAttendance.Services;
 /// Safety: clears existing cache entries for the requested date range and rebuilds
 /// from RosterShiftAssignment + RosterShift. Does not touch AttendanceRecords.
 /// </summary>
-public sealed class ShiftAssignmentCacheRebuilder
+public sealed class ShiftAssignmentCacheRebuilder(
+    TimeAttendanceDbContext db,
+    ILogger<ShiftAssignmentCacheRebuilder> logger)
 {
-    private readonly TimeAttendanceDbContext _db;
-    private readonly ILogger<ShiftAssignmentCacheRebuilder> _logger;
-
-    public ShiftAssignmentCacheRebuilder(
-        TimeAttendanceDbContext db,
-        ILogger<ShiftAssignmentCacheRebuilder> logger)
-    {
-        _db = db;
-        _logger = logger;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
+    private readonly ILogger<ShiftAssignmentCacheRebuilder> _logger = logger;
 
     /// <summary>
     /// Rebuilds the ShiftAssignmentCache for a tenant and date range from the rostering module's
@@ -49,7 +43,7 @@ public sealed class ShiftAssignmentCacheRebuilder
 
         // Step 1: Delete existing cache entries for the range.
         // Prevents duplicates if rebuilt multiple times for overlapping windows.
-        var deleted = await _db.ShiftAssignmentCache
+        int deleted = await _db.ShiftAssignmentCache
             .Where(c =>
                 c.TenantId == tenantId &&
                 c.WorkDate >= from &&
@@ -87,7 +81,7 @@ public sealed class ShiftAssignmentCacheRebuilder
         foreach (var a in assignments)
         {
             var expectedStart = new DateTimeOffset(a.WorkDate.ToDateTime(a.StartTime), TimeSpan.Zero);
-            var expectedEnd = a.IsOvernight
+            DateTimeOffset expectedEnd = a.IsOvernight
                 ? new DateTimeOffset(a.WorkDate.AddDays(1).ToDateTime(a.EndTime), TimeSpan.Zero)
                 : new DateTimeOffset(a.WorkDate.ToDateTime(a.EndTime), TimeSpan.Zero);
 

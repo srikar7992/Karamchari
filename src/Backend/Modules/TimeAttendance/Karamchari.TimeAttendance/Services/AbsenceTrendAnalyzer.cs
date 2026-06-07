@@ -9,11 +9,9 @@ namespace Karamchari.TimeAttendance.Services;
 /// "This employee is absent 40% of Mondays" is a trend observation.
 /// Label it as such, not as a forecast. Predictions require ML or Bayesian models, not averages.
 /// </summary>
-public sealed class AbsenceTrendAnalyzer
+public sealed class AbsenceTrendAnalyzer(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public AbsenceTrendAnalyzer(TimeAttendanceDbContext db) => _db = db;
+    private readonly TimeAttendanceDbContext _db = db;
 
     /// <summary>
     /// Returns per-day-of-week historical absence rate for an employee.
@@ -27,7 +25,7 @@ public sealed class AbsenceTrendAnalyzer
     {
         var since = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-lookbackDays));
 
-        var records = await _db.AttendanceRecords
+        List<AttendanceRecord> records = await _db.AttendanceRecords
             .Where(r =>
                 r.TenantId == tenantId &&
                 r.EmployeeId == employeeId &&
@@ -39,10 +37,10 @@ public sealed class AbsenceTrendAnalyzer
             .ToListAsync(ct);
 
         var result = new Dictionary<DayOfWeek, decimal>();
-        foreach (var dayGroup in records.GroupBy(r => r.WorkDate.DayOfWeek))
+        foreach (IGrouping<DayOfWeek, AttendanceRecord> dayGroup in records.GroupBy(r => r.WorkDate.DayOfWeek))
         {
-            var total = dayGroup.Count();
-            var absent = dayGroup.Count(r => r.Status == AttendanceStatus.Absent);
+            int total = dayGroup.Count();
+            int absent = dayGroup.Count(r => r.Status == AttendanceStatus.Absent);
             result[dayGroup.Key] = total == 0 ? 0m : Math.Round((decimal)absent / total * 100, 1);
         }
         return result;

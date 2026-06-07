@@ -141,7 +141,7 @@ public sealed class AttendanceSession : AggregateRoot<Guid>, ITenantOwned
     {
         if (!CheckInTime.HasValue || !CheckOutTime.HasValue) return;
 
-        var rawDuration = CheckOutTime.Value - CheckInTime.Value;
+        TimeSpan rawDuration = CheckOutTime.Value - CheckInTime.Value;
 
         // Logic to subtract breaks from raw duration
         // Simplified for now

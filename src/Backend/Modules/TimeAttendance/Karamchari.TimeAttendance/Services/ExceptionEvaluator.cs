@@ -57,10 +57,10 @@ public sealed class ExceptionEvaluator
         // Late arrival check
         if (record.ActualStart.HasValue)
         {
-            var lateMinutes = (int)(record.ActualStart.Value - record.ExpectedStart).TotalMinutes;
+            int lateMinutes = (int)(record.ActualStart.Value - record.ExpectedStart).TotalMinutes;
             if (lateMinutes > policy.LateToleranceMinutes)
             {
-                var severity = policy.ComputeLateArrivalSeverity(lateMinutes);
+                AttendanceExceptionSeverity severity = policy.ComputeLateArrivalSeverity(lateMinutes);
                 exceptions.Add((
                     AttendanceExceptionType.LateArrival,
                     severity,
@@ -79,10 +79,10 @@ public sealed class ExceptionEvaluator
         // Early exit check
         if (record.ActualEnd.HasValue)
         {
-            var earlyMinutes = (int)(record.ExpectedEnd - record.ActualEnd.Value).TotalMinutes;
+            int earlyMinutes = (int)(record.ExpectedEnd - record.ActualEnd.Value).TotalMinutes;
             if (earlyMinutes > policy.EarlyExitToleranceMinutes)
             {
-                var severity = policy.ComputeEarlyExitSeverity(earlyMinutes);
+                AttendanceExceptionSeverity severity = policy.ComputeEarlyExitSeverity(earlyMinutes);
                 exceptions.Add((
                     AttendanceExceptionType.EarlyExit,
                     severity,
@@ -103,7 +103,7 @@ public sealed class ExceptionEvaluator
         // AllowedRadius: clean. WarningRadius: logged, no exception. ViolationRadius: exception raised.
         if (policy.EnforceGeofencing && checkInLocation != null && siteCenter != null)
         {
-            var distanceMeters = CalculateDistance(checkInLocation, siteCenter);
+            double distanceMeters = CalculateDistance(checkInLocation, siteCenter);
             if (distanceMeters > policy.GeofenceViolationRadiusMeters)
             {
                 exceptions.Add((
@@ -126,11 +126,11 @@ public sealed class ExceptionEvaluator
     {
         // Haversine formula
         const double R = 6371000; // meters
-        var dLat = ToRad(b.Latitude - a.Latitude);
-        var dLon = ToRad(b.Longitude - a.Longitude);
-        var sinLat = Math.Sin(dLat / 2);
-        var sinLon = Math.Sin(dLon / 2);
-        var c = 2 * Math.Atan2(
+        double dLat = ToRad(b.Latitude - a.Latitude);
+        double dLon = ToRad(b.Longitude - a.Longitude);
+        double sinLat = Math.Sin(dLat / 2);
+        double sinLon = Math.Sin(dLon / 2);
+        double c = 2 * Math.Atan2(
             Math.Sqrt(sinLat * sinLat + Math.Cos(ToRad(a.Latitude)) * Math.Cos(ToRad(b.Latitude)) * sinLon * sinLon),
             Math.Sqrt(1 - (sinLat * sinLat + Math.Cos(ToRad(a.Latitude)) * Math.Cos(ToRad(b.Latitude)) * sinLon * sinLon)));
         return R * c;

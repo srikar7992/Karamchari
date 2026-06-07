@@ -58,10 +58,10 @@ public sealed class WorkforceAvailabilityIndex : ITenantOwned
         ArgumentException.ThrowIfNullOrWhiteSpace(groupName);
         ArgumentOutOfRangeException.ThrowIfNegative(scheduled);
 
-        var present = scheduled - onLeave - absent;
+        int present = scheduled - onLeave - absent;
         if (present < 0) present = 0;
 
-        var availabilityPercent = scheduled == 0
+        decimal availabilityPercent = scheduled == 0
             ? 100m
             : Math.Round((decimal)present / scheduled * 100m, 1);
 

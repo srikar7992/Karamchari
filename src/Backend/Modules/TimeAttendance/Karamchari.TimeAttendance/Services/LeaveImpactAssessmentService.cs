@@ -9,14 +9,9 @@ using Microsoft.EntityFrameworkCore;
 ///
 /// Called by approval workflow before presenting decision to manager.
 /// </summary>
-public sealed class LeaveImpactAssessmentService
+public sealed class LeaveImpactAssessmentService(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public LeaveImpactAssessmentService(TimeAttendanceDbContext db)
-    {
-        _db = db;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
 
     public async Task<LeaveImpactAssessment> AssessAsync(
         Guid teamId,
@@ -28,16 +23,16 @@ public sealed class LeaveImpactAssessmentService
         var criticalDates = new List<DateOnly>();
         decimal minCapacityAfter = 100m;
 
-        var current = leaveStart;
+        DateOnly current = leaveStart;
         while (current <= leaveEnd)
         {
-            var teamProjection = await _db.TeamLeaveProjections
+            TeamLeaveProjection? teamProjection = await _db.TeamLeaveProjections
                 .FirstOrDefaultAsync(p => p.TeamId == teamId && p.Date == current, ct);
 
             if (teamProjection is not null && teamProjection.TotalScheduled > 0)
             {
-                var onLeaveAfter = teamProjection.OnLeave + 1; // +1 for this request
-                var capacityAfter = Math.Round((decimal)(teamProjection.TotalScheduled - onLeaveAfter)
+                int onLeaveAfter = teamProjection.OnLeave + 1; // +1 for this request
+                decimal capacityAfter = Math.Round((decimal)(teamProjection.TotalScheduled - onLeaveAfter)
                     / teamProjection.TotalScheduled * 100, 1);
 
                 if (capacityAfter < minCapacityAfter) minCapacityAfter = capacityAfter;
@@ -47,8 +42,8 @@ public sealed class LeaveImpactAssessmentService
             current = current.AddDays(1);
         }
 
-        var currentCapacity = await GetCurrentCapacityAsync(teamId, leaveStart, leaveEnd, ct);
-        var belowThreshold = minCapacityAfter < 70m; // Default 70% threshold
+        decimal currentCapacity = await GetCurrentCapacityAsync(teamId, leaveStart, leaveEnd, ct);
+        bool belowThreshold = minCapacityAfter < 70m; // Default 70% threshold
 
         return new LeaveImpactAssessment
         {
@@ -65,7 +60,7 @@ public sealed class LeaveImpactAssessmentService
 
     private async Task<decimal> GetCurrentCapacityAsync(Guid teamId, DateOnly start, DateOnly end, CancellationToken ct)
     {
-        var projections = await _db.TeamLeaveProjections
+        List<TeamLeaveProjection> projections = await _db.TeamLeaveProjections
             .Where(p => p.TeamId == teamId && p.Date >= start && p.Date <= end)
             .ToListAsync(ct);
 

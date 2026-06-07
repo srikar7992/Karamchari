@@ -1,5 +1,5 @@
-using Karamchari.Core.Domain.Primitives;
 using Karamchari.Compliance.Domain.Violations;
+using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Compliance.Domain.Regulatory;
 

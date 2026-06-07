@@ -34,14 +34,14 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Attendance_ShiftAssignmentCache_TenantId_EmployeeId_ShiftId",
                 schema: "__tenant__",
                 table: "Attendance_ShiftAssignmentCache",
-                columns: new[] { "TenantId", "EmployeeId", "ShiftId" },
+                columns: ["TenantId", "EmployeeId", "ShiftId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendance_ShiftAssignmentCache_TenantId_EmployeeId_WorkDate",
                 schema: "__tenant__",
                 table: "Attendance_ShiftAssignmentCache",
-                columns: new[] { "TenantId", "EmployeeId", "WorkDate" });
+                columns: ["TenantId", "EmployeeId", "WorkDate"]);
 
             // ── AttendanceAuditLog: immutable audit trail for all status changes ──────────────────────
 
@@ -67,13 +67,13 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Attendance_AuditLog_TenantId_AttendanceRecordId_ChangedAt",
                 schema: "__tenant__",
                 table: "Attendance_AuditLog",
-                columns: new[] { "TenantId", "AttendanceRecordId", "ChangedAt" });
+                columns: ["TenantId", "AttendanceRecordId", "ChangedAt"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendance_AuditLog_TenantId_EmployeeId_ChangedAt",
                 schema: "__tenant__",
                 table: "Attendance_AuditLog",
-                columns: new[] { "TenantId", "EmployeeId", "ChangedAt" });
+                columns: ["TenantId", "EmployeeId", "ChangedAt"]);
 
             // ── AttendanceShiftPolicies: add severity threshold columns ───────────────────────────────
 

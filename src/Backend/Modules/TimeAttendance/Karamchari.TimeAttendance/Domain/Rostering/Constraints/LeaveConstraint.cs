@@ -6,7 +6,7 @@ public sealed class LeaveConstraint : IAssignmentConstraint
 
     public ConstraintResult Check(RosterShift shift, AssignmentContext context)
     {
-        var conflict = context.ApprovedLeaves.FirstOrDefault(
+        LeaveWindow? conflict = context.ApprovedLeaves.FirstOrDefault(
             l => shift.WorkDate >= l.Start && shift.WorkDate <= l.End);
 
         return conflict is null

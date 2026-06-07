@@ -4,14 +4,9 @@ namespace Karamchari.TimeAttendance.Services.Validation;
 /// Runs all registered validation rules in sequence.
 /// Collects all failures — does not short-circuit on first error (show all issues to employee).
 /// </summary>
-public sealed class LeaveValidationEngine
+public sealed class LeaveValidationEngine(IEnumerable<ILeaveValidationRule> rules)
 {
-    private readonly IEnumerable<ILeaveValidationRule> _rules;
-
-    public LeaveValidationEngine(IEnumerable<ILeaveValidationRule> rules)
-    {
-        _rules = rules;
-    }
+    private readonly IEnumerable<ILeaveValidationRule> _rules = rules;
 
     public async Task<LeaveValidationEngineResult> ValidateAsync(
         LeaveValidationContext context,
@@ -19,9 +14,9 @@ public sealed class LeaveValidationEngine
     {
         var failures = new List<LeaveValidationResult>();
 
-        foreach (var rule in _rules)
+        foreach (ILeaveValidationRule rule in _rules)
         {
-            var result = await rule.ValidateAsync(context, ct);
+            LeaveValidationResult result = await rule.ValidateAsync(context, ct);
             if (!result.IsValid)
                 failures.Add(result);
         }
@@ -30,16 +25,10 @@ public sealed class LeaveValidationEngine
     }
 }
 
-public sealed class LeaveValidationEngineResult
+public sealed class LeaveValidationEngineResult(bool isValid, IReadOnlyList<LeaveValidationResult> failures)
 {
-    public LeaveValidationEngineResult(bool isValid, IReadOnlyList<LeaveValidationResult> failures)
-    {
-        IsValid = isValid;
-        Failures = failures;
-    }
-
-    public bool IsValid { get; }
-    public IReadOnlyList<LeaveValidationResult> Failures { get; }
+    public bool IsValid { get; } = isValid;
+    public IReadOnlyList<LeaveValidationResult> Failures { get; } = failures;
     public IEnumerable<string> ErrorMessages => Failures.Where(f => f.Severity == ValidationSeverity.Error).Select(f => f.Message ?? f.RuleName ?? "Unknown error");
     public IEnumerable<string> Warnings => Failures.Where(f => f.Severity == ValidationSeverity.Warning).Select(f => f.Message ?? f.RuleName ?? "Warning");
 }

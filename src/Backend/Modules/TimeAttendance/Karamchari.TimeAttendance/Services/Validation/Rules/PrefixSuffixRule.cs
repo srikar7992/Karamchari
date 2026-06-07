@@ -20,11 +20,11 @@ public sealed class PrefixSuffixRule : ILeaveValidationRule
 
         var holidaySet = new HashSet<DateOnly>(context.HolidayDates);
 
-        var dayAfterEnd = context.Request.EndDate.AddDays(1);
-        var dayBeforeStart = context.Request.StartDate.AddDays(-1);
+        DateOnly dayAfterEnd = context.Request.EndDate.AddDays(1);
+        DateOnly dayBeforeStart = context.Request.StartDate.AddDays(-1);
 
-        var endsBeforeNonWorking = IsNonWorkingDay(dayAfterEnd, holidaySet);
-        var startsAfterNonWorking = IsNonWorkingDay(dayBeforeStart, holidaySet);
+        bool endsBeforeNonWorking = IsNonWorkingDay(dayAfterEnd, holidaySet);
+        bool startsAfterNonWorking = IsNonWorkingDay(dayBeforeStart, holidaySet);
 
         if (endsBeforeNonWorking)
         {

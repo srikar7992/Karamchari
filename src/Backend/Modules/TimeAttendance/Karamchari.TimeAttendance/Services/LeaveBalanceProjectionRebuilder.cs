@@ -10,18 +10,12 @@ namespace Karamchari.TimeAttendance.Services;
 /// Rebuilds the LeaveBalanceReadModel from the authoritative LeaveBalance ledger.
 /// Implements Priority 1 Step 4.
 /// </summary>
-public sealed class LeaveBalanceProjectionRebuilder : IProjectionRebuilder
+public sealed class LeaveBalanceProjectionRebuilder(
+    TimeAttendanceDbContext db,
+    ILogger<LeaveBalanceProjectionRebuilder> logger) : IProjectionRebuilder
 {
-    private readonly TimeAttendanceDbContext _db;
-    private readonly ILogger<LeaveBalanceProjectionRebuilder> _logger;
-
-    public LeaveBalanceProjectionRebuilder(
-        TimeAttendanceDbContext db,
-        ILogger<LeaveBalanceProjectionRebuilder> logger)
-    {
-        _db = db;
-        _logger = logger;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
+    private readonly ILogger<LeaveBalanceProjectionRebuilder> _logger = logger;
 
     public ProjectionMetadata Metadata => new()
     {
@@ -42,17 +36,17 @@ public sealed class LeaveBalanceProjectionRebuilder : IProjectionRebuilder
         _logger.LogInformation("Rebuilding projection {ProjectionName} for tenant {TenantId}", Metadata.ProjectionName, tenantId);
 
         // 1. Get all active balances for the tenant
-        var balances = await _db.LeaveBalances
+        List<LeaveBalance> balances = await _db.LeaveBalances
             .Include(b => b.Entries)
             .Where(b => b.TenantId == tenantId)
             .ToListAsync(ct);
 
-        foreach (var balance in balances)
+        foreach (LeaveBalance? balance in balances)
         {
-            var policy = await _db.LeavePolicies.FindAsync([balance.PolicyId], ct);
-            var policyName = policy?.Name ?? "Unknown";
+            LeavePolicy? policy = await _db.LeavePolicies.FindAsync([balance.PolicyId], ct);
+            string policyName = policy?.Name ?? "Unknown";
 
-            var readModel = await _db.LeaveBalanceReadModels
+            LeaveBalanceReadModel? readModel = await _db.LeaveBalanceReadModels
                 .FirstOrDefaultAsync(m => m.TenantId == tenantId && m.EmployeeId == balance.EmployeeId && m.PolicyId == balance.PolicyId, ct);
 
             if (readModel == null)
@@ -69,9 +63,9 @@ public sealed class LeaveBalanceProjectionRebuilder : IProjectionRebuilder
             }
 
             // 2. Re-calculate from ledger entries
-            var entries = balance.Entries;
-            if (startTime.HasValue) entries = entries.Where(e => e.CreatedAt >= startTime.Value).ToList();
-            if (endTime.HasValue) entries = entries.Where(e => e.CreatedAt <= endTime.Value).ToList();
+            IReadOnlyCollection<LeaveBalanceEntry> entries = balance.Entries;
+            if (startTime.HasValue) entries = [.. entries.Where(e => e.CreatedAt >= startTime.Value)];
+            if (endTime.HasValue) entries = [.. entries.Where(e => e.CreatedAt <= endTime.Value)];
 
             readModel.AvailableBalance = entries.Sum(e => e.Quantity);
             readModel.ConsumedBalance = Math.Abs(entries.Where(e => e.Quantity < 0).Sum(e => e.Quantity));

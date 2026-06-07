@@ -6,7 +6,7 @@ public sealed class ConsecutiveDaysRule : ILeaveValidationRule
 
     public Task<LeaveValidationResult> ValidateAsync(LeaveValidationContext context, CancellationToken ct = default)
     {
-        var max = context.PolicyRules.MaxConsecutiveDays;
+        int? max = context.PolicyRules.MaxConsecutiveDays;
         if (max is null or <= 0)
             return Task.FromResult(LeaveValidationResult.Pass());
 

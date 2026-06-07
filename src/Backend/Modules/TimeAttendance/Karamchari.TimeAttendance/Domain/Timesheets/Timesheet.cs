@@ -122,7 +122,7 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
 
         var list = entries.ToList();
 
-        foreach (var entry in list)
+        foreach (TimeEntry? entry in list)
             entry.Validate();
 
         TimesheetValidator.ValidateEntries(list);
@@ -130,10 +130,10 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
         var existingVersions = _entries.ToDictionary(e => e.EntryId, e => e.Version);
 
         _entries.Clear();
-        foreach (var entry in list)
+        foreach (TimeEntry? entry in list)
         {
             // Increment version if this EntryId already existed (i.e., it was edited)
-            var newVersion = existingVersions.TryGetValue(entry.EntryId, out var prev) ? prev + 1 : 1;
+            int newVersion = existingVersions.TryGetValue(entry.EntryId, out int prev) ? prev + 1 : 1;
             _entries.Add(entry with { Version = newVersion, ApprovedAtVersion = null });
         }
     }
@@ -166,11 +166,11 @@ public sealed class Timesheet : AggregateRoot<Guid>, ITenantOwned
         if (Status != TimesheetStatus.Submitted)
             throw new InvalidOperationException("Row-level approval requires the timesheet to be Submitted.");
 
-        var idx = _entries.FindIndex(e => e.EntryId == entryId);
+        int idx = _entries.FindIndex(e => e.EntryId == entryId);
         if (idx < 0)
             throw new ArgumentException($"Entry {entryId} not found in timesheet {Id}.", nameof(entryId));
 
-        var current = _entries[idx];
+        TimeEntry current = _entries[idx];
 
         // Guard: if entry was edited after approval (version mismatch), require re-submission
         if (current.ApprovedAtVersion.HasValue && current.ApprovedAtVersion != current.Version)
@@ -276,7 +276,7 @@ file static class ListExtensions
 {
     internal static void ReplaceAll<T>(this List<T> list, Func<T, T> transform)
     {
-        for (var i = 0; i < list.Count; i++)
+        for (int i = 0; i < list.Count; i++)
             list[i] = transform(list[i]);
     }
 }

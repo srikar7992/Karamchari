@@ -22,7 +22,7 @@ public sealed class SandwichRule : ILeaveValidationRule
             return Task.FromResult(LeaveValidationResult.Pass());
 
         var holidaySet = new HashSet<DateOnly>(context.HolidayDates);
-        var existingLeaveDates = BuildExistingLeaveDateSet(context.EmployeeActiveRequests, context.Request.Id);
+        HashSet<DateOnly> existingLeaveDates = BuildExistingLeaveDateSet(context.EmployeeActiveRequests, context.Request.Id);
 
         if (HasSandwichBefore(context.Request.StartDate, existingLeaveDates, holidaySet) ||
             HasSandwichAfter(context.Request.EndDate, existingLeaveDates, holidaySet))
@@ -37,7 +37,7 @@ public sealed class SandwichRule : ILeaveValidationRule
 
     private static bool HasSandwichBefore(DateOnly startDate, HashSet<DateOnly> existingLeaveDates, HashSet<DateOnly> holidaySet)
     {
-        var check = startDate.AddDays(-1);
+        DateOnly check = startDate.AddDays(-1);
 
         // Walk backward through non-working days
         while (IsNonWorkingDay(check, holidaySet))
@@ -51,7 +51,7 @@ public sealed class SandwichRule : ILeaveValidationRule
 
     private static bool HasSandwichAfter(DateOnly endDate, HashSet<DateOnly> existingLeaveDates, HashSet<DateOnly> holidaySet)
     {
-        var check = endDate.AddDays(1);
+        DateOnly check = endDate.AddDays(1);
 
         while (IsNonWorkingDay(check, holidaySet))
         {
@@ -64,13 +64,13 @@ public sealed class SandwichRule : ILeaveValidationRule
     private static HashSet<DateOnly> BuildExistingLeaveDateSet(IReadOnlyList<LeaveRequest> requests, Guid excludeId)
     {
         var dates = new HashSet<DateOnly>();
-        foreach (var r in requests)
+        foreach (LeaveRequest r in requests)
         {
             if (r.Id == excludeId) continue;
             if (r.Status is LeaveRequestStatus.Rejected or LeaveRequestStatus.Cancelled
                 or LeaveRequestStatus.Withdrawn or LeaveRequestStatus.Expired) continue;
 
-            var d = r.StartDate;
+            DateOnly d = r.StartDate;
             while (d <= r.EndDate)
             {
                 dates.Add(d);

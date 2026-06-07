@@ -12,21 +12,15 @@ namespace Karamchari.TimeAttendance.Consumers;
 /// Reacts to workflow completion to update authoritative business state.
 /// Implements "Domain Owns Business Truth, Workflow Owns Coordination".
 /// </summary>
-public sealed class WorkflowCompletedConsumer :
+public sealed class WorkflowCompletedConsumer(TimeAttendanceDbContext db, ILogger<WorkflowCompletedConsumer> logger) :
     IConsumer<WorkflowCompletedIntegrationEvent>
 {
-    private readonly TimeAttendanceDbContext _db;
-    private readonly ILogger<WorkflowCompletedConsumer> _logger;
-
-    public WorkflowCompletedConsumer(TimeAttendanceDbContext db, ILogger<WorkflowCompletedConsumer> logger)
-    {
-        _db = db;
-        _logger = logger;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
+    private readonly ILogger<WorkflowCompletedConsumer> _logger = logger;
 
     public async Task Consume(ConsumeContext<WorkflowCompletedIntegrationEvent> context)
     {
-        var msg = context.Message;
+        WorkflowCompletedIntegrationEvent msg = context.Message;
 
         if (msg.EntityType == "LeaveRequest")
         {
@@ -37,7 +31,7 @@ public sealed class WorkflowCompletedConsumer :
 
     private async Task HandleLeaveRequestCompletion(WorkflowCompletedIntegrationEvent msg, CancellationToken ct)
     {
-        var leave = await _db.Set<LeaveRequest>().FindAsync([msg.EntityId], ct);
+        LeaveRequest? leave = await _db.Set<LeaveRequest>().FindAsync([msg.EntityId], ct);
         if (leave == null)
         {
             _logger.LogWarning("Leave Request {RequestId} not found for completion.", msg.EntityId);
@@ -51,7 +45,7 @@ public sealed class WorkflowCompletedConsumer :
             leave.FinalizeApproved();
 
             // Deduct from balance ledger
-            var balance = await _db.LeaveBalances
+            LeaveBalance? balance = await _db.LeaveBalances
                 .Include(b => b.Entries)
                 .FirstOrDefaultAsync(b => b.EmployeeId == leave.EmployeeId && b.PolicyId == leave.PolicyId, ct);
 

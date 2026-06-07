@@ -17,9 +17,9 @@ public static class AssignmentConstraintEngine
 
     public static ConstraintResult Evaluate(RosterShift shift, AssignmentContext context)
     {
-        foreach (var constraint in HardConstraints)
+        foreach (IAssignmentConstraint constraint in HardConstraints)
         {
-            var result = constraint.Check(shift, context);
+            ConstraintResult result = constraint.Check(shift, context);
             if (!result.IsAllowed) return result;
         }
 
@@ -31,9 +31,8 @@ public static class AssignmentConstraintEngine
     /// </summary>
     public static IReadOnlyList<ConstraintResult> EvaluateAll(RosterShift shift, AssignmentContext context)
     {
-        return HardConstraints
+        return [.. HardConstraints
             .Select(c => c.Check(shift, context))
-            .Where(r => !r.IsAllowed)
-            .ToList();
+            .Where(r => !r.IsAllowed)];
     }
 }

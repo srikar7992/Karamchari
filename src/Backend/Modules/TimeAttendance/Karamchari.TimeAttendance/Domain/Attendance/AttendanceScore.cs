@@ -97,7 +97,7 @@ public sealed class AttendanceScore : AggregateRoot<Guid>, ITenantOwned
 
         // Consistency: how often on time?
         // Late shifts reduce consistency, but present-and-late is still counted as "showed up"
-        var onTimeShifts = totalPresent - Math.Min(totalLate, totalPresent);
+        int onTimeShifts = totalPresent - Math.Min(totalLate, totalPresent);
         ConsistencyScore = Math.Round((decimal)onTimeShifts / totalAssigned * 100, 2);
 
         // Compliance: policy adherence
@@ -106,7 +106,7 @@ public sealed class AttendanceScore : AggregateRoot<Guid>, ITenantOwned
         //   MissingPunch: -2 points each
         //   UnauthorizedOvertime: -2 points each
         //   LocationViolation: -3 points each
-        var deductions =
+        decimal deductions =
             (totalNoShows * 5m) +
             (totalMissingPunches * 2m) +
             (totalUnauthorizedOvertime * 2m) +
@@ -140,7 +140,7 @@ public sealed class AttendanceScore : AggregateRoot<Guid>, ITenantOwned
         TotalPresentShifts++;
 
         // Undo resolved violation counters
-        foreach (var violationType in resolvedViolations)
+        foreach (AttendanceExceptionType violationType in resolvedViolations)
         {
             switch (violationType)
             {

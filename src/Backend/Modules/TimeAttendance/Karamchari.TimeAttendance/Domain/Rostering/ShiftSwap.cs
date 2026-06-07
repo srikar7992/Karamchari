@@ -76,13 +76,13 @@ public sealed class ShiftSwap : AggregateRoot<Guid>, ITenantOwned
             throw new InvalidOperationException("Swap must be pending manager approval.");
 
         // Revalidate: requester must be eligible for the target shift
-        var requesterCheck = AssignmentConstraintEngine.Evaluate(targetShift, requesterContext);
+        ConstraintResult requesterCheck = AssignmentConstraintEngine.Evaluate(targetShift, requesterContext);
         if (!requesterCheck.IsAllowed)
             throw new InvalidOperationException(
                 $"Swap rejected — requester blocked from target shift: [{requesterCheck.ViolationCode}] {requesterCheck.Reason}");
 
         // Revalidate: counterparty must be eligible for the source shift
-        var counterpartyCheck = AssignmentConstraintEngine.Evaluate(sourceShift, counterpartyContext);
+        ConstraintResult counterpartyCheck = AssignmentConstraintEngine.Evaluate(sourceShift, counterpartyContext);
         if (!counterpartyCheck.IsAllowed)
             throw new InvalidOperationException(
                 $"Swap rejected — counterparty blocked from source shift: [{counterpartyCheck.ViolationCode}] {counterpartyCheck.Reason}");

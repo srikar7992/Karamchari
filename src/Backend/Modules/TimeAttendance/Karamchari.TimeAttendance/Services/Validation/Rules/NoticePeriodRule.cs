@@ -6,11 +6,11 @@ public sealed class NoticePeriodRule : ILeaveValidationRule
 
     public Task<LeaveValidationResult> ValidateAsync(LeaveValidationContext context, CancellationToken ct = default)
     {
-        var requiredDays = context.PolicyRules.NoticeRequiredDays;
+        int requiredDays = context.PolicyRules.NoticeRequiredDays;
         if (requiredDays <= 0)
             return Task.FromResult(LeaveValidationResult.Pass());
 
-        var daysUntilLeave = context.Request.StartDate.DayNumber - context.TodayInEmployeeZone.DayNumber;
+        int daysUntilLeave = context.Request.StartDate.DayNumber - context.TodayInEmployeeZone.DayNumber;
         if (daysUntilLeave < requiredDays)
         {
             return Task.FromResult(LeaveValidationResult.Fail(

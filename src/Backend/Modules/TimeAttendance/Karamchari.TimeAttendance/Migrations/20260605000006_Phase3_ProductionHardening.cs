@@ -33,7 +33,7 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Workforce_AttendanceSessions_TenantId_EmployeeId_WorkDate",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceSessions",
-                columns: new[] { "TenantId", "EmployeeId", "WorkDate" });
+                columns: ["TenantId", "EmployeeId", "WorkDate"]);
 
             // Filtered unique index: one session per shift assignment.
             // Walk-in sessions (ShiftAssignmentId = Guid.Empty) are exempt — multiple walk-ins on same day allowed.
@@ -41,7 +41,7 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Workforce_AttendanceSessions_TenantId_EmployeeId_ShiftAssignmentId",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceSessions",
-                columns: new[] { "TenantId", "EmployeeId", "ShiftAssignmentId" },
+                columns: ["TenantId", "EmployeeId", "ShiftAssignmentId"],
                 unique: true,
                 filter: "[ShiftAssignmentId] != '00000000-0000-0000-0000-000000000000'");
 
@@ -87,7 +87,7 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Workforce_AttendanceSessions_TenantId_EmployeeId_WorkDate",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceSessions",
-                columns: new[] { "TenantId", "EmployeeId", "WorkDate" },
+                columns: ["TenantId", "EmployeeId", "WorkDate"],
                 unique: true);
         }
     }

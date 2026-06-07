@@ -8,11 +8,9 @@ namespace Karamchari.TimeAttendance.Services;
 /// Site-level coverage and health analysis.
 /// Answers: which days had staffing shortfalls, and what is the site's attendance health today?
 /// </summary>
-public sealed class CoverageAnalyzer
+public sealed class CoverageAnalyzer(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public CoverageAnalyzer(TimeAttendanceDbContext db) => _db = db;
+    private readonly TimeAttendanceDbContext _db = db;
 
     public async Task<IReadOnlyList<CoverageRiskRecord>> GetCoverageRiskByDateAsync(
         string tenantId,
@@ -45,7 +43,7 @@ public sealed class CoverageAnalyzer
         return records
             .Select(x =>
             {
-                var rate = x.ScheduledCount == 0 ? 100m : Math.Round((decimal)x.PresentCount / x.ScheduledCount * 100, 1);
+                decimal rate = x.ScheduledCount == 0 ? 100m : Math.Round((decimal)x.PresentCount / x.ScheduledCount * 100, 1);
                 return new CoverageRiskRecord(x.WorkDate, x.ScheduledCount, x.PresentCount, rate, rate < thresholdPercent);
             })
             .OrderBy(x => x.WorkDate)
@@ -60,7 +58,7 @@ public sealed class CoverageAnalyzer
             DateOnly to,
             CancellationToken ct = default)
     {
-        var records = await _db.AttendanceRecords
+        List<AttendanceRecord> records = await _db.AttendanceRecords
             .Where(r =>
                 r.TenantId == tenantId &&
                 r.WorkDate >= from &&
@@ -74,22 +72,22 @@ public sealed class CoverageAnalyzer
         if (records.Count == 0)
             return (100m, 0m, 0, 0);
 
-        var present = records.Count(r =>
+        int present = records.Count(r =>
             r.Status is AttendanceStatus.Present or AttendanceStatus.Late or AttendanceStatus.HalfDay);
-        var absent = records.Count(r => r.Status == AttendanceStatus.Absent);
+        int absent = records.Count(r => r.Status == AttendanceStatus.Absent);
 
-        var attendanceRate = Math.Round((decimal)present / records.Count * 100, 1);
-        var noShowRate = Math.Round((decimal)absent / records.Count * 100, 1);
+        decimal attendanceRate = Math.Round((decimal)present / records.Count * 100, 1);
+        decimal noShowRate = Math.Round((decimal)absent / records.Count * 100, 1);
 
         var recordIds = records.Select(r => r.Id).ToList();
-        var lateViolationCount = await _db.AttendanceViolations
+        int lateViolationCount = await _db.AttendanceViolations
             .CountAsync(v =>
                 v.TenantId == tenantId &&
                 v.ExceptionType == AttendanceExceptionType.LateArrival &&
                 recordIds.Contains(v.AttendanceRecordId),
                 ct);
 
-        var criticalOpen = await _db.AttendanceViolations
+        int criticalOpen = await _db.AttendanceViolations
             .CountAsync(v =>
                 v.TenantId == tenantId &&
                 v.Severity == AttendanceExceptionSeverity.Critical &&
@@ -97,7 +95,7 @@ public sealed class CoverageAnalyzer
                 ct);
 
         // AvgLateMinutes requires storing late minutes on the violation; using count as proxy until that column is added.
-        var avgLateMinutes = lateViolationCount;
+        int avgLateMinutes = lateViolationCount;
 
         return (attendanceRate, noShowRate, avgLateMinutes, criticalOpen);
     }

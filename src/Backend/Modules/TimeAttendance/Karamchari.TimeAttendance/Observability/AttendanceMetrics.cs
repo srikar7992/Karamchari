@@ -34,7 +34,7 @@ public sealed class AttendanceMetrics : IDisposable
 
     public AttendanceMetrics()
     {
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+        string version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
         _meter = new Meter(MeterName, version);
 
         PunchLatencyMs = _meter.CreateHistogram<long>(

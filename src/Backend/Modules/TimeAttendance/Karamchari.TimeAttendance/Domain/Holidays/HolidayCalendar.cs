@@ -8,7 +8,7 @@ using Karamchari.Core.Multitenancy;
 /// </summary>
 public sealed class HolidayCalendar : AggregateRoot<Guid>, ITenantOwned
 {
-    private readonly List<Holiday> _holidays = new();
+    private readonly List<Holiday> _holidays = [];
 
     private HolidayCalendar(Guid id, string name, string? description) : base(id)
     {

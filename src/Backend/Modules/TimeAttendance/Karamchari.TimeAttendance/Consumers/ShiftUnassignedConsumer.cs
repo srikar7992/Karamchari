@@ -1,3 +1,4 @@
+using Karamchari.TimeAttendance.Domain.Attendance;
 using Karamchari.TimeAttendance.Domain.Rostering.Events;
 using Karamchari.TimeAttendance.Persistence;
 using MassTransit;
@@ -14,25 +15,19 @@ namespace Karamchari.TimeAttendance.Consumers;
 /// Also handles shift reassignment (reassign = unassign old + assign new, two events).
 /// ShiftSwapApproved is handled by the same mechanism when both parties' assignments are republished.
 /// </summary>
-public sealed class ShiftUnassignedConsumer : IConsumer<ShiftUnassigned>
+public sealed class ShiftUnassignedConsumer(TimeAttendanceDbContext db, ILogger<ShiftUnassignedConsumer> logger) : IConsumer<ShiftUnassigned>
 {
-    private readonly TimeAttendanceDbContext _db;
-    private readonly ILogger<ShiftUnassignedConsumer> _logger;
-
-    public ShiftUnassignedConsumer(TimeAttendanceDbContext db, ILogger<ShiftUnassignedConsumer> logger)
-    {
-        _db = db;
-        _logger = logger;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
+    private readonly ILogger<ShiftUnassignedConsumer> _logger = logger;
 
     public async Task Consume(ConsumeContext<ShiftUnassigned> context)
     {
-        var msg = context.Message;
-        var ct = context.CancellationToken;
+        ShiftUnassigned msg = context.Message;
+        CancellationToken ct = context.CancellationToken;
 
         // Delete cache entry for this specific assignment.
         // Use ShiftAssignmentId for precision — one employee can have multiple shifts on the same day.
-        var cacheEntry = await _db.ShiftAssignmentCache
+        ShiftAssignmentCache? cacheEntry = await _db.ShiftAssignmentCache
             .FirstOrDefaultAsync(c =>
                 c.TenantId == msg.TenantId &&
                 c.ShiftAssignmentId == msg.ShiftAssignmentId,
@@ -52,7 +47,7 @@ public sealed class ShiftUnassignedConsumer : IConsumer<ShiftUnassigned>
         // log a warning. The finalization job will sweep it as a no-show unless the employee punches
         // before shift end — but that won't happen since the shift is now unassigned.
         // HR/payroll teams should be aware that records in Pending state for removed shifts need review.
-        var orphanRecord = await _db.AttendanceRecords
+        AttendanceRecord? orphanRecord = await _db.AttendanceRecords
             .FirstOrDefaultAsync(r =>
                 r.TenantId == msg.TenantId &&
                 r.ShiftAssignmentId == msg.ShiftAssignmentId &&

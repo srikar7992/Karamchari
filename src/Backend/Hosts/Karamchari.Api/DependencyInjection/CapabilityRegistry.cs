@@ -1,12 +1,15 @@
+using Karamchari.AssetManagement.DependencyInjection;
 using Karamchari.Billing.DependencyInjection;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Compensation.DependencyInjection;
 using Karamchari.Compliance.DependencyInjection;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.DataMigration.DependencyInjection;
+using Karamchari.Engagement.DependencyInjection;
 using Karamchari.FinancialOps.DependencyInjection;
 using Karamchari.Forecasting.DependencyInjection;
 using Karamchari.Governance.DependencyInjection;
+using Karamchari.Helpdesk.DependencyInjection;
 using Karamchari.HR.DependencyInjection;
 using Karamchari.Identity.Infrastructure;
 using Karamchari.Intelligence.DependencyInjection;
@@ -16,6 +19,7 @@ using Karamchari.Performance.DependencyInjection;
 using Karamchari.PlatformIntelligence.DependencyInjection;
 using Karamchari.PSA.DependencyInjection;
 using Karamchari.Recruitment.DependencyInjection;
+using Karamchari.Succession.DependencyInjection;
 using Karamchari.TimeAttendance.DependencyInjection;
 using Karamchari.Workflow.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -46,7 +50,11 @@ public static class CapabilityRegistry
             new BillingModule(configuration),
             new CapabilityModule(configuration),
             new ComplianceModule(configuration),
-            new PlatformIntelligenceModule(configuration)
+            new PlatformIntelligenceModule(configuration),
+            new HelpdeskModule(configuration),
+            new AssetManagementModule(configuration),
+            new EngagementModule(configuration),
+            new SuccessionModule(configuration)
         };
     }
 }

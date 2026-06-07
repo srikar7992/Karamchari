@@ -1,5 +1,6 @@
 using Karamchari.TimeAttendance.Contracts;
 using Karamchari.TimeAttendance.Domain.Analytics;
+using Karamchari.TimeAttendance.Domain.Timesheets;
 using Karamchari.TimeAttendance.Persistence;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -14,20 +15,18 @@ namespace Karamchari.TimeAttendance.Consumers;
 /// Replay-safety: IsRetroactive â†’ scoped recompute for (ProjectId|EmployeeId, AffectedDates).
 /// Concurrency: UPDATE-then-INSERT pattern instead of MERGE (avoids SQL Server MERGE edge cases).
 /// </summary>
-public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
+public sealed class TimesheetApprovedAnalyticsConsumer(TimeAttendanceDbContext db) : IConsumer<TimesheetApprovedIntegrationEvent>
 {
     private const string ConsumerName = nameof(TimesheetApprovedAnalyticsConsumer);
 
-    private readonly TimeAttendanceDbContext _db;
-
-    public TimesheetApprovedAnalyticsConsumer(TimeAttendanceDbContext db) => _db = db;
+    private readonly TimeAttendanceDbContext _db = db;
 
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
     public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
     {
-        var ev = context.Message;
+        TimesheetApprovedIntegrationEvent ev = context.Message;
 
         // 1. Event quality gate
         if (ev.ActorId == Guid.Empty)
@@ -35,7 +34,7 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
                 $"TimesheetApproved {ev.TimesheetId} missing ActorId. Dead-lettering.");
 
         // 2. Idempotency check â€” exact-once via ProcessedEventLog
-        var alreadyProcessed = await _db.ProcessedEventLogs
+        bool alreadyProcessed = await _db.ProcessedEventLogs
             .AnyAsync(l => l.EventId == ev.EventId && l.ConsumerName == ConsumerName,
                 context.CancellationToken);
 
@@ -43,7 +42,7 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
             return;
 
         // 3. Project metrics
-        foreach (var entry in ev.Entries.Where(e => e.ProjectId.HasValue))
+        foreach (TimeEntryRecord? entry in ev.Entries.Where(e => e.ProjectId.HasValue))
         {
             if (ev.IsRetroactive)
                 await RecomputeProjectMetricsAsync(ev.TenantId, entry.ProjectId!.Value, entry.Date, context.CancellationToken);
@@ -52,7 +51,7 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
         }
 
         // 4. Employee metrics â€” always scoped to affected dates only
-        foreach (var (date, dateEntries) in ev.Entries
+        foreach ((DateOnly date, IEnumerable<TimeEntryRecord>? dateEntries) in ev.Entries
             .GroupBy(e => e.Date)
             .Select(g => (g.Key, g.AsEnumerable())))
         {
@@ -77,10 +76,10 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
     private async Task UpsertProjectMetricsAsync(
         string tenantId, TimeEntryRecord entry, Guid eventId, DateTimeOffset occurredAt, CancellationToken ct)
     {
-        var projectId = entry.ProjectId!.Value;
-        var billableHours = entry.IsBillable ? entry.Hours : 0m;
+        Guid projectId = entry.ProjectId!.Value;
+        decimal billableHours = entry.IsBillable ? entry.Hours : 0m;
 
-        var rows = await _db.Database.ExecuteSqlRawAsync(
+        int rows = await _db.Database.ExecuteSqlRawAsync(
             @"UPDATE Analytics_ProjectMetrics
               SET BillableHours             = BillableHours + {0},
                   TotalHours                = TotalHours    + {1},
@@ -124,16 +123,16 @@ public sealed class TimesheetApprovedAnalyticsConsumer : IConsumer<TimesheetAppr
         string tenantId, Guid projectId, DateOnly date, CancellationToken ct)
     {
         // Scoped recompute: only this project + date (not entire dataset)
-        var allEntries = await _db.Set<Domain.Timesheets.Timesheet>()
+        List<TimeEntry> allEntries = await _db.Set<Domain.Timesheets.Timesheet>()
             .Where(t => t.TenantId == tenantId && t.Status == Domain.Timesheets.TimesheetStatus.Approved)
             .SelectMany(t => t.Entries)
             .Where(e => e.ProjectId == projectId && e.Date == date)
             .ToListAsync(ct);
 
-        var billable = allEntries.Where(e => e.IsBillable).Sum(e => e.Hours);
-        var total = allEntries.Sum(e => e.Hours);
+        decimal billable = allEntries.Where(e => e.IsBillable).Sum(e => e.Hours);
+        decimal total = allEntries.Sum(e => e.Hours);
 
-        var rows = await _db.Database.ExecuteSqlRawAsync(
+        int rows = await _db.Database.ExecuteSqlRawAsync(
             @"UPDATE Analytics_ProjectMetrics
               SET BillableHours = {0}, TotalHours = {1}, LastUpdatedAt = {2}
               WHERE TenantId = {3} AND ProjectId = {4} AND Date = {5}",

@@ -10,14 +10,9 @@ namespace Karamchari.TimeAttendance.Services;
 /// Incremental updates (via AttendanceScore.ApplyAttendanceResult) are used for real-time path;
 /// full recalculation is used by the nightly batch and after regularization approvals.
 /// </summary>
-public sealed class AttendanceScoreCalculator
+public sealed class AttendanceScoreCalculator(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public AttendanceScoreCalculator(TimeAttendanceDbContext db)
-    {
-        _db = db;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
 
     /// <summary>
     /// Full recalculation from DB records. Idempotent — safe to call multiple times.
@@ -28,7 +23,7 @@ public sealed class AttendanceScoreCalculator
         CancellationToken ct = default)
     {
         // Count records for this employee (only finalized, exclude OnLeave/Holiday/WeekOff)
-        var records = await _db.AttendanceRecords
+        List<AttendanceRecord> records = await _db.AttendanceRecords
             .Where(r => r.EmployeeId == employeeId
                      && r.Status != AttendanceStatus.Pending
                      && r.Status != AttendanceStatus.OnLeave
@@ -37,25 +32,25 @@ public sealed class AttendanceScoreCalculator
                      && r.Status != AttendanceStatus.Scheduled)
             .ToListAsync(ct);
 
-        var totalAssigned = records.Count;
-        var totalPresent = records.Count(r =>
+        int totalAssigned = records.Count;
+        int totalPresent = records.Count(r =>
             r.Status is AttendanceStatus.Present or AttendanceStatus.Late or AttendanceStatus.HalfDay);
-        var totalNoShows = records.Count(r => r.Status == AttendanceStatus.Absent);
+        int totalNoShows = records.Count(r => r.Status == AttendanceStatus.Absent);
 
         // Exceptions tell us the violation details
         var recordIds = records.Select(r => r.Id).ToList();
 
-        var exceptions = await _db.AttendanceViolations
+        List<AttendanceViolation> exceptions = await _db.AttendanceViolations
             .Where(e => recordIds.Contains(e.AttendanceRecordId))
             .ToListAsync(ct);
 
-        var totalLate = exceptions.Count(e => e.ExceptionType == AttendanceExceptionType.LateArrival);
-        var totalMissingPunches = exceptions.Count(e =>
+        int totalLate = exceptions.Count(e => e.ExceptionType == AttendanceExceptionType.LateArrival);
+        int totalMissingPunches = exceptions.Count(e =>
             e.ExceptionType is AttendanceExceptionType.MissingCheckIn or AttendanceExceptionType.MissingCheckOut);
-        var totalUnauthorizedOvertime = exceptions.Count(e => e.ExceptionType == AttendanceExceptionType.Overtime);
-        var totalLocationViolations = exceptions.Count(e => e.ExceptionType == AttendanceExceptionType.LocationViolation);
+        int totalUnauthorizedOvertime = exceptions.Count(e => e.ExceptionType == AttendanceExceptionType.Overtime);
+        int totalLocationViolations = exceptions.Count(e => e.ExceptionType == AttendanceExceptionType.LocationViolation);
 
-        var score = await _db.AttendanceScores
+        AttendanceScore? score = await _db.AttendanceScores
             .FirstOrDefaultAsync(s => s.EmployeeId == employeeId, ct);
 
         if (score is null)
@@ -88,7 +83,7 @@ public sealed class AttendanceScoreCalculator
         IReadOnlyList<AttendanceExceptionType> resolvedViolations,
         CancellationToken ct = default)
     {
-        var score = await _db.AttendanceScores
+        AttendanceScore? score = await _db.AttendanceScores
             .FirstOrDefaultAsync(s => s.EmployeeId == employeeId, ct);
 
         if (score is null)
@@ -115,7 +110,7 @@ public sealed class AttendanceScoreCalculator
         bool hadLocationViolation,
         CancellationToken ct = default)
     {
-        var score = await _db.AttendanceScores
+        AttendanceScore? score = await _db.AttendanceScores
             .FirstOrDefaultAsync(s => s.EmployeeId == employeeId, ct);
 
         if (score is null)

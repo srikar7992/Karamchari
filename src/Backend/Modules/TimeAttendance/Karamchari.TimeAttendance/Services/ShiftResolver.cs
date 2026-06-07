@@ -20,22 +20,15 @@ namespace Karamchari.TimeAttendance.Services;
 /// Overnight shifts: cache entries where ExpectedEnd > ExpectedStart.ToDateOnly() are already
 /// normalized by ScheduledShiftCreatedConsumer so ExpectedEnd is on the next calendar day.
 /// </summary>
-public sealed class ShiftResolver
+public sealed class ShiftResolver(TimeAttendanceDbContext db, ILogger<ShiftResolver> logger, AttendanceMetrics metrics)
 {
     private const int PreWindowMinutes = 60;
     private const int PostWindowMinutes = 60;
     private const int MaxLookbackMinutes = 120;
 
-    private readonly TimeAttendanceDbContext _db;
-    private readonly ILogger<ShiftResolver> _logger;
-    private readonly AttendanceMetrics _metrics;
-
-    public ShiftResolver(TimeAttendanceDbContext db, ILogger<ShiftResolver> logger, AttendanceMetrics metrics)
-    {
-        _db = db;
-        _logger = logger;
-        _metrics = metrics;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
+    private readonly ILogger<ShiftResolver> _logger = logger;
+    private readonly AttendanceMetrics _metrics = metrics;
 
     public async Task<ShiftAssignmentCache?> ResolveAsync(
         string tenantId,
@@ -46,9 +39,9 @@ public sealed class ShiftResolver
         var workDate = DateOnly.FromDateTime(punchTime.LocalDateTime);
 
         // Include yesterday's date to catch overnight shifts (e.g., 22:00 shift still active at 06:15 next morning)
-        var yesterday = workDate.AddDays(-1);
+        DateOnly yesterday = workDate.AddDays(-1);
 
-        var candidates = await _db.ShiftAssignmentCache
+        List<ShiftAssignmentCache> candidates = await _db.ShiftAssignmentCache
             .Where(s =>
                 s.TenantId == tenantId &&
                 s.EmployeeId == employeeId &&
@@ -85,7 +78,7 @@ public sealed class ShiftResolver
         }
 
         // Phase 2: no window match — pick nearest ExpectedStart within MaxLookbackMinutes
-        var nearest = candidates
+        ShiftAssignmentCache? nearest = candidates
             .Where(s => Math.Abs((s.ExpectedStart - punchTime).TotalMinutes) <= MaxLookbackMinutes)
             .OrderBy(s => Math.Abs((s.ExpectedStart - punchTime).TotalMinutes))
             .FirstOrDefault();

@@ -18,7 +18,7 @@ public sealed class AvailabilityConstraint : IAssignmentConstraint
                 $"Employee has no availability declared on {shift.WorkDate.DayOfWeek}.");
 
         // For overnight shifts only start-time must fall within a window (end-time check skipped).
-        var fits = shift.IsOvernight
+        bool fits = shift.IsOvernight
             ? dayWindows.Any(w => shift.StartTime >= w.From)
             : dayWindows.Any(w => shift.StartTime >= w.From && shift.EndTime <= w.To);
 

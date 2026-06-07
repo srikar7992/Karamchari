@@ -4,12 +4,15 @@ using Karamchari.TimeAttendance.Domain.Absence;
 using Karamchari.TimeAttendance.Domain.Analytics;
 using Karamchari.TimeAttendance.Domain.Approval;
 using Karamchari.TimeAttendance.Domain.Attendance;
+using Karamchari.TimeAttendance.Domain.Biometric;
 using Karamchari.TimeAttendance.Domain.Compliance;
+using Karamchari.TimeAttendance.Domain.Geo;
 using Karamchari.TimeAttendance.Domain.Governance;
 using Karamchari.TimeAttendance.Domain.Holidays;
 using Karamchari.TimeAttendance.Domain.Intelligence;
 using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Domain.Operations;
+using Karamchari.TimeAttendance.Domain.Policy;
 using Karamchari.TimeAttendance.Domain.Rostering;
 using Karamchari.TimeAttendance.Domain.Schedules;
 using Karamchari.TimeAttendance.Domain.Scheduling;
@@ -25,14 +28,25 @@ namespace Karamchari.TimeAttendance.Persistence;
 /// Database context for the Time and Attendance bounded context.
 /// Phase 1C: Workforce Operational Intelligence Platform.
 /// </summary>
-public class TimeAttendanceDbContext : KaramchariDbContext
+public class TimeAttendanceDbContext(DbContextOptions<TimeAttendanceDbContext> options, ITenantProvider tenantProvider) : KaramchariDbContext(options, tenantProvider)
 {
-    public TimeAttendanceDbContext(DbContextOptions<TimeAttendanceDbContext> options, ITenantProvider tenantProvider)
-        : base(options, tenantProvider)
-    {
-    }
 
-    // â”€â”€ Workforce Operational intelligence (Phase 1C) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // -- Biometric Engine (Phase Attendance) ---------------------------------------
+
+    public DbSet<PunchEvent> PunchEvents => Set<PunchEvent>();
+    public DbSet<BiometricTemplate> BiometricTemplates => Set<BiometricTemplate>();
+    public DbSet<BiometricDevice> BiometricDevices => Set<BiometricDevice>();
+    public DbSet<BiometricEnrollmentSession> BiometricEnrollmentSessions => Set<BiometricEnrollmentSession>();
+
+    // -- Geo Engine ---------------------------------------------------------------
+
+    public DbSet<GeoZone> GeoZones => Set<GeoZone>();
+
+    // -- Policy Hierarchy ---------------------------------------------------------
+
+    public DbSet<AttendancePolicyHierarchy> AttendancePolicyHierarchies => Set<AttendancePolicyHierarchy>();
+
+    // â"€â"€ Workforce Operational intelligence (Phase 1C) â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -69,7 +83,7 @@ public class TimeAttendanceDbContext : KaramchariDbContext
     public DbSet<ShiftAssignmentCache> ShiftAssignmentCache => Set<ShiftAssignmentCache>();
     public DbSet<AttendanceAuditLog> AttendanceAuditLog => Set<AttendanceAuditLog>();
 
-    // â”€â”€ Core Attendance/Leave sets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€ Core Attendance/Leave sets â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     public DbSet<HolidayCalendar> HolidayCalendars => Set<HolidayCalendar>();
     public DbSet<LeaveType> LeaveTypes => Set<LeaveType>();
@@ -133,7 +147,7 @@ public class TimeAttendanceDbContext : KaramchariDbContext
     /// </summary>
     public DbSet<Timesheet> Timesheets => Set<Timesheet>();
 
-    // â”€â”€ Analytics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€ Analytics â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -150,7 +164,96 @@ public class TimeAttendanceDbContext : KaramchariDbContext
         base.OnDomainModelCreating(modelBuilder);
 
 
-        // â”€â”€ Workforce Aggregates Mapping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- Biometric Engine -------------------------------------------------------
+
+        modelBuilder.Entity<PunchEvent>(b =>
+        {
+            b.ToTable("Biometric_PunchEvents");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.ReceivedAtUtc });
+            b.HasIndex(x => new { x.TenantId, x.IdempotencyKey, x.ReceivedAtUtc });
+            b.HasIndex(x => new { x.TenantId, x.DeviceId, x.ReceivedAtUtc });
+            b.Property(x => x.Direction).HasConversion<string>();
+            b.Property(x => x.CaptureMode).HasConversion<string>();
+            b.Property(x => x.Modality).HasConversion<string>();
+            b.Property(x => x.IdempotencyKey).HasMaxLength(256).IsRequired();
+            b.Property(x => x.RejectionReason).HasMaxLength(1024);
+            b.Property(x => x.BiometricMatchScore).HasPrecision(5, 4);
+            b.Property(x => x.GpsAccuracyMeters).HasPrecision(10, 2);
+            // Immutable — no UPDATE/DELETE permitted. Enforce via interceptor.
+        });
+
+        modelBuilder.Entity<BiometricTemplate>(b =>
+        {
+            b.ToTable("Biometric_Templates");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.Modality });
+            b.Property(x => x.Modality).HasConversion<string>();
+            b.Property(x => x.MatchMode).HasConversion<string>();
+            b.Property(x => x.KmsKeyVersion).HasMaxLength(128).IsRequired();
+            // EncryptedTemplateBlob: AES-256-GCM ciphertext as Base64. Max ~8KB for most templates.
+            b.Property(x => x.EncryptedTemplateBlob).HasMaxLength(16384);
+            b.Ignore(x => x.AuthorizedDeviceIds); // stored as separate table
+        });
+
+        modelBuilder.Entity<BiometricDevice>(b =>
+        {
+            b.ToTable("Biometric_Devices");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.SerialNumber }).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.Status });
+            b.HasIndex(x => new { x.TenantId, x.ZoneId });
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.SerialNumber).HasMaxLength(128).IsRequired();
+            b.Property(x => x.Vendor).HasMaxLength(128).IsRequired();
+            b.Property(x => x.Model).HasMaxLength(128).IsRequired();
+            b.Property(x => x.FirmwareVersion).HasMaxLength(64).IsRequired();
+            b.Property(x => x.ZoneName).HasMaxLength(256);
+            b.Property(x => x.BuildingFloorGate).HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<BiometricEnrollmentSession>(b =>
+        {
+            b.ToTable("Biometric_EnrollmentSessions");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.Status });
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.Modality).HasConversion<string>();
+            b.Property(x => x.OperatorId).HasMaxLength(256).IsRequired();
+        });
+
+        // -- Geo Engine ------------------------------------------------------------
+
+        modelBuilder.Entity<GeoZone>(b =>
+        {
+            b.ToTable("Geo_Zones");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.IsActive });
+            b.HasIndex(x => new { x.TenantId, x.ParentZoneId });
+            b.Property(x => x.ZoneType).HasConversion<string>();
+            b.Property(x => x.Name).HasMaxLength(256).IsRequired();
+            b.Property(x => x.Label).HasMaxLength(128).IsRequired();
+            b.Property(x => x.Timezone).HasMaxLength(64).IsRequired();
+            b.Property(x => x.PolygonWkt).HasMaxLength(8192);
+            b.Property(x => x.CenterLatitude).HasPrecision(10, 7);
+            b.Property(x => x.CenterLongitude).HasPrecision(10, 7);
+            b.Property(x => x.ApproximateAreaSquareMeters).HasPrecision(18, 2);
+        });
+
+        // -- Policy Hierarchy ------------------------------------------------------
+
+        modelBuilder.Entity<AttendancePolicyHierarchy>(b =>
+        {
+            b.ToTable("Attendance_PolicyHierarchy");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Scope, x.ScopeEntityId }).IsUnique();
+            b.Property(x => x.Scope).HasConversion<string>();
+            b.Property(x => x.Name).HasMaxLength(256).IsRequired();
+            b.Property(x => x.WeekdayOtMultiplier).HasPrecision(5, 2);
+            b.Property(x => x.HolidayOtMultiplier).HasPrecision(5, 2);
+        });
+
+        // â"€â"€ Workforce Aggregates Mapping â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
         modelBuilder.Entity<ShiftDefinition>(b =>
         {
@@ -319,7 +422,7 @@ public class TimeAttendanceDbContext : KaramchariDbContext
             });
         });
 
-        // â”€â”€ Legacy Infrastructure (Mismatched but needed for build consistency for now) â”€â”€
+        // â"€â"€ Legacy Infrastructure (Mismatched but needed for build consistency for now) â"€â"€
 
         modelBuilder.Entity<HolidayCalendar>(b =>
         {

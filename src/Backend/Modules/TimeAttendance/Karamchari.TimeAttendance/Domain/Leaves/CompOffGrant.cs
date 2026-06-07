@@ -26,7 +26,7 @@ public sealed class CompOffGrant : AggregateRoot<Guid>, ITenantOwned
         TenantId = string.Empty;
     }
 
-    public string TenantId { get; private set; } = string.Empty;
+    public string TenantId { get; internal set; } = string.Empty;
     public Guid EmployeeId { get; private set; }
 
     /// <summary>Date the employee actually worked (the holiday/weekend).</summary>
@@ -81,11 +81,50 @@ public sealed class CompOffGrant : AggregateRoot<Guid>, ITenantOwned
             throw new InvalidOperationException("Only expired grants can be reinstated.");
         Status = DaysAvailable > 0 ? CompOffGrantStatus.Active : CompOffGrantStatus.FullyConsumed;
     }
+
+    public void Forfeit()
+    {
+        if (Status != CompOffGrantStatus.Active)
+            throw new InvalidOperationException("Only active grants can be forfeited.");
+        Status = CompOffGrantStatus.Forfeited;
+    }
+
+    public void MarkPayable()
+    {
+        if (Status != CompOffGrantStatus.Active)
+            throw new InvalidOperationException("Only active grants can be marked payable.");
+        Status = CompOffGrantStatus.PendingEncashment;
+    }
+
+    /// <summary>
+    /// Factory used by CompOffAccrualService. TenantId set via EF shadow property / base class.
+    /// </summary>
+    public static CompOffGrant Create(
+        string tenantId,
+        Guid employeeId,
+        DateOnly workedOnDate,
+        decimal daysEarned,
+        DateOnly expiryDate,
+        Guid? approvedBy = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(daysEarned);
+        if (expiryDate <= workedOnDate)
+            throw new ArgumentException("Expiry must be after worked date.");
+
+        var grant = new CompOffGrant(Guid.NewGuid(), employeeId, workedOnDate,
+            daysEarned, expiryDate, approvedBy ?? Guid.Empty)
+        {
+            TenantId = tenantId
+        };
+        return grant;
+    }
 }
 
 public enum CompOffGrantStatus
 {
     Active = 1,
     FullyConsumed = 2,
-    Expired = 3
+    Expired = 3,
+    Forfeited = 4,
+    PendingEncashment = 5
 }

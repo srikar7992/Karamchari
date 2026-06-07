@@ -17,26 +17,20 @@ namespace Karamchari.TimeAttendance.Consumers;
 ///
 /// Idempotent: if cache entry already exists for (EmployeeId, ShiftId), skip.
 /// </summary>
-public sealed class ScheduledShiftCreatedConsumer : IConsumer<ScheduledShiftCreated>
+public sealed class ScheduledShiftCreatedConsumer(
+    TimeAttendanceDbContext db,
+    ILogger<ScheduledShiftCreatedConsumer> logger) : IConsumer<ScheduledShiftCreated>
 {
-    private readonly TimeAttendanceDbContext _db;
-    private readonly ILogger<ScheduledShiftCreatedConsumer> _logger;
-
-    public ScheduledShiftCreatedConsumer(
-        TimeAttendanceDbContext db,
-        ILogger<ScheduledShiftCreatedConsumer> logger)
-    {
-        _db = db;
-        _logger = logger;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
+    private readonly ILogger<ScheduledShiftCreatedConsumer> _logger = logger;
 
     public async Task Consume(ConsumeContext<ScheduledShiftCreated> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var msg = context.Message;
+        ScheduledShiftCreated msg = context.Message;
 
-        var exists = await _db.ShiftAssignmentCache
+        bool exists = await _db.ShiftAssignmentCache
             .AnyAsync(s =>
                 s.EmployeeId == msg.EmployeeId &&
                 s.ShiftId == msg.RosterShiftId,
@@ -51,7 +45,7 @@ public sealed class ScheduledShiftCreatedConsumer : IConsumer<ScheduledShiftCrea
         }
 
         var expectedStart = new DateTimeOffset(msg.WorkDate.ToDateTime(msg.ExpectedStart), TimeSpan.Zero);
-        var expectedEnd = BuildExpectedEnd(msg.WorkDate, msg.ExpectedStart, msg.ExpectedEnd);
+        DateTimeOffset expectedEnd = BuildExpectedEnd(msg.WorkDate, msg.ExpectedStart, msg.ExpectedEnd);
 
         var cache = ShiftAssignmentCache.Create(
             msg.TenantId,
@@ -73,7 +67,7 @@ public sealed class ScheduledShiftCreatedConsumer : IConsumer<ScheduledShiftCrea
     private static DateTimeOffset BuildExpectedEnd(DateOnly workDate, TimeOnly startTime, TimeOnly endTime)
     {
         // Overnight shifts: endTime < startTime means the shift ends the next calendar day.
-        var endDate = endTime < startTime ? workDate.AddDays(1) : workDate;
+        DateOnly endDate = endTime < startTime ? workDate.AddDays(1) : workDate;
         return new DateTimeOffset(endDate.ToDateTime(endTime), TimeSpan.Zero);
     }
 }

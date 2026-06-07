@@ -6,11 +6,11 @@ public sealed class OvertimeConstraint : IAssignmentConstraint
 
     public ConstraintResult Check(RosterShift shift, AssignmentContext context)
     {
-        var max = context.OvertimePolicy.MaximumHours;
+        decimal max = context.OvertimePolicy.MaximumHours;
         if (max <= 0) return ConstraintResult.Allow();
 
-        var shiftHours = (decimal)shift.Duration.TotalHours;
-        var projected = context.WeeklyHoursWorked + shiftHours;
+        decimal shiftHours = (decimal)shift.Duration.TotalHours;
+        decimal projected = context.WeeklyHoursWorked + shiftHours;
 
         return projected > max
             ? ConstraintResult.Deny("OVERTIME_VIOLATION",

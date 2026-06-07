@@ -35,14 +35,9 @@ public sealed class ApprovalWorkflowContext
     public Dictionary<ApproverRole, Guid> ApproverMap { get; init; } = [];
 }
 
-public sealed class ApprovalWorkflowResolver : IApprovalWorkflowResolver
+public sealed class ApprovalWorkflowResolver(TimeAttendanceDbContext db) : IApprovalWorkflowResolver
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public ApprovalWorkflowResolver(TimeAttendanceDbContext db)
-    {
-        _db = db;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
 
     public async Task<ApprovalWorkflowDefinition?> ResolveDefinitionAsync(
         string entityType,
@@ -61,22 +56,22 @@ public sealed class ApprovalWorkflowResolver : IApprovalWorkflowResolver
         ApprovalWorkflowContext context,
         CancellationToken ct = default)
     {
-        var definition = await ResolveDefinitionAsync("Leave", context, ct);
+        ApprovalWorkflowDefinition? definition = await ResolveDefinitionAsync("Leave", context, ct);
         var chain = LeaveApproval.Create(leaveRequestId);
 
         if (definition is null)
         {
             // Fallback: single-step manager approval
-            if (context.ApproverMap.TryGetValue(ApproverRole.Manager, out var managerId))
+            if (context.ApproverMap.TryGetValue(ApproverRole.Manager, out Guid managerId))
                 chain.AddStep(1, managerId, ApproverRole.Manager);
             return chain;
         }
 
-        foreach (var step in definition.Steps.OrderBy(s => s.Sequence))
+        foreach (ApprovalStepDefinition? step in definition.Steps.OrderBy(s => s.Sequence))
         {
             if (!ShouldIncludeStep(step, context)) continue;
 
-            if (context.ApproverMap.TryGetValue(step.Role, out var approverId))
+            if (context.ApproverMap.TryGetValue(step.Role, out Guid approverId))
                 chain.AddStep(step.Sequence, approverId, step.Role);
         }
 
@@ -98,8 +93,8 @@ public sealed class ApprovalWorkflowResolver : IApprovalWorkflowResolver
 
     private static bool TryParseThreshold(string expression, string prefix, double value, bool orEqual = false)
     {
-        var part = expression.Replace(prefix, "").Trim();
-        if (!double.TryParse(part, out var threshold)) return true;
+        string part = expression.Replace(prefix, "").Trim();
+        if (!double.TryParse(part, out double threshold)) return true;
         return orEqual ? value >= threshold : value > threshold;
     }
 }

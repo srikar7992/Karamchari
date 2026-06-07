@@ -1,19 +1,23 @@
+using Karamchari.Api.BFF.AssetManagement;
 using Karamchari.Api.BFF.Attendance;
 using Karamchari.Api.BFF.Billing;
 using Karamchari.Api.BFF.Capability;
 using Karamchari.Api.BFF.Common;
 using Karamchari.Api.BFF.Compliance;
-using Karamchari.Api.BFF.PlatformIntelligence;
 using Karamchari.Api.BFF.Employee;
+using Karamchari.Api.BFF.Engagement;
 using Karamchari.Api.BFF.ESS;
 using Karamchari.Api.BFF.Executive;
+using Karamchari.Api.BFF.Helpdesk;
 using Karamchari.Api.BFF.HR;
 using Karamchari.Api.BFF.Intelligence;
 using Karamchari.Api.BFF.Manager;
 using Karamchari.Api.BFF.Notifications;
 using Karamchari.Api.BFF.Payroll;
+using Karamchari.Api.BFF.PlatformIntelligence;
 using Karamchari.Api.BFF.PSA;
 using Karamchari.Api.BFF.Search;
+using Karamchari.Api.BFF.Succession;
 using Karamchari.Api.BFF.Tenants;
 using Karamchari.Identity;
 using Karamchari.Notifications.RealTime;
@@ -59,6 +63,8 @@ public static class EndpointExtensions
         app.MapTenantEndpoints();
         app.MapApprovalEndpoints();
         app.MapAttendanceEndpoints();
+        app.MapBiometricAttendanceEndpoints();
+        app.MapAttendanceReportingEndpoints();
         app.MapLeaveEndpoints();
         app.MapRosterEndpoints();
         app.MapCapabilityEndpoints();
@@ -72,6 +78,12 @@ public static class EndpointExtensions
         app.MapBillingEndpoints();
         app.MapESSEndpoints();
         app.MapEmployeeEndpoints();
+
+        // New modules: Helpdesk, Asset Management, Engagement, Succession
+        app.MapHelpdeskEndpoints();
+        app.MapAssetManagementEndpoints();
+        app.MapEngagementEndpoints();
+        app.MapSuccessionEndpoints();
 
         // BFF Workspaces (Phase 1A)
         app.MapManagerWorkspace();

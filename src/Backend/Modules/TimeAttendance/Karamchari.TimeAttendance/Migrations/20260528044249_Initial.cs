@@ -423,27 +423,27 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_LeaveBalanceEntries_EmployeeId_PolicyId",
                 schema: "__tenant__",
                 table: "LeaveBalanceEntries",
-                columns: new[] { "EmployeeId", "PolicyId" });
+                columns: ["EmployeeId", "PolicyId"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_LeaveBalances_TenantId_EmployeeId_PolicyId",
                 schema: "__tenant__",
                 table: "LeaveBalances",
-                columns: new[] { "TenantId", "EmployeeId", "PolicyId" },
+                columns: ["TenantId", "EmployeeId", "PolicyId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Projections_LeaveBalances_TenantId_EmployeeId_PolicyId",
                 schema: "__tenant__",
                 table: "Projections_LeaveBalances",
-                columns: new[] { "TenantId", "EmployeeId", "PolicyId" },
+                columns: ["TenantId", "EmployeeId", "PolicyId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workforce_AttendanceAnomalies_TenantId_Status",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceAnomalies",
-                columns: new[] { "TenantId", "Status" });
+                columns: ["TenantId", "Status"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workforce_AttendanceEvents_SessionId",
@@ -455,14 +455,14 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Workforce_AttendanceRecords_TenantId_EmployeeId_Date",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceRecords",
-                columns: new[] { "TenantId", "EmployeeId", "Date" },
+                columns: ["TenantId", "EmployeeId", "Date"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workforce_AttendanceSessions_TenantId_EmployeeId_WorkDate",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceSessions",
-                columns: new[] { "TenantId", "EmployeeId", "WorkDate" },
+                columns: ["TenantId", "EmployeeId", "WorkDate"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -475,13 +475,13 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Workforce_Schedules_TenantId_StartDate_EndDate",
                 schema: "__tenant__",
                 table: "Workforce_Schedules",
-                columns: new[] { "TenantId", "StartDate", "EndDate" });
+                columns: ["TenantId", "StartDate", "EndDate"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workforce_ShiftAssignments_EmployeeId_Date",
                 schema: "__tenant__",
                 table: "Workforce_ShiftAssignments",
-                columns: new[] { "EmployeeId", "Date" });
+                columns: ["EmployeeId", "Date"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workforce_ShiftAssignments_ScheduleId",
@@ -493,7 +493,7 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Workforce_ShiftDefinitions_TenantId_Code",
                 schema: "__tenant__",
                 table: "Workforce_ShiftDefinitions",
-                columns: new[] { "TenantId", "Code" },
+                columns: ["TenantId", "Code"],
                 unique: true);
         }
 

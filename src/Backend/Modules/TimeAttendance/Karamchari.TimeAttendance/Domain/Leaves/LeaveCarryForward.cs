@@ -64,8 +64,8 @@ public sealed class LeaveCarryForward : Entity<Guid>, ITenantOwned
         ArgumentOutOfRangeException.ThrowIfNegative(eligibleDays);
         ArgumentOutOfRangeException.ThrowIfNegative(maxCarryForward);
 
-        var carried = Math.Min(eligibleDays, maxCarryForward);
-        var lapsed = eligibleDays - carried;
+        decimal carried = Math.Min(eligibleDays, maxCarryForward);
+        decimal lapsed = eligibleDays - carried;
 
         return new LeaveCarryForward(Guid.NewGuid(), employeeId, policyId,
             fromYearId, toYearId, eligibleDays, carried, lapsed, processedBy);

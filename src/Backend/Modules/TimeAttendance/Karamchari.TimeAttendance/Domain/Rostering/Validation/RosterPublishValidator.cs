@@ -22,9 +22,9 @@ public static class RosterPublishValidator
             .ToDictionary(g => g.Key, g => g.ToList());
 
         // 1. Per-shift: headcount + skill mix + constraint re-check
-        foreach (var shift in shifts)
+        foreach (RosterShift shift in shifts)
         {
-            var assigned = activeAssignmentsByShift.TryGetValue(shift.Id, out var list) ? list : [];
+            List<RosterShiftAssignment> assigned = activeAssignmentsByShift.TryGetValue(shift.Id, out List<RosterShiftAssignment>? list) ? list : [];
 
             // Headcount
             if (assigned.Count < shift.RequiredHeadcount)
@@ -34,10 +34,10 @@ public static class RosterPublishValidator
                     shift.WorkDate, shift.Id));
 
             // Skill mix
-            foreach (var req in shift.RequiredSkills)
+            foreach (SkillRequirement req in shift.RequiredSkills)
             {
-                var qualified = assigned.Count(a =>
-                    employeeContexts.TryGetValue(a.EmployeeId, out var ctx) &&
+                int qualified = assigned.Count(a =>
+                    employeeContexts.TryGetValue(a.EmployeeId, out AssignmentContext? ctx) &&
                     ctx.Skills.Any(s =>
                         s.SkillId == req.SkillId &&
                         s.IsValid(shift.WorkDate) &&
@@ -51,12 +51,12 @@ public static class RosterPublishValidator
             }
 
             // Re-check hard constraints per assignee (conditions may have changed since assignment)
-            foreach (var assignment in assigned)
+            foreach (RosterShiftAssignment? assignment in assigned)
             {
-                if (!employeeContexts.TryGetValue(assignment.EmployeeId, out var ctx)) continue;
+                if (!employeeContexts.TryGetValue(assignment.EmployeeId, out AssignmentContext? ctx)) continue;
 
-                var violations = AssignmentConstraintEngine.EvaluateAll(shift, ctx);
-                foreach (var v in violations)
+                IReadOnlyList<ConstraintResult> violations = AssignmentConstraintEngine.EvaluateAll(shift, ctx);
+                foreach (ConstraintResult v in violations)
                     result.Add(new PublishViolation(
                         v.ViolationCode!,
                         $"Employee {assignment.EmployeeId} on '{shift.Name}' ({shift.WorkDate:d}): {v.Reason}",
@@ -67,21 +67,21 @@ public static class RosterPublishValidator
         // 2. Coverage rules — per date, per location
         var shiftsByLocation = shifts.GroupBy(s => s.LocationId).ToDictionary(g => g.Key, g => g.ToList());
 
-        foreach (var rule in coverageRules.Where(r => r.IsActive))
+        foreach (CoverageRule? rule in coverageRules.Where(r => r.IsActive))
         {
-            if (!shiftsByLocation.TryGetValue(rule.LocationId, out var locationShifts)) continue;
+            if (!shiftsByLocation.TryGetValue(rule.LocationId, out List<RosterShift>? locationShifts)) continue;
 
-            var datesInRoster = Enumerable
+            IEnumerable<DateOnly> datesInRoster = Enumerable
                 .Range(0, roster.EndDate.DayNumber - roster.StartDate.DayNumber + 1)
                 .Select(d => roster.StartDate.AddDays(d));
 
-            foreach (var date in datesInRoster)
+            foreach (DateOnly date in datesInRoster)
             {
                 var shiftsOnDate = locationShifts.Where(s => s.WorkDate == date).ToList();
                 if (shiftsOnDate.Count == 0) continue;
 
-                var totalAssigned = shiftsOnDate
-                    .SelectMany(s => activeAssignmentsByShift.TryGetValue(s.Id, out var l) ? l : [])
+                int totalAssigned = shiftsOnDate
+                    .SelectMany(s => activeAssignmentsByShift.TryGetValue(s.Id, out List<RosterShiftAssignment>? l) ? l : [])
                     .Count();
 
                 if (totalAssigned < rule.MinimumStaff)

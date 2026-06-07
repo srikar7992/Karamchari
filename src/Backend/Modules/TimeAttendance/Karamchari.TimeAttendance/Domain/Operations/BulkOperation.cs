@@ -99,7 +99,7 @@ public sealed class BulkOperation : AggregateRoot<Guid>, ITenantOwned
 
     public void RecordItemResult(Guid itemId, bool success, string? failureReason = null)
     {
-        var item = _items.Find(i => i.Id == itemId)
+        BulkOperationItem item = _items.Find(i => i.Id == itemId)
             ?? throw new InvalidOperationException($"Item {itemId} not found.");
 
         item.Complete(success, failureReason);
@@ -110,7 +110,7 @@ public sealed class BulkOperation : AggregateRoot<Guid>, ITenantOwned
 
     public void SkipItem(Guid itemId, string reason)
     {
-        var item = _items.Find(i => i.Id == itemId)
+        BulkOperationItem item = _items.Find(i => i.Id == itemId)
             ?? throw new InvalidOperationException($"Item {itemId} not found.");
         item.Skip(reason);
         SkippedItems++;

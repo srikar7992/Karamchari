@@ -42,6 +42,18 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.RegisterTenantTable("Roster_ShiftSkillRequirements");
         services.RegisterTenantTable("Roster_EmployeeAvailability");
 
+        // -- Biometric Engine --------------------------------------------------------
+        services.RegisterTenantTable("Biometric_PunchEvents");
+        services.RegisterTenantTable("Biometric_Templates");
+        services.RegisterTenantTable("Biometric_Devices");
+        services.RegisterTenantTable("Biometric_EnrollmentSessions");
+
+        // -- Geo Engine --------------------------------------------------------------
+        services.RegisterTenantTable("Geo_Zones");
+
+        // -- Policy Hierarchy --------------------------------------------------------
+        services.RegisterTenantTable("Attendance_PolicyHierarchy");
+
         services.RegisterTenantTable("Workforce_ShiftDefinitions");
         services.RegisterTenantTable("Workforce_Schedules");
         services.RegisterTenantTable("Workforce_ShiftAssignments");
@@ -137,7 +149,7 @@ public static class TimeAttendanceServiceCollectionExtensions
 
         services.AddDbContext<TimeAttendanceDbContext>((serviceProvider, options) =>
         {
-            var connectionString = configuration.GetConnectionString(ConnectionStringName)
+            string connectionString = configuration.GetConnectionString(ConnectionStringName)
                 ?? throw new InvalidOperationException(
                     $"ConnectionStrings:{ConnectionStringName} must be configured before TimeAttendanceDbContext can be resolved.");
 
@@ -187,6 +199,13 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.AddScoped<Karamchari.TimeAttendance.Services.ShiftRosteringEngine>();
         services.AddScoped<Karamchari.TimeAttendance.Services.PolicySimulationService>();
 
+        // -- Biometric + Geo + Policy Hierarchy (Phase Attendance) --------------------
+        services.AddScoped<Karamchari.TimeAttendance.Services.GeoConfidenceScorer>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.AttendancePolicyHierarchyResolver>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.PunchIngestionService>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.CompOffAccrualService>();
+        services.AddScoped<Karamchari.TimeAttendance.Services.ConsecutiveAbsenceMonitor>();
+
         // Phase 3: Attendance Intelligence
         services.AddSingleton<Karamchari.TimeAttendance.Observability.AttendanceMetrics>();
         services.AddScoped<Karamchari.TimeAttendance.Services.AttendanceProcessingEngine>();
@@ -194,6 +213,9 @@ public static class TimeAttendanceServiceCollectionExtensions
         services.AddScoped<Karamchari.TimeAttendance.Services.ShiftResolver>();
 
         services.AddScoped<Karamchari.TimeAttendance.Services.ShiftAssignmentCacheRebuilder>();
+
+        // Period finalization
+        services.AddScoped<Karamchari.TimeAttendance.Services.AttendancePeriodFinalizationService>();
 
         // Intelligence pipeline — 4 focused analyzers + thin facade
         services.AddScoped<Karamchari.TimeAttendance.Services.TrendAnalyzer>();

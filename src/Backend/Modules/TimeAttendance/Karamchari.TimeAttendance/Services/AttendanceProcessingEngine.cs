@@ -1,10 +1,13 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Karamchari.Core.Domain.Primitives;
+using Karamchari.TimeAttendance.Contracts;
 using Karamchari.TimeAttendance.Domain.Attendance;
 using Karamchari.TimeAttendance.Domain.Schedules;
+using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Observability;
 using Karamchari.TimeAttendance.Persistence;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -23,27 +26,20 @@ namespace Karamchari.TimeAttendance.Services;
 ///
 /// All DB writes happen in one SaveChangesAsync call per operation.
 /// </summary>
-public sealed class AttendanceProcessingEngine
+public sealed class AttendanceProcessingEngine(
+    TimeAttendanceDbContext db,
+    ShiftResolver shiftResolver,
+    AttendanceScoreCalculator scoreCalculator,
+    IPublishEndpoint bus,
+    ILogger<AttendanceProcessingEngine> logger,
+    AttendanceMetrics metrics)
 {
-    private readonly TimeAttendanceDbContext _db;
-    private readonly ShiftResolver _shiftResolver;
-    private readonly AttendanceScoreCalculator _scoreCalculator;
-    private readonly ILogger<AttendanceProcessingEngine> _logger;
-    private readonly AttendanceMetrics _metrics;
-
-    public AttendanceProcessingEngine(
-        TimeAttendanceDbContext db,
-        ShiftResolver shiftResolver,
-        AttendanceScoreCalculator scoreCalculator,
-        ILogger<AttendanceProcessingEngine> logger,
-        AttendanceMetrics metrics)
-    {
-        _db = db;
-        _shiftResolver = shiftResolver;
-        _scoreCalculator = scoreCalculator;
-        _logger = logger;
-        _metrics = metrics;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
+    private readonly ShiftResolver _shiftResolver = shiftResolver;
+    private readonly AttendanceScoreCalculator _scoreCalculator = scoreCalculator;
+    private readonly IPublishEndpoint _bus = bus;
+    private readonly ILogger<AttendanceProcessingEngine> _logger = logger;
+    private readonly AttendanceMetrics _metrics = metrics;
 
     /// <summary>
     /// Processes a check-in punch.
@@ -62,13 +58,13 @@ public sealed class AttendanceProcessingEngine
         var sw = Stopwatch.StartNew();
 
         // Step 1: Resolve shift
-        var shiftAssignment = await _shiftResolver.ResolveAsync(tenantId, employeeId, punchTime, ct);
+        ShiftAssignmentCache? shiftAssignment = await _shiftResolver.ResolveAsync(tenantId, employeeId, punchTime, ct);
 
         // Step 2: Find or create session
         var workDate = DateOnly.FromDateTime(punchTime.LocalDateTime);
 
         // For overnight shifts the session workDate is the start date, not today's date.
-        var sessionWorkDate = shiftAssignment?.WorkDate ?? workDate;
+        DateOnly sessionWorkDate = shiftAssignment?.WorkDate ?? workDate;
 
         // Split-shift fix: look up session by ShiftAssignmentId when available.
         // The old (TenantId, EmployeeId, WorkDate) unique index would prevent two sessions on the same day.
@@ -97,7 +93,7 @@ public sealed class AttendanceProcessingEngine
                     ct);
         }
 
-        var sessionWasNew = session is null;
+        bool sessionWasNew = session is null;
         if (session is null)
         {
             session = AttendanceSession.CreateScheduled(
@@ -185,7 +181,7 @@ public sealed class AttendanceProcessingEngine
         var sw = Stopwatch.StartNew();
 
         // Search by session status, not workDate — handles overnight checkout (06:15 next day)
-        var session = await _db.AttendanceSessions
+        AttendanceSession? session = await _db.AttendanceSessions
             .Include(s => s.Events)
             .FirstOrDefaultAsync(s =>
                 s.EmployeeId == employeeId &&
@@ -202,7 +198,7 @@ public sealed class AttendanceProcessingEngine
 
         session.CheckOut(punchTime, location, source);
 
-        var record = await _db.AttendanceRecords
+        AttendanceRecord? record = await _db.AttendanceRecords
             .FirstOrDefaultAsync(r => r.SessionId == session.Id, ct);
 
         if (record is null)
@@ -214,13 +210,35 @@ public sealed class AttendanceProcessingEngine
             return null;
         }
 
-        var policy = await ResolvePolicy(tenantId, ct);
-        var totalWorkedMinutes = ComputeWorkedMinutes(session);
+        AttendanceShiftPolicy policy = await ResolvePolicy(tenantId, ct);
+        int rawWorkedMinutes = ComputeWorkedMinutes(session);
 
-        var shiftDurationMinutes = (int)(record.ExpectedEnd - record.ExpectedStart).TotalMinutes;
-        var overtimeMinutes = Math.Max(0, totalWorkedMinutes - shiftDurationMinutes);
+        // Auto-break deduction: apply only if employee did not punch a break and worked past trigger
+        ShiftDefinition? shiftDef = record.ShiftId != Guid.Empty
+            ? await _db.ShiftDefinitions.FindAsync([record.ShiftId], ct)
+            : null;
 
-        var isLate = record.ActualStart.HasValue &&
+        int autoBreakDeducted = 0;
+        if (shiftDef is not null
+            && shiftDef.AutoBreakDeductionMinutes > 0
+            && rawWorkedMinutes >= shiftDef.AutoBreakTriggerMinutes)
+        {
+            // Only auto-deduct if no break punch exists in the session
+            bool hasBreakPunch = session.Events.Any(e => e.EventType == "Break-Start");
+            if (!hasBreakPunch)
+                autoBreakDeducted = shiftDef.AutoBreakDeductionMinutes;
+        }
+
+        int totalWorkedMinutes = Math.Max(0, rawWorkedMinutes - autoBreakDeducted);
+
+        int shiftDurationMinutes = (int)(record.ExpectedEnd - record.ExpectedStart).TotalMinutes;
+        int overtimeMinutes = Math.Max(0, totalWorkedMinutes - shiftDurationMinutes);
+
+        // Night differential: apply when shift definition marks it as a night shift
+        bool nightDifferentialApplied = shiftDef is { IsNightShift: true, NightDifferentialMultiplier: > 1.0m };
+        decimal nightMultiplier = nightDifferentialApplied ? shiftDef!.NightDifferentialMultiplier : 1.0m;
+
+        bool isLate = record.ActualStart.HasValue &&
                      (record.ActualStart.Value - record.ExpectedStart).TotalMinutes > policy.LateToleranceMinutes;
 
         AttendanceStatus finalStatus;
@@ -231,13 +249,14 @@ public sealed class AttendanceProcessingEngine
         else
             finalStatus = AttendanceStatus.Absent;
 
-        var previousStatus = record.Status;
-        record.RecordCheckOut(punchTime, totalWorkedMinutes, overtimeMinutes, finalStatus);
+        AttendanceStatus previousStatus = record.Status;
+        record.RecordCheckOut(punchTime, totalWorkedMinutes, overtimeMinutes, finalStatus,
+            autoBreakDeducted, nightDifferentialApplied, nightMultiplier);
 
         // Exception evaluation
-        var exceptionDefs = ExceptionEvaluator.Evaluate(record, policy, session.CheckInLocation);
+        IReadOnlyList<(AttendanceExceptionType Type, AttendanceExceptionSeverity Severity, string Description)> exceptionDefs = ExceptionEvaluator.Evaluate(record, policy, session.CheckInLocation);
         var exceptions = new List<AttendanceViolation>();
-        foreach (var (type, severity, description) in exceptionDefs)
+        foreach ((AttendanceExceptionType type, AttendanceExceptionSeverity severity, string? description) in exceptionDefs)
         {
             var ex = AttendanceViolation.Raise(tenantId, record.Id, employeeId, type, severity, description);
             _db.AttendanceViolations.Add(ex);
@@ -251,7 +270,7 @@ public sealed class AttendanceProcessingEngine
             previousStatus.ToString(),
             finalStatus.ToString(),
             "System",
-            $"Check-out via {source}. Worked {totalWorkedMinutes}min, OT {overtimeMinutes}min.");
+            $"Check-out via {source}. Worked {totalWorkedMinutes}min (raw {rawWorkedMinutes}min, break-deducted {autoBreakDeducted}min), OT {overtimeMinutes}min. NightDiff={nightDifferentialApplied}.");
         _db.AttendanceAuditLog.Add(audit);
 
         await _scoreCalculator.ApplyIncrementalAsync(
@@ -263,6 +282,19 @@ public sealed class AttendanceProcessingEngine
             ct);
 
         await _db.SaveChangesAsync(ct);
+
+        foreach (AttendanceViolation violation in exceptions)
+        {
+            await _bus.Publish(new AttendanceExceptionRaisedIntegrationEvent(
+                Guid.NewGuid(),
+                tenantId,
+                employeeId,
+                violation.AttendanceRecordId,
+                violation.ExceptionType.ToString(),
+                violation.Severity.ToString(),
+                violation.Description,
+                DateTimeOffset.UtcNow), ct);
+        }
 
         _logger.LogInformation(
             "CheckOut processed. Employee={EmployeeId} FinalStatus={Status} WorkedMin={WorkedMin} OTMin={OTMin} ElapsedMs={ElapsedMs}",
@@ -297,17 +329,17 @@ public sealed class AttendanceProcessingEngine
         var sw = Stopwatch.StartNew();
         try
         {
-            var cutoff = DateTimeOffset.UtcNow.AddMinutes(-gracePeriodMinutes);
+            DateTimeOffset cutoff = DateTimeOffset.UtcNow.AddMinutes(-gracePeriodMinutes);
 
             // True no-shows: shifts in cache where no AttendanceRecord was ever created
-            var cachedShifts = await _db.ShiftAssignmentCache
+            List<ShiftAssignmentCache> cachedShifts = await _db.ShiftAssignmentCache
                 .Where(s =>
                     s.TenantId == tenantId &&
                     s.WorkDate == workDate &&
                     s.ExpectedEnd < cutoff)
                 .ToListAsync(ct);
 
-            var existingShiftIds = await _db.AttendanceRecords
+            List<Guid> existingShiftIds = await _db.AttendanceRecords
                 .Where(r =>
                     r.TenantId == tenantId &&
                     r.WorkDate == workDate)
@@ -318,7 +350,9 @@ public sealed class AttendanceProcessingEngine
                 .Where(s => !existingShiftIds.Contains(s.ShiftId))
                 .ToList();
 
-            foreach (var shift in noShowShifts)
+            var finalizationViolations = new List<AttendanceViolation>();
+
+            foreach (ShiftAssignmentCache? shift in noShowShifts)
             {
                 var record = AttendanceRecord.CreatePending(
                     tenantId,
@@ -340,6 +374,7 @@ public sealed class AttendanceProcessingEngine
                     $"Employee did not report for shift on {workDate:yyyy-MM-dd}. Expected: {shift.ExpectedStart:HH:mm}-{shift.ExpectedEnd:HH:mm} UTC.");
 
                 _db.AttendanceViolations.Add(noShowEx);
+                finalizationViolations.Add(noShowEx);
 
                 var audit = AttendanceAuditLog.Record(
                     tenantId, record.Id, shift.EmployeeId,
@@ -356,7 +391,7 @@ public sealed class AttendanceProcessingEngine
             }
 
             // Incomplete: sessions still CheckedIn past shift end + grace period
-            var incompleteRecords = await _db.AttendanceRecords
+            List<AttendanceRecord> incompleteRecords = await _db.AttendanceRecords
                 .Where(r =>
                     r.TenantId == tenantId &&
                     r.WorkDate == workDate &&
@@ -364,22 +399,25 @@ public sealed class AttendanceProcessingEngine
                     r.ExpectedEnd < cutoff)
                 .ToListAsync(ct);
 
-            foreach (var record in incompleteRecords)
+            foreach (AttendanceRecord? record in incompleteRecords)
             {
-                var previousStatus = record.Status;
-                var estimatedMinutes = record.ActualStart.HasValue
+                AttendanceStatus previousStatus = record.Status;
+                int estimatedMinutes = record.ActualStart.HasValue
                     ? Math.Max(0, (int)(record.ExpectedEnd - record.ActualStart.Value).TotalMinutes)
                     : 0;
 
                 record.MarkIncomplete(estimatedMinutes);
 
-                _db.AttendanceViolations.Add(AttendanceViolation.Raise(
+                var missingCheckoutEx = AttendanceViolation.Raise(
                     tenantId,
                     record.Id,
                     record.EmployeeId,
                     AttendanceExceptionType.MissingCheckOut,
                     AttendanceExceptionSeverity.High,
-                    $"No check-out recorded for {workDate:yyyy-MM-dd}. Estimated {estimatedMinutes} worked minutes."));
+                    $"No check-out recorded for {workDate:yyyy-MM-dd}. Estimated {estimatedMinutes} worked minutes.");
+
+                _db.AttendanceViolations.Add(missingCheckoutEx);
+                finalizationViolations.Add(missingCheckoutEx);
 
                 _db.AttendanceAuditLog.Add(AttendanceAuditLog.Record(
                     tenantId, record.Id, record.EmployeeId,
@@ -391,6 +429,19 @@ public sealed class AttendanceProcessingEngine
             }
 
             await _db.SaveChangesAsync(ct);
+
+            foreach (AttendanceViolation violation in finalizationViolations)
+            {
+                await _bus.Publish(new AttendanceExceptionRaisedIntegrationEvent(
+                    Guid.NewGuid(),
+                    tenantId,
+                    violation.EmployeeId,
+                    violation.AttendanceRecordId,
+                    violation.ExceptionType.ToString(),
+                    violation.Severity.ToString(),
+                    violation.Description,
+                    DateTimeOffset.UtcNow), ct);
+            }
 
             _logger.LogInformation(
                 "Finalized {WorkDate} for tenant {TenantId}: {NoShowCount} no-shows, {IncompleteCount} incomplete. ElapsedMs={ElapsedMs}",
@@ -423,11 +474,11 @@ public sealed class AttendanceProcessingEngine
         Guid approvedByUserId,
         CancellationToken ct = default)
     {
-        var record = await _db.AttendanceRecords
+        AttendanceRecord record = await _db.AttendanceRecords
             .FirstOrDefaultAsync(r => r.Id == attendanceRecordId, ct)
             ?? throw new InvalidOperationException($"AttendanceRecord {attendanceRecordId} not found.");
 
-        var previousStatus = record.Status;
+        AttendanceStatus previousStatus = record.Status;
 
         // Capture before-state for audit trail — supports dispute resolution when status change alone
         // is insufficient (e.g., ActualStart 09:45 → 09:02 after regularization).
@@ -451,15 +502,15 @@ public sealed class AttendanceProcessingEngine
             record.IsRegularized
         };
 
-        var changedFields = JsonSerializer.Serialize(new { Before = snapshotBefore, After = snapshotAfter });
+        string changedFields = JsonSerializer.Serialize(new { Before = snapshotBefore, After = snapshotAfter });
 
-        var openExceptions = await _db.AttendanceViolations
+        List<AttendanceViolation> openExceptions = await _db.AttendanceViolations
             .Where(e =>
                 e.AttendanceRecordId == attendanceRecordId &&
                 e.Status == AttendanceExceptionStatus.Open)
             .ToListAsync(ct);
 
-        foreach (var ex in openExceptions)
+        foreach (AttendanceViolation? ex in openExceptions)
             ex.Resolve("Resolved by regularization approval.");
 
         _db.AttendanceAuditLog.Add(AttendanceAuditLog.Record(
@@ -489,7 +540,7 @@ public sealed class AttendanceProcessingEngine
 
     private async Task<AttendanceShiftPolicy> ResolvePolicy(string tenantId, CancellationToken ct)
     {
-        var policy = await _db.AttendanceShiftPolicies
+        AttendanceShiftPolicy? policy = await _db.AttendanceShiftPolicies
             .FirstOrDefaultAsync(p => p.TenantId == tenantId && p.IsDefault, ct);
 
         return policy ?? AttendanceShiftPolicy.CreateDefault(tenantId);
@@ -499,14 +550,14 @@ public sealed class AttendanceProcessingEngine
     {
         if (!session.CheckInTime.HasValue) return 0;
 
-        var checkOut = session.CheckOutTime ?? DateTimeOffset.UtcNow;
-        var rawMinutes = (int)(checkOut - session.CheckInTime.Value).TotalMinutes;
+        DateTimeOffset checkOut = session.CheckOutTime ?? DateTimeOffset.UtcNow;
+        int rawMinutes = (int)(checkOut - session.CheckInTime.Value).TotalMinutes;
 
         var events = session.Events.OrderBy(e => e.Timestamp).ToList();
-        var breakMinutes = 0;
+        int breakMinutes = 0;
         DateTimeOffset? breakStart = null;
 
-        foreach (var e in events)
+        foreach (AttendanceEvent? e in events)
         {
             if (e.EventType == "Break-Start")
             {

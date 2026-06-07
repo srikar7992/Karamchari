@@ -25,20 +25,19 @@ public static class CandidateScorer
         var eligible = candidates.Where(c => c.IsEligible).ToList();
         if (eligible.Count == 0) return [];
 
-        return eligible
+        return [.. eligible
             .Select(c => Score(c, request))
-            .OrderByDescending(s => s.TotalScore)
-            .ToList();
+            .OrderByDescending(s => s.TotalScore)];
     }
 
     private static CandidateScore Score(SchedulingCandidate candidate, ShiftFillRequest request)
     {
-        var skillScore = ComputeSkillScore(candidate, request);
-        var availabilityScore = ComputeAvailabilityScore(candidate);
-        var (fairnessScore, hoursFairness, nightFairness, weekendFairness) = ComputeFairnessScore(candidate);
-        var fatigueScore = ComputeFatigueScore(candidate, request.ShiftType);
+        double skillScore = ComputeSkillScore(candidate, request);
+        double availabilityScore = ComputeAvailabilityScore(candidate);
+        (double fairnessScore, double hoursFairness, double nightFairness, double weekendFairness) = ComputeFairnessScore(candidate);
+        double fatigueScore = ComputeFatigueScore(candidate, request.ShiftType);
 
-        var total =
+        double total =
             skillScore * SkillWeight +
             availabilityScore * AvailabilityWeight +
             fairnessScore * FairnessWeight +
@@ -63,9 +62,9 @@ public static class CandidateScorer
         if (request.RequiredSkills.Count == 0) return 100.0;
 
         double score = 0;
-        foreach (var req in request.RequiredSkills)
+        foreach (SkillRequirement req in request.RequiredSkills)
         {
-            var match = candidate.Skills.FirstOrDefault(s =>
+            EmployeeSkill? match = candidate.Skills.FirstOrDefault(s =>
                 s.SkillId == req.SkillId && s.IsValid(request.WorkDate));
 
             if (match == null) return 0.0; // missing required skill — hard block handled upstream
@@ -78,20 +77,20 @@ public static class CandidateScorer
 
     private static double ComputeAvailabilityScore(SchedulingCandidate candidate)
     {
-        var max = candidate.OvertimePolicy.MaximumHours;
+        decimal max = candidate.OvertimePolicy.MaximumHours;
         if (max <= 0) return 100.0;
-        var remaining = max - candidate.WeeklyHoursWorked;
+        decimal remaining = max - candidate.WeeklyHoursWorked;
         return Math.Clamp((double)(remaining / max) * 100.0, 0, 100);
     }
 
     private static (double composite, double hours, double nights, double weekends)
         ComputeFairnessScore(SchedulingCandidate candidate)
     {
-        var hoursFairness = ComputeWeeklyHoursFairness(candidate);
-        var nightFairness = ComputeNightShiftFairness(candidate);
-        var weekendFairness = ComputeWeekendFairness(candidate);
+        double hoursFairness = ComputeWeeklyHoursFairness(candidate);
+        double nightFairness = ComputeNightShiftFairness(candidate);
+        double weekendFairness = ComputeWeekendFairness(candidate);
 
-        var composite =
+        double composite =
             hoursFairness * HoursFairnessWeight +
             nightFairness * NightFairnessWeight +
             weekendFairness * WeekendFairnessWeight;
@@ -101,7 +100,7 @@ public static class CandidateScorer
 
     private static double ComputeWeeklyHoursFairness(SchedulingCandidate candidate)
     {
-        var max = candidate.OvertimePolicy.MaximumHours;
+        decimal max = candidate.OvertimePolicy.MaximumHours;
         if (max <= 0) return 100.0;
         // Lower hours worked relative to max = higher score (equalize load)
         return Math.Clamp((double)(1 - candidate.WeeklyHoursWorked / max) * 100.0, 0, 100);

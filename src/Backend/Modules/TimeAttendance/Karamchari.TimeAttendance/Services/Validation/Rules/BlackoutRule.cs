@@ -8,10 +8,10 @@ public sealed class BlackoutRule : ILeaveValidationRule
 
     public Task<LeaveValidationResult> ValidateAsync(LeaveValidationContext context, CancellationToken ct = default)
     {
-        var start = context.Request.StartDate;
-        var end = context.Request.EndDate;
+        DateOnly start = context.Request.StartDate;
+        DateOnly end = context.Request.EndDate;
 
-        var hit = context.BlackoutPeriods
+        LeaveBlackoutPeriod? hit = context.BlackoutPeriods
             .FirstOrDefault(b => b.StartDate <= end && b.EndDate >= start);
 
         if (hit is not null)

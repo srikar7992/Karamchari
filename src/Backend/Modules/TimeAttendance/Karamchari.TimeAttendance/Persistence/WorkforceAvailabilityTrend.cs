@@ -70,18 +70,18 @@ public sealed class WorkforceAvailabilityTrend : ITenantOwned
             };
         }
 
-        var avg = dailyAvailabilityPercents.Average();
-        var min = dailyAvailabilityPercents.Min();
-        var max = dailyAvailabilityPercents.Max();
-        var daysBelowThreshold = dailyAvailabilityPercents.Count(d => d < thresholdPercent);
+        decimal avg = dailyAvailabilityPercents.Average();
+        decimal min = dailyAvailabilityPercents.Min();
+        decimal max = dailyAvailabilityPercents.Max();
+        int daysBelowThreshold = dailyAvailabilityPercents.Count(d => d < thresholdPercent);
 
         // Naive linear forecast: use last 7 days slope to project next 7
-        var forecastedNext = avg;
+        decimal forecastedNext = avg;
         if (dailyAvailabilityPercents.Count >= 14)
         {
-            var recentAvg = dailyAvailabilityPercents.TakeLast(7).Average();
-            var priorAvg = dailyAvailabilityPercents.SkipLast(7).TakeLast(7).Average();
-            var slope = recentAvg - priorAvg;
+            decimal recentAvg = dailyAvailabilityPercents.TakeLast(7).Average();
+            decimal priorAvg = dailyAvailabilityPercents.SkipLast(7).TakeLast(7).Average();
+            decimal slope = recentAvg - priorAvg;
             forecastedNext = Math.Max(0m, Math.Min(100m, recentAvg + slope));
         }
 

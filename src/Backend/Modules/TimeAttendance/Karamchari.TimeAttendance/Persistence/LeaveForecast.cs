@@ -47,7 +47,7 @@ public sealed class LeaveForecast : ITenantOwned
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentOutOfRangeException.ThrowIfNegative(headcountScheduled);
 
-        var forecastedCount = (int)Math.Round(headcountScheduled * forecastedLeavePercent / 100m);
+        int forecastedCount = (int)Math.Round(headcountScheduled * forecastedLeavePercent / 100m);
 
         return new LeaveForecast
         {

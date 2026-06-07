@@ -63,20 +63,20 @@ public sealed class ManagerLeaveScorecard : ITenantOwned
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
-        var slaScore = totalApprovalsRequired == 0
+        decimal slaScore = totalApprovalsRequired == 0
             ? 100m
             : (decimal)approvedWithinSla / totalApprovalsRequired * 100m;
 
         // Penalize rejection outliers: >40% rejection is poor signal
-        var rejectionPenalty = totalDecisions == 0
+        decimal rejectionPenalty = totalDecisions == 0
             ? 0m
             : Math.Max(0m, ((decimal)rejected / totalDecisions * 100m) - 40m);
 
-        var utilizationScore = Math.Min(teamLeaveUtilizationPercent, 100m);
-        var availabilityScore = averageTeamAvailabilityPercent;
+        decimal utilizationScore = Math.Min(teamLeaveUtilizationPercent, 100m);
+        decimal availabilityScore = averageTeamAvailabilityPercent;
 
         // Weighted: SLA 40%, Availability 35%, Utilization 15%, Rejection penalty -10% max
-        var composite = Math.Round(
+        decimal composite = Math.Round(
             slaScore * 0.4m
             + availabilityScore * 0.35m
             + utilizationScore * 0.15m

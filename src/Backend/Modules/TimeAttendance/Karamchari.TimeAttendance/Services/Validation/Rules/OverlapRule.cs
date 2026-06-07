@@ -8,10 +8,10 @@ public sealed class OverlapRule : ILeaveValidationRule
 
     public Task<LeaveValidationResult> ValidateAsync(LeaveValidationContext context, CancellationToken ct = default)
     {
-        var start = context.Request.StartDate;
-        var end = context.Request.EndDate;
+        DateOnly start = context.Request.StartDate;
+        DateOnly end = context.Request.EndDate;
 
-        var overlap = context.EmployeeActiveRequests
+        bool overlap = context.EmployeeActiveRequests
             .Where(r => r.Id != context.Request.Id)
             .Where(r => r.Status is not (LeaveRequestStatus.Rejected
                 or LeaveRequestStatus.Cancelled

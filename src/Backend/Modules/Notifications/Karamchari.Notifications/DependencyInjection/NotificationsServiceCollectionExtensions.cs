@@ -93,5 +93,6 @@ public static class NotificationsServiceCollectionExtensions
         busConfigurator.AddConsumer<FeedbackRequestCreatedConsumer>();
         busConfigurator.AddConsumer<GoalApprovalRequiredConsumer>();
         busConfigurator.AddConsumer<PayrollNotificationConsumer>();
+        busConfigurator.AddConsumer<AttendanceNotificationConsumer>();
     }
 }

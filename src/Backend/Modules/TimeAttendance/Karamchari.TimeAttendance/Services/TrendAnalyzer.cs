@@ -8,11 +8,9 @@ namespace Karamchari.TimeAttendance.Services;
 /// Employee-level attendance trend analysis.
 /// Answers: who is habitually late, and is this employee's reliability improving or deteriorating?
 /// </summary>
-public sealed class TrendAnalyzer
+public sealed class TrendAnalyzer(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public TrendAnalyzer(TimeAttendanceDbContext db) => _db = db;
+    private readonly TimeAttendanceDbContext _db = db;
 
     public async Task<IReadOnlyList<HabitualLatenessRecord>> GetHabitualLatenessAsync(
         string tenantId,
@@ -20,7 +18,7 @@ public sealed class TrendAnalyzer
         int rollingDays = 30,
         CancellationToken ct = default)
     {
-        var since = DateTimeOffset.UtcNow.AddDays(-rollingDays);
+        DateTimeOffset since = DateTimeOffset.UtcNow.AddDays(-rollingDays);
 
         var results = await _db.AttendanceViolations
             .Where(v =>
@@ -52,7 +50,7 @@ public sealed class TrendAnalyzer
     {
         var since = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-weeksBack * 7));
 
-        var records = await _db.AttendanceRecords
+        List<AttendanceRecord> records = await _db.AttendanceRecords
             .Where(r =>
                 r.TenantId == tenantId &&
                 r.EmployeeId == employeeId &&
@@ -68,10 +66,10 @@ public sealed class TrendAnalyzer
             .OrderBy(g => g.Key)
             .Select(g =>
             {
-                var assigned = g.Count();
-                var present = g.Count(r =>
+                int assigned = g.Count();
+                int present = g.Count(r =>
                     r.Status is AttendanceStatus.Present or AttendanceStatus.Late or AttendanceStatus.HalfDay);
-                var reliability = assigned == 0 ? 100m : Math.Round((decimal)present / assigned * 100, 1);
+                decimal reliability = assigned == 0 ? 100m : Math.Round((decimal)present / assigned * 100, 1);
                 return new AttendanceTrendPoint(g.Key, reliability, present, assigned);
             })
             .ToList()
@@ -80,8 +78,8 @@ public sealed class TrendAnalyzer
 
     private static DateOnly GetWeekStart(DateOnly date)
     {
-        var dayOfWeek = (int)date.DayOfWeek;
-        var daysToMonday = dayOfWeek == 0 ? 6 : dayOfWeek - 1;
+        int dayOfWeek = (int)date.DayOfWeek;
+        int daysToMonday = dayOfWeek == 0 ? 6 : dayOfWeek - 1;
         return date.AddDays(-daysToMonday);
     }
 }

@@ -101,7 +101,7 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Workforce_AttendanceRecords_TenantId_EmployeeId_ShiftId",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceRecords",
-                columns: new[] { "TenantId", "EmployeeId", "ShiftId" },
+                columns: ["TenantId", "EmployeeId", "ShiftId"],
                 unique: true,
                 filter: "[ShiftId] IS NOT NULL");
 
@@ -109,13 +109,13 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Workforce_AttendanceRecords_TenantId_EmployeeId_WorkDate",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceRecords",
-                columns: new[] { "TenantId", "EmployeeId", "WorkDate" });
+                columns: ["TenantId", "EmployeeId", "WorkDate"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workforce_AttendanceRecords_TenantId_Status",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceRecords",
-                columns: new[] { "TenantId", "Status" });
+                columns: ["TenantId", "Status"]);
 
             // ── Attendance_Exceptions ──────────────────────────────────────────────
 
@@ -146,19 +146,19 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Attendance_Exceptions_TenantId_AttendanceRecordId",
                 schema: "__tenant__",
                 table: "Attendance_Exceptions",
-                columns: new[] { "TenantId", "AttendanceRecordId" });
+                columns: ["TenantId", "AttendanceRecordId"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendance_Exceptions_TenantId_EmployeeId_Status",
                 schema: "__tenant__",
                 table: "Attendance_Exceptions",
-                columns: new[] { "TenantId", "EmployeeId", "Status" });
+                columns: ["TenantId", "EmployeeId", "Status"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendance_Exceptions_TenantId_Severity_Status",
                 schema: "__tenant__",
                 table: "Attendance_Exceptions",
-                columns: new[] { "TenantId", "Severity", "Status" });
+                columns: ["TenantId", "Severity", "Status"]);
 
             // ── Attendance_Regularizations ────────────────────────────────────────
 
@@ -188,13 +188,13 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Attendance_Regularizations_TenantId_EmployeeId_Status",
                 schema: "__tenant__",
                 table: "Attendance_Regularizations",
-                columns: new[] { "TenantId", "EmployeeId", "Status" });
+                columns: ["TenantId", "EmployeeId", "Status"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendance_Regularizations_TenantId_AttendanceRecordId",
                 schema: "__tenant__",
                 table: "Attendance_Regularizations",
-                columns: new[] { "TenantId", "AttendanceRecordId" });
+                columns: ["TenantId", "AttendanceRecordId"]);
 
             // ── Attendance_Scores ─────────────────────────────────────────────────
 
@@ -227,7 +227,7 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Attendance_Scores_TenantId_EmployeeId",
                 schema: "__tenant__",
                 table: "Attendance_Scores",
-                columns: new[] { "TenantId", "EmployeeId" },
+                columns: ["TenantId", "EmployeeId"],
                 unique: true);
 
             // ── Attendance_ShiftPolicies ──────────────────────────────────────────
@@ -259,13 +259,13 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Attendance_ShiftPolicies_TenantId_LocationId",
                 schema: "__tenant__",
                 table: "Attendance_ShiftPolicies",
-                columns: new[] { "TenantId", "LocationId" });
+                columns: ["TenantId", "LocationId"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendance_ShiftPolicies_TenantId_IsDefault",
                 schema: "__tenant__",
                 table: "Attendance_ShiftPolicies",
-                columns: new[] { "TenantId", "IsDefault" });
+                columns: ["TenantId", "IsDefault"]);
         }
 
         /// <inheritdoc />
@@ -296,7 +296,7 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Workforce_AttendanceRecords_TenantId_EmployeeId_Date",
                 schema: "__tenant__",
                 table: "Workforce_AttendanceRecords",
-                columns: new[] { "TenantId", "EmployeeId", "Date" },
+                columns: ["TenantId", "EmployeeId", "Date"],
                 unique: true);
 
             // Drop added columns

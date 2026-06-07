@@ -33,13 +33,13 @@ public sealed class TimeAttendanceDbContextDesignTimeFactory : IDesignTimeDbCont
     /// <inheritdoc/>
     public TimeAttendanceDbContext CreateDbContext(string[] args)
     {
-        var config = new ConfigurationBuilder()
+        IConfigurationRoot config = new ConfigurationBuilder()
             .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "..", "Karamchari.Api"))
             .AddJsonFile("appsettings.json", optional: true)
             .AddJsonFile("appsettings.Development.json", optional: false)
             .Build();
 
-        var connectionString = config.GetConnectionString("KaramchariDb")
+        string connectionString = config.GetConnectionString("KaramchariDb")
             ?? throw new InvalidOperationException(
                 "ConnectionStrings:KaramchariDb not found in Karamchari.Api/appsettings.Development.json.");
 

@@ -45,9 +45,9 @@ public sealed class WorkPattern
         if (!RotationOnDays.HasValue || !RotationOffDays.HasValue || !RotationAnchorDate.HasValue)
             return false;
 
-        var cycleLength = RotationOnDays.Value + RotationOffDays.Value;
-        var daysSinceAnchor = date.DayNumber - RotationAnchorDate.Value.DayNumber;
-        var positionInCycle = ((daysSinceAnchor % cycleLength) + cycleLength) % cycleLength;
+        int cycleLength = RotationOnDays.Value + RotationOffDays.Value;
+        int daysSinceAnchor = date.DayNumber - RotationAnchorDate.Value.DayNumber;
+        int positionInCycle = ((daysSinceAnchor % cycleLength) + cycleLength) % cycleLength;
         return positionInCycle < RotationOnDays.Value;
     }
 }

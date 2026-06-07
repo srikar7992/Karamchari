@@ -35,6 +35,7 @@ public static class FinancialOpsServiceCollectionExtensions
         services.RegisterTenantTable("FinancialCompensations");
         services.RegisterTenantTable("ReimbursementSettlementBatches");
         services.RegisterTenantTable("ExpenseClaims");
+        services.RegisterTenantTable("ExpenseCategories");
 
         services.AddDbContext<FinancialOpsDbContext>((serviceProvider, options) =>
         {

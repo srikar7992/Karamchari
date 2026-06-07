@@ -229,46 +229,46 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Roster_Rosters_TenantId_StartDate_EndDate",
                 schema: "__tenant__",
                 table: "Roster_Rosters",
-                columns: new[] { "TenantId", "StartDate", "EndDate" });
+                columns: ["TenantId", "StartDate", "EndDate"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_Rosters_TenantId_Status",
                 schema: "__tenant__",
                 table: "Roster_Rosters",
-                columns: new[] { "TenantId", "Status" });
+                columns: ["TenantId", "Status"]);
 
             // Indexes — Roster_Shifts
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_Shifts_RosterId_WorkDate",
                 schema: "__tenant__",
                 table: "Roster_Shifts",
-                columns: new[] { "RosterId", "WorkDate" });
+                columns: ["RosterId", "WorkDate"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_Shifts_TenantId_LocationId_WorkDate",
                 schema: "__tenant__",
                 table: "Roster_Shifts",
-                columns: new[] { "TenantId", "LocationId", "WorkDate" });
+                columns: ["TenantId", "LocationId", "WorkDate"]);
 
             // Indexes — Roster_ShiftAssignments
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_ShiftAssignments_RosterShiftId_EmployeeId",
                 schema: "__tenant__",
                 table: "Roster_ShiftAssignments",
-                columns: new[] { "RosterShiftId", "EmployeeId" },
+                columns: ["RosterShiftId", "EmployeeId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_ShiftAssignments_RosterId_WorkDate",
                 schema: "__tenant__",
                 table: "Roster_ShiftAssignments",
-                columns: new[] { "RosterId", "WorkDate" });
+                columns: ["RosterId", "WorkDate"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_ShiftAssignments_EmployeeId_WorkDate",
                 schema: "__tenant__",
                 table: "Roster_ShiftAssignments",
-                columns: new[] { "EmployeeId", "WorkDate" });
+                columns: ["EmployeeId", "WorkDate"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_ShiftAssignments_RosterId",
@@ -287,7 +287,7 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Roster_CoverageRules_TenantId_LocationId_IsActive",
                 schema: "__tenant__",
                 table: "Roster_CoverageRules",
-                columns: new[] { "TenantId", "LocationId", "IsActive" });
+                columns: ["TenantId", "LocationId", "IsActive"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_CoverageSkillMix_CoverageRuleId",
@@ -300,39 +300,39 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Roster_EmployeeSkills_TenantId_EmployeeId_SkillId_IsActive",
                 schema: "__tenant__",
                 table: "Roster_EmployeeSkills",
-                columns: new[] { "TenantId", "EmployeeId", "SkillId", "IsActive" });
+                columns: ["TenantId", "EmployeeId", "SkillId", "IsActive"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_EmployeeSkills_TenantId_SkillId_ExpiryDate",
                 schema: "__tenant__",
                 table: "Roster_EmployeeSkills",
-                columns: new[] { "TenantId", "SkillId", "ExpiryDate" });
+                columns: ["TenantId", "SkillId", "ExpiryDate"]);
 
             // Indexes — Roster_ShiftSwaps
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_ShiftSwaps_TenantId_RequestedByEmployeeId_Status",
                 schema: "__tenant__",
                 table: "Roster_ShiftSwaps",
-                columns: new[] { "TenantId", "RequestedByEmployeeId", "Status" });
+                columns: ["TenantId", "RequestedByEmployeeId", "Status"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_ShiftSwaps_TenantId_Status_RequestedAtUtc",
                 schema: "__tenant__",
                 table: "Roster_ShiftSwaps",
-                columns: new[] { "TenantId", "Status", "RequestedAtUtc" });
+                columns: ["TenantId", "Status", "RequestedAtUtc"]);
 
             // Indexes — Roster_ScheduleAlerts
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_ScheduleAlerts_TenantId_RosterId_Type_IsResolved",
                 schema: "__tenant__",
                 table: "Roster_ScheduleAlerts",
-                columns: new[] { "TenantId", "RosterId", "Type", "IsResolved" });
+                columns: ["TenantId", "RosterId", "Type", "IsResolved"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_ScheduleAlerts_TenantId_EmployeeId_IsResolved",
                 schema: "__tenant__",
                 table: "Roster_ScheduleAlerts",
-                columns: new[] { "TenantId", "EmployeeId", "IsResolved" });
+                columns: ["TenantId", "EmployeeId", "IsResolved"]);
 
             // Indexes — Roster_ShiftSkillRequirements
             migrationBuilder.CreateIndex(
@@ -364,13 +364,13 @@ namespace Karamchari.TimeAttendance.Migrations
                 name: "IX_Roster_EmployeeAvailability_TenantId_EmployeeId_IsActive",
                 schema: "__tenant__",
                 table: "Roster_EmployeeAvailability",
-                columns: new[] { "TenantId", "EmployeeId", "IsActive" });
+                columns: ["TenantId", "EmployeeId", "IsActive"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Roster_EmployeeAvailability_TenantId_EmployeeId_DayOfWeek",
                 schema: "__tenant__",
                 table: "Roster_EmployeeAvailability",
-                columns: new[] { "TenantId", "EmployeeId", "DayOfWeek" });
+                columns: ["TenantId", "EmployeeId", "DayOfWeek"]);
         }
 
         /// <inheritdoc />

@@ -8,14 +8,9 @@ using Microsoft.EntityFrameworkCore;
 /// Resolves effective leave policy by walking Global → Employee hierarchy.
 /// Each level can override specific fields (entitlement wins at most-specific non-null level).
 /// </summary>
-public sealed class LeavePolicyResolver : ILeavePolicyResolver
+public sealed class LeavePolicyResolver(TimeAttendanceDbContext db) : ILeavePolicyResolver
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public LeavePolicyResolver(TimeAttendanceDbContext db)
-    {
-        _db = db;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
 
     public async Task<LeavePolicyResolution?> ResolveAsync(
         Guid employeeId,
@@ -24,7 +19,7 @@ public sealed class LeavePolicyResolver : ILeavePolicyResolver
         CancellationToken ct = default)
     {
         // Check employee-level override first (most specific)
-        var assignment = await _db.EmployeeLeavePolicies
+        EmployeeLeavePolicy? assignment = await _db.EmployeeLeavePolicies
             .Where(ep => ep.EmployeeId == employeeId
                 && ep.LeaveTypeId == leaveTypeId
                 && ep.IsActive
@@ -35,7 +30,7 @@ public sealed class LeavePolicyResolver : ILeavePolicyResolver
 
         if (assignment is not null)
         {
-            var policy = await _db.LeavePolicies
+            LeavePolicy? policy = await _db.LeavePolicies
                 .FirstOrDefaultAsync(p => p.Id == assignment.ResolvedPolicyId && p.IsActive, ct);
 
             if (policy is not null)
@@ -51,14 +46,14 @@ public sealed class LeavePolicyResolver : ILeavePolicyResolver
         }
 
         // Fall through hierarchy: find most-specific active policy for this leave type
-        var policies = await _db.LeavePolicies
+        List<LeavePolicy> policies = await _db.LeavePolicies
             .Where(p => p.LeaveTypeId == leaveTypeId && p.IsActive)
             .ToListAsync(ct);
 
         if (policies.Count == 0) return null;
 
         // Take highest-specificity policy available (Employee > Grade > Dept > BU > Country > Global)
-        var winner = policies
+        LeavePolicy winner = policies
             .OrderByDescending(p => (int)p.Level)
             .First();
 

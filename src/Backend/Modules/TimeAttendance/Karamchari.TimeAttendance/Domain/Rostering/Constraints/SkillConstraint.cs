@@ -6,9 +6,9 @@ public sealed class SkillConstraint : IAssignmentConstraint
 
     public ConstraintResult Check(RosterShift shift, AssignmentContext context)
     {
-        foreach (var req in shift.RequiredSkills)
+        foreach (SkillRequirement req in shift.RequiredSkills)
         {
-            var match = context.Skills.FirstOrDefault(
+            EmployeeSkill? match = context.Skills.FirstOrDefault(
                 s => s.SkillId == req.SkillId && s.IsValid(shift.WorkDate));
 
             if (match is null)

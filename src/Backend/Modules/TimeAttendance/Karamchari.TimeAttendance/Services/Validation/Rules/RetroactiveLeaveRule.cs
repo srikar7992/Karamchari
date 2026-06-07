@@ -11,11 +11,11 @@ public sealed class RetroactiveLeaveRule : ILeaveValidationRule
 
     public Task<LeaveValidationResult> ValidateAsync(LeaveValidationContext context, CancellationToken ct = default)
     {
-        var isBackdated = context.Request.StartDate < context.TodayInEmployeeZone;
+        bool isBackdated = context.Request.StartDate < context.TodayInEmployeeZone;
         if (!isBackdated)
             return Task.FromResult(LeaveValidationResult.Pass());
 
-        var maxDays = context.PolicyRules.MaxRetroactiveDays;
+        int maxDays = context.PolicyRules.MaxRetroactiveDays;
 
         if (maxDays == 0)
         {
@@ -24,7 +24,7 @@ public sealed class RetroactiveLeaveRule : ILeaveValidationRule
                 "Backdated leave is not permitted under this policy."));
         }
 
-        var daysPast = context.TodayInEmployeeZone.DayNumber - context.Request.StartDate.DayNumber;
+        int daysPast = context.TodayInEmployeeZone.DayNumber - context.Request.StartDate.DayNumber;
         if (daysPast > maxDays)
         {
             return Task.FromResult(LeaveValidationResult.Fail(

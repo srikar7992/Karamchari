@@ -3,6 +3,7 @@ using Karamchari.Api.BFF.Common;
 using Karamchari.Api.Middleware;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;
+using Karamchari.TimeAttendance.Contracts;
 using Karamchari.TimeAttendance.Domain.Attendance;
 using Karamchari.TimeAttendance.Domain.Holidays;
 using Karamchari.TimeAttendance.Domain.Leaves;
@@ -11,6 +12,7 @@ using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Domain.Timesheets;
 using Karamchari.TimeAttendance.Persistence;
 using Karamchari.TimeAttendance.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -537,6 +539,7 @@ public static class AttendanceEndpoints
         ClaimsPrincipal user,
         TimeAttendanceDbContext db,
         AttendanceProcessingEngine engine,
+        IPublishEndpoint bus,
         CancellationToken ct)
     {
         var (tenantId, approverId) = user.GetTenantAndEmployee();
@@ -549,6 +552,14 @@ public static class AttendanceEndpoints
         {
             request.Approve(approverId.Value);
             await db.SaveChangesAsync(ct);
+
+            await bus.Publish(new RegularizationApprovedIntegrationEvent(
+                Guid.NewGuid(),
+                tenantId,
+                request.EmployeeId,
+                request.Id,
+                approverId.Value,
+                DateTimeOffset.UtcNow), ct);
 
             // Apply the correction to the attendance record
             await engine.ApplyRegularizationAsync(tenantId, request.AttendanceRecordId, request.EmployeeId, approverId.Value, ct);
@@ -564,11 +575,16 @@ public static class AttendanceEndpoints
     private static async Task<IResult> RejectRegularizationAsync(
         Guid id,
         [FromBody] RejectRegularizationRequest request,
+        ClaimsPrincipal user,
         TimeAttendanceDbContext db,
+        IPublishEndpoint bus,
         CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Reason))
             return Results.BadRequest("Rejection reason is required.");
+
+        var (tenantId, _) = user.GetTenantAndEmployee();
+        if (tenantId is null) return Results.Unauthorized();
 
         var regularization = await db.RegularizationRequests.FindAsync([id], ct);
         if (regularization is null) return Results.NotFound();
@@ -577,6 +593,15 @@ public static class AttendanceEndpoints
         {
             regularization.Reject(request.Reason);
             await db.SaveChangesAsync(ct);
+
+            await bus.Publish(new RegularizationRejectedIntegrationEvent(
+                Guid.NewGuid(),
+                tenantId,
+                regularization.EmployeeId,
+                regularization.Id,
+                request.Reason,
+                DateTimeOffset.UtcNow), ct);
+
             return Results.Ok(new { status = regularization.Status.ToString() });
         }
         catch (InvalidOperationException ex)

@@ -129,7 +129,7 @@ public sealed class Roster : AggregateRoot<Guid>, ITenantOwned
     {
         EnsureModifiable();
 
-        var shift = _shifts.FirstOrDefault(s => s.Id == rosterShiftId)
+        RosterShift shift = _shifts.FirstOrDefault(s => s.Id == rosterShiftId)
             ?? throw new InvalidOperationException($"Shift {rosterShiftId} not found in roster.");
 
         if (_assignments.Any(a =>
@@ -139,7 +139,7 @@ public sealed class Roster : AggregateRoot<Guid>, ITenantOwned
             throw new InvalidOperationException(
                 $"Employee {employeeId} is already assigned to shift {rosterShiftId}.");
 
-        var constraint = AssignmentConstraintEngine.Evaluate(shift, context);
+        ConstraintResult constraint = AssignmentConstraintEngine.Evaluate(shift, context);
         if (!constraint.IsAllowed)
             throw new InvalidOperationException(
                 $"[{constraint.ViolationCode}] {constraint.Reason}");
@@ -155,7 +155,7 @@ public sealed class Roster : AggregateRoot<Guid>, ITenantOwned
     {
         EnsureModifiable();
 
-        var assignment = _assignments.FirstOrDefault(a => a.Id == assignmentId)
+        RosterShiftAssignment assignment = _assignments.FirstOrDefault(a => a.Id == assignmentId)
             ?? throw new InvalidOperationException($"Assignment {assignmentId} not found.");
 
         assignment.Cancel();
@@ -189,9 +189,9 @@ public sealed class Roster : AggregateRoot<Guid>, ITenantOwned
         var shiftMap = _shifts.ToDictionary(s => s.Id);
         var activeAssignments = _assignments.Where(a => a.Status != AssignmentStatus.Cancelled).ToList();
 
-        foreach (var assignment in activeAssignments)
+        foreach (RosterShiftAssignment? assignment in activeAssignments)
         {
-            if (!shiftMap.TryGetValue(assignment.RosterShiftId, out var shift)) continue;
+            if (!shiftMap.TryGetValue(assignment.RosterShiftId, out RosterShift? shift)) continue;
 
             RaiseDomainEvent(new ScheduledShiftCreated(
                 TenantId, Id, shift.Id, assignment.Id,

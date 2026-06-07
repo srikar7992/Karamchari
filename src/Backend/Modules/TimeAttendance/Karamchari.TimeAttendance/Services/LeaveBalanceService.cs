@@ -8,21 +8,16 @@ namespace Karamchari.TimeAttendance.Services;
 /// Domain service for calculating leave balances from the immutable ledger.
 /// Implements Priority 1 Step 4.
 /// </summary>
-public sealed class LeaveBalanceService
+public sealed class LeaveBalanceService(TimeAttendanceDbContext db)
 {
-    private readonly TimeAttendanceDbContext _db;
-
-    public LeaveBalanceService(TimeAttendanceDbContext db)
-    {
-        _db = db;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
 
     /// <summary>
     /// Calculates the current available balance for an employee from their ledger entries.
     /// </summary>
     public async Task<decimal> GetCurrentBalanceAsync(Guid employeeId, Guid policyId, CancellationToken ct = default)
     {
-        var balance = await _db.LeaveBalances
+        LeaveBalance? balance = await _db.LeaveBalances
             .Include(b => b.Entries)
             .FirstOrDefaultAsync(b => b.EmployeeId == employeeId && b.PolicyId == policyId, ct);
 
@@ -35,7 +30,7 @@ public sealed class LeaveBalanceService
     /// </summary>
     public async Task<decimal> GetHistoricalBalanceAsync(Guid employeeId, Guid policyId, DateTimeOffset asOf, CancellationToken ct = default)
     {
-        var entries = await _db.Set<LeaveBalanceEntry>()
+        List<LeaveBalanceEntry> entries = await _db.Set<LeaveBalanceEntry>()
             .Where(e => e.EmployeeId == employeeId && e.PolicyId == policyId && e.CreatedAt <= asOf)
             .ToListAsync(ct);
 

@@ -13,21 +13,19 @@ namespace Karamchari.TimeAttendance.Consumers;
 /// Idempotency: Deduplicates on eventId + consumerName.
 /// Logic: Attaches revenue/cash to the current day's grain.
 /// </summary>
-public sealed class BillingAnalyticsConsumer :
+public sealed class BillingAnalyticsConsumer(TimeAttendanceDbContext db) :
     IConsumer<InvoiceIssuedIntegrationEvent>,
     IConsumer<PaymentReceivedIntegrationEvent>
 {
     private const string ConsumerName = nameof(BillingAnalyticsConsumer);
-    private readonly TimeAttendanceDbContext _db;
-
-    public BillingAnalyticsConsumer(TimeAttendanceDbContext db) => _db = db;
+    private readonly TimeAttendanceDbContext _db = db;
 
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
     public async Task Consume(ConsumeContext<InvoiceIssuedIntegrationEvent> context)
     {
-        var ev = context.Message;
+        InvoiceIssuedIntegrationEvent ev = context.Message;
         var date = DateOnly.FromDateTime(ev.OccurredAt.Date);
 
         // 1. Idempotency Gate
@@ -47,7 +45,7 @@ public sealed class BillingAnalyticsConsumer :
     /// </summary>
     public async Task Consume(ConsumeContext<PaymentReceivedIntegrationEvent> context)
     {
-        var ev = context.Message;
+        PaymentReceivedIntegrationEvent ev = context.Message;
         var date = DateOnly.FromDateTime(ev.OccurredAt.Date);
 
         if (await IsAlreadyProcessed(ev.EventId, context.CancellationToken)) return;
@@ -65,7 +63,7 @@ public sealed class BillingAnalyticsConsumer :
         decimal revenueDelta, decimal cashDelta,
         Guid eventId, DateTimeOffset occurredAt, CancellationToken ct)
     {
-        var rows = await _db.Database.ExecuteSqlRawAsync(
+        int rows = await _db.Database.ExecuteSqlRawAsync(
             @"UPDATE Analytics_ProjectMetrics
               SET Revenue           = Revenue + {0},
                   CollectedAmount   = CollectedAmount + {1},

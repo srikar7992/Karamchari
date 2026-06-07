@@ -32,6 +32,11 @@ public sealed class AttendanceRecord : AggregateRoot<Guid>, ITenantOwned
 
     public int TotalWorkedMinutes { get; private set; }
     public int OvertimeMinutes { get; private set; }
+    public int AutoBreakDeductedMinutes { get; private set; }
+
+    // Set when the shift's NightDifferentialMultiplier > 1.0 and IsNightShift == true
+    public bool NightDifferentialApplied { get; private set; }
+    public decimal NightDifferentialMultiplier { get; private set; } = 1.0m;
 
     // Kept for backward compatibility with ReconciliationService
     public decimal WorkedHours => TotalWorkedMinutes / 60m;
@@ -43,7 +48,7 @@ public sealed class AttendanceRecord : AggregateRoot<Guid>, ITenantOwned
 
     // Optimistic concurrency — prevents double check-in race and checkout vs finalization race.
     // EF will throw DbUpdateConcurrencyException if two writers conflict on the same row.
-    public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
+    public byte[] RowVersion { get; private set; } = [];
 
     // Legacy field — kept for existing index/queries
     public DateOnly Date => WorkDate;
@@ -106,7 +111,10 @@ public sealed class AttendanceRecord : AggregateRoot<Guid>, ITenantOwned
         DateTimeOffset actualEnd,
         int totalWorkedMinutes,
         int overtimeMinutes,
-        AttendanceStatus finalStatus)
+        AttendanceStatus finalStatus,
+        int autoBreakDeductedMinutes = 0,
+        bool nightDifferentialApplied = false,
+        decimal nightDifferentialMultiplier = 1.0m)
     {
         if (Status != AttendanceStatus.CheckedIn && Status != AttendanceStatus.ReturnedFromBreak)
             throw new InvalidOperationException($"Cannot record check-out from status {Status}.");
@@ -117,6 +125,9 @@ public sealed class AttendanceRecord : AggregateRoot<Guid>, ITenantOwned
         ActualEnd = actualEnd;
         TotalWorkedMinutes = totalWorkedMinutes;
         OvertimeMinutes = overtimeMinutes;
+        AutoBreakDeductedMinutes = autoBreakDeductedMinutes;
+        NightDifferentialApplied = nightDifferentialApplied;
+        NightDifferentialMultiplier = nightDifferentialMultiplier;
         Status = finalStatus;
         FinalizedAtUtc = DateTimeOffset.UtcNow;
 

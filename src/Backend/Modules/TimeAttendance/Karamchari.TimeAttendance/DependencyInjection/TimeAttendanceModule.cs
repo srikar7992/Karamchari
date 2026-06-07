@@ -9,14 +9,9 @@ namespace Karamchari.TimeAttendance.DependencyInjection;
 /// <summary>
 /// Capability pack registration for the TimeAttendance module.
 /// </summary>
-public sealed class TimeAttendanceModule : ICapabilityModule
+public sealed class TimeAttendanceModule(IConfiguration configuration) : ICapabilityModule
 {
-    private readonly IConfiguration _configuration;
-
-    public TimeAttendanceModule(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
+    private readonly IConfiguration _configuration = configuration;
 
     public void RegisterServices(IServiceCollection services)
     {

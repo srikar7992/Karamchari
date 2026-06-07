@@ -77,7 +77,7 @@ public sealed class LeavePolicy : AggregateRoot<Guid>, ITenantOwned
         ArgumentNullException.ThrowIfNull(newRules);
 
         // Close current version
-        var current = _versions.FirstOrDefault(v => v.EffectiveTo is null);
+        LeavePolicyVersion? current = _versions.FirstOrDefault(v => v.EffectiveTo is null);
         current?.Close(effectiveFrom.AddDays(-1));
 
         CurrentVersion++;

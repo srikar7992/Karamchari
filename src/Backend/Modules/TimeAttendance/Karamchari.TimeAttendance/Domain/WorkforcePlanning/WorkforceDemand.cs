@@ -124,7 +124,7 @@ public sealed class WorkforceSupply : ITenantOwned
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
-        var available = Math.Max(0, totalHeadcount - onLeave - (totalHeadcount - onRoster));
+        int available = Math.Max(0, totalHeadcount - onLeave - (totalHeadcount - onRoster));
 
         return new WorkforceSupply
         {
@@ -179,12 +179,12 @@ public sealed class CapacityGap : ITenantOwned
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
-        var gap = expectedAvailable - requiredHeadcount;
-        var gapPct = requiredHeadcount == 0
+        int gap = expectedAvailable - requiredHeadcount;
+        decimal gapPct = requiredHeadcount == 0
             ? 0m
             : Math.Round((decimal)gap / requiredHeadcount * 100m, 1);
 
-        var riskLevel = expectedAvailable <= criticalMinimum
+        CoverageRiskLevel riskLevel = expectedAvailable <= criticalMinimum
             ? CoverageRiskLevel.Critical
             : gap < 0 && gapPct < -20m
                 ? CoverageRiskLevel.High

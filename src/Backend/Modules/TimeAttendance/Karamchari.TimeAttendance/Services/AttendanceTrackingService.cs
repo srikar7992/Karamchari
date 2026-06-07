@@ -20,16 +20,10 @@ public sealed record AttendanceSubmission(
 /// Orchestrates attendance tracking with confidence-scoring hooks.
 /// Ensures state-machine transitions and validates geo/device integrity.
 /// </summary>
-public sealed class AttendanceTrackingService
+public sealed class AttendanceTrackingService(TimeAttendanceDbContext db, ILogger<AttendanceTrackingService> logger)
 {
-    private readonly TimeAttendanceDbContext _db;
-    private readonly ILogger<AttendanceTrackingService> _logger;
-
-    public AttendanceTrackingService(TimeAttendanceDbContext db, ILogger<AttendanceTrackingService> logger)
-    {
-        _db = db;
-        _logger = logger;
-    }
+    private readonly TimeAttendanceDbContext _db = db;
+    private readonly ILogger<AttendanceTrackingService> _logger = logger;
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -38,7 +32,7 @@ public sealed class AttendanceTrackingService
     {
         var workDate = DateOnly.FromDateTime(submission.Timestamp.Date);
 
-        var session = await _db.AttendanceSessions
+        AttendanceSession? session = await _db.AttendanceSessions
             .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.EmployeeId == submission.EmployeeId && s.WorkDate == workDate, ct);
 
         if (session == null)
@@ -64,7 +58,7 @@ public sealed class AttendanceTrackingService
     {
         var workDate = DateOnly.FromDateTime(submission.Timestamp.Date);
 
-        var session = await _db.AttendanceSessions
+        AttendanceSession session = await _db.AttendanceSessions
             .FirstOrDefaultAsync(s => s.TenantId == tenantId && s.EmployeeId == submission.EmployeeId && s.WorkDate == workDate, ct)
             ?? throw new InvalidOperationException("Active attendance session not found for today.");
 
