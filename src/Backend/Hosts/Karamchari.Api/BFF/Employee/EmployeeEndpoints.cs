@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using Karamchari.Api.Validation;
+using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Multitenancy;
 using Karamchari.HR.Contracts.Employees;
 using Karamchari.HR.Domain.Employees;
 using Karamchari.HR.Persistence;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,6 +39,7 @@ public static class EmployeeEndpoints
 
         group.MapGet("/{id:guid}/history", GetEmployeeHistory).WithName("Employee.History");
         group.MapPost("/{id:guid}/transfer", TransferEmployee).WithName("Employee.Transfer");
+        group.MapPost("/{id:guid}/terminate", TerminateEmployee).WithName("Employee.Terminate");
 
         return app;
     }
@@ -166,6 +169,35 @@ public static class EmployeeEndpoints
             return Results.BadRequest(new { error = ex.Message });
         }
     }
+
+    private static async Task<IResult> TerminateEmployee(
+        Guid id,
+        [FromBody] TerminateEmployeeRequest req,
+        ClaimsPrincipal user,
+        HRDbContext db,
+        IPublishEndpoint bus,
+        CancellationToken ct)
+    {
+        var employee = await db.Employees.FindAsync([id], ct);
+        if (employee is null) return Results.NotFound();
+        if (employee.Status == EmploymentStatus.Terminated)
+            return Results.Conflict(new { error = "Employee already terminated." });
+
+        var actorId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
+        var terminatedOn = req.TerminatedOn ?? DateTimeOffset.UtcNow;
+
+        employee.Terminate(terminatedOn, actorId);
+        await db.SaveChangesAsync(ct);
+
+        await bus.Publish(new EmployeeTerminatedIntegrationEvent(
+            employee.Id,
+            employee.TenantId,
+            employee.EmployeeNumber,
+            DateOnly.FromDateTime(terminatedOn.UtcDateTime),
+            req.Reason), ct);
+
+        return Results.Ok(new { employee.Status, TerminatedOn = terminatedOn });
+    }
 }
 
 public record EmployeeHistoryDto(
@@ -174,3 +206,4 @@ public record EmployeeHistoryDto(
     Guid ChangedBy, DateTimeOffset LoggedAt);
 
 public record TransferRequest(Guid NewDepartmentId, DateTimeOffset EffectiveFrom);
+public record TerminateEmployeeRequest(string Reason, DateTimeOffset? TerminatedOn = null);

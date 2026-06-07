@@ -35,6 +35,7 @@ public sealed class CompensationDbContext : KaramchariDbContext
     /// Provides required documentation for this member.
     /// </summary>
     public DbSet<EmployeeCompensationRecord> CompensationRecords => Set<EmployeeCompensationRecord>();
+    public DbSet<BonusPlan> BonusPlans => Set<BonusPlan>();
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -44,6 +45,7 @@ public sealed class CompensationDbContext : KaramchariDbContext
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
 
+        modelBuilder.ApplyConfiguration(new BonusPlanConfiguration());
         modelBuilder.ApplyConfiguration(new CompensationBandConfiguration());
         modelBuilder.ApplyConfiguration(new MeritMatrixConfiguration());
         modelBuilder.ApplyConfiguration(new IncrementBudgetPoolConfiguration());

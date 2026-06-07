@@ -23,5 +23,8 @@ public sealed class AssetManagementModule : ICapabilityModule
 
     public void MapEndpoints(IEndpointRouteBuilder app) { }
 
-    public void RegisterConsumers(IBusRegistrationConfigurator configurator) { }
+    public void RegisterConsumers(IBusRegistrationConfigurator configurator)
+    {
+        configurator.AddConsumer<Karamchari.AssetManagement.Consumers.EmployeeTerminatedAssetConsumer>();
+    }
 }

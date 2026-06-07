@@ -4,6 +4,32 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Karamchari.Compensation.Persistence.Configurations;
 
+internal sealed class BonusPlanConfiguration : IEntityTypeConfiguration<BonusPlan>
+{
+    public void Configure(EntityTypeBuilder<BonusPlan> b)
+    {
+        b.ToTable("BonusPlans");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.TenantId).IsRequired().HasMaxLength(50);
+        b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+        b.Property(x => x.Type).HasConversion<string>().HasMaxLength(50);
+        b.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(3);
+        b.Property(x => x.TotalBudget).HasPrecision(18, 2);
+        b.Ignore(x => x.AllocatedBudget);
+        b.Ignore(x => x.RemainingBudget);
+
+        b.OwnsMany(x => x.Allocations, a =>
+        {
+            a.ToTable("BonusAllocations");
+            a.HasKey(x => x.Id);
+            a.Property(x => x.TargetAmount).HasPrecision(18, 2);
+            a.Property(x => x.ActualPaidAmount).HasPrecision(18, 2);
+            a.Property(x => x.Status).HasConversion<string>().HasMaxLength(50);
+            a.Property(x => x.Notes).HasMaxLength(500);
+        });
+    }
+}
+
 internal sealed class CompensationBandConfiguration : IEntityTypeConfiguration<CompensationBand>
 {
     /// <summary>

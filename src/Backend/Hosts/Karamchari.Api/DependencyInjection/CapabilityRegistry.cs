@@ -12,6 +12,7 @@ using Karamchari.Governance.DependencyInjection;
 using Karamchari.Helpdesk.DependencyInjection;
 using Karamchari.HR.DependencyInjection;
 using Karamchari.Identity.Infrastructure;
+using Karamchari.Integration.DependencyInjection;
 using Karamchari.Intelligence.DependencyInjection;
 using Karamchari.Notifications.DependencyInjection;
 using Karamchari.Payroll.DependencyInjection;
@@ -54,7 +55,8 @@ public static class CapabilityRegistry
             new HelpdeskModule(configuration),
             new AssetManagementModule(configuration),
             new EngagementModule(configuration),
-            new SuccessionModule(configuration)
+            new SuccessionModule(configuration),
+            new IntegrationModule(configuration),
         };
     }
 }

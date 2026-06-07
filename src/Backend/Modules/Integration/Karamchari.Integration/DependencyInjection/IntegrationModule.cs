@@ -4,26 +4,23 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Karamchari.Helpdesk.DependencyInjection;
+namespace Karamchari.Integration.DependencyInjection;
 
-public sealed class HelpdeskModule : ICapabilityModule
+public sealed class IntegrationModule : ICapabilityModule
 {
     private readonly IConfiguration _configuration;
 
-    public HelpdeskModule(IConfiguration configuration)
+    public IntegrationModule(IConfiguration configuration)
     {
         _configuration = configuration;
     }
 
     public void RegisterServices(IServiceCollection services)
     {
-        services.AddKaramchariHelpdesk(_configuration);
+        services.AddKaramchariIntegration(_configuration);
     }
 
     public void MapEndpoints(IEndpointRouteBuilder app) { }
 
-    public void RegisterConsumers(IBusRegistrationConfigurator configurator)
-    {
-        configurator.AddConsumer<Karamchari.Helpdesk.Consumers.EmployeeTerminatedHelpdeskConsumer>();
-    }
+    public void RegisterConsumers(IBusRegistrationConfigurator configurator) { }
 }

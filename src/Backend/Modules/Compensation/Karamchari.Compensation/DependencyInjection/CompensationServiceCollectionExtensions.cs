@@ -36,6 +36,8 @@ public static class CompensationServiceCollectionExtensions
         services.RegisterTenantTable("IncrementBudgetPools");
         services.RegisterTenantTable("EmployeeCompensationRecords");
         services.RegisterTenantTable("CompensationRevisions");
+        services.RegisterTenantTable("BonusPlans");
+        services.RegisterTenantTable("BonusAllocations");
 
         services.AddDbContext<CompensationDbContext>((serviceProvider, options) =>
         {

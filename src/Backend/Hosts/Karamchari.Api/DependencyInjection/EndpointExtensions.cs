@@ -1,8 +1,10 @@
 using Karamchari.Api.BFF.AssetManagement;
 using Karamchari.Api.BFF.Attendance;
+using Karamchari.Api.BFF.Audit;
 using Karamchari.Api.BFF.Billing;
 using Karamchari.Api.BFF.Capability;
 using Karamchari.Api.BFF.Common;
+using Karamchari.Api.BFF.Compensation;
 using Karamchari.Api.BFF.Compliance;
 using Karamchari.Api.BFF.Employee;
 using Karamchari.Api.BFF.Engagement;
@@ -10,6 +12,7 @@ using Karamchari.Api.BFF.ESS;
 using Karamchari.Api.BFF.Executive;
 using Karamchari.Api.BFF.Helpdesk;
 using Karamchari.Api.BFF.HR;
+using Karamchari.Api.BFF.Integration;
 using Karamchari.Api.BFF.Intelligence;
 using Karamchari.Api.BFF.Manager;
 using Karamchari.Api.BFF.Notifications;
@@ -84,6 +87,9 @@ public static class EndpointExtensions
         app.MapAssetManagementEndpoints();
         app.MapEngagementEndpoints();
         app.MapSuccessionEndpoints();
+        app.MapIntegrationEndpoints();
+        app.MapCompensationEndpoints();
+        app.MapAuditEndpoints();
 
         // BFF Workspaces (Phase 1A)
         app.MapManagerWorkspace();
