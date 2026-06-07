@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;
 
@@ -18,9 +19,10 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
         EntityType = entityType;
         Name = name;
         IsActive = true;
+        ConditionsJson = "[]";
     }
 
-    private WorkflowDefinition() { TenantId = string.Empty; EntityType = string.Empty; Name = string.Empty; }
+    private WorkflowDefinition() { TenantId = string.Empty; EntityType = string.Empty; Name = string.Empty; ConditionsJson = "[]"; }
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -41,6 +43,18 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
 
     /// <summary>Higher priority definitions are evaluated first when multiple definitions match.</summary>
     public int Priority { get; private set; }
+
+    /// <summary>
+    /// JSON-serialized array of <see cref="WorkflowCondition"/>. Persisted; deserialized on demand.
+    /// An empty array means the definition matches all routing requests of the correct EntityType.
+    /// </summary>
+    public string ConditionsJson { get; private set; }
+
+    /// <summary>
+    /// Deserialized routing conditions. Not mapped to a DB column (computed from <see cref="ConditionsJson"/>).
+    /// </summary>
+    public IReadOnlyList<WorkflowCondition> Conditions =>
+        JsonSerializer.Deserialize<List<WorkflowCondition>>(ConditionsJson) ?? [];
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -72,6 +86,34 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
 
         _steps.Add(step);
         _steps.Sort((a, b) => a.Order.CompareTo(b.Order));
+    }
+
+    /// <summary>
+    /// Adds a routing condition. All conditions must hold (AND semantics) for this definition to match.
+    /// </summary>
+    public void AddCondition(WorkflowCondition condition)
+    {
+        ArgumentNullException.ThrowIfNull(condition);
+        var list = JsonSerializer.Deserialize<List<WorkflowCondition>>(ConditionsJson) ?? [];
+        list.Add(condition);
+        ConditionsJson = JsonSerializer.Serialize(list);
+    }
+
+    /// <summary>
+    /// Removes all conditions, making this definition match every request of the correct EntityType.
+    /// </summary>
+    public void ClearConditions() => ConditionsJson = "[]";
+
+    /// <summary>
+    /// Returns <c>true</c> when all conditions are satisfied by <paramref name="context"/>.
+    /// A definition with no conditions always matches.
+    /// </summary>
+    public bool Matches(IReadOnlyDictionary<string, object>? context)
+    {
+        var conditions = Conditions;
+        if (conditions.Count == 0) return true;
+        if (context is null) return false;
+        return conditions.All(c => c.Evaluate(context));
     }
 
     /// <summary>

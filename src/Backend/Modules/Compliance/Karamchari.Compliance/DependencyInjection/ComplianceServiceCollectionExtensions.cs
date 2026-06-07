@@ -1,4 +1,5 @@
 using Karamchari.Compliance.Consumers;
+using Karamchari.Compliance.Contracts;
 using Karamchari.Compliance.Persistence;
 using Karamchari.Compliance.Services;
 using Karamchari.Core.DependencyInjection;
@@ -52,6 +53,7 @@ public static class ComplianceServiceCollectionExtensions
             options.AddKaramchariInterceptors(sp);
         });
 
+        services.AddScoped<IComplianceGateService, ComplianceGateService>();
         services.AddScoped<PolicyViolationDetectionService>();
         services.AddScoped<ComplianceScoringService>();
         services.AddScoped<AuditPackageService>();

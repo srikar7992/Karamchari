@@ -22,6 +22,7 @@ using Karamchari.Api.BFF.PSA;
 using Karamchari.Api.BFF.Search;
 using Karamchari.Api.BFF.Succession;
 using Karamchari.Api.BFF.Tenants;
+using Karamchari.Api.BFF.Workflow;
 using Karamchari.Identity;
 using Karamchari.Notifications.RealTime;
 using Karamchari.PSA.Hubs;
@@ -90,6 +91,8 @@ public static class EndpointExtensions
         app.MapIntegrationEndpoints();
         app.MapCompensationEndpoints();
         app.MapAuditEndpoints();
+        app.MapComplianceGateEndpoints();
+        app.MapWorkflowRuleEndpoints();
 
         // BFF Workspaces (Phase 1A)
         app.MapManagerWorkspace();

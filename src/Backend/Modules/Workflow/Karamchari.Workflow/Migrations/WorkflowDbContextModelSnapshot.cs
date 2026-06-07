@@ -33,6 +33,11 @@ namespace Karamchari.Workflow.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("ConditionsJson")
+                        .IsRequired()
+                        .HasDefaultValue("[]")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
