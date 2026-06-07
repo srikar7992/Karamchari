@@ -95,6 +95,7 @@ public static class EndpointExtensions
         app.MapComplianceGateEndpoints();
         app.MapWorkflowRuleEndpoints();
         app.MapOpsEndpoints();
+        app.MapCatalogEndpoints();
 
         // BFF Workspaces (Phase 1A)
         app.MapManagerWorkspace();

@@ -40,6 +40,7 @@ public sealed class IntegrationDbContext : KaramchariDbContext
                     .HasConversion(id => id.Value, v => new WebhookSubscriptionId(v));
                 d.Property(x => x.EventType).HasMaxLength(200).IsRequired();
                 d.Property(x => x.PayloadJson).HasColumnType("nvarchar(max)");
+                d.Property(x => x.CorrelationId).HasMaxLength(200).IsRequired(false);
                 d.Property(x => x.ErrorMessage).HasMaxLength(2000);
                 d.Property(x => x.Status).HasConversion<string>().HasMaxLength(50);
             });

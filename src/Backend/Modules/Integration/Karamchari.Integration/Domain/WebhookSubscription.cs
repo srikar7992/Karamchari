@@ -73,9 +73,9 @@ public sealed class WebhookSubscription : AggregateRoot<WebhookSubscriptionId>, 
     public bool Matches(string eventType) =>
         IsActive && _eventTypes.Contains(eventType, StringComparer.OrdinalIgnoreCase);
 
-    public WebhookDelivery RecordDelivery(string eventType, string payloadJson)
+    public WebhookDelivery RecordDelivery(string eventType, string payloadJson, string? correlationId = null)
     {
-        var delivery = new WebhookDelivery(Guid.NewGuid(), Id, eventType, payloadJson);
+        var delivery = new WebhookDelivery(Guid.NewGuid(), Id, eventType, payloadJson, correlationId);
         _deliveries.Add(delivery);
         LastTriggeredAt = DateTimeOffset.UtcNow;
         return delivery;
@@ -100,11 +100,12 @@ public sealed class WebhookDelivery : Entity<Guid>
     private WebhookDelivery() { PayloadJson = string.Empty; EventType = string.Empty; }
 
     internal WebhookDelivery(Guid id, WebhookSubscriptionId subscriptionId,
-        string eventType, string payloadJson) : base(id)
+        string eventType, string payloadJson, string? correlationId = null) : base(id)
     {
         SubscriptionId = subscriptionId;
         EventType = eventType;
         PayloadJson = payloadJson;
+        CorrelationId = correlationId;
         Status = WebhookDeliveryStatus.Pending;
         AttemptCount = 0;
         CreatedAt = DateTimeOffset.UtcNow;
@@ -113,6 +114,15 @@ public sealed class WebhookDelivery : Entity<Guid>
     public WebhookSubscriptionId SubscriptionId { get; private set; } = null!;
     public string EventType { get; private set; }
     public string PayloadJson { get; private set; }
+
+    /// <summary>
+    /// Correlation ID propagated from the originating integration event header
+    /// (<see cref="Karamchari.Core.Messaging.Tenant.ExecutionContextHeaders.CorrelationId"/>).
+    /// Enables tracing: API request → MassTransit event → webhook delivery.
+    /// Null for deliveries created before Phase 14.
+    /// </summary>
+    public string? CorrelationId { get; private set; }
+
     public WebhookDeliveryStatus Status { get; private set; }
     public int AttemptCount { get; private set; }
     public int? ResponseStatusCode { get; private set; }

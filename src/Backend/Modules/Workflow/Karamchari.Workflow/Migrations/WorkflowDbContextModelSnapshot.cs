@@ -35,7 +35,7 @@ namespace Karamchari.Workflow.Migrations
 
                     b.Property<string>("ConditionsJson")
                         .IsRequired()
-                        .HasDefaultValue("[]")
+                        .HasDefaultValueSql("'[]'")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ExpressionJson")
@@ -53,7 +53,7 @@ namespace Karamchari.Workflow.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasDefaultValue("Published")
+                        .HasDefaultValueSql("'Published'")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 

@@ -44,14 +44,14 @@ public sealed class WorkflowDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.Status }); // governance lifecycle queries
             b.Property(x => x.ConditionsJson)
                 .HasColumnType("nvarchar(max)")
-                .HasDefaultValue("[]");
+                .HasDefaultValueSql("'[]'");
             b.Property(x => x.ExpressionJson)
                 .HasColumnType("nvarchar(max)")
                 .IsRequired(false);
             b.Property(x => x.Status)
                 .HasConversion<string>()
                 .HasMaxLength(50)
-                .HasDefaultValue("Published");
+                .HasDefaultValueSql("'Published'");
             b.Property(x => x.EffectiveFrom)
                 .HasColumnType("datetime2")
                 .IsRequired(false);
