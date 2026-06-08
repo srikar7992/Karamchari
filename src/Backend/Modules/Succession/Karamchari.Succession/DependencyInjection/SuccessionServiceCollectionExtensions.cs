@@ -17,8 +17,13 @@ public static class SuccessionServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        services.RegisterTenantTable("CriticalRoles");
-        services.RegisterTenantTable("SuccessionPlans");
+        services.RegisterTenantTable("Succession_CriticalRoles");
+        services.RegisterTenantTable("Succession_Plans");
+        services.RegisterTenantTable("Succession_Candidates");
+        services.RegisterTenantTable("Succession_TalentPools");
+        services.RegisterTenantTable("Succession_TalentPoolMembers");
+        services.RegisterTenantTable("Succession_CareerPaths");
+        services.RegisterTenantTable("Succession_CareerSteps");
 
         services.AddDbContext<SuccessionDbContext>((sp, options) =>
         {

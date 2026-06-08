@@ -13,15 +13,19 @@ public sealed class SuccessionDbContext : KaramchariDbContext
     public DbSet<CriticalRole> CriticalRoles => Set<CriticalRole>();
     public DbSet<SuccessionPlan> SuccessionPlans => Set<SuccessionPlan>();
     public DbSet<TalentPool> TalentPools => Set<TalentPool>();
+    public DbSet<CareerPath> CareerPaths => Set<CareerPath>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
+        ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
 
         modelBuilder.Entity<CriticalRole>(e =>
         {
+            e.ToTable("Succession_CriticalRoles");
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).HasConversion(id => id.Value, v => new CriticalRoleId(v));
+            e.HasIndex(x => new { x.TenantId, x.RoleTitle });
             e.Property(x => x.RoleTitle).HasMaxLength(300).IsRequired();
             e.Property(x => x.Department).HasMaxLength(200);
             e.Property(x => x.Rationale).HasMaxLength(2000);
@@ -30,11 +34,13 @@ public sealed class SuccessionDbContext : KaramchariDbContext
 
         modelBuilder.Entity<SuccessionPlan>(e =>
         {
+            e.ToTable("Succession_Plans");
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).HasConversion(id => id.Value, v => new SuccessionPlanId(v));
             e.Property(x => x.RoleId).HasConversion(id => id.Value, v => new CriticalRoleId(v));
             e.OwnsMany(x => x.Candidates, c =>
             {
+                c.ToTable("Succession_Candidates");
                 c.WithOwner().HasForeignKey("PlanId_fk");
                 c.HasKey(x => x.Id);
                 c.Property(x => x.Id).HasConversion(id => id.Value, v => new SuccessorCandidateId(v));
@@ -50,6 +56,7 @@ public sealed class SuccessionDbContext : KaramchariDbContext
 
         modelBuilder.Entity<TalentPool>(e =>
         {
+            e.ToTable("Succession_TalentPools");
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).HasConversion(id => id.Value, v => new TalentPoolId(v));
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
@@ -60,6 +67,7 @@ public sealed class SuccessionDbContext : KaramchariDbContext
 
             e.OwnsMany(x => x.Members, m =>
             {
+                m.ToTable("Succession_TalentPoolMembers");
                 m.WithOwner().HasForeignKey("PoolId_fk");
                 m.HasKey(x => x.Id);
                 m.Property(x => x.Id).HasConversion(id => id.Value, v => new TalentPoolMemberId(v));
@@ -68,7 +76,25 @@ public sealed class SuccessionDbContext : KaramchariDbContext
                 m.Property(x => x.Status).HasConversion<string>();
                 m.Property(x => x.NominationNotes).HasMaxLength(2000);
                 m.Property(x => x.ExitReason).HasMaxLength(500);
-                m.Ignore(x => x.NineBoxPosition());
+            });
+        });
+
+        modelBuilder.Entity<CareerPath>(e =>
+        {
+            e.ToTable("Succession_CareerPaths");
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.TenantId, x.Name });
+            e.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Description).HasMaxLength(1000);
+
+            e.OwnsMany(x => x.Steps, s =>
+            {
+                s.ToTable("Succession_CareerSteps");
+                s.WithOwner().HasForeignKey("PathId");
+                s.HasKey(x => x.Id);
+                s.HasIndex(x => new { x.PathId, x.StepOrder }).IsUnique();
+                s.Property(x => x.RoleTitle).HasMaxLength(300).IsRequired();
+                s.Property(x => x.Notes).HasMaxLength(1000);
             });
         });
     }
