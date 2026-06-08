@@ -68,6 +68,7 @@ public static class WorkerServiceCollectionExtensions
         // Module services required by consumers and hosted services.
         // Consumers injecting a DbContext need the DbContext registered in the Worker container.
         services.AddKaramchariOnboarding(configuration);
+        services.AddKaramchariCapability(configuration);
 
         // Internal platform-wide background services
         services.AddOutboxRelay(configuration);

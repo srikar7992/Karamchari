@@ -1,3 +1,4 @@
+using Karamchari.Capability.Domain.Primitives;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;
 
@@ -9,6 +10,7 @@ namespace Karamchari.Capability.Domain.Learning;
 /// </summary>
 public sealed class LearningModule : AggregateRoot<Guid>, ITenantOwned
 {
+    private readonly List<ModuleSkillTarget> _skillTargets = [];
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -44,6 +46,8 @@ public sealed class LearningModule : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public byte[] RowVersion { get; private set; } = [];
 
+    public IReadOnlyList<ModuleSkillTarget> SkillTargets => _skillTargets.AsReadOnly();
+
     private LearningModule() { }
 
     /// <summary>
@@ -69,4 +73,20 @@ public sealed class LearningModule : AggregateRoot<Guid>, ITenantOwned
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
     }
+
+    public void LinkSkill(Guid skillId, SkillLevel grantedLevel)
+    {
+        if (_skillTargets.Any(t => t.SkillId == skillId))
+            throw new InvalidOperationException("Skill already linked to this module.");
+
+        _skillTargets.Add(ModuleSkillTarget.Create(Id, skillId, grantedLevel));
+    }
+
+    public void RemoveSkillLink(Guid skillId)
+    {
+        var target = _skillTargets.FirstOrDefault(t => t.SkillId == skillId);
+        if (target is not null) _skillTargets.Remove(target);
+    }
+
+    public void Deactivate() => IsActive = false;
 }

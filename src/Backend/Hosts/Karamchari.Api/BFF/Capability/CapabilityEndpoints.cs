@@ -111,9 +111,45 @@ public static class CapabilityEndpoints
             .RequireAuthorization(Permissions.CapabilityRead)
             .WithName("Capability.Learning.Modules.List");
 
+        group.MapPost("/learning/modules", CreateLearningModule)
+            .RequireAuthorization(Permissions.CapabilityWrite)
+            .WithName("Capability.Learning.Modules.Create");
+
+        group.MapGet("/learning/modules/{moduleId:guid}", GetLearningModule)
+            .RequireAuthorization(Permissions.CapabilityRead)
+            .WithName("Capability.Learning.Modules.Get");
+
+        group.MapPost("/learning/modules/{moduleId:guid}/skills", LinkSkillToModule)
+            .RequireAuthorization(Permissions.CapabilityWrite)
+            .WithName("Capability.Learning.Modules.LinkSkill");
+
+        group.MapDelete("/learning/modules/{moduleId:guid}/skills/{skillId:guid}", UnlinkSkillFromModule)
+            .RequireAuthorization(Permissions.CapabilityWrite)
+            .WithName("Capability.Learning.Modules.UnlinkSkill");
+
+        group.MapPost("/learning/modules/{moduleId:guid}/deactivate", DeactivateLearningModule)
+            .RequireAuthorization(Permissions.CapabilityWrite)
+            .WithName("Capability.Learning.Modules.Deactivate");
+
+        group.MapGet("/learning/enrollments", ListMyEnrollments)
+            .RequireAuthorization(Permissions.CapabilityRead)
+            .WithName("Capability.Learning.Enrollments.List");
+
+        group.MapPost("/learning/enrollments", EnrollInModule)
+            .RequireAuthorization(Permissions.CapabilityWrite)
+            .WithName("Capability.Learning.Enrollments.Enroll");
+
+        group.MapPost("/learning/enrollments/{id:guid}/start", StartEnrollment)
+            .RequireAuthorization(Permissions.CapabilityWrite)
+            .WithName("Capability.Learning.Enrollments.Start");
+
         group.MapPost("/learning/enrollments/{id:guid}/complete", CompleteEnrollment)
             .RequireAuthorization(Permissions.CapabilityWrite)
             .WithName("Capability.Learning.Enrollments.Complete");
+
+        group.MapGet("/learning/recommendations", GetLearningRecommendations)
+            .RequireAuthorization(Permissions.CapabilityRead)
+            .WithName("Capability.Learning.Recommendations");
 
         // ── Role Skill Requirements ────────────────────────────────────────
         group.MapGet("/role-requirements", ListRoleRequirements)
@@ -635,10 +671,182 @@ public static class CapabilityEndpoints
 
     // ── Learning ──────────────────────────────────────────────────────────
 
-    private static async Task<IResult> ListModules(CapabilityDbContext db, CancellationToken ct)
+    private static async Task<IResult> ListModules(
+        [FromQuery] bool? activeOnly,
+        CapabilityDbContext db,
+        CancellationToken ct)
     {
-        var modules = await db.LearningModules.AsNoTracking().ToListAsync(ct);
+        var query = db.LearningModules.AsNoTracking();
+        if (activeOnly is true)
+            query = query.Where(m => m.IsActive);
+        var modules = await query.ToListAsync(ct);
         return Results.Ok(modules);
+    }
+
+    private static async Task<IResult> CreateLearningModule(
+        [FromBody] CreateLearningModuleRequest request,
+        TenantExecutionContextAccessor contextAccessor,
+        CapabilityDbContext db,
+        CancellationToken ct)
+    {
+        var tenantId = contextAccessor.Current!.TenantId;
+        var module = LearningModule.Create(
+            tenantId,
+            request.Title,
+            request.Description ?? string.Empty,
+            request.EstimatedMinutes,
+            request.ExternalProviderId,
+            request.ContentUrl);
+        db.LearningModules.Add(module);
+        await db.SaveChangesAsync(ct);
+        return Results.Created($"/api/v1/capability/learning/modules/{module.Id}", module);
+    }
+
+    private static async Task<IResult> GetLearningModule(
+        Guid moduleId,
+        CapabilityDbContext db,
+        CancellationToken ct)
+    {
+        var module = await db.LearningModules
+            .AsNoTracking()
+            .Include(m => m.SkillTargets)
+            .FirstOrDefaultAsync(m => m.Id == moduleId, ct);
+        return module is null ? Results.NotFound() : Results.Ok(module);
+    }
+
+    private static async Task<IResult> LinkSkillToModule(
+        Guid moduleId,
+        [FromBody] LinkSkillToModuleRequest request,
+        CapabilityDbContext db,
+        CancellationToken ct)
+    {
+        var module = await db.LearningModules
+            .Include(m => m.SkillTargets)
+            .FirstOrDefaultAsync(m => m.Id == moduleId, ct);
+
+        if (module is null) return Results.NotFound();
+
+        if (!Enum.TryParse<SkillLevel>(request.GrantedLevel, out var level))
+            return Results.BadRequest($"Invalid skill level: {request.GrantedLevel}");
+
+        try
+        {
+            module.LinkSkill(request.SkillId, level);
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(module);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> UnlinkSkillFromModule(
+        Guid moduleId,
+        Guid skillId,
+        CapabilityDbContext db,
+        CancellationToken ct)
+    {
+        var module = await db.LearningModules
+            .Include(m => m.SkillTargets)
+            .FirstOrDefaultAsync(m => m.Id == moduleId, ct);
+
+        if (module is null) return Results.NotFound();
+        module.RemoveSkillLink(skillId);
+        await db.SaveChangesAsync(ct);
+        return Results.Ok(module);
+    }
+
+    private static async Task<IResult> DeactivateLearningModule(
+        Guid moduleId,
+        CapabilityDbContext db,
+        CancellationToken ct)
+    {
+        var module = await db.LearningModules.FirstOrDefaultAsync(m => m.Id == moduleId, ct);
+        if (module is null) return Results.NotFound();
+        module.Deactivate();
+        await db.SaveChangesAsync(ct);
+        return Results.Ok(module);
+    }
+
+    private static async Task<IResult> ListMyEnrollments(
+        ClaimsPrincipal user,
+        [FromQuery] string? status,
+        CapabilityDbContext db,
+        CancellationToken ct)
+    {
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
+
+        var query = db.LearningEnrollments.AsNoTracking().Where(e => e.EmployeeId == employeeId);
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<EnrollmentStatus>(status, out var statusEnum))
+            query = query.Where(e => e.Status == statusEnum);
+
+        var enrollments = await query.ToListAsync(ct);
+        return Results.Ok(enrollments);
+    }
+
+    private static async Task<IResult> EnrollInModule(
+        [FromBody] EnrollRequest request,
+        ClaimsPrincipal user,
+        TenantExecutionContextAccessor contextAccessor,
+        CapabilityDbContext db,
+        CancellationToken ct)
+    {
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
+
+        var tenantId = contextAccessor.Current!.TenantId;
+
+        var alreadyEnrolled = await db.LearningEnrollments.AnyAsync(
+            e => e.TenantId == tenantId
+              && e.EmployeeId == employeeId
+              && e.ModuleId == request.ModuleId
+              && e.Status != EnrollmentStatus.Dropped
+              && e.Status != EnrollmentStatus.Failed,
+            ct);
+
+        if (alreadyEnrolled)
+            return Results.Conflict(new { error = "Already enrolled in this module." });
+
+        var enrollment = LearningEnrollment.Assign(
+            tenantId,
+            employeeId.Value,
+            request.ModuleId,
+            request.IsMandatory ?? false,
+            request.Deadline,
+            request.TargetSkillId);
+
+        db.LearningEnrollments.Add(enrollment);
+        await db.SaveChangesAsync(ct);
+
+        return Results.Created($"/api/v1/capability/learning/enrollments/{enrollment.Id}", enrollment);
+    }
+
+    private static async Task<IResult> StartEnrollment(
+        Guid id,
+        ClaimsPrincipal user,
+        CapabilityDbContext db,
+        CancellationToken ct)
+    {
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
+
+        var enrollment = await db.LearningEnrollments
+            .FirstOrDefaultAsync(e => e.Id == id && e.EmployeeId == employeeId, ct);
+
+        if (enrollment is null) return Results.NotFound();
+
+        try
+        {
+            enrollment.Start();
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(enrollment);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
     }
 
     private static async Task<IResult> CompleteEnrollment(
@@ -657,6 +865,68 @@ public static class CapabilityEndpoints
         await db.SaveChangesAsync(ct);
 
         return Results.Ok(enrollment);
+    }
+
+    private static async Task<IResult> GetLearningRecommendations(
+        [FromQuery] Guid roleRequirementId,
+        ClaimsPrincipal user,
+        CapabilityDbContext db,
+        CancellationToken ct)
+    {
+        var employeeId = user.GetEmployeeId();
+        if (employeeId is null) return Results.Unauthorized();
+
+        var requirement = await db.RoleSkillRequirements
+            .AsNoTracking()
+            .Include(r => r.Skills)
+            .FirstOrDefaultAsync(r => r.Id == roleRequirementId, ct);
+
+        if (requirement is null) return Results.NotFound("Role requirement not found.");
+
+        var profile = await db.CapabilityProfiles
+            .AsNoTracking()
+            .Include(p => p.Skills)
+            .FirstOrDefaultAsync(p => p.EmployeeId == employeeId, ct);
+
+        var gaps = profile is null
+            ? requirement.Skills.Select(s => new SkillGap(s.SkillId, s.MinimumLevel, null)).ToList()
+            : requirement.ComputeGaps(profile);
+
+        if (gaps.Count == 0)
+            return Results.Ok(new LearningRecommendationResult(roleRequirementId, requirement.RoleTitle, []));
+
+        var gapSkillIds = gaps.Select(g => g.SkillId).ToList();
+
+        var modules = await db.LearningModules
+            .AsNoTracking()
+            .Include(m => m.SkillTargets)
+            .Where(m => m.IsActive && m.SkillTargets.Any(t => gapSkillIds.Contains(t.SkillId)))
+            .ToListAsync(ct);
+
+        var skillNames = await db.SkillDefinitions
+            .AsNoTracking()
+            .Where(s => gapSkillIds.Contains(s.Id))
+            .Select(s => new { s.Id, s.Name })
+            .ToDictionaryAsync(s => s.Id, ct);
+
+        var recommendations = gaps.Select(gap =>
+        {
+            var matchingModules = modules
+                .Where(m => m.SkillTargets.Any(t =>
+                    t.SkillId == gap.SkillId && t.GrantedLevel >= gap.Required))
+                .Select(m => new ModuleRecommendation(m.Id, m.Title, m.EstimatedMinutes, m.ContentUrl))
+                .ToList();
+
+            return new SkillRecommendation(
+                gap.SkillId,
+                skillNames.GetValueOrDefault(gap.SkillId)?.Name ?? gap.SkillId.ToString(),
+                gap.Required.ToString(),
+                gap.Actual?.ToString(),
+                gap.IsMissing,
+                matchingModules);
+        }).ToList();
+
+        return Results.Ok(new LearningRecommendationResult(roleRequirementId, requirement.RoleTitle, recommendations));
     }
 }
 
@@ -729,6 +999,54 @@ public record GapDetail(
     string? ActualLevel,
     bool IsMissing,
     int LevelsBehind);
+
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
+public record CreateLearningModuleRequest(
+    string Title,
+    string? Description,
+    int EstimatedMinutes,
+    string? ExternalProviderId,
+    string? ContentUrl);
+
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
+public record LinkSkillToModuleRequest(Guid SkillId, string GrantedLevel);
+
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
+public record EnrollRequest(
+    Guid ModuleId,
+    bool? IsMandatory,
+    DateTimeOffset? Deadline,
+    Guid? TargetSkillId = null);
+
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
+public record ModuleRecommendation(Guid ModuleId, string Title, int EstimatedMinutes, string? ContentUrl);
+
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
+public record SkillRecommendation(
+    Guid SkillId,
+    string SkillName,
+    string RequiredLevel,
+    string? ActualLevel,
+    bool IsMissing,
+    IReadOnlyList<ModuleRecommendation> RecommendedModules);
+
+/// <summary>
+/// Provides required documentation for this member.
+/// </summary>
+public record LearningRecommendationResult(
+    Guid RoleRequirementId,
+    string RoleTitle,
+    IReadOnlyList<SkillRecommendation> Recommendations);
 
 /// <summary>
 /// Provides required documentation for this member.

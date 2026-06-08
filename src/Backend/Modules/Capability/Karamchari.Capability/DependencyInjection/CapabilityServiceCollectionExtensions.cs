@@ -38,6 +38,11 @@ public static class CapabilityServiceCollectionExtensions
         services.RegisterTenantTable("Capability_CertificationAchievements");
         services.RegisterTenantTable("Capability_GrowthPlans");
         services.RegisterTenantTable("Capability_GrowthMilestones");
+        services.RegisterTenantTable("Capability_SkillCategories");
+        services.RegisterTenantTable("Capability_CertificationDefinitions");
+        services.RegisterTenantTable("Capability_RoleSkillRequirements");
+        services.RegisterTenantTable("Capability_RequiredSkills");
+        services.RegisterTenantTable("Capability_ModuleSkillTargets");
 
         services.AddDbContext<CapabilityDbContext>((sp, options) =>
         {
@@ -65,5 +70,6 @@ public static class CapabilityServiceCollectionExtensions
     public static void AddKaramchariCapabilityConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
     {
         ArgumentNullException.ThrowIfNull(busConfigurator);
+        busConfigurator.AddConsumer<Karamchari.Capability.Consumers.LearningEnrollmentCompletedConsumer>();
     }
 }

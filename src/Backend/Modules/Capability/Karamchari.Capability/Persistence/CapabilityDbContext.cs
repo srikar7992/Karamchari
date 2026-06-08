@@ -95,6 +95,15 @@ public class CapabilityDbContext : KaramchariDbContext
             b.HasKey(x => x.Id);
             b.HasIndex(x => new { x.TenantId, x.Title });
             b.Property(x => x.RowVersion).IsRowVersion();
+
+            b.OwnsMany(x => x.SkillTargets, t =>
+            {
+                t.ToTable("Capability_ModuleSkillTargets");
+                t.WithOwner().HasForeignKey("ModuleId");
+                t.HasKey(x => x.Id);
+                t.HasIndex(x => new { x.ModuleId, x.SkillId }).IsUnique();
+                t.Property(x => x.GrantedLevel).HasConversion<string>();
+            });
         });
 
         modelBuilder.Entity<LearningEnrollment>(b =>
@@ -104,6 +113,7 @@ public class CapabilityDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.ModuleId }).IsUnique();
             b.Property(x => x.Status).HasConversion<string>();
             b.Property(x => x.RowVersion).IsRowVersion();
+            b.Property(x => x.TargetSkillId);
         });
 
         modelBuilder.Entity<CertificationAchievement>(b =>

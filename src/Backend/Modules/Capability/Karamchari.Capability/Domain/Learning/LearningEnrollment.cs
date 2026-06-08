@@ -1,3 +1,4 @@
+using Karamchari.Capability.Domain.Learning.Events;
 using Karamchari.Capability.Domain.Primitives;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;
@@ -27,6 +28,10 @@ public sealed class LearningEnrollment : AggregateRoot<Guid>, ITenantOwned
     /// Provides required documentation for this member.
     /// </summary>
     public EnrollmentStatus Status { get; private set; }
+
+    /// <summary>Optional: the skill gap this enrollment is addressing.</summary>
+    public Guid? TargetSkillId { get; private set; }
+
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -57,7 +62,8 @@ public sealed class LearningEnrollment : AggregateRoot<Guid>, ITenantOwned
         Guid employeeId,
         Guid moduleId,
         bool isMandatory,
-        DateTimeOffset? deadline = null)
+        DateTimeOffset? deadline = null,
+        Guid? targetSkillId = null)
     {
         return new LearningEnrollment
         {
@@ -67,6 +73,7 @@ public sealed class LearningEnrollment : AggregateRoot<Guid>, ITenantOwned
             ModuleId = moduleId,
             IsMandatory = isMandatory,
             DeadlineUtc = deadline,
+            TargetSkillId = targetSkillId,
             Status = EnrollmentStatus.Assigned,
             EnrolledAtUtc = DateTimeOffset.UtcNow
         };
@@ -98,6 +105,8 @@ public sealed class LearningEnrollment : AggregateRoot<Guid>, ITenantOwned
         Status = EnrollmentStatus.Completed;
         CompletedAtUtc = DateTimeOffset.UtcNow;
         CompletionIdempotencyKey = idempotencyKey;
-        // Raise LearningCompletedEvent for Capability Gap recalculation
+
+        RaiseDomainEvent(new LearningEnrollmentCompleted(
+            Id, EmployeeId, ModuleId, TenantId, CompletedAtUtc.Value));
     }
 }
