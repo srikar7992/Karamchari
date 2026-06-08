@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Karamchari.Onboarding.Contracts — integration event contracts for the
+    Onboarding bounded context.
+
+    Scope: NewHire onboarding, crossboarding (internal transfers), offboarding.
+    Consumers: AssetManagement (provision uniform/equipment), Notifications,
+               HR (update employee status), Capability (assign learning paths).
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Onboarding.Contracts</RootNamespace>
+    <AssemblyName>Karamchari.Onboarding.Contracts</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
+  </ItemGroup>
+
+</Project>

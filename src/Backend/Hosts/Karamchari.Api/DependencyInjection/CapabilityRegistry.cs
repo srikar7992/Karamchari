@@ -15,6 +15,7 @@ using Karamchari.Identity.Infrastructure;
 using Karamchari.Integration.DependencyInjection;
 using Karamchari.Intelligence.DependencyInjection;
 using Karamchari.Notifications.DependencyInjection;
+using Karamchari.Onboarding.DependencyInjection;
 using Karamchari.Payroll.DependencyInjection;
 using Karamchari.Performance.DependencyInjection;
 using Karamchari.PlatformIntelligence.DependencyInjection;
@@ -57,6 +58,7 @@ public static class CapabilityRegistry
             new EngagementModule(configuration),
             new SuccessionModule(configuration),
             new IntegrationModule(configuration),
+            new OnboardingModule(configuration),
         };
     }
 }

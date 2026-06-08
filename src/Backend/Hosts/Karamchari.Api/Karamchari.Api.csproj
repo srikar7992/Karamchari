@@ -80,6 +80,8 @@
     <ProjectReference Include="..\..\Modules\Engagement\Karamchari.Engagement\Karamchari.Engagement.csproj" />
     <ProjectReference Include="..\..\Modules\Succession\Karamchari.Succession\Karamchari.Succession.csproj" />
     <ProjectReference Include="..\..\Modules\Integration\Karamchari.Integration\Karamchari.Integration.csproj" />
+    <ProjectReference Include="..\..\Modules\Onboarding\Karamchari.Onboarding\Karamchari.Onboarding.csproj" />
+    <ProjectReference Include="..\..\Modules\Onboarding\Karamchari.Onboarding.Contracts\Karamchari.Onboarding.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

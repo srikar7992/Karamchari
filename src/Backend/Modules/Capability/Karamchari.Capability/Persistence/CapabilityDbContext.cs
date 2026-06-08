@@ -52,6 +52,7 @@ public class CapabilityDbContext : KaramchariDbContext
     /// Provides required documentation for this member.
     /// </summary>
     public DbSet<TenantCapability> TenantCapabilities => Set<TenantCapability>();
+    public DbSet<RoleSkillRequirement> RoleSkillRequirements => Set<RoleSkillRequirement>();
 
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -140,6 +141,25 @@ public class CapabilityDbContext : KaramchariDbContext
             b.HasKey(x => x.Id);
             b.HasIndex(x => new { x.TenantId, x.CapabilityId }).IsUnique();
             b.Property(x => x.Status).HasConversion<string>();
+        });
+
+        modelBuilder.Entity<RoleSkillRequirement>(b =>
+        {
+            b.ToTable("Capability_RoleSkillRequirements");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.RoleTitle });
+            b.Property(x => x.RoleTitle).IsRequired().HasMaxLength(200);
+            b.Property(x => x.JobFamily).HasMaxLength(100);
+            b.Property(x => x.Department).HasMaxLength(100);
+
+            b.OwnsMany(x => x.Skills, s =>
+            {
+                s.ToTable("Capability_RequiredSkills");
+                s.WithOwner().HasForeignKey("RequirementId");
+                s.HasKey(x => x.Id);
+                s.Property(x => x.MinimumLevel).HasConversion<string>();
+                s.HasIndex(x => new { x.RequirementId, x.SkillId }).IsUnique();
+            });
         });
     }
 }

@@ -173,7 +173,8 @@ if (args.Contains("--provision-dev-tenants"))
         typeof(Karamchari.Forecasting.Persistence.ForecastingDbContext),
         typeof(Karamchari.Workflow.Persistence.WorkflowDbContext),
         typeof(Karamchari.FinancialOps.Persistence.FinancialOpsDbContext),
-        typeof(Karamchari.Core.Messaging.Outbox.OutboxRelayDbContext)
+        typeof(Karamchari.Core.Messaging.Outbox.OutboxRelayDbContext),
+        typeof(Karamchari.Onboarding.Persistence.OnboardingDbContext)
         };
 
         foreach (var type in contextTypes)
