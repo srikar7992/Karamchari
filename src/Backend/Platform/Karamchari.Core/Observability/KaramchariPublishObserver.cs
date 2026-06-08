@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Karamchari.Core.Multitenancy;
 using MassTransit;
 
 namespace Karamchari.Core.Observability;
@@ -14,12 +13,10 @@ namespace Karamchari.Core.Observability;
 public sealed class KaramchariPublishObserver : IPublishObserver
 {
     private readonly KaramchariEventMetrics _metrics;
-    private readonly ITenantProvider _tenantProvider;
 
-    public KaramchariPublishObserver(KaramchariEventMetrics metrics, ITenantProvider tenantProvider)
+    public KaramchariPublishObserver(KaramchariEventMetrics metrics)
     {
         _metrics = metrics;
-        _tenantProvider = tenantProvider;
     }
 
     /// <inheritdoc />
@@ -52,17 +49,10 @@ public sealed class KaramchariPublishObserver : IPublishObserver
         return Task.CompletedTask;
     }
 
-    private string ResolveTenantId(Headers headers)
+    private static string ResolveTenantId(Headers headers)
     {
-        // Prefer the tenant ID stamped into the message header by TenantPublishFilter.
+        // Tenant ID is stamped into message headers by TenantPublishFilter before publish.
         var fromHeader = headers.Get<string>("x-tenant-id");
-        if (!string.IsNullOrEmpty(fromHeader))
-            return fromHeader;
-
-        // Fall back to ambient execution context (pre-publish pipeline runs inside tenant scope).
-        if (_tenantProvider.TryGetCurrentTenantId(out var tenantId))
-            return tenantId;
-
-        return "unknown";
+        return string.IsNullOrEmpty(fromHeader) ? "unknown" : fromHeader;
     }
 }
