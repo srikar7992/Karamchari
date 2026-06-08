@@ -94,6 +94,7 @@ public static class EndpointExtensions
         app.MapAuditEndpoints();
         app.MapComplianceGateEndpoints();
         app.MapWorkflowRuleEndpoints();
+        app.MapWorkflowApprovalEndpoints();
         app.MapOpsEndpoints();
         app.MapCatalogEndpoints();
 

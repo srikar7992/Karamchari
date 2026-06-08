@@ -29,6 +29,7 @@ public enum PolicyStatus
 public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
 {
     private readonly List<WorkflowStep> _steps = [];
+    private readonly List<WorkflowDefinitionApprovalEntry> _approvalHistory = [];
 
     private WorkflowDefinition(Guid id, string tenantId, string entityType, string name)
         : base(id)
@@ -113,6 +114,12 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
 
     /// <summary>Ordered steps of this workflow definition.</summary>
     public IReadOnlyList<WorkflowStep> Steps => _steps.AsReadOnly();
+
+    /// <summary>
+    /// Immutable audit trail of policy lifecycle transitions (SubmitForReview → Approve → Publish → Deprecate).
+    /// Regulators can answer: who approved, when, and why.
+    /// </summary>
+    public IReadOnlyList<WorkflowDefinitionApprovalEntry> ApprovalHistory => _approvalHistory.AsReadOnly();
 
     // ── Factory ──────────────────────────────────────────────────────────────
 
@@ -212,20 +219,22 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
     // ── Policy lifecycle ──────────────────────────────────────────────────────
 
     /// <summary>Submits this definition for review. Only valid from <see cref="PolicyStatus.Draft"/>.</summary>
-    public void SubmitForReview()
+    public void SubmitForReview(string actorId, string? notes = null)
     {
         if (Status != PolicyStatus.Draft)
             throw new InvalidOperationException(
                 $"Cannot submit definition {Id} for review: current status is {Status}.");
+        RecordTransition(actorId, PolicyStatus.Draft, PolicyStatus.InReview, notes);
         Status = PolicyStatus.InReview;
     }
 
     /// <summary>Approves this definition. Only valid from <see cref="PolicyStatus.InReview"/>.</summary>
-    public void Approve()
+    public void Approve(string actorId, string? notes = null)
     {
         if (Status != PolicyStatus.InReview)
             throw new InvalidOperationException(
                 $"Cannot approve definition {Id}: current status is {Status}.");
+        RecordTransition(actorId, PolicyStatus.InReview, PolicyStatus.Approved, notes);
         Status = PolicyStatus.Approved;
     }
 
@@ -234,27 +243,36 @@ public sealed class WorkflowDefinition : AggregateRoot<Guid>, ITenantOwned
     /// Activates the definition and clears any previous <see cref="PolicyStatus.Deprecated"/> state.
     /// Valid from <see cref="PolicyStatus.Approved"/> or <see cref="PolicyStatus.Draft"/> (fast-path).
     /// </summary>
-    public void Publish()
+    public void Publish(string actorId, string? notes = null)
     {
         if (Status != PolicyStatus.Approved && Status != PolicyStatus.Draft)
             throw new InvalidOperationException(
                 $"Cannot publish definition {Id}: must be Approved or Draft (got {Status}).");
+        RecordTransition(actorId, Status, PolicyStatus.Published, notes);
         Status = PolicyStatus.Published;
         IsActive = true;
     }
 
     /// <summary>Retires this definition. Deactivates routing.</summary>
-    public void Deprecate()
+    public void Deprecate(string actorId, string? notes = null)
     {
+        RecordTransition(actorId, Status, PolicyStatus.Deprecated, notes);
         Status = PolicyStatus.Deprecated;
         IsActive = false;
     }
 
     /// <summary>Retracts to Draft for corrections. Deactivates routing.</summary>
-    public void RetractToDraft()
+    public void RetractToDraft(string actorId, string? notes = null)
     {
+        RecordTransition(actorId, Status, PolicyStatus.Draft, notes);
         Status = PolicyStatus.Draft;
         IsActive = false;
+    }
+
+    private void RecordTransition(string actorId, PolicyStatus from, PolicyStatus to, string? notes)
+    {
+        _approvalHistory.Add(new WorkflowDefinitionApprovalEntry(
+            Guid.NewGuid(), actorId, from, to, DateTimeOffset.UtcNow, notes));
     }
 
     // ── Effective dates ────────────────────────────────────────────────────────

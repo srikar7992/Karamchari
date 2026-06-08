@@ -253,33 +253,37 @@ public static class WorkflowRuleEndpoints
 
     private static async Task<IResult> SubmitForReview(
         Guid id, ClaimsPrincipal user, WorkflowDbContext db, CancellationToken ct)
-        => await TransitionStatus(id, user, db, def => def.SubmitForReview(), ct);
+        => await TransitionStatus(id, user, db, (def, actorId) => def.SubmitForReview(actorId), ct);
 
     private static async Task<IResult> Approve(
         Guid id, ClaimsPrincipal user, WorkflowDbContext db, CancellationToken ct)
-        => await TransitionStatus(id, user, db, def => def.Approve(), ct);
+        => await TransitionStatus(id, user, db, (def, actorId) => def.Approve(actorId), ct);
 
     private static async Task<IResult> Publish(
         Guid id, ClaimsPrincipal user, WorkflowDbContext db, CancellationToken ct)
-        => await TransitionStatus(id, user, db, def => def.Publish(), ct);
+        => await TransitionStatus(id, user, db, (def, actorId) => def.Publish(actorId), ct);
 
     private static async Task<IResult> Deprecate(
         Guid id, ClaimsPrincipal user, WorkflowDbContext db, CancellationToken ct)
-        => await TransitionStatus(id, user, db, def => def.Deprecate(), ct);
+        => await TransitionStatus(id, user, db, (def, actorId) => def.Deprecate(actorId), ct);
 
     private static async Task<IResult> Retract(
         Guid id, ClaimsPrincipal user, WorkflowDbContext db, CancellationToken ct)
-        => await TransitionStatus(id, user, db, def => def.RetractToDraft(), ct);
+        => await TransitionStatus(id, user, db, (def, actorId) => def.RetractToDraft(actorId), ct);
 
     private static async Task<IResult> TransitionStatus(
         Guid id,
         ClaimsPrincipal user,
         WorkflowDbContext db,
-        Action<WorkflowDefinition> transition,
+        Action<WorkflowDefinition, string> transition,
         CancellationToken ct)
     {
         var (tenantId, _) = user.GetTenantAndEmployee();
         if (tenantId is null) return Results.Unauthorized();
+
+        var actorId = user.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
+                   ?? user.FindFirstValue("sub")
+                   ?? "unknown";
 
         var def = await db.WorkflowDefinitions
             .FirstOrDefaultAsync(d => d.TenantId == tenantId && d.Id == id, ct);
@@ -287,7 +291,7 @@ public static class WorkflowRuleEndpoints
 
         try
         {
-            transition(def);
+            transition(def, actorId);
             await db.SaveChangesAsync(ct);
             return Results.Ok(new { def.Id, Status = def.Status.ToString(), def.IsActive });
         }

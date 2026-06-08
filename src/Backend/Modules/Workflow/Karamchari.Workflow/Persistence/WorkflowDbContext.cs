@@ -66,6 +66,19 @@ public sealed class WorkflowDbContext : KaramchariDbContext
                 s.WithOwner().HasForeignKey("DefinitionId");
                 s.HasKey(x => x.Id);
             });
+
+            b.OwnsMany(x => x.ApprovalHistory, a =>
+            {
+                a.ToTable("Workflow_DefinitionApprovalHistory");
+                a.WithOwner().HasForeignKey("DefinitionId");
+                a.HasKey(x => x.Id);
+                a.Property(x => x.ActorId).HasMaxLength(200).IsRequired();
+                a.Property(x => x.FromStatus).HasConversion<string>().HasMaxLength(50);
+                a.Property(x => x.ToStatus).HasConversion<string>().HasMaxLength(50);
+                a.Property(x => x.OccurredAt).HasColumnType("datetimeoffset");
+                a.Property(x => x.Notes).HasMaxLength(1000).IsRequired(false);
+                a.HasIndex("DefinitionId", "OccurredAt");
+            });
         });
 
         modelBuilder.Entity<WorkflowInstance>(b =>

@@ -3,6 +3,7 @@ using Karamchari.Capability.Persistence;
 using Karamchari.Compensation.Persistence;
 using Karamchari.Core.Messaging.Tenant;
 using Karamchari.Core.Multitenancy.Execution;
+using Karamchari.Core.Observability;
 using Karamchari.DataMigration.Persistence;
 using Karamchari.FinancialOps.Persistence;
 using Karamchari.Forecasting.Persistence;
@@ -46,11 +47,19 @@ public static class MassTransitExtensions
         services.AddSingleton(typeof(TenantPublishFilter<>));
         services.AddSingleton(typeof(TenantSendFilter<>));
 
+        // Event telemetry — answers "how many events fired? consumer latency? DLQ rate?"
+        services.AddSingleton<KaramchariEventMetrics>();
+        services.AddSingleton<KaramchariPublishObserver>();
+        services.AddSingleton<KaramchariConsumeObserver>();
+
         services.AddMassTransit(x =>
         {
             // API only publishes, it doesn't need to register consumers
             // except for those needed for synchronous request/response or 
             // internal API-only async flows (rare in this topology).
+
+            x.AddPublishObserver<KaramchariPublishObserver>();
+            x.AddConsumeObserver<KaramchariConsumeObserver>();
 
             var isDev = environment.IsDevelopment();
 

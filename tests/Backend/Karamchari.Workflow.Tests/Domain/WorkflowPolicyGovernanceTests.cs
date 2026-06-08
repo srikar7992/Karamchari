@@ -34,15 +34,15 @@ public class WorkflowPolicyGovernanceTests
     {
         var def = WorkflowDefinition.CreateDraft("tenant-1", "Expense", "Finance Route v2");
 
-        def.SubmitForReview();
+        def.SubmitForReview("test-actor");
         def.Status.Should().Be(PolicyStatus.InReview);
         def.IsActive.Should().BeFalse();
 
-        def.Approve();
+        def.Approve("test-actor");
         def.Status.Should().Be(PolicyStatus.Approved);
         def.IsActive.Should().BeFalse();
 
-        def.Publish();
+        def.Publish("test-actor");
         def.Status.Should().Be(PolicyStatus.Published);
         def.IsActive.Should().BeTrue();
     }
@@ -53,7 +53,7 @@ public class WorkflowPolicyGovernanceTests
         var def = WorkflowDefinition.Create("tenant-1", "Expense", "Old Rule");
         def.IsActive.Should().BeTrue();
 
-        def.Deprecate();
+        def.Deprecate("test-actor");
         def.Status.Should().Be(PolicyStatus.Deprecated);
         def.IsActive.Should().BeFalse();
     }
@@ -62,7 +62,7 @@ public class WorkflowPolicyGovernanceTests
     public void RetractToDraft_AllowsCorrections()
     {
         var def = WorkflowDefinition.Create("tenant-1", "Expense", "Needs Fix");
-        def.RetractToDraft();
+        def.RetractToDraft("test-actor");
         def.Status.Should().Be(PolicyStatus.Draft);
         def.IsActive.Should().BeFalse();
     }
@@ -71,7 +71,7 @@ public class WorkflowPolicyGovernanceTests
     public void SubmitForReview_FromPublished_Throws()
     {
         var def = WorkflowDefinition.Create("tenant-1", "Expense", "Already Live");
-        var act = () => def.SubmitForReview();
+        var act = () => def.SubmitForReview("test-actor");
         act.Should().Throw<InvalidOperationException>().WithMessage("*Published*");
     }
 
@@ -79,7 +79,7 @@ public class WorkflowPolicyGovernanceTests
     public void Approve_FromDraft_Throws()
     {
         var def = WorkflowDefinition.CreateDraft("tenant-1", "Expense", "New Draft");
-        var act = () => def.Approve();
+        var act = () => def.Approve("test-actor");
         act.Should().Throw<InvalidOperationException>().WithMessage("*Draft*");
     }
 
@@ -87,8 +87,8 @@ public class WorkflowPolicyGovernanceTests
     public void Publish_FromInReview_Throws()
     {
         var def = WorkflowDefinition.CreateDraft("tenant-1", "Expense", "In Review");
-        def.SubmitForReview();
-        var act = () => def.Publish();
+        def.SubmitForReview("test-actor");
+        var act = () => def.Publish("test-actor");
         act.Should().Throw<InvalidOperationException>().WithMessage("*Approved or Draft*");
     }
 
@@ -168,7 +168,7 @@ public class WorkflowPolicyGovernanceTests
     public void Router_InactiveDefinition_NotSelected_EvenIfInWindow()
     {
         var def = WorkflowDefinition.Create("tenant-1", "Expense", "Inactive");
-        def.Deprecate(); // sets IsActive=false
+        def.Deprecate("test-actor"); // sets IsActive=false
 
         var req = new WorkflowRoutingRequest("Expense", "tenant-1");
         var selected = WorkflowRouter.Route([def], req);

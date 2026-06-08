@@ -305,6 +305,47 @@ namespace Karamchari.Workflow.Migrations
 
             modelBuilder.Entity("Karamchari.Workflow.Domain.WorkflowDefinition", b =>
                 {
+                    b.OwnsMany("Karamchari.Workflow.Domain.WorkflowDefinitionApprovalEntry", "ApprovalHistory", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("ActorId")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)");
+
+                            b1.Property<Guid>("DefinitionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("FromStatus")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)");
+
+                            b1.Property<string>("ToStatus")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)");
+
+                            b1.Property<DateTimeOffset>("OccurredAt")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<string>("Notes")
+                                .HasMaxLength(1000)
+                                .HasColumnType("nvarchar(1000)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("DefinitionId", "OccurredAt");
+
+                            b1.ToTable("Workflow_DefinitionApprovalHistory", "__tenant__");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DefinitionId");
+                        });
+
                     b.OwnsMany("Karamchari.Workflow.Domain.WorkflowStep", "Steps", b1 =>
                         {
                             b1.Property<Guid>("Id")
@@ -343,6 +384,8 @@ namespace Karamchari.Workflow.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("DefinitionId");
                         });
+
+                    b.Navigation("ApprovalHistory");
 
                     b.Navigation("Steps");
                 });
