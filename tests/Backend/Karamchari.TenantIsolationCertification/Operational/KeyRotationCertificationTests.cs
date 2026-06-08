@@ -52,6 +52,7 @@ public class KeyRotationCertificationTests
             .BuildServiceProvider();
 
         var harness = provider.GetRequiredService<ITestHarness>();
+        harness.TestTimeout = TimeSpan.FromSeconds(15);
         await harness.Start();
 
         var signerOld = new ExecutionContextSigner(OldSecret);

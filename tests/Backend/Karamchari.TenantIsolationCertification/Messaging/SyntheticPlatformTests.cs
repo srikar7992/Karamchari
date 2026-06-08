@@ -55,6 +55,7 @@ public class SyntheticPlatformTests
             .BuildServiceProvider();
 
         var harness = provider.GetRequiredService<ITestHarness>();
+        harness.TestTimeout = TimeSpan.FromSeconds(15);
         await harness.Start();
 
         var tenantId = "synthetic-tenant";
