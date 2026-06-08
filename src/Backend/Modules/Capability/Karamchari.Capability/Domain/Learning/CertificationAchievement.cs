@@ -31,6 +31,9 @@ public sealed class CertificationAchievement : AggregateRoot<Guid>, ITenantOwned
     /// </summary>
     public string LicenseNumber { get; private set; } = string.Empty;
 
+    /// <summary>Optional FK to governed CertificationDefinition catalog.</summary>
+    public Guid? CertificationDefinitionId { get; private set; }
+
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -59,7 +62,8 @@ public sealed class CertificationAchievement : AggregateRoot<Guid>, ITenantOwned
         string authority,
         string licenseNumber,
         DateTimeOffset issuedAt,
-        DateTimeOffset? expiresAt)
+        DateTimeOffset? expiresAt,
+        Guid? certificationDefinitionId = null)
     {
         var cert = new CertificationAchievement
         {
@@ -71,7 +75,8 @@ public sealed class CertificationAchievement : AggregateRoot<Guid>, ITenantOwned
             LicenseNumber = licenseNumber,
             IssuedAtUtc = issuedAt,
             ExpiresAtUtc = expiresAt,
-            Status = CertificationStatus.Active
+            Status = CertificationStatus.Active,
+            CertificationDefinitionId = certificationDefinitionId
         };
 
         cert.EvaluateStatus();

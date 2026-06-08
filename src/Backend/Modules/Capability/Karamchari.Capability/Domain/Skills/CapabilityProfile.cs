@@ -56,25 +56,25 @@ public sealed class CapabilityProfile : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public void AddVerifiedSkill(Guid skillId, SkillLevel level, string evidenceRef, string verifiedBy)
+    public void AddVerifiedSkill(Guid skillId, SkillLevel level, string evidenceRef, string verifiedBy, DateTimeOffset? validUntil = null)
     {
         // Prevent duplicate skill entries; require an update instead if it exists
         if (_skills.Any(s => s.SkillId == skillId))
             throw new InvalidOperationException("Skill is already mapped to this profile. Use UpdateSkillLevel instead.");
 
-        _skills.Add(VerifiedSkill.Create(Id, skillId, level, evidenceRef, verifiedBy));
+        _skills.Add(VerifiedSkill.Create(Id, skillId, level, evidenceRef, verifiedBy, validUntil));
         LastUpdatedUtc = DateTimeOffset.UtcNow;
     }
 
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public void UpdateSkillLevel(Guid skillId, SkillLevel newLevel, string newEvidenceRef, string verifiedBy)
+    public void UpdateSkillLevel(Guid skillId, SkillLevel newLevel, string newEvidenceRef, string verifiedBy, DateTimeOffset? validUntil = null)
     {
         var skill = _skills.FirstOrDefault(s => s.SkillId == skillId)
             ?? throw new InvalidOperationException("Skill not found on profile.");
 
-        skill.UpdateLevel(newLevel, newEvidenceRef, verifiedBy);
+        skill.UpdateLevel(newLevel, newEvidenceRef, verifiedBy, validUntil);
         LastUpdatedUtc = DateTimeOffset.UtcNow;
     }
 }
@@ -110,9 +110,12 @@ public sealed class VerifiedSkill : Entity<Guid>
     /// </summary>
     public DateTimeOffset VerifiedAtUtc { get; private set; }
 
+    /// <summary>When this skill assessment expires. Null = no expiry.</summary>
+    public DateTimeOffset? ValidUntil { get; private set; }
+
     private VerifiedSkill() { }
 
-    internal static VerifiedSkill Create(Guid profileId, Guid skillId, SkillLevel level, string evidence, string verifier)
+    internal static VerifiedSkill Create(Guid profileId, Guid skillId, SkillLevel level, string evidence, string verifier, DateTimeOffset? validUntil = null)
     {
         if (string.IsNullOrWhiteSpace(evidence)) throw new ArgumentException("Skill evidence is mandatory.");
 
@@ -124,11 +127,12 @@ public sealed class VerifiedSkill : Entity<Guid>
             Level = level,
             EvidenceReference = evidence,
             VerifiedBy = verifier,
-            VerifiedAtUtc = DateTimeOffset.UtcNow
+            VerifiedAtUtc = DateTimeOffset.UtcNow,
+            ValidUntil = validUntil
         };
     }
 
-    internal void UpdateLevel(SkillLevel level, string evidence, string verifier)
+    internal void UpdateLevel(SkillLevel level, string evidence, string verifier, DateTimeOffset? validUntil = null)
     {
         if (string.IsNullOrWhiteSpace(evidence)) throw new ArgumentException("Skill evidence is mandatory.");
 
@@ -136,5 +140,6 @@ public sealed class VerifiedSkill : Entity<Guid>
         EvidenceReference = evidence;
         VerifiedBy = verifier;
         VerifiedAtUtc = DateTimeOffset.UtcNow;
+        ValidUntil = validUntil;
     }
 }

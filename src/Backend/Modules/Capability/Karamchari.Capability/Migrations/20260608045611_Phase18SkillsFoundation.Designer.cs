@@ -4,6 +4,7 @@ using Karamchari.Capability.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Karamchari.Capability.Migrations
 {
     [DbContext(typeof(CapabilityDbContext))]
-    partial class CapabilityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260608045611_Phase18SkillsFoundation")]
+    partial class Phase18SkillsFoundation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

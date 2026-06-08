@@ -21,6 +21,10 @@ public sealed class SkillDefinition : AggregateRoot<Guid>, ITenantOwned
     /// Provides required documentation for this member.
     /// </summary>
     public string Category { get; private set; } = string.Empty; // e.g. "Technical", "Leadership"
+
+    /// <summary>Optional FK to SkillCategory for governed taxonomy.</summary>
+    public Guid? CategoryId { get; private set; }
+
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -44,7 +48,7 @@ public sealed class SkillDefinition : AggregateRoot<Guid>, ITenantOwned
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public static SkillDefinition Define(string tenantId, string name, string category, string description)
+    public static SkillDefinition Define(string tenantId, string name, string category, string description, Guid? categoryId = null)
     {
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Skill name is required.");
         ArgumentNullException.ThrowIfNull(category);
@@ -56,6 +60,7 @@ public sealed class SkillDefinition : AggregateRoot<Guid>, ITenantOwned
             TenantId = tenantId,
             Name = name.Trim(),
             Category = category.Trim(),
+            CategoryId = categoryId,
             Description = description,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };

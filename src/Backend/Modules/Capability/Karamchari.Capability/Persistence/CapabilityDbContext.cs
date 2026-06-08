@@ -53,6 +53,8 @@ public class CapabilityDbContext : KaramchariDbContext
     /// </summary>
     public DbSet<TenantCapability> TenantCapabilities => Set<TenantCapability>();
     public DbSet<RoleSkillRequirement> RoleSkillRequirements => Set<RoleSkillRequirement>();
+    public DbSet<SkillCategory> SkillCategories => Set<SkillCategory>();
+    public DbSet<CertificationDefinition> CertificationDefinitions => Set<CertificationDefinition>();
 
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -66,6 +68,7 @@ public class CapabilityDbContext : KaramchariDbContext
             b.HasKey(x => x.Id);
             b.HasIndex(x => new { x.TenantId, x.Name }).IsUnique();
             b.Property(x => x.RowVersion).IsRowVersion();
+            b.Property(x => x.CategoryId);
         });
 
         modelBuilder.Entity<CapabilityProfile>(b =>
@@ -82,6 +85,7 @@ public class CapabilityDbContext : KaramchariDbContext
                 s.HasKey(x => x.Id);
                 s.HasIndex(x => new { x.ProfileId, x.SkillId }).IsUnique();
                 s.Property(x => x.Level).HasConversion<string>();
+                s.Property(x => x.ValidUntil);
             });
         });
 
@@ -109,6 +113,7 @@ public class CapabilityDbContext : KaramchariDbContext
             b.HasIndex(x => new { x.TenantId, x.EmployeeId });
             b.Property(x => x.Status).HasConversion<string>();
             b.Property(x => x.RowVersion).IsRowVersion();
+            b.Property(x => x.CertificationDefinitionId);
         });
 
         modelBuilder.Entity<GrowthPlan>(b =>
@@ -160,6 +165,25 @@ public class CapabilityDbContext : KaramchariDbContext
                 s.Property(x => x.MinimumLevel).HasConversion<string>();
                 s.HasIndex(x => new { x.RequirementId, x.SkillId }).IsUnique();
             });
+        });
+
+        modelBuilder.Entity<SkillCategory>(b =>
+        {
+            b.ToTable("Capability_SkillCategories");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Name }).IsUnique();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(100);
+            b.Property(x => x.Description).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<CertificationDefinition>(b =>
+        {
+            b.ToTable("Capability_CertificationDefinitions");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Name });
+            b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+            b.Property(x => x.Issuer).IsRequired().HasMaxLength(200);
+            b.Property(x => x.Description).HasMaxLength(1000);
         });
     }
 }
