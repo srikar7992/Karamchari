@@ -11,6 +11,7 @@ using Karamchari.Governance.Persistence;
 using Karamchari.HR.Persistence;
 using Karamchari.Intelligence.Persistence;
 using Karamchari.Notifications.Persistence;
+using Karamchari.Onboarding.Persistence;
 using Karamchari.Payroll.Data;
 using Karamchari.Performance.Persistence;
 using Karamchari.PSA.Persistence;
@@ -126,6 +127,10 @@ public static class MassTransitExtensions
                 o.UseSqlServer();
             });
             x.AddEntityFrameworkOutbox<WorkflowDbContext>(o =>
+            {
+                o.UseSqlServer();
+            });
+            x.AddEntityFrameworkOutbox<OnboardingDbContext>(o =>
             {
                 o.UseSqlServer();
             });

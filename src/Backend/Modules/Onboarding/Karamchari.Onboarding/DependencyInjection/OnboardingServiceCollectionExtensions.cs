@@ -45,6 +45,6 @@ public static class OnboardingServiceCollectionExtensions
     public static void AddKaramchariOnboardingConsumers(this IBusRegistrationConfigurator configurator)
     {
         ArgumentNullException.ThrowIfNull(configurator);
-        // Future: wire EmployeeHiredIntegrationEvent consumer here
+        configurator.AddConsumer<Karamchari.Onboarding.Consumers.EmployeeHiredConsumer>();
     }
 }

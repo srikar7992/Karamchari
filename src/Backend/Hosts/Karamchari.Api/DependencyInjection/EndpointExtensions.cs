@@ -16,6 +16,7 @@ using Karamchari.Api.BFF.Integration;
 using Karamchari.Api.BFF.Intelligence;
 using Karamchari.Api.BFF.Manager;
 using Karamchari.Api.BFF.Notifications;
+using Karamchari.Api.BFF.Onboarding;
 using Karamchari.Api.BFF.Ops;
 using Karamchari.Api.BFF.Payroll;
 using Karamchari.Api.BFF.PlatformIntelligence;
@@ -90,6 +91,7 @@ public static class EndpointExtensions
         app.MapEngagementEndpoints();
         app.MapSuccessionEndpoints();
         app.MapIntegrationEndpoints();
+        app.MapOnboardingEndpoints();
         app.MapCompensationEndpoints();
         app.MapAuditEndpoints();
         app.MapComplianceGateEndpoints();

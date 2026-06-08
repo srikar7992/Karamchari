@@ -11,6 +11,7 @@ using Karamchari.HR.DependencyInjection;
 using Karamchari.Identity.Infrastructure;
 using Karamchari.Intelligence.DependencyInjection;
 using Karamchari.Notifications.DependencyInjection;
+using Karamchari.Onboarding.DependencyInjection;
 using Karamchari.Payroll.DependencyInjection;
 using Karamchari.Performance.DependencyInjection;
 using Karamchari.PSA.DependencyInjection;
@@ -54,6 +55,7 @@ public static class WorkerServiceCollectionExtensions
             new CapabilityModule(configuration).RegisterConsumers(x);
             new WorkflowModule(configuration).RegisterConsumers(x);
             new NotificationsModule(configuration).RegisterConsumers(x);
+            new OnboardingModule(configuration).RegisterConsumers(x);
         });
 
         return services;
@@ -63,6 +65,10 @@ public static class WorkerServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Module services required by consumers and hosted services.
+        // Consumers injecting a DbContext need the DbContext registered in the Worker container.
+        services.AddKaramchariOnboarding(configuration);
+
         // Internal platform-wide background services
         services.AddOutboxRelay(configuration);
 

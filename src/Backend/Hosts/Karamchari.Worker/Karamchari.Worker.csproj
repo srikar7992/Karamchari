@@ -45,6 +45,7 @@
     <ProjectReference Include="..\..\Modules\DataMigration\Karamchari.DataMigration\Karamchari.DataMigration.csproj" />
     <ProjectReference Include="..\..\Modules\FinancialOps\Karamchari.FinancialOps\Karamchari.FinancialOps.csproj" />
     <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment.Api\Karamchari.Recruitment.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Onboarding\Karamchari.Onboarding\Karamchari.Onboarding.csproj" />
   </ItemGroup>
 
 </Project>
