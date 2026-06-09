@@ -249,6 +249,13 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         string SkillCode);
 
     /// <summary>Published when an employee's skill is validated.</summary>
+    /// <param name="EmployeeId">The unique identifier of the employee whose skill was validated.</param>
+    /// <param name="TenantId">The tenant identifier associated with the validation.</param>
+    /// <param name="SkillId">The unique identifier of the validated skill.</param>
+    /// <param name="SkillCode">The code representing the skill taxonomy category.</param>
+    /// <param name="SkillName">The display name of the skill.</param>
+    /// <param name="Level">The validated proficiency level score achieved.</param>
+    /// <param name="ValidatedAt">The timestamp when this validation was recorded.</param>
     public record SkillValidatedIntegrationEvent(
         Guid EmployeeId,
         string TenantId,
