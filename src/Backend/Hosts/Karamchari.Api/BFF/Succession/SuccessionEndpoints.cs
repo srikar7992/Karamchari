@@ -36,6 +36,11 @@ public static class SuccessionEndpoints
         analytics.MapGet("/bench-strength", GetBenchStrength).WithName("Succession.Analytics.BenchStrength");
         analytics.MapGet("/nine-box", GetNineBox).WithName("Succession.Analytics.NineBox");
 
+        var intel = app.MapGroup("/api/v1/succession/intelligence").RequireAuthorization();
+        intel.MapGet("/readiness", GetReadinessBreakdown).WithName("Succession.Intelligence.Readiness");
+        intel.MapGet("/bench-strength", GetBenchStrengthIntelligence).WithName("Succession.Intelligence.BenchStrength");
+        intel.MapGet("/vacancy-risk", GetVacancyRisk).WithName("Succession.Intelligence.VacancyRisk");
+
         var paths = app.MapGroup("/api/v1/succession/career-paths").RequireAuthorization();
         paths.MapPost("/", CreateCareerPath).WithName("Succession.CareerPaths.Create");
         paths.MapGet("/", ListCareerPaths).WithName("Succession.CareerPaths.List");
@@ -61,7 +66,10 @@ public static class SuccessionEndpoints
         if (tenantId is null) return Results.Unauthorized();
 
         var role = CriticalRole.Register(tenantId, req.RoleTitle, req.Department,
-            req.CurrentIncumbentEmployeeId?.ToString(), req.Rationale);
+            req.CurrentIncumbentEmployeeId?.ToString(), req.Rationale,
+            req.RequiredSuccessors ?? 1,
+            req.RetirementRisk ?? SuccessionRisk.Medium,
+            req.AttritionRisk ?? SuccessionRisk.Low);
         db.CriticalRoles.Add(role);
 
         var projection = await db.SuccessionCoverageProjections
@@ -129,7 +137,7 @@ public static class SuccessionEndpoints
             projection.IsKeyPosition = false;
             projection.SuccessorCount = 0;
             projection.ReadyNowCount = 0;
-            projection.Ready1To2YearsCount = 0;
+            projection.ReadyNearTermCount = 0;
             projection.VacancyRisk = "Low";
             projection.LastUpdatedAtUtc = DateTimeOffset.UtcNow;
         }
@@ -521,7 +529,113 @@ public static class SuccessionEndpoints
 
     // ── Request / Response records ─────────────────────────────────────────────
 
-    private sealed record RegisterCriticalRoleRequest(string RoleTitle, string? Department, Guid? CurrentIncumbentEmployeeId, string? Rationale);
+    // ── Succession Intelligence ───────────────────────────────────────────────
+
+    private static async Task<IResult> GetReadinessBreakdown(ClaimsPrincipal user, SuccessionDbContext db, CancellationToken ct)
+    {
+        var (tenantId, _) = user.GetTenantAndEmployee();
+        if (tenantId is null) return Results.Unauthorized();
+
+        var roles = await db.CriticalRoles.Where(r => r.TenantId == tenantId && r.IsActive).ToListAsync(ct);
+        var plans = await db.SuccessionPlans.Where(p => p.TenantId == tenantId).ToListAsync(ct);
+
+        var rows = roles.Select(r =>
+        {
+            var plan = plans.FirstOrDefault(p => p.RoleId == r.Id);
+            var breakdown = plan?.GetReadinessBreakdown() ?? new ReadinessBreakdown(0, 0, 0, 0, 0, 0);
+            return new
+            {
+                r.Id,
+                r.RoleTitle,
+                r.Department,
+                r.RequiredSuccessors,
+                breakdown.ReadyNow,
+                breakdown.WithinSixMonths,
+                breakdown.WithinTwelveMonths,
+                breakdown.BeyondTwelveMonths,
+                breakdown.NotReady,
+                breakdown.Total,
+            };
+        });
+
+        return Results.Ok(new
+        {
+            TotalCriticalRoles = roles.Count,
+            TotalWithReadyNow = roles.Count(r =>
+            {
+                var plan = plans.FirstOrDefault(p => p.RoleId == r.Id);
+                return (plan?.BenchStrength ?? 0) > 0;
+            }),
+            Roles = rows,
+        });
+    }
+
+    private static async Task<IResult> GetBenchStrengthIntelligence(ClaimsPrincipal user, SuccessionDbContext db, CancellationToken ct)
+    {
+        var (tenantId, _) = user.GetTenantAndEmployee();
+        if (tenantId is null) return Results.Unauthorized();
+
+        var roles = await db.CriticalRoles.Where(r => r.TenantId == tenantId && r.IsActive).ToListAsync(ct);
+        var plans = await db.SuccessionPlans.Where(p => p.TenantId == tenantId).ToListAsync(ct);
+
+        var rows = roles.Select(r =>
+        {
+            var plan = plans.FirstOrDefault(p => p.RoleId == r.Id);
+            var rating = plan?.ComputeBenchStrengthRating(r.RequiredSuccessors) ?? BenchStrengthRating.Critical;
+            return new
+            {
+                r.Id,
+                r.RoleTitle,
+                r.Department,
+                r.RequiredSuccessors,
+                ReadyNow = plan?.BenchStrength ?? 0,
+                Rating = rating.ToString(),
+                NearTerm = plan?.GetReadinessBreakdown().WithinSixMonths + plan?.GetReadinessBreakdown().WithinTwelveMonths ?? 0,
+            };
+        }).ToList();
+
+        return Results.Ok(new
+        {
+            TotalCriticalRoles = roles.Count,
+            Strong = rows.Count(r => r.Rating == nameof(BenchStrengthRating.Strong)),
+            Adequate = rows.Count(r => r.Rating == nameof(BenchStrengthRating.Adequate)),
+            Inadequate = rows.Count(r => r.Rating == nameof(BenchStrengthRating.Inadequate)),
+            Critical = rows.Count(r => r.Rating == nameof(BenchStrengthRating.Critical)),
+            Roles = rows,
+        });
+    }
+
+    private static async Task<IResult> GetVacancyRisk(ClaimsPrincipal user, SuccessionDbContext db, CancellationToken ct)
+    {
+        var (tenantId, _) = user.GetTenantAndEmployee();
+        if (tenantId is null) return Results.Unauthorized();
+
+        var roles = await db.CriticalRoles.Where(r => r.TenantId == tenantId && r.IsActive).ToListAsync(ct);
+
+        var rows = roles.Select(r => new
+        {
+            r.Id,
+            r.RoleTitle,
+            r.Department,
+            r.CurrentIncumbentEmployeeId,
+            RetirementRisk = r.IncumbentRetirementRisk.ToString(),
+            AttritionRisk = r.IncumbentAttritionRisk.ToString(),
+            SuccessorRisk = r.Risk.ToString(),
+            VacancyRisk = r.ComputeVacancyRisk().ToString(),
+        }).ToList();
+
+        return Results.Ok(new
+        {
+            TotalCriticalRoles = roles.Count,
+            CriticalVacancyRisk = rows.Count(r => r.VacancyRisk == nameof(SuccessionRisk.Critical)),
+            HighVacancyRisk = rows.Count(r => r.VacancyRisk == nameof(SuccessionRisk.High)),
+            MediumVacancyRisk = rows.Count(r => r.VacancyRisk == nameof(SuccessionRisk.Medium)),
+            LowVacancyRisk = rows.Count(r => r.VacancyRisk == nameof(SuccessionRisk.Low)),
+            Roles = rows,
+        });
+    }
+
+    private sealed record RegisterCriticalRoleRequest(string RoleTitle, string? Department, Guid? CurrentIncumbentEmployeeId, string? Rationale, int? RequiredSuccessors, SuccessionRisk? RetirementRisk, SuccessionRisk? AttritionRisk);
     private sealed record UpdateIncumbentRequest(Guid? EmployeeId);
     private sealed record CreatePlanRequest(Guid CriticalRoleId);
     private sealed record AddCandidateRequest(Guid EmployeeId, ReadinessLevel Readiness, int PerformanceScore, int PotentialScore, string? Notes);

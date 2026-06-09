@@ -40,6 +40,9 @@ public sealed class SuccessionDbContext : KaramchariDbContext
             e.Property(x => x.Department).HasMaxLength(200);
             e.Property(x => x.Rationale).HasMaxLength(2000);
             e.Property(x => x.Risk).HasConversion<string>();
+            e.Property(x => x.IncumbentRetirementRisk).HasConversion<string>();
+            e.Property(x => x.IncumbentAttritionRisk).HasConversion<string>();
+            e.Property(x => x.RequiredSuccessors).HasDefaultValue(1);
         });
 
         modelBuilder.Entity<SuccessionPlan>(e =>
