@@ -14,11 +14,21 @@ public sealed class SuccessionDbContext : KaramchariDbContext
     public DbSet<SuccessionPlan> SuccessionPlans => Set<SuccessionPlan>();
     public DbSet<TalentPool> TalentPools => Set<TalentPool>();
     public DbSet<CareerPath> CareerPaths => Set<CareerPath>();
+    public DbSet<Karamchari.Succession.Domain.Projections.SuccessionCoverageProjection> SuccessionCoverageProjections => Set<Karamchari.Succession.Domain.Projections.SuccessionCoverageProjection>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Karamchari.Succession.Domain.Projections.SuccessionCoverageProjection>(e =>
+        {
+            e.ToTable("Succession_CoverageProjections");
+            e.HasKey(x => new { x.TenantId, x.PositionId });
+            e.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            e.Property(x => x.PositionCode).HasMaxLength(64).IsRequired();
+            e.Property(x => x.VacancyRisk).HasMaxLength(32).IsRequired();
+        });
 
         modelBuilder.Entity<CriticalRole>(e =>
         {

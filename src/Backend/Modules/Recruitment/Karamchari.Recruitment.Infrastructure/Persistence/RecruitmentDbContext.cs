@@ -4,6 +4,7 @@ using Karamchari.Core.Persistence;
 using Karamchari.Recruitment.Application;
 using Karamchari.Recruitment.Application.Analytics;
 using Karamchari.Recruitment.Domain;
+using Karamchari.Recruitment.Domain.Pipeline;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Recruitment.Persistence;
@@ -23,6 +24,10 @@ public sealed class RecruitmentDbContext : KaramchariDbContext, IRecruitmentDbCo
     public DbSet<Offer> Offers => Set<Offer>();
     public DbSet<RecruitmentAuditEntry> AuditStream => Set<RecruitmentAuditEntry>();
     public DbSet<AnalyticsReadModel> AnalyticsReadModels => Set<AnalyticsReadModel>();
+    public DbSet<ApplicationHistory> ApplicationHistories => Set<ApplicationHistory>();
+    public DbSet<RecruitmentWorkflowDefinition> RecruitmentWorkflowDefinitions => Set<RecruitmentWorkflowDefinition>();
+    public DbSet<RecruitmentWorkflowState> RecruitmentWorkflowStates => Set<RecruitmentWorkflowState>();
+    public DbSet<RecruitmentWorkflowTransition> RecruitmentWorkflowTransitions => Set<RecruitmentWorkflowTransition>();
 
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -134,6 +139,43 @@ public sealed class RecruitmentDbContext : KaramchariDbContext, IRecruitmentDbCo
             b.Property(x => x.AdditionalData).HasColumnType("nvarchar(max)").IsRequired();
             b.HasIndex(x => x.TenantId);
             b.HasIndex(x => new { x.EventType, x.RequisitionId, x.CandidateId });
+        });
+
+        modelBuilder.Entity<ApplicationHistory>(b =>
+        {
+            b.ToTable("Recruitment_ApplicationHistory");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.FromStatus).HasMaxLength(128).IsRequired();
+            b.Property(x => x.ToStatus).HasMaxLength(128).IsRequired();
+            b.Property(x => x.TransitionedByUserId).HasMaxLength(256).IsRequired();
+            b.Property(x => x.Notes).HasMaxLength(2000);
+            b.HasIndex(x => new { x.TenantId, x.ApplicationId }).HasDatabaseName("IX_ApplicationHistory_ApplicationId");
+        });
+
+        modelBuilder.Entity<RecruitmentWorkflowDefinition>(b =>
+        {
+            b.ToTable("Recruitment_WorkflowDefinitions");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Name).HasMaxLength(256).IsRequired();
+            b.HasIndex(x => x.TenantId);
+        });
+
+        modelBuilder.Entity<RecruitmentWorkflowState>(b =>
+        {
+            b.ToTable("Recruitment_WorkflowStates");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.StateName).HasMaxLength(128).IsRequired();
+            b.HasIndex(x => x.WorkflowDefinitionId);
+        });
+
+        modelBuilder.Entity<RecruitmentWorkflowTransition>(b =>
+        {
+            b.ToTable("Recruitment_WorkflowTransitions");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TriggerName).HasMaxLength(128).IsRequired();
+            b.HasIndex(x => x.WorkflowDefinitionId);
         });
     }
 }

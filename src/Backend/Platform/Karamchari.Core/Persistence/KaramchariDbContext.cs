@@ -76,6 +76,36 @@ public abstract class KaramchariDbContext : DbContext
     /// </summary>
     public string CurrentTenantId => _tenantProvider.GetCurrentTenantId();
 
+    /// <summary>
+    /// Gets the bi-temporal stored events.
+    /// </summary>
+    public DbSet<EventSourcing.StoredEvent> StoredEvents => Set<EventSourcing.StoredEvent>();
+
+    /// <summary>
+    /// Gets the platform approval definitions.
+    /// </summary>
+    public DbSet<Approvals.ApprovalDefinition> ApprovalDefinitions => Set<Approvals.ApprovalDefinition>();
+
+    /// <summary>
+    /// Gets the platform approval instances.
+    /// </summary>
+    public DbSet<Approvals.ApprovalInstance> ApprovalInstances => Set<Approvals.ApprovalInstance>();
+
+    /// <summary>
+    /// Gets the platform approval delegations.
+    /// </summary>
+    public DbSet<Approvals.ApprovalDelegation> PlatformApprovalDelegations => Set<Approvals.ApprovalDelegation>();
+
+    /// <summary>
+    /// Gets the platform projection checkpoints.
+    /// </summary>
+    public DbSet<Projections.ProjectionCheckpoint> ProjectionCheckpoints => Set<Projections.ProjectionCheckpoint>();
+
+    /// <summary>
+    /// Gets the platform projection dead letters.
+    /// </summary>
+    public DbSet<Projections.ProjectionDeadLetter> ProjectionDeadLetters => Set<Projections.ProjectionDeadLetter>();
+
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -114,6 +144,93 @@ public abstract class KaramchariDbContext : DbContext
         // MassTransit's bus outbox tables to dbo), but must keep PlaceholderSchema
         // as the default so the interceptor's rewrite remains consistent.
         modelBuilder.HasDefaultSchema(ModelSchema);
+
+        // Register bi-temporal events under the tenant schema
+        modelBuilder.Entity<EventSourcing.StoredEvent>(builder =>
+        {
+            builder.ToTable("StoredEvents");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
+            builder.Property(x => x.AggregateType).IsRequired().HasMaxLength(128);
+            builder.Property(x => x.EventType).IsRequired().HasMaxLength(128);
+            builder.Property(x => x.EventDataJson).IsRequired();
+            builder.Property(x => x.MetadataJson).IsRequired().HasMaxLength(4000);
+            builder.Property(x => x.Position).ValueGeneratedOnAdd();
+            builder.HasIndex(x => new { x.TenantId, x.AggregateId });
+            builder.HasIndex(x => new { x.TenantId, x.AggregateId, x.EffectiveUtc });
+            builder.HasIndex(x => new { x.TenantId, x.AggregateId, x.Version }).IsUnique().HasDatabaseName("IX_StoredEvents_AggregateId_Version");
+            builder.HasIndex(x => new { x.TenantId, x.CorrelationId }).HasDatabaseName("IX_StoredEvents_CorrelationId");
+            builder.HasIndex(x => x.Position).IsUnique().HasDatabaseName("IX_StoredEvents_Position");
+        });
+
+        // Register approval entities
+        modelBuilder.Entity<Approvals.ApprovalDefinition>(builder =>
+        {
+            builder.ToTable("ApprovalDefinitions");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
+            builder.Property(x => x.Domain).IsRequired().HasMaxLength(128);
+            builder.Property(x => x.ResourceType).IsRequired().HasMaxLength(128);
+            builder.HasMany(x => x.Stages).WithOne().HasForeignKey(x => x.ApprovalDefinitionId);
+        });
+
+        modelBuilder.Entity<Approvals.ApprovalStage>(builder =>
+        {
+            builder.ToTable("ApprovalStages");
+            builder.HasKey(x => x.Id);
+        });
+
+        modelBuilder.Entity<Approvals.ApprovalInstance>(builder =>
+        {
+            builder.ToTable("ApprovalInstances");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
+            builder.HasIndex(x => new { x.TenantId, x.ResourceId }).HasDatabaseName("IX_ApprovalInstance_ResourceId");
+            builder.HasIndex(x => new { x.TenantId, x.Status }).HasDatabaseName("IX_ApprovalInstance_Status");
+            builder.HasIndex(x => new { x.TenantId, x.Status, x.DueUtc }).HasDatabaseName("IX_ApprovalInstance_Queue");
+            builder.HasMany(x => x.Decisions).WithOne().HasForeignKey(x => x.ApprovalInstanceId);
+        });
+
+        modelBuilder.Entity<Approvals.ApprovalDecision>(builder =>
+        {
+            builder.ToTable("ApprovalDecisions");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Action).IsRequired().HasMaxLength(64);
+        });
+
+        modelBuilder.Entity<Approvals.ApprovalDelegation>(builder =>
+        {
+            builder.ToTable("ApprovalDelegations");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
+            builder.Property(x => x.CreatedBy).IsRequired().HasMaxLength(64);
+            builder.Property(x => x.Reason).IsRequired().HasMaxLength(500);
+            builder.HasIndex(x => new { x.TenantId, x.DelegatorId });
+            builder.HasIndex(x => new { x.TenantId, x.DelegateId });
+        });
+
+        // Register projection checkpoints
+        modelBuilder.Entity<Projections.ProjectionCheckpoint>(builder =>
+        {
+            builder.ToTable("ProjectionCheckpoints");
+            builder.HasKey(x => new { x.ProjectionName, x.PartitionKey });
+            builder.Property(x => x.ProjectionName).HasMaxLength(256);
+            builder.Property(x => x.PartitionKey).HasMaxLength(64);
+        });
+
+        // Register projection dead letters
+        modelBuilder.Entity<Projections.ProjectionDeadLetter>(builder =>
+        {
+            builder.ToTable("ProjectionDeadLetters");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
+            builder.Property(x => x.ProjectionName).IsRequired().HasMaxLength(256);
+            builder.Property(x => x.EventType).IsRequired().HasMaxLength(128);
+            builder.Property(x => x.EventPayloadJson).IsRequired();
+            builder.Property(x => x.ExceptionMessage).IsRequired();
+            builder.Property(x => x.ResolvedBy).HasMaxLength(64);
+            builder.HasIndex(x => new { x.TenantId, x.ProjectionName, x.FailedUtc }, "IX_ProjectionDeadLetter_Queue");
+        });
 
         // Register MassTransit outbox entities in the base model so they're available
         // to every context, preventing "type not included in model" runtime faults.

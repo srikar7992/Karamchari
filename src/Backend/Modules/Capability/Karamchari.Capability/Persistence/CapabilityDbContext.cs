@@ -1,6 +1,7 @@
 using Karamchari.Capability.Domain.Entitlements;
 using Karamchari.Capability.Domain.Growth;
 using Karamchari.Capability.Domain.Learning;
+using Karamchari.Capability.Domain.Marketplace;
 using Karamchari.Capability.Domain.Skills;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
@@ -44,9 +45,6 @@ public class CapabilityDbContext : KaramchariDbContext
     /// </summary>
     public DbSet<GrowthPlan> GrowthPlans => Set<GrowthPlan>();
 
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<CapabilityDefinition> CapabilityDefinitions => Set<CapabilityDefinition>();
     /// <summary>
     /// Provides required documentation for this member.
@@ -55,6 +53,12 @@ public class CapabilityDbContext : KaramchariDbContext
     public DbSet<RoleSkillRequirement> RoleSkillRequirements => Set<RoleSkillRequirement>();
     public DbSet<SkillCategory> SkillCategories => Set<SkillCategory>();
     public DbSet<CertificationDefinition> CertificationDefinitions => Set<CertificationDefinition>();
+    public DbSet<SkillEvidence> SkillEvidences => Set<SkillEvidence>();
+    public DbSet<SkillNode> SkillNodes => Set<SkillNode>();
+    public DbSet<SkillGraphRelationship> SkillGraphRelationships => Set<SkillGraphRelationship>();
+    public DbSet<Opportunity> Opportunities => Set<Opportunity>();
+    public DbSet<OpportunityParticipant> OpportunityParticipants => Set<OpportunityParticipant>();
+    public DbSet<EmployeeCapabilityProjection> EmployeeCapabilityProjections => Set<EmployeeCapabilityProjection>();
 
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -194,6 +198,83 @@ public class CapabilityDbContext : KaramchariDbContext
             b.Property(x => x.Name).IsRequired().HasMaxLength(200);
             b.Property(x => x.Issuer).IsRequired().HasMaxLength(200);
             b.Property(x => x.Description).HasMaxLength(1000);
+        });
+
+        modelBuilder.Entity<SkillEvidence>(b =>
+        {
+            b.ToTable("Capability_SkillEvidences");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.EvidenceType).HasMaxLength(128).IsRequired();
+            b.Property(x => x.Description).HasMaxLength(1000);
+            b.Property(x => x.MetadataJson).IsRequired();
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId }).HasDatabaseName("IX_SkillEvidence_EmployeeId");
+            b.HasIndex(x => new { x.TenantId, x.SkillId }).HasDatabaseName("IX_SkillEvidence_SkillId");
+        });
+
+        modelBuilder.Entity<SkillNode>(b =>
+        {
+            b.ToTable("Capability_SkillNodes");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.SkillName).HasMaxLength(200).IsRequired();
+            b.Property(x => x.SkillCluster).HasMaxLength(200).IsRequired();
+            b.HasIndex(x => new { x.TenantId, x.SkillName }).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.SkillCluster });
+        });
+
+        modelBuilder.Entity<SkillGraphRelationship>(b =>
+        {
+            b.ToTable("Capability_SkillGraphRelationships");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.RelationshipType).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Weight).HasPrecision(5, 2);
+            b.HasIndex(x => new { x.TenantId, x.SourceSkillId });
+            b.HasIndex(x => new { x.TenantId, x.TargetSkillId });
+        });
+
+        modelBuilder.Entity<Opportunity>(b =>
+        {
+            b.ToTable("Capability_Opportunities");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Title).HasMaxLength(256).IsRequired();
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.Property(x => x.ApprovalWorkflow).HasMaxLength(128);
+            b.Property(x => x.Type).HasConversion<string>();
+            b.Property(x => x.Status).HasConversion<string>();
+            b.HasIndex(x => new { x.TenantId, x.Status });
+            b.HasIndex(x => new { x.TenantId, x.ManagerId });
+            b.HasIndex(x => new { x.TenantId, x.Type });
+
+            b.OwnsMany(x => x.Requirements, r =>
+            {
+                r.ToTable("Capability_OpportunityRequirements");
+                r.WithOwner().HasForeignKey("OpportunityId");
+                r.HasKey(x => x.Id);
+                r.HasIndex(x => new { x.OpportunityId, x.SkillId });
+            });
+        });
+
+        modelBuilder.Entity<OpportunityParticipant>(b =>
+        {
+            b.ToTable("Capability_OpportunityParticipants");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Status).HasConversion<string>();
+            b.HasIndex(x => new { x.TenantId, x.OpportunityId, x.EmployeeId }).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+        });
+
+        modelBuilder.Entity<EmployeeCapabilityProjection>(b =>
+        {
+            b.ToTable("Capability_EmployeeCapabilityProjections");
+            b.HasKey(x => new { x.TenantId, x.EmployeeId });
+            b.Property(x => x.EmployeeName).HasMaxLength(256).IsRequired();
+            b.Property(x => x.VerifiedSkills).HasConversion(
+                v => string.Join("|||", v),
+                v => string.IsNullOrEmpty(v) ? new List<string>() : v.Split("|||", StringSplitOptions.None).ToList());
         });
     }
 }

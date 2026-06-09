@@ -247,6 +247,16 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         string TenantId,
         Guid SkillId,
         string SkillCode);
+
+    /// <summary>Published when an employee's skill is validated.</summary>
+    public record SkillValidatedIntegrationEvent(
+        Guid EmployeeId,
+        string TenantId,
+        Guid SkillId,
+        string SkillCode,
+        string SkillName,
+        int Level,
+        DateTimeOffset ValidatedAt);
 }
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.V1

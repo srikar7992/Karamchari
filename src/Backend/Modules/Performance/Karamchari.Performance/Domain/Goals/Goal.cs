@@ -221,4 +221,31 @@ public sealed class Goal : AggregateRoot<Guid>, ITenantOwned
 
         RaiseDomainEvent(new GoalRevised(Id, TenantId, newTitle.Trim(), newTarget, reason.Trim(), revisedBy, DateTimeOffset.UtcNow));
     }
+
+    /// <summary>
+    /// Align this goal to a parent goal, enforcing cycle consistency and level rules.
+    /// </summary>
+    public void AlignTo(Goal parentGoal)
+    {
+        ArgumentNullException.ThrowIfNull(parentGoal);
+
+        if (parentGoal.CycleId != CycleId)
+        {
+            throw new InvalidOperationException("Cannot align to a goal in a different cycle.");
+        }
+
+        if (parentGoal.TenantId != TenantId)
+        {
+            throw new InvalidOperationException("Cannot align to a goal in a different tenant.");
+        }
+
+        // Hierarchy validation: child goal OwnerType must be lower or equal priority than parent goal OwnerType.
+        // Organization (1) > Department (2) > Team (3) > Individual (4)
+        if ((int)OwnerType < (int)parentGoal.OwnerType)
+        {
+            throw new InvalidOperationException($"Cannot align a higher-level goal ({OwnerType}) to a lower-level goal ({parentGoal.OwnerType}).");
+        }
+
+        ParentGoalId = parentGoal.Id;
+    }
 }

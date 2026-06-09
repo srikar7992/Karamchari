@@ -116,4 +116,15 @@ public enum NotificationIntentType
 
     /// <summary>Manager/HR alerted when employee breaches consecutive absence threshold.</summary>
     AttendanceConsecutiveAbsenceEscalated = 706,
+
+    // ── Recruitment ──────────────────────────────────────────────────────────
+
+    /// <summary>Candidate applied notification.</summary>
+    CandidateApplied = 800,
+
+    /// <summary>Interview scheduled notification.</summary>
+    InterviewScheduled = 801,
+
+    /// <summary>Offer issued notification.</summary>
+    OfferIssued = 802,
 }

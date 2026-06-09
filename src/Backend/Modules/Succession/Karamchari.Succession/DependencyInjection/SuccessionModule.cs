@@ -22,5 +22,13 @@ public sealed class SuccessionModule : ICapabilityModule
 
     public void MapEndpoints(IEndpointRouteBuilder app) { }
 
-    public void RegisterConsumers(IBusRegistrationConfigurator configurator) { }
+    public void RegisterConsumers(IBusRegistrationConfigurator configurator)
+    {
+        ArgumentNullException.ThrowIfNull(configurator);
+        configurator.AddConsumer<Karamchari.Succession.Consumers.PositionCreatedConsumer>();
+        configurator.AddConsumer<Karamchari.Succession.Consumers.PositionAssignmentCreatedConsumer>();
+        configurator.AddConsumer<Karamchari.Succession.Consumers.PositionAssignmentEndedConsumer>();
+        configurator.AddConsumer<Karamchari.Succession.Consumers.SuccessorAddedConsumer>();
+        configurator.AddConsumer<Karamchari.Succession.Consumers.SuccessorPromotedConsumer>();
+    }
 }

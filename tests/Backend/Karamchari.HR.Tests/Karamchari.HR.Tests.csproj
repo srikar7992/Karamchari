@@ -28,5 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Backend\Modules\HR\Karamchari.HR\Karamchari.HR.csproj" />
+    <ProjectReference Include="..\..\..\src\Backend\Modules\Succession\Karamchari.Succession\Karamchari.Succession.csproj" />
   </ItemGroup>
 </Project>

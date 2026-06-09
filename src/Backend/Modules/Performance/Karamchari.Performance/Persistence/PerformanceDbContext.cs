@@ -93,6 +93,7 @@ public sealed class PerformanceDbContext : KaramchariDbContext
     /// Provides required documentation for this member.
     /// </summary>
     public DbSet<FeedbackSubmission> FeedbackSubmissions => Set<FeedbackSubmission>();
+    public DbSet<InFlowFeedback> InFlowFeedbacks => Set<InFlowFeedback>();
 
     // Calibration
     /// <summary>
@@ -193,6 +194,18 @@ public sealed class PerformanceDbContext : KaramchariDbContext
         // Feedback
         modelBuilder.ApplyConfiguration(new FeedbackRequestConfiguration());
         modelBuilder.ApplyConfiguration(new FeedbackSubmissionConfiguration());
+
+        modelBuilder.Entity<InFlowFeedback>(b =>
+        {
+            b.ToTable("Performance_InFlowFeedbacks");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.SourceChannel).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Content).IsRequired();
+            b.HasIndex(x => x.TenantId);
+            b.HasIndex(x => new { x.TenantId, x.SenderEmployeeId });
+            b.HasIndex(x => new { x.TenantId, x.ReceiverEmployeeId });
+        });
 
         // Calibration
         modelBuilder.ApplyConfiguration(new CalibrationSessionConfiguration());

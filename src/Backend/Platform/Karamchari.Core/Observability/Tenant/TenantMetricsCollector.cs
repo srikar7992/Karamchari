@@ -1,4 +1,7 @@
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
+using System.Linq;
 using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Core.Observability.Tenant;
@@ -26,6 +29,9 @@ public sealed class TenantMetricsCollector : IDisposable
     private readonly Histogram<double> _workflowDurationHistogram;
     private readonly Counter<long> _workflowSlaBreachCounter;
     private readonly Counter<long> _workflowTransitionFailureCounter;
+
+    private readonly ConcurrentDictionary<(string ProjectionName, string TenantId), long> _projectionLagEvents = new();
+    private readonly ConcurrentDictionary<(string ProjectionName, string TenantId), double> _projectionLagSeconds = new();
 
     public TenantMetricsCollector()
     {
@@ -86,6 +92,25 @@ public sealed class TenantMetricsCollector : IDisposable
         _workflowTransitionFailureCounter = _meter.CreateCounter<long>(
             "workflow.transition.failure.count",
             description: "Number of failed workflow state transitions");
+
+        _meter.CreateObservableGauge<long>(
+            "projection.lag.events",
+            () => _projectionLagEvents.Select(kvp => new Measurement<long>(
+                kvp.Value,
+                new KeyValuePair<string, object?>("projection.name", kvp.Key.ProjectionName),
+                new KeyValuePair<string, object?>("tenant.id", kvp.Key.TenantId)
+            )),
+            description: "Number of events the projection is lagging behind the event store");
+
+        _meter.CreateObservableGauge<double>(
+            "projection.lag.seconds",
+            () => _projectionLagSeconds.Select(kvp => new Measurement<double>(
+                kvp.Value,
+                new KeyValuePair<string, object?>("projection.name", kvp.Key.ProjectionName),
+                new KeyValuePair<string, object?>("tenant.id", kvp.Key.TenantId)
+            )),
+            unit: "s",
+            description: "Time lag of the projection behind the event store in seconds");
     }
 
     /// <summary>
@@ -272,6 +297,22 @@ public sealed class TenantMetricsCollector : IDisposable
             new KeyValuePair<string, object?>("tenant.id", tenantId),
             new KeyValuePair<string, object?>("operation.type", operationType),
             new KeyValuePair<string, object?>("execution.source", executionSource));
+    }
+
+    /// <summary>
+    /// Updates the projection event lag gauge for a tenant partition.
+    /// </summary>
+    public void SetProjectionLagEvents(string projectionName, string tenantId, long lagEvents)
+    {
+        _projectionLagEvents[(projectionName, tenantId)] = lagEvents;
+    }
+
+    /// <summary>
+    /// Updates the projection time lag gauge for a tenant partition.
+    /// </summary>
+    public void SetProjectionLagSeconds(string projectionName, string tenantId, double lagSeconds)
+    {
+        _projectionLagSeconds[(projectionName, tenantId)] = lagSeconds;
     }
 
     /// <inheritdoc/>

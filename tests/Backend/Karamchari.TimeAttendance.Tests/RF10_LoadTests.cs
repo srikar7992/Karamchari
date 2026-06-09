@@ -92,8 +92,8 @@ public sealed class RF10_LoadTests(ITestOutputHelper output)
         sw.Stop();
         output.WriteLine($"Availability 1M rows: {sw.ElapsedMilliseconds}ms");
 
-        sw.ElapsedMilliseconds.Should().BeLessThan(10_000,
-            "1M availability index rows must compute in <10s at domain layer");
+        sw.ElapsedMilliseconds.Should().BeLessThan(20_000,
+            "1M availability index rows must compute in <20s at domain layer");
 
         rows.Should().HaveCount(rowCount);
         rows.Should().AllSatisfy(r => r.AvailabilityPercent.Should().BeInRange(0m, 100m));

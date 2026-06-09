@@ -31,6 +31,8 @@
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
     <ProjectReference Include="..\..\Recruitment\Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj" />
+    <ProjectReference Include="..\..\Compensation\Karamchari.Compensation.Contracts\Karamchari.Compensation.Contracts.csproj" />
+    <ProjectReference Include="..\..\Performance\Karamchari.Performance.Contracts\Karamchari.Performance.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

@@ -63,6 +63,16 @@ public static class SuccessionEndpoints
         var role = CriticalRole.Register(tenantId, req.RoleTitle, req.Department,
             req.CurrentIncumbentEmployeeId?.ToString(), req.Rationale);
         db.CriticalRoles.Add(role);
+
+        var projection = await db.SuccessionCoverageProjections
+            .FirstOrDefaultAsync(p => p.TenantId == tenantId && p.PositionCode == req.RoleTitle, ct);
+        if (projection is not null)
+        {
+            projection.IsKeyPosition = true;
+            projection.VacancyRisk = role.Risk.ToString();
+            projection.LastUpdatedAtUtc = role.CreatedAt;
+        }
+
         await db.SaveChangesAsync(ct);
         return Results.Created($"/api/v1/succession/critical-roles/{role.Id.Value}", new { role.Id, role.Risk });
     }
@@ -111,6 +121,19 @@ public static class SuccessionEndpoints
         if (role is null) return Results.NotFound();
 
         role.Deactivate();
+
+        var projection = await db.SuccessionCoverageProjections
+            .FirstOrDefaultAsync(p => p.TenantId == tenantId && p.PositionCode == role.RoleTitle, ct);
+        if (projection is not null)
+        {
+            projection.IsKeyPosition = false;
+            projection.SuccessorCount = 0;
+            projection.ReadyNowCount = 0;
+            projection.Ready1To2YearsCount = 0;
+            projection.VacancyRisk = "Low";
+            projection.LastUpdatedAtUtc = DateTimeOffset.UtcNow;
+        }
+
         await db.SaveChangesAsync(ct);
         return Results.Ok();
     }

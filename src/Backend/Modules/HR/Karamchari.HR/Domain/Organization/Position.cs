@@ -17,13 +17,27 @@ public sealed class Position : AggregateRoot<Guid>, ITenantOwned
         string code,
         Guid departmentId,
         Guid designationId,
-        Guid? reportingToPositionId) : base(id)
+        Guid? reportingToPositionId,
+        Guid? costCenterId,
+        Guid? locationId,
+        Guid? businessUnitId,
+        Guid? orgUnitId,
+        PositionStatus status,
+        bool allowMultipleOccupants,
+        int approvedHeadcount) : base(id)
     {
         TenantId = tenantId;
         Code = code;
         DepartmentId = departmentId;
         DesignationId = designationId;
         ReportingToPositionId = reportingToPositionId;
+        CostCenterId = costCenterId;
+        LocationId = locationId;
+        BusinessUnitId = businessUnitId;
+        OrgUnitId = orgUnitId;
+        Status = status;
+        AllowMultipleOccupants = allowMultipleOccupants;
+        ApprovedHeadcount = approvedHeadcount;
         IsActive = true;
     }
 
@@ -35,6 +49,15 @@ public sealed class Position : AggregateRoot<Guid>, ITenantOwned
     /// <summary>Position-based reporting hierarchy.</summary>
     public Guid? ReportingToPositionId { get; private set; }
 
+    public Guid? CostCenterId { get; private set; }
+    public Guid? LocationId { get; private set; }
+    public Guid? BusinessUnitId { get; private set; }
+    public Guid? OrgUnitId { get; private set; }
+
+    public PositionStatus Status { get; private set; }
+    public bool AllowMultipleOccupants { get; private set; }
+    public int ApprovedHeadcount { get; private set; }
+
     public bool IsActive { get; private set; }
 
     public static Position Create(
@@ -42,9 +65,28 @@ public sealed class Position : AggregateRoot<Guid>, ITenantOwned
         string code,
         Guid departmentId,
         Guid designationId,
-        Guid? reportingToPositionId = null)
+        Guid? reportingToPositionId = null,
+        Guid? costCenterId = null,
+        Guid? locationId = null,
+        Guid? businessUnitId = null,
+        Guid? orgUnitId = null,
+        PositionStatus status = PositionStatus.Draft,
+        bool allowMultipleOccupants = false,
+        int approvedHeadcount = 1)
     {
-        return new Position(Guid.NewGuid(), tenantId, code.Trim().ToUpperInvariant(),
-            departmentId, designationId, reportingToPositionId);
+        return new Position(
+            Guid.NewGuid(),
+            tenantId,
+            code.Trim().ToUpperInvariant(),
+            departmentId,
+            designationId,
+            reportingToPositionId,
+            costCenterId,
+            locationId,
+            businessUnitId,
+            orgUnitId,
+            status,
+            allowMultipleOccupants,
+            approvedHeadcount);
     }
 }
