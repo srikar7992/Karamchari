@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
     <ProjectReference Include="..\Karamchari.Capability.Contracts\Karamchari.Capability.Contracts.csproj" />
   </ItemGroup>
 

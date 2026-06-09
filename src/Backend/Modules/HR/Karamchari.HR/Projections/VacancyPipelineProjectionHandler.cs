@@ -1,9 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Projections;
 using Karamchari.HR.Domain.Organization.Events;
 using Karamchari.HR.Domain.Organization.Projections;
 using Karamchari.HR.Persistence;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.HR.Projections;
@@ -16,14 +18,15 @@ public sealed class VacancyPipelineProjectionHandler
       IProjectionHandler<PositionVacancyClosed>
 {
     private readonly HRDbContext _dbContext;
+    private readonly IPublishEndpoint _publishEndpoint;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="VacancyPipelineProjectionHandler"/> class.
     /// </summary>
-    /// <param name="dbContext">The database context for HR module persistence.</param>
-    public VacancyPipelineProjectionHandler(HRDbContext dbContext)
+    public VacancyPipelineProjectionHandler(HRDbContext dbContext, IPublishEndpoint publishEndpoint)
     {
         _dbContext = dbContext;
+        _publishEndpoint = publishEndpoint;
     }
 
     /// <inheritdoc/>
@@ -53,6 +56,16 @@ public sealed class VacancyPipelineProjectionHandler
         };
 
         _dbContext.VacancyPipelineProjections.Add(projection);
+
+        // Publish integration event so Capability module can generate InternalMobilityProjection rows.
+        // position already fetched above — reuse it. Published before SaveChanges so outbox commits atomically.
+        await _publishEndpoint.Publish(new VacancyOpenedIntegrationEvent(
+            domainEvent.VacancyId,
+            domainEvent.TenantId,
+            domainEvent.PositionId,
+            position?.RoleSkillRequirementId ?? domainEvent.RoleSkillRequirementId,
+            domainEvent.OpenedUtc), cancellationToken);
+
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
@@ -70,6 +83,12 @@ public sealed class VacancyPipelineProjectionHandler
             projection.FilledByEmployeeId = domainEvent.FilledByEmployeeId;
             projection.FilledPositionAssignmentId = domainEvent.FilledPositionAssignmentId;
             projection.LastUpdatedAtUtc = domainEvent.OccurredOnUtc;
+
+            await _publishEndpoint.Publish(new VacancyClosedIntegrationEvent(
+                domainEvent.VacancyId,
+                domainEvent.TenantId,
+                domainEvent.PositionId,
+                domainEvent.Status.ToString()), cancellationToken);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }

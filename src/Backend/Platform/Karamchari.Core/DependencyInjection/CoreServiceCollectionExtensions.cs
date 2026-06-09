@@ -85,6 +85,8 @@ public static class CoreServiceCollectionExtensions
         services.AddSingleton<Karamchari.Core.Observability.Tenant.TenantActivitySource>();
         services.AddSingleton<Karamchari.Core.Observability.Tenant.TenantCorrelationPropagator>();
         services.AddSingleton<Karamchari.Core.Observability.Tenant.TenantMetricsCollector>();
+        services.AddSingleton<Karamchari.Core.Observability.KaramchariProjectionMetrics>();
+        services.AddHostedService<Karamchari.Core.Observability.ProjectionLagPollerService>();
         services.AddSingleton<Karamchari.Core.Messaging.Tenant.ReplayProtectionService>();
 
         // Messaging Context & Filters

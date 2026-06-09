@@ -82,6 +82,9 @@ public static class HRServiceCollectionExtensions
         // MassTransit-backed publisher. Replace (not Add) ensures we win even
         // if AddKaramchariCore registered the null implementation first.
         services.Replace(ServiceDescriptor.Scoped<IDomainEventDispatcher, MassTransitDomainEventDispatcher>());
+        services.AddSingleton<Karamchari.HR.Observability.KaramchariGraphMetrics>();
+        services.AddHostedService<Karamchari.HR.Observability.GraphStatisticsPollerService>();
+
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<IVisibilityResolver, VisibilityResolver>();

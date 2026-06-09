@@ -231,7 +231,8 @@ public sealed class OrganizationProjectionTests
     {
         var dbName = Guid.NewGuid().ToString();
         using var dbContext = HRDbContextFactory.Create(TenantId, dbName);
-        var handler = new VacancyPipelineProjectionHandler(dbContext);
+        var publishEndpoint = NSubstitute.Substitute.For<MassTransit.IPublishEndpoint>();
+        var handler = new VacancyPipelineProjectionHandler(dbContext, publishEndpoint);
 
         var vacancyId = Guid.NewGuid();
 

@@ -11,7 +11,8 @@ public sealed record PositionVacancyOpened(
     VacancyStatus Status,
     string Reason,
     Guid? RecruitmentRequisitionId,
-    string? ExternalReferenceId) : IDomainEvent
+    string? ExternalReferenceId,
+    Guid? RoleSkillRequirementId = null) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.NewGuid();
     public DateTimeOffset OccurredOnUtc { get; } = DateTimeOffset.UtcNow;

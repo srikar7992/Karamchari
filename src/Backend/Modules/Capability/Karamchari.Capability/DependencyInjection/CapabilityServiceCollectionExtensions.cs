@@ -59,7 +59,16 @@ public static class CapabilityServiceCollectionExtensions
             options.AddKaramchariInterceptors(sp);
         });
 
-        // Register domain services and orchestrators here
+        services.RegisterTenantTable("Capability_EmployeeSkillCoverageProjections");
+        services.RegisterTenantTable("Capability_EmployeeSkillGapProjections");
+        services.RegisterTenantTable("Capability_CareerReadinessProjections");
+        services.RegisterTenantTable("Capability_MobilityVacancies");
+        services.RegisterTenantTable("Capability_InternalMobilityProjections");
+
+        services.AddScoped<Karamchari.Capability.Projections.EmployeeSkillCoverageProjectionHandler>();
+        services.AddScoped<Karamchari.Capability.Projections.EmployeeSkillGapProjectionHandler>();
+        services.AddScoped<Karamchari.Capability.Projections.CareerReadinessProjectionHandler>();
+        services.AddScoped<Karamchari.Capability.Projections.InternalMobilityProjectionHandler>();
 
         return services;
     }
@@ -71,5 +80,11 @@ public static class CapabilityServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(busConfigurator);
         busConfigurator.AddConsumer<Karamchari.Capability.Consumers.LearningEnrollmentCompletedConsumer>();
+        busConfigurator.AddConsumer<Karamchari.Capability.Consumers.SkillValidatedCoverageConsumer>();
+        busConfigurator.AddConsumer<Karamchari.Capability.Consumers.SkillValidatedGapConsumer>();
+        busConfigurator.AddConsumer<Karamchari.Capability.Consumers.SkillValidatedReadinessConsumer>();
+        busConfigurator.AddConsumer<Karamchari.Capability.Consumers.SkillValidatedMobilityConsumer>();
+        busConfigurator.AddConsumer<Karamchari.Capability.Consumers.VacancyOpenedMobilityConsumer>();
+        busConfigurator.AddConsumer<Karamchari.Capability.Consumers.VacancyClosedMobilityConsumer>();
     }
 }

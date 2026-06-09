@@ -4,6 +4,7 @@ using Karamchari.Capability.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Karamchari.Capability.Migrations
 {
     [DbContext(typeof(CapabilityDbContext))]
-    partial class CapabilityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609192124_Phase24CareerReadinessProjection")]
+    partial class Phase24CareerReadinessProjection
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -476,86 +479,6 @@ namespace Karamchari.Capability.Migrations
                         .IsUnique();
 
                     b.ToTable("Capability_Profiles", "__tenant__");
-                });
-
-            modelBuilder.Entity("Karamchari.Capability.Domain.Mobility.MobilityVacancy", b =>
-                {
-                    b.Property<string>("TenantId")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<Guid>("VacancyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("OpenedUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("PositionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("RoleRequirementId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("TenantId", "VacancyId");
-
-                    b.HasIndex("TenantId", "RoleRequirementId")
-                        .HasDatabaseName("IX_MobilityVacancy_RoleRequirement");
-
-                    b.ToTable("Capability_MobilityVacancies", "__tenant__");
-                });
-
-            modelBuilder.Entity("Karamchari.Capability.Domain.Mobility.InternalMobilityProjection", b =>
-                {
-                    b.Property<string>("TenantId")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("VacancyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Band")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<decimal>("CoveragePercent")
-                        .HasPrecision(9, 4)
-                        .HasColumnType("decimal(9,4)");
-
-                    b.Property<int>("CriticalGapCount")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Eligible")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset>("LastUpdatedUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("MissingSkillCount")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("PositionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("ReadinessScore")
-                        .HasPrecision(9, 4)
-                        .HasColumnType("decimal(9,4)");
-
-                    b.Property<Guid>("RoleRequirementId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("TenantId", "EmployeeId", "VacancyId");
-
-                    b.HasIndex("TenantId", "VacancyId", "Band", "ReadinessScore")
-                        .HasDatabaseName("IX_Mobility_VacancyRanking");
-
-                    b.HasIndex("TenantId", "EmployeeId", "Eligible", "ReadinessScore")
-                        .HasDatabaseName("IX_Mobility_EmployeeOpportunities");
-
-                    b.ToTable("Capability_InternalMobilityProjections", "__tenant__");
                 });
 
             modelBuilder.Entity("Karamchari.Capability.Domain.Skills.CareerReadinessProjection", b =>

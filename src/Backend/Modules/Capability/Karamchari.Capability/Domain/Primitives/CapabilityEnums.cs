@@ -97,6 +97,20 @@ public enum GrowthPlanStatus
 }
 
 /// <summary>
+/// Skill-based career readiness band for an employee against a specific role requirement.
+/// Derived from coverage percentage and critical gap count — independent of succession planning readiness.
+/// </summary>
+public enum CareerReadinessBand
+{
+    /// <summary>Coverage >= 90% and no critical gaps. Employee qualifies now.</summary>
+    ReadyNow,
+    /// <summary>Coverage >= 70% with at most two critical gaps. Employee qualifies with targeted development.</summary>
+    ReadySoon,
+    /// <summary>Coverage below 70% or more than two critical gaps. Meaningful development needed.</summary>
+    NeedsDevelopment,
+}
+
+/// <summary>
 /// Provides required documentation for this member.
 /// </summary>
 public sealed record ReadinessScore(decimal Value)

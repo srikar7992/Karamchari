@@ -112,7 +112,7 @@ public sealed class WorkforceIntelligenceTests
     {
         var dbName = Guid.NewGuid().ToString();
         using var dbContext = HRDbContextFactory.Create(TenantA, dbName);
-        var handler = new EmployeeIntelligenceProjectionHandler(dbContext);
+        var handler = new EmployeeIntelligenceProjectionHandler(dbContext, new Karamchari.Core.Observability.KaramchariProjectionMetrics());
 
         var employeeId = Guid.NewGuid();
         var skillId = Guid.NewGuid();
@@ -173,7 +173,7 @@ public sealed class WorkforceIntelligenceTests
     {
         var dbName = Guid.NewGuid().ToString();
         using var dbContext = HRDbContextFactory.Create(TenantA, dbName);
-        var handler = new EmployeeIntelligenceProjectionHandler(dbContext);
+        var handler = new EmployeeIntelligenceProjectionHandler(dbContext, new Karamchari.Core.Observability.KaramchariProjectionMetrics());
 
         var employeeId = Guid.NewGuid();
         var positionId = Guid.NewGuid();
@@ -226,7 +226,7 @@ public sealed class WorkforceIntelligenceTests
     {
         var dbName = Guid.NewGuid().ToString();
         using var dbContext = HRDbContextFactory.Create(TenantA, dbName);
-        var handler = new EmployeeIntelligenceProjectionHandler(dbContext);
+        var handler = new EmployeeIntelligenceProjectionHandler(dbContext, new Karamchari.Core.Observability.KaramchariProjectionMetrics());
 
         var employeeId = Guid.NewGuid();
         var positionId = Guid.NewGuid();
@@ -274,7 +274,7 @@ public sealed class WorkforceIntelligenceTests
         await dbContextA.SaveChangesAsync();
 
         // Fire event for Tenant B using Tenant B's DbContext handler
-        var handlerB = new EmployeeIntelligenceProjectionHandler(dbContextB);
+        var handlerB = new EmployeeIntelligenceProjectionHandler(dbContextB, new Karamchari.Core.Observability.KaramchariProjectionMetrics());
         var assignEventB = new PositionAssignmentCreated(Guid.NewGuid(), TenantB, positionId, employeeId, DateTimeOffset.UtcNow);
         await handlerB.HandleAsync(assignEventB, CancellationToken.None);
 

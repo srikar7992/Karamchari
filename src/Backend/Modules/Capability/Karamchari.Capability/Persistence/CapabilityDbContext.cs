@@ -2,6 +2,7 @@ using Karamchari.Capability.Domain.Entitlements;
 using Karamchari.Capability.Domain.Growth;
 using Karamchari.Capability.Domain.Learning;
 using Karamchari.Capability.Domain.Marketplace;
+using Karamchari.Capability.Domain.Mobility;
 using Karamchari.Capability.Domain.Skills;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
@@ -59,6 +60,21 @@ public class CapabilityDbContext : KaramchariDbContext
     public DbSet<Opportunity> Opportunities => Set<Opportunity>();
     public DbSet<OpportunityParticipant> OpportunityParticipants => Set<OpportunityParticipant>();
     public DbSet<EmployeeCapabilityProjection> EmployeeCapabilityProjections => Set<EmployeeCapabilityProjection>();
+
+    /// <summary>Pre-computed skill coverage scores per employee per role requirement.</summary>
+    public DbSet<EmployeeSkillCoverageProjection> EmployeeSkillCoverageProjections => Set<EmployeeSkillCoverageProjection>();
+
+    /// <summary>Per-skill gap rows for employees below a required level. Row absent = gap closed.</summary>
+    public DbSet<EmployeeSkillGapProjection> EmployeeSkillGapProjections => Set<EmployeeSkillGapProjection>();
+
+    /// <summary>Career readiness ranking rows combining coverage and critical-gap weighting.</summary>
+    public DbSet<CareerReadinessProjection> CareerReadinessProjections => Set<CareerReadinessProjection>();
+
+    /// <summary>Lightweight index of open vacancies that have a linked role skill requirement.</summary>
+    public DbSet<MobilityVacancy> MobilityVacancies => Set<MobilityVacancy>();
+
+    /// <summary>Pre-computed mobility scores for employees against open vacancies. Row absent = vacancy closed.</summary>
+    public DbSet<InternalMobilityProjection> InternalMobilityProjections => Set<InternalMobilityProjection>();
 
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -275,6 +291,80 @@ public class CapabilityDbContext : KaramchariDbContext
             b.Property(x => x.VerifiedSkills).HasConversion(
                 v => string.Join("|||", v),
                 v => string.IsNullOrEmpty(v) ? new List<string>() : v.Split("|||", StringSplitOptions.None).ToList());
+        });
+
+        modelBuilder.Entity<EmployeeSkillCoverageProjection>(b =>
+        {
+            b.ToTable("Capability_EmployeeSkillCoverageProjections");
+            b.HasKey(x => new { x.TenantId, x.EmployeeId, x.RoleRequirementId });
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.RoleTitle).HasMaxLength(200).IsRequired();
+            b.Property(x => x.CoveragePercent).HasPrecision(9, 4);
+            // Mobility lookup: top N employees by coverage for a role
+            b.HasIndex(x => new { x.TenantId, x.RoleRequirementId, x.CoveragePercent })
+                .HasDatabaseName("IX_SkillCoverage_RoleRanking");
+            // Gap analysis: all role gaps for a specific employee
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId })
+                .HasDatabaseName("IX_SkillCoverage_EmployeeGaps");
+        });
+
+        modelBuilder.Entity<EmployeeSkillGapProjection>(b =>
+        {
+            b.ToTable("Capability_EmployeeSkillGapProjections");
+            b.HasKey(x => new { x.TenantId, x.EmployeeId, x.RoleRequirementId, x.SkillId });
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.RoleTitle).HasMaxLength(200).IsRequired();
+            b.Property(x => x.RequiredLevel).HasConversion<string>().HasMaxLength(32).IsRequired();
+            b.Property(x => x.CurrentLevel).HasConversion<string>().HasMaxLength(32);
+            // Career dashboard: all active gaps for an employee
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId })
+                .HasDatabaseName("IX_SkillGap_EmployeeGaps");
+            // Role gap analysis: which skills are commonly missing for a role
+            b.HasIndex(x => new { x.TenantId, x.RoleRequirementId, x.SkillId })
+                .HasDatabaseName("IX_SkillGap_RoleSkillGap");
+        });
+
+        modelBuilder.Entity<CareerReadinessProjection>(b =>
+        {
+            b.ToTable("Capability_CareerReadinessProjections");
+            b.HasKey(x => new { x.TenantId, x.EmployeeId, x.RoleRequirementId });
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.RoleTitle).HasMaxLength(200).IsRequired();
+            b.Property(x => x.CoveragePercent).HasPrecision(9, 4);
+            b.Property(x => x.ReadinessScore).HasPrecision(9, 4);
+            b.Property(x => x.Band).HasConversion<string>().HasMaxLength(32).IsRequired();
+            // Mobility / succession ranking: find ReadyNow employees for a role, ordered by score
+            b.HasIndex(x => new { x.TenantId, x.RoleRequirementId, x.Band, x.ReadinessScore })
+                .HasDatabaseName("IX_CareerReadiness_RoleRanking");
+            // Employee career dashboard: all roles with readiness for one employee
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.Band })
+                .HasDatabaseName("IX_CareerReadiness_EmployeeBand");
+        });
+
+        modelBuilder.Entity<MobilityVacancy>(b =>
+        {
+            b.ToTable("Capability_MobilityVacancies");
+            b.HasKey(x => new { x.TenantId, x.VacancyId });
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            // Lookup: which open vacancies target a given role requirement?
+            b.HasIndex(x => new { x.TenantId, x.RoleRequirementId })
+                .HasDatabaseName("IX_MobilityVacancy_RoleRequirement");
+        });
+
+        modelBuilder.Entity<InternalMobilityProjection>(b =>
+        {
+            b.ToTable("Capability_InternalMobilityProjections");
+            b.HasKey(x => new { x.TenantId, x.EmployeeId, x.VacancyId });
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.CoveragePercent).HasPrecision(9, 4);
+            b.Property(x => x.ReadinessScore).HasPrecision(9, 4);
+            b.Property(x => x.Band).HasConversion<string>().HasMaxLength(32).IsRequired();
+            // Hiring manager: top ReadyNow candidates for a vacancy, ordered by score
+            b.HasIndex(x => new { x.TenantId, x.VacancyId, x.Band, x.ReadinessScore })
+                .HasDatabaseName("IX_Mobility_VacancyRanking");
+            // Employee marketplace: all vacancies the employee is eligible for
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.Eligible, x.ReadinessScore })
+                .HasDatabaseName("IX_Mobility_EmployeeOpportunities");
         });
     }
 }

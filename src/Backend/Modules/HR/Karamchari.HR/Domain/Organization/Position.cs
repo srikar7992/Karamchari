@@ -58,7 +58,16 @@ public sealed class Position : AggregateRoot<Guid>, ITenantOwned
     public bool AllowMultipleOccupants { get; private set; }
     public int ApprovedHeadcount { get; private set; }
 
+    /// <summary>Links this position to a Capability role skill requirement for internal mobility matching.</summary>
+    public Guid? RoleSkillRequirementId { get; private set; }
+
     public bool IsActive { get; private set; }
+
+    /// <summary>Associates this position with a Capability role skill requirement profile.</summary>
+    public void LinkToRoleRequirement(Guid roleSkillRequirementId)
+    {
+        RoleSkillRequirementId = roleSkillRequirementId;
+    }
 
     public static Position Create(
         string tenantId,

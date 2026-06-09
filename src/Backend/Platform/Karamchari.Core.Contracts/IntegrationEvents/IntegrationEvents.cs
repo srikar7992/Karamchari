@@ -264,6 +264,41 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         string SkillName,
         int Level,
         DateTimeOffset ValidatedAt);
+
+    // ── Phase 25: Internal Mobility Marketplace ──────────────────────────────
+
+    /// <summary>
+    /// Published when a position vacancy is opened and ready for internal candidate matching.
+    /// Consumed by the Capability module to generate InternalMobilityProjection rows.
+    /// </summary>
+    /// <param name="VacancyId">Stable vacancy identifier — idempotency key for mobility consumers.</param>
+    /// <param name="TenantId">Tenant owning this vacancy.</param>
+    /// <param name="PositionId">The position that has become vacant.</param>
+    /// <param name="RoleSkillRequirementId">
+    /// The role skill requirement profile linked to this position.
+    /// Null when the position has no linked requirement — consumers skip mobility generation.
+    /// </param>
+    /// <param name="OpenedUtc">Timestamp when the vacancy was opened.</param>
+    public record VacancyOpenedIntegrationEvent(
+        Guid VacancyId,
+        string TenantId,
+        Guid PositionId,
+        Guid? RoleSkillRequirementId,
+        DateTimeOffset OpenedUtc);
+
+    /// <summary>
+    /// Published when a position vacancy is closed (filled or cancelled).
+    /// Consumed by the Capability module to delete InternalMobilityProjection rows.
+    /// </summary>
+    /// <param name="VacancyId">Stable vacancy identifier.</param>
+    /// <param name="TenantId">Tenant owning this vacancy.</param>
+    /// <param name="PositionId">The position whose vacancy was closed.</param>
+    /// <param name="CloseReason">How it was closed: "Filled" or "Cancelled".</param>
+    public record VacancyClosedIntegrationEvent(
+        Guid VacancyId,
+        string TenantId,
+        Guid PositionId,
+        string CloseReason);
 }
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.V1

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Karamchari.Compensation.Contracts.IntegrationEvents;
 using Karamchari.Core.Contracts.IntegrationEvents;
+using Karamchari.Core.Observability;
 using Karamchari.Core.Projections;
 using Karamchari.HR.Domain.Organization;
 using Karamchari.HR.Domain.Organization.Events;
@@ -16,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Karamchari.HR.Projections;
 
 /// <summary>
-/// Projection handler that recalculates retention risk and promotion readiness scores 
+/// Projection handler that recalculates retention risk and promotion readiness scores
 /// for employees when assignment, reporting lines, compensation, performance, or skill validation events occur.
 /// </summary>
 public sealed class EmployeeIntelligenceProjectionHandler
@@ -30,14 +31,19 @@ public sealed class EmployeeIntelligenceProjectionHandler
       IProjectionHandler<ReportingRelationshipChanged>
 {
     private readonly HRDbContext _dbContext;
+    private readonly KaramchariProjectionMetrics _projectionMetrics;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EmployeeIntelligenceProjectionHandler"/> class.
     /// </summary>
     /// <param name="dbContext">The database context for HR module persistence.</param>
-    public EmployeeIntelligenceProjectionHandler(HRDbContext dbContext)
+    /// <param name="projectionMetrics">Projection and prediction recalculation metrics collector.</param>
+    public EmployeeIntelligenceProjectionHandler(
+        HRDbContext dbContext,
+        KaramchariProjectionMetrics projectionMetrics)
     {
         _dbContext = dbContext;
+        _projectionMetrics = projectionMetrics;
     }
 
     /// <inheritdoc/>
@@ -275,5 +281,8 @@ public sealed class EmployeeIntelligenceProjectionHandler
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _projectionMetrics.RecordPredictionRecalculation("FlightRisk", tenantId);
+        _projectionMetrics.RecordPredictionRecalculation("PromotionReadiness", tenantId);
     }
 }

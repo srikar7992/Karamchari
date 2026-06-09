@@ -329,6 +329,9 @@ namespace Karamchari.HR.Migrations
                     b.Property<Guid?>("ReportingToPositionId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("RoleSkillRequirementId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -337,6 +340,9 @@ namespace Karamchari.HR.Migrations
 
                     b.HasIndex("TenantId", "Code")
                         .IsUnique();
+
+                    b.HasIndex("RoleSkillRequirementId")
+                        .HasDatabaseName("IX_Positions_RoleSkillRequirementId");
 
                     b.ToTable("Positions", "__tenant__");
                 });

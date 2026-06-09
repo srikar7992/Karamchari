@@ -23,7 +23,7 @@ public sealed class WorkforceGraphTests
     {
         var dbName = Guid.NewGuid().ToString();
         using var dbContext = HRDbContextFactory.Create(TenantA, dbName);
-        var service = new WorkforceGraphService(dbContext);
+        var service = new WorkforceGraphService(dbContext, new Karamchari.HR.Observability.KaramchariGraphMetrics());
 
         var employeeId = Guid.NewGuid();
         var positionId = Guid.NewGuid();
@@ -82,7 +82,7 @@ public sealed class WorkforceGraphTests
     {
         var dbName = Guid.NewGuid().ToString();
         using var dbContext = HRDbContextFactory.Create(TenantA, dbName);
-        var service = new WorkforceGraphService(dbContext);
+        var service = new WorkforceGraphService(dbContext, new Karamchari.HR.Observability.KaramchariGraphMetrics());
 
         var ceoId = Guid.NewGuid();
         var vpId = Guid.NewGuid();
@@ -152,7 +152,7 @@ public sealed class WorkforceGraphTests
         using var dbContextA = HRDbContextFactory.Create(TenantA, dbName);
         using var dbContextB = HRDbContextFactory.Create(TenantB, dbName);
 
-        var serviceA = new WorkforceGraphService(dbContextA);
+        var serviceA = new WorkforceGraphService(dbContextA, new Karamchari.HR.Observability.KaramchariGraphMetrics());
 
         var commonId = Guid.NewGuid();
         var targetA = Guid.NewGuid();
