@@ -21,6 +21,10 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
   CI: true
+  # Line-coverage floor (percent). Ratchet upward as coverage improves; never lower
+  # without an ADR. Measured baseline on 2026-06-10 was 15.2% line coverage
+  # (47 assemblies, 125,625 coverable lines), so the floor starts just below that.
+  COVERAGE_FLOOR: "14"
 
 jobs:
   backend:
@@ -49,6 +53,9 @@ jobs:
       - name: Verify formatting
         run: dotnet format src/Backend/Karamchari.sln --verify-no-changes --severity warn --no-restore
 
+      - name: Verify copyright headers
+        run: pwsh scripts/verify-copyright.ps1
+
       - name: Build with analyzers and warnings as errors
         run: dotnet build src/Backend/Karamchari.sln --no-restore -c Release -warnaserror
 
@@ -64,6 +71,23 @@ jobs:
       - name: Run Tenant Isolation Certification (P0 Isolation Gate)
         run: dotnet test tests/Backend/Karamchari.TenantIsolationCertification/Karamchari.TenantIsolationCertification.csproj --no-build -c Release --logger "trx;LogFilePrefix=isolation_results"
 
+      # Merges per-project cobertura files and fails the build when overall line
+      # coverage drops below COVERAGE_FLOOR. ArchitectureTests and the isolation
+      # certification run uninstrumented, so they contribute no coverage data.
+      - name: Enforce line coverage floor
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          reportgenerator \
+            -reports:"**/TestResults/**/coverage.cobertura.xml" \
+            -targetdir:artifacts/coverage-report \
+            -reporttypes:"Cobertura;TextSummary"
+          actual=$(sed -n 's/.*Line coverage:[[:space:]]*\([0-9.]*\)%.*/\1/p' artifacts/coverage-report/Summary.txt)
+          echo "Line coverage: ${actual}% (floor: ${COVERAGE_FLOOR}%)"
+          if ! awk -v a="$actual" -v f="$COVERAGE_FLOOR" 'BEGIN { exit (a+0 >= f+0) ? 0 : 1 }'; then
+            echo "::error::Line coverage ${actual}% is below the ${COVERAGE_FLOOR}% floor"
+            exit 1
+          fi
+
       - name: NuGet vulnerability audit
         run: dotnet list src/Backend/Karamchari.sln package --vulnerable --include-transitive
 
@@ -78,6 +102,7 @@ jobs:
           path: |
             **/TestResults/**/*.trx
             **/TestResults/**/coverage.cobertura.xml
+            artifacts/coverage-report/**
           retention-days: 14
 
       - name: Upload publish artifact

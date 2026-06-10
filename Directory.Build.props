@@ -16,9 +16,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!--
       CA1848 requires a repository-wide migration to LoggerMessage source generators.
-      It is tracked as an explicit analyzer policy exception, not a silent bypass.
-      All other compiler, nullable, package, XML documentation, and analyzer warnings
-      remain elevated to errors.
+      CS1591 (missing XML doc comment) is suppressed repo-wide: XML documentation
+      files are still generated, but absent /// comments do not fail the build.
+      Both are tracked as explicit analyzer policy exceptions, not silent bypasses.
+      All other compiler, nullable, package, and analyzer warnings remain elevated
+      to errors.
     -->
     <NoWarn>$(NoWarn);CA1848;NU1510;CA1305;IDE0161;CA1861;CA1062;CA1873;1591</NoWarn>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>

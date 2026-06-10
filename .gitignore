@@ -87,3 +87,6 @@ SESSION_MISTAKES_REFERENCE.md
 docs/audits/hostile/setup-report.txt
 docs/audits/hostile/test-summary.txt
 logs/
+
+# BenchmarkDotNet output
+BenchmarkDotNet.Artifacts/
