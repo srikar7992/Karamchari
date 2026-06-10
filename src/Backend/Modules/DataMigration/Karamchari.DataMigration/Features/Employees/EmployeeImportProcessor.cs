@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmployeeImportProcessor.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.DataMigration.Services;
 using Karamchari.HR.Contracts.Employees;
 using MassTransit;

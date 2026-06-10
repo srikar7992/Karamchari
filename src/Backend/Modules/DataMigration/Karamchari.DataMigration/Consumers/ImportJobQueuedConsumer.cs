@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ImportJobQueuedConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.DataMigration.Contracts.Events;
 using Karamchari.DataMigration.Domain.Importing;
 using Karamchari.DataMigration.Persistence;

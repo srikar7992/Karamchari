@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CapabilityDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Capability.Domain.Entitlements;
 using Karamchari.Capability.Domain.Growth;
 using Karamchari.Capability.Domain.Learning;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CrossDomainSignalAggregator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compliance.Domain.Violations;
 using Karamchari.Compliance.Persistence;
 using Karamchari.Intelligence.Domain.Workforce;

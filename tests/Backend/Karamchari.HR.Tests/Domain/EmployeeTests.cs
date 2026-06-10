@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmployeeTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.HR.Domain.Employees;
 using Karamchari.HR.Domain.Employees.Events;

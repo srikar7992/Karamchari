@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BillingEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Api.BFF.Common;
 using Karamchari.Billing.Persistence;
 using Karamchari.Billing.Services;

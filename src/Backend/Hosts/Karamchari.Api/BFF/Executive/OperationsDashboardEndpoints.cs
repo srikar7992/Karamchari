@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OperationsDashboardEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Jobs;
 using Karamchari.Core.Projections;
 using Microsoft.AspNetCore.Mvc;

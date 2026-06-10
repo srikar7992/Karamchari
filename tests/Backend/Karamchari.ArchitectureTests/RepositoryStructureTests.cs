@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RepositoryStructureTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System;
 using System.IO;
 using System.Linq;

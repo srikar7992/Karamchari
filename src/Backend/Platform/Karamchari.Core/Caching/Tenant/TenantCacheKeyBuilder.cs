@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantCacheKeyBuilder.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;

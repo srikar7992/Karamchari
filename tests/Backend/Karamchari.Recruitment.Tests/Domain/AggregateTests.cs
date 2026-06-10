@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AggregateTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Recruitment.Domain;
 using Xunit;

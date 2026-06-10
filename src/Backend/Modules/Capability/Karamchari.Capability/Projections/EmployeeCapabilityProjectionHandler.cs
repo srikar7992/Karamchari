@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmployeeCapabilityProjectionHandler.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Threading;
 using System.Threading.Tasks;
 using Karamchari.Capability.Domain.Learning.Events;

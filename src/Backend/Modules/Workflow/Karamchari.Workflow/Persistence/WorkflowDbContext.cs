@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkflowDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Workflow.Domain;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BulkImportPermissionTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Identity.Services;
 using Xunit;

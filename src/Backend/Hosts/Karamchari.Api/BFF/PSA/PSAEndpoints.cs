@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PSAEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Api.BFF.Common;
 using Karamchari.PSA.Domain;
 using Karamchari.PSA.Persistence;

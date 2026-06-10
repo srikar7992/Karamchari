@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SalaryRevisionImportProcessor.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using Karamchari.DataMigration.Services;
 using Karamchari.Payroll.Data;

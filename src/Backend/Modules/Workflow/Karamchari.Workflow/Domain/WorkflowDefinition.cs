@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkflowDefinition.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IImportPipeline.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.DataMigration.API;
 using Karamchari.DataMigration.Domain.Importing;
 

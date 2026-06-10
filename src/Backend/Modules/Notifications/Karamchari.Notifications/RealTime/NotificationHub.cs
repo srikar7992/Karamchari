@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="NotificationHub.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Microsoft.AspNetCore.SignalR;
 
 namespace Karamchari.Notifications.RealTime;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="Permissions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Core.Security;
 
 /// <summary>

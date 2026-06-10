@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PerformanceDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Performance.Domain.Calibration;

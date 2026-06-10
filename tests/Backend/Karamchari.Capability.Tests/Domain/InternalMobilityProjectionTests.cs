@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InternalMobilityProjectionTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Capability.Domain.Mobility;
 using Karamchari.Capability.Domain.Primitives;

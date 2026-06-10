@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ComplianceDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compliance.Domain.LegalHold;
 using Karamchari.Compliance.Domain.Regulatory;
 using Karamchari.Compliance.Domain.Reporting;

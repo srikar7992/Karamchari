@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InvoiceTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Billing.Domain.Invoices;
 using Xunit;

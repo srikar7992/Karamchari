@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GlobalDtos.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Domain.SalaryStructures;
 using Karamchari.Payroll.Domain.Statutory;
 using Karamchari.TimeAttendance.Domain.Leaves;

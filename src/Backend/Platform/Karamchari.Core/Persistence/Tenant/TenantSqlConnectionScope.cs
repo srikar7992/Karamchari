@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantSqlConnectionScope.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Data;
 using System.Data.Common;
 using Microsoft.Data.SqlClient;

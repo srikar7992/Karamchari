@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkflowTraceabilityConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Messaging;
 using Karamchari.Workflow.Domain.Events;
 using Karamchari.Workflow.Services;

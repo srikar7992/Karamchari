@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CoreDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Domain.Idempotency;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence.Interceptors;

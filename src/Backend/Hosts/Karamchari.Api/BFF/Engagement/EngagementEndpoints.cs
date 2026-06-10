@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EngagementEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Claims;
 using Karamchari.Api.BFF;
 using Karamchari.Engagement.Domain;

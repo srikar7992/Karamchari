@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="QueryFilterBypassDetector.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Karamchari.Core.Multitenancy;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmployeeTerminatedHelpdeskConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Helpdesk.Domain;
 using Karamchari.Helpdesk.Persistence;

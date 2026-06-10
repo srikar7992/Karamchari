@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CapabilityEvents.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Messaging;
 
 namespace Karamchari.Capability.Contracts;

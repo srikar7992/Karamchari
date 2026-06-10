@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InboxReplayIdempotencyTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.HR.Consumers;
 using Karamchari.Recruitment.Contracts;

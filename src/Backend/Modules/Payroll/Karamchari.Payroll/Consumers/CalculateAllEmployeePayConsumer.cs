@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CalculateAllEmployeePayConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Contracts;
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;

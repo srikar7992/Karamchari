@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkforceRiskLevel.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Intelligence.Domain.Workforce;
 
 /// <summary>Score bands for burnout and attrition risk.</summary>

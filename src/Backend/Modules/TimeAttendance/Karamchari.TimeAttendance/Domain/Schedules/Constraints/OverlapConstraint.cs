@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OverlapConstraint.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Domain.Schedules.Constraints;
 
 /// <summary>

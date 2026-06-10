@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AnalyticsReadModel.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.Recruitment.Application.Analytics;

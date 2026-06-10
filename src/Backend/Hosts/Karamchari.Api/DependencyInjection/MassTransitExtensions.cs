@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="MassTransitExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Billing.Persistence;
 using Karamchari.Capability.Persistence;
 using Karamchari.Compensation.Persistence;

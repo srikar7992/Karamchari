@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InboxDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Core.Messaging.Inbox;

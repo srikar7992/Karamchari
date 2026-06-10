@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OutboxMessageTypeRegistry.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Reflection;
 
 namespace Karamchari.Core.Messaging.Outbox;

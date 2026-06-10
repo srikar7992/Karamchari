@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantLogEnricher.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy.Execution;
 using Karamchari.Core.Observability.Tenant;
 using Serilog.Core;

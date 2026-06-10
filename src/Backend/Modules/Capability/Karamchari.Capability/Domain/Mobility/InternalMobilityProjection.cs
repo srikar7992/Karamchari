@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InternalMobilityProjection.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Capability.Domain.Primitives;
 
 namespace Karamchari.Capability.Domain.Mobility;

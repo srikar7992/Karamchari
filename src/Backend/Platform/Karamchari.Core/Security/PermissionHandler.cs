@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PermissionHandler.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy.Execution;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="MigrationSafetyTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Messaging.Inbox;
 using Karamchari.Core.Multitenancy;

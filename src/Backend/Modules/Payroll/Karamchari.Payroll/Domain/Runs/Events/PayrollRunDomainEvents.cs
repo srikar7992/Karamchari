@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PayrollRunDomainEvents.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Payroll.Domain.Runs.Events;

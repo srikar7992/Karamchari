@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AttendanceReportingEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Api.BFF.Common;
 using Karamchari.TimeAttendance.Domain.Attendance;
 using Karamchari.TimeAttendance.Persistence;

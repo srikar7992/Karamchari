@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FinancialConsistencyGuard.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.FinancialOps.Contracts.Primitives;
 using Karamchari.FinancialOps.Domain.Periods;
 using Karamchari.FinancialOps.Persistence;

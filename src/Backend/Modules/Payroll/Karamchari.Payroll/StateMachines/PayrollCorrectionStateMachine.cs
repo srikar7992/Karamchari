@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PayrollCorrectionStateMachine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Contracts;
 using MassTransit;
 

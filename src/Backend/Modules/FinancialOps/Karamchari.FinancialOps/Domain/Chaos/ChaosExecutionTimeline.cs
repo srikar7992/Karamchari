@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ChaosExecutionTimeline.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.FinancialOps.Contracts.Primitives;
 
 namespace Karamchari.FinancialOps.Domain.Chaos;

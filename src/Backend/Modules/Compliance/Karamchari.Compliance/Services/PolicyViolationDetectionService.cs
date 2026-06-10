@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PolicyViolationDetectionService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compliance.Domain.Violations;
 using Karamchari.Compliance.Persistence;
 using Microsoft.EntityFrameworkCore;

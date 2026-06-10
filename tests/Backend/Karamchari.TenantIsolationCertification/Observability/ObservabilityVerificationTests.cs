@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ObservabilityVerificationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using FluentAssertions;

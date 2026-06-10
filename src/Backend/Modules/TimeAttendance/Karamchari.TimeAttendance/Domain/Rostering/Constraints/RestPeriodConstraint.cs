@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RestPeriodConstraint.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Domain.Rostering.Constraints;
 
 public sealed class RestPeriodConstraint(double minimumRestHours = 11.0) : IAssignmentConstraint

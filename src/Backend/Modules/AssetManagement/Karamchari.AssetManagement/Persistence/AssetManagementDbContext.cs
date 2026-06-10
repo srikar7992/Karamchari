@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AssetManagementDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.AssetManagement.Domain;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;

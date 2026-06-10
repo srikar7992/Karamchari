@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="NotificationStatus.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Notifications.Domain;
 
 /// <summary>Lifecycle status of a notification message.</summary>

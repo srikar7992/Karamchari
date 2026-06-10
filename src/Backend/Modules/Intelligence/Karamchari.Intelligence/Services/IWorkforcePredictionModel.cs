@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IWorkforcePredictionModel.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Intelligence.Services;
 
 /// <summary>

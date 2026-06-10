@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RegulatoryRuleEvaluator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Compliance.Domain.Regulatory;
 using Karamchari.Compliance.Domain.Violations;

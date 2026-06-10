@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="Phase_Attendance_NotificationWiringTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.TimeAttendance.Contracts;
 using Karamchari.TimeAttendance.Domain.Attendance;

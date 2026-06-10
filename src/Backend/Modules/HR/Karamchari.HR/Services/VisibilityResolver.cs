@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="VisibilityResolver.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.HR.Domain.Relationships;
 using Karamchari.HR.Persistence;
 using Microsoft.EntityFrameworkCore;

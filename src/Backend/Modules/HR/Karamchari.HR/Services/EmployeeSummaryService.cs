@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmployeeSummaryService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.HR.Contracts.Projections;
 using Karamchari.HR.Persistence;
 using Microsoft.EntityFrameworkCore;

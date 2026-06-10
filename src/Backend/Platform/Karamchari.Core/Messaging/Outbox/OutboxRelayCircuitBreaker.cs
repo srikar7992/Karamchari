@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OutboxRelayCircuitBreaker.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Microsoft.Extensions.Options;
 
 namespace Karamchari.Core.Messaging.Outbox;

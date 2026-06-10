@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LeaveBalanceImportProcessor.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.DataMigration.Services;
 using Karamchari.TimeAttendance.Persistence;
 using TaLeaveBalance = Karamchari.TimeAttendance.Domain.Leaves.LeaveBalance;

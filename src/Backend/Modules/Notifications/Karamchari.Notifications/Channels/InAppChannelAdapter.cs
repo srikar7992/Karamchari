@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InAppChannelAdapter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Notifications.Domain;
 using Microsoft.Extensions.Logging;
 

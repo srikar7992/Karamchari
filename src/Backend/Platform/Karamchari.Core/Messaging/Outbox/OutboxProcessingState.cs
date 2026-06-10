@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OutboxProcessingState.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Core.Messaging.Outbox;
 
 /// <summary>

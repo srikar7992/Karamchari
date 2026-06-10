@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="JwtSecurityTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;

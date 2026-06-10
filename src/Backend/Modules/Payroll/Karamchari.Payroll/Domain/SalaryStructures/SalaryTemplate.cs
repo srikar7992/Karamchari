@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SalaryTemplate.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Domain.SalaryStructures;
 
 using Karamchari.Core.Multitenancy;

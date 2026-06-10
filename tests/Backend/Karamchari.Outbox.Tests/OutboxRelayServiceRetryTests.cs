@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OutboxRelayServiceRetryTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Xunit;
 

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="StartPayrollRunRequestValidator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentValidation;
 using Karamchari.Api.BFF.Common;
 

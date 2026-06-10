@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IRecruitmentDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Recruitment.Application.Analytics;
 using Karamchari.Recruitment.Domain;
 using Microsoft.EntityFrameworkCore;

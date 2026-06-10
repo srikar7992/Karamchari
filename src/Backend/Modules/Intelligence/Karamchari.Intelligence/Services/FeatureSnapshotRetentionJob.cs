@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FeatureSnapshotRetentionJob.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Intelligence.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

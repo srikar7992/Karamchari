@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantSagaCorrelation.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using MassTransit;
 using Microsoft.Extensions.Logging;
 

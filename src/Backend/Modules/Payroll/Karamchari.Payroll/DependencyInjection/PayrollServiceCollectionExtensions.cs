@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PayrollServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Persistence.Provisioning;
 using Karamchari.Payroll.Consumers;

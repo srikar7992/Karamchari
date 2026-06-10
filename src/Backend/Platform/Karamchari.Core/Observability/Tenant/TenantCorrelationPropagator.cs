@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantCorrelationPropagator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Karamchari.Core.Multitenancy;

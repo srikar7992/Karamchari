@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ReimbursementEnums.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Domain.Reimbursements;
 
 /// <summary>

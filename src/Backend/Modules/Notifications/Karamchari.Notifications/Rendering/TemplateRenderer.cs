@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TemplateRenderer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.RegularExpressions;
 using Karamchari.Notifications.Domain;
 using Microsoft.Extensions.Logging;

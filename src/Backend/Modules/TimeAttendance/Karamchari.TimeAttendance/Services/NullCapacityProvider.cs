@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="NullCapacityProvider.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Services;
 
 /// <summary>

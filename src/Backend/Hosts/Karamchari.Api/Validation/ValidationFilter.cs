@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ValidationFilter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentValidation;
 
 namespace Karamchari.Api.Validation;

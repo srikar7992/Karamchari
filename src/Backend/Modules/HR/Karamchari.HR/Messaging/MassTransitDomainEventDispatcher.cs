@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="MassTransitDomainEventDispatcher.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Reflection;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Messaging;

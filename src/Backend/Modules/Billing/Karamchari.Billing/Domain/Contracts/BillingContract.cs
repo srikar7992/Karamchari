@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BillingContract.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Karamchari.Billing.Domain.Contracts;

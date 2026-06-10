@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ITenantProvider.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics.CodeAnalysis;
 
 namespace Karamchari.Core.Multitenancy;

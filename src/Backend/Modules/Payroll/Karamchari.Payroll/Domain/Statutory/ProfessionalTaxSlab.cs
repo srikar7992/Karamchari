@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ProfessionalTaxSlab.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Domain.Statutory;
 
 using Karamchari.Core.Multitenancy;

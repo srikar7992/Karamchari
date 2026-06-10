@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AttendanceEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Claims;
 using Karamchari.Api.BFF.Common;
 using Karamchari.Api.Middleware;

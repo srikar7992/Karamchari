@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ReplayProtectionService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;

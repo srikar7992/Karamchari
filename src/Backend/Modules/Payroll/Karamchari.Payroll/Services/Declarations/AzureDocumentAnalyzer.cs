@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AzureDocumentAnalyzer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Azure;
 using Azure.AI.DocumentIntelligence;
 using Microsoft.Extensions.Options;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DisbursementDomainEvents.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.Payroll.Domain.Disbursement.Events;

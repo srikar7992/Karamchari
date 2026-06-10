@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OutboxChaosTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Messaging.Outbox;
 using Microsoft.EntityFrameworkCore;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="HistoricalPayrollImportRecord.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.DataMigration.Features.HistoricalPayroll;
 
 public record HistoricalPayrollImportRecord

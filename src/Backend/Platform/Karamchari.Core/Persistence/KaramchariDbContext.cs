@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="KaramchariDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;

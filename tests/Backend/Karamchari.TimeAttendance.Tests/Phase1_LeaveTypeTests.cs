@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="Phase1_LeaveTypeTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Tests;
 
 using FluentAssertions;

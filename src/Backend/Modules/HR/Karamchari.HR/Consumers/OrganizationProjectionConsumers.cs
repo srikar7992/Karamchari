@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OrganizationProjectionConsumers.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Threading.Tasks;
 using Karamchari.Core.Messaging;
 using Karamchari.Core.Projections;

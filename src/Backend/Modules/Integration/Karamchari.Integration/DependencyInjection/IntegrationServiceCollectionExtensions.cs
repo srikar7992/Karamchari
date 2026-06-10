@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IntegrationServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Integration.Persistence;
 using Microsoft.EntityFrameworkCore;

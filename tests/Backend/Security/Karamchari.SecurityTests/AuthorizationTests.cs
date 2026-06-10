@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AuthorizationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;

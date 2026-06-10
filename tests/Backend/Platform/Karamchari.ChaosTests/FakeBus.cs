@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FakeBus.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using MassTransit;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

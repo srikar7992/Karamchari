@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SkillCoverageCalculator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System;
 using Karamchari.Capability.Domain.Primitives;
 using Karamchari.Capability.Domain.Skills;

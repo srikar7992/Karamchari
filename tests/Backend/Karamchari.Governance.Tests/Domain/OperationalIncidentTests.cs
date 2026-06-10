@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OperationalIncidentTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Governance.Domain.Incidents;
 using Xunit;

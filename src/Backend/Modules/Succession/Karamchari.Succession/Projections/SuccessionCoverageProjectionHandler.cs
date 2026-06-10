@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SuccessionCoverageProjectionHandler.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Projections;
 using Karamchari.HR.Domain.Organization.Events;
 using Karamchari.Succession.Domain;

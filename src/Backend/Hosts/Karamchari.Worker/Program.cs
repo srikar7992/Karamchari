@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="Program.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Globalization;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Identity.Infrastructure;

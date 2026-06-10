@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DataMigrationModule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.DataMigration.DependencyInjection;
 using MassTransit;

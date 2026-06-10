@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CareerReadinessCalculatorTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Capability.Domain.Primitives;
 using Karamchari.Capability.Domain.Skills;

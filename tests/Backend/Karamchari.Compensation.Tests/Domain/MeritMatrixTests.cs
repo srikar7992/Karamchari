@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="MeritMatrixTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compensation.Domain;
 
 namespace Karamchari.Compensation.Tests.Domain;

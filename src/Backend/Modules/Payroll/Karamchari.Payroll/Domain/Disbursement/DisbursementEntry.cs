@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DisbursementEntry.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Domain.Disbursement;
 
 /// <summary>

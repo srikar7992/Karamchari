@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EsiCalculator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Domain.DeductionRules;
 
 namespace Karamchari.Payroll.Services.Deductions;

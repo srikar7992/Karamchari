@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ClientPaymentProfileTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Forecasting.Domain;
 using Xunit;

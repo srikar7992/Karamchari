@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CompensationDbContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compensation.Domain;
 using Karamchari.Compensation.Persistence.Configurations;
 using Karamchari.Core.Multitenancy;

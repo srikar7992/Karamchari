@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="NotificationCategory.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Notifications.Domain;
 
 /// <summary>

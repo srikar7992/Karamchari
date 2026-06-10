@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InboxService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

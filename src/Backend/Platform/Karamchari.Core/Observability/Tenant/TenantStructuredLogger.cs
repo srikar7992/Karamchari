@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantStructuredLogger.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Runtime.CompilerServices;
 using Karamchari.Core.Multitenancy;
 using Microsoft.Extensions.Logging;

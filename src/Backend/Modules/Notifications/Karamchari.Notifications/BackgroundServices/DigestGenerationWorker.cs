@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DigestGenerationWorker.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Notifications.Domain;
 using Karamchari.Notifications.Services;
 using Microsoft.EntityFrameworkCore;

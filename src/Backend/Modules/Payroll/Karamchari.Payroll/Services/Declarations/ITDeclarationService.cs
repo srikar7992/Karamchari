@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ITDeclarationService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Services.Declarations;
 
 using Karamchari.Core.Contracts.IntegrationEvents;

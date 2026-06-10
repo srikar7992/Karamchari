@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CandidateSnapshot.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Recruitment.Domain;
 
 public sealed record CandidateSnapshot(

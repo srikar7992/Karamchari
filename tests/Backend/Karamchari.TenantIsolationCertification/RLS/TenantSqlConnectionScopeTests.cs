@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantSqlConnectionScopeTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Data;
 using System.Data.Common;
 using FluentAssertions;

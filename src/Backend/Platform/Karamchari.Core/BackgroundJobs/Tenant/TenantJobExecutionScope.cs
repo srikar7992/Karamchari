@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantJobExecutionScope.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Collections.Concurrent;
 using System.Globalization;
 using Karamchari.Core.Multitenancy;

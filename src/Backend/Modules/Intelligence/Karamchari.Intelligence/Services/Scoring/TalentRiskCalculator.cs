@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TalentRiskCalculator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Intelligence.Domain.Signals;
 using Karamchari.Intelligence.Domain.Workforce;
 

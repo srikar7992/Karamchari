@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="HistoricalPayrollImportValidator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.DataMigration.Services;
 
 namespace Karamchari.DataMigration.Features.HistoricalPayroll;

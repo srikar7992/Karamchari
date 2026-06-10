@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PayrollComplianceConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compliance.Services;
 using Karamchari.Core.Contracts.IntegrationEvents.V2;
 using MassTransit;

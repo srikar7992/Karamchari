@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="KaramchariEventCatalog.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 // Karamchari Platform — Integration Event Catalog
 // Registry of all integration events across all bounded contexts.
 // Answers three governance questions within 30 seconds:

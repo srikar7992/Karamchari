@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SagaStateBase.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.ComponentModel.DataAnnotations;
 using MassTransit;
 

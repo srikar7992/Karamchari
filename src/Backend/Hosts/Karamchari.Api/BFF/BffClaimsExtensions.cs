@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BffClaimsExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Claims;
 
 namespace Karamchari.Api.BFF;

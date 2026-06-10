@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FinancialLedger.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.FinancialOps.Contracts.Primitives;
 using Karamchari.FinancialOps.Domain.Ledger;
 using Karamchari.FinancialOps.Persistence;

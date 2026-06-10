@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PayrollEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Api.BFF.Common;
 using Karamchari.Api.Validation;
 using Karamchari.Core.Multitenancy;

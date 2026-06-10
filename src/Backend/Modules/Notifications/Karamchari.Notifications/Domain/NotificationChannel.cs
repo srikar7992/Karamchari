@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="NotificationChannel.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Notifications.Domain;
 
 /// <summary>Delivery channel for a notification.</summary>

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DisbursementConsumers.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Services.Disbursement;
 using MassTransit;

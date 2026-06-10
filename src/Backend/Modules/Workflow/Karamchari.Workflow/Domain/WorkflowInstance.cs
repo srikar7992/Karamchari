@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkflowInstance.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using System.Text.Json.Serialization;

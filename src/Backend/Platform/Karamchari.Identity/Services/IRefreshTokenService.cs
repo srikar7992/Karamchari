@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IRefreshTokenService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Identity.Domain;
 
 namespace Karamchari.Identity.Services;

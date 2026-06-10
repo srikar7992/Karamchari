@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IdentityWorkerExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Identity.Infrastructure.BackgroundServices;
 using Microsoft.Extensions.DependencyInjection;
 

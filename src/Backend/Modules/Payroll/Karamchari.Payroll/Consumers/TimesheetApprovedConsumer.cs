@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TimesheetApprovedConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Consumers;
 
 using Karamchari.Core.Contracts.IntegrationEvents;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantCacheNamespace.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;

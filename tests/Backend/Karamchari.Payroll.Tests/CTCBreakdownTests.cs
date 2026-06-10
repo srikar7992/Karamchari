@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CTCBreakdownTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Tests;
 
 using Karamchari.Payroll.Domain.SalaryStructures;

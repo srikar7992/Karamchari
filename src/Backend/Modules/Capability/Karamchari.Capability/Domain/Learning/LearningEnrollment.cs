@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LearningEnrollment.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Capability.Domain.Learning.Events;
 using Karamchari.Capability.Domain.Primitives;
 using Karamchari.Core.Domain.Primitives;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ITemplateRenderer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Notifications.Domain;
 
 namespace Karamchari.Notifications.Rendering;

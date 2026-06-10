@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PlatformFitnessTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Reflection;
 using FluentAssertions;
 using Karamchari.Core.Persistence;

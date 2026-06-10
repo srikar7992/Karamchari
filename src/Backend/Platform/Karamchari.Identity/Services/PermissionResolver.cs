@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PermissionResolver.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Security;
 
 namespace Karamchari.Identity.Services;

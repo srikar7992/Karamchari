@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PayrollCalculationEngineTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Domain.Adjustments;
 using Karamchari.Payroll.Domain.Results;
 using Karamchari.Payroll.Services.Calculation;

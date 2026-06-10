@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RLSValidationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Multitenancy;
 using Karamchari.TenantIsolationCertification.Infrastructure;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RosterPublishValidator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Domain.Rostering.Constraints;
 
 namespace Karamchari.TimeAttendance.Domain.Rostering.Validation;

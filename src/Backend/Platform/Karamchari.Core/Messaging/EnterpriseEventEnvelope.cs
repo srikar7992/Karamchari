@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EnterpriseEventEnvelope.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json.Serialization;
 
 namespace Karamchari.Core.Messaging;

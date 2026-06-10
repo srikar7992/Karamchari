@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ChaosGeneratorsTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Chaos.Tenant;
 using Karamchari.TenantIsolationCertification.Infrastructure;

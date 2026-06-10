@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BudgetStatus.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Compensation.Domain;
 
 /// <summary>Lifecycle status of an increment budget pool.</summary>

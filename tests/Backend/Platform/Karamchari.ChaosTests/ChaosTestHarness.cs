@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ChaosTestHarness.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Messaging.Outbox;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

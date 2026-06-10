@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BusinessBoundaryTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Reflection;
 using FluentAssertions;
 using Karamchari.HR.Persistence;

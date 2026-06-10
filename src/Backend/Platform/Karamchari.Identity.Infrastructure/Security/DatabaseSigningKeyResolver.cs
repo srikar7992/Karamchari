@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DatabaseSigningKeyResolver.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text;
 using Karamchari.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

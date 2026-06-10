@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ComplianceRiskEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Domain.Compliance;
 
 namespace Karamchari.Payroll.Services.Compliance;

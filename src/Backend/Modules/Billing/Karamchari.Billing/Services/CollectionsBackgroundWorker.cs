@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CollectionsBackgroundWorker.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Billing.Domain.Collections;
 using Karamchari.Billing.Persistence;
 using Microsoft.EntityFrameworkCore;

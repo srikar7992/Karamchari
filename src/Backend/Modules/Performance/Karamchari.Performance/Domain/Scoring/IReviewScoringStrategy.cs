@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IReviewScoringStrategy.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Performance.Domain.Reviews;
 
 namespace Karamchari.Performance.Domain.Scoring;

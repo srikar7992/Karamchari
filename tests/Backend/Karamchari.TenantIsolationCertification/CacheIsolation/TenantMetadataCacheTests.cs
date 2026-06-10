@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantMetadataCacheTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using FluentAssertions;
 using Karamchari.Core.Caching.Tenant;

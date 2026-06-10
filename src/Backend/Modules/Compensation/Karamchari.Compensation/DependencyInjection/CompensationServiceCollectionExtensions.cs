@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CompensationServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compensation.Persistence;
 using Karamchari.Core.DependencyInjection;
 using Microsoft.EntityFrameworkCore;

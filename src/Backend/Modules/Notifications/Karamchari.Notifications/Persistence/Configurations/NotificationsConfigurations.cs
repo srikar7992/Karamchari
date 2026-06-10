@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="NotificationsConfigurations.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Notifications.Domain;
 using Microsoft.EntityFrameworkCore;

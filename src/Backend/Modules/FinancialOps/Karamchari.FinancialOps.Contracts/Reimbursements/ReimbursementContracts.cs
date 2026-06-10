@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ReimbursementContracts.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.FinancialOps.Contracts.Settlements;
 
 namespace Karamchari.FinancialOps.Contracts.Reimbursements;

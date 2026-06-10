@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InvoicePdfDocument.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.PSA.Services;
 
 using System.Globalization;

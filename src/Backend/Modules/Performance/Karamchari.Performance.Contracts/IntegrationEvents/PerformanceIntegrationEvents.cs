@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PerformanceIntegrationEvents.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 // Integration event contracts for the Performance Management bounded context.
 // Pure records â€” no domain logic, no EF entities, no framework dependencies.
 // Versioned via nested namespaces so consumers can pin to a stable version.

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CapabilityServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Capability.Persistence;
 using Karamchari.Core.DependencyInjection;
 using Microsoft.EntityFrameworkCore;

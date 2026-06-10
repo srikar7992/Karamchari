@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RequisitionPublishedAuditConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Messaging;
 using Karamchari.Recruitment.Application;
 using Karamchari.Recruitment.Contracts;

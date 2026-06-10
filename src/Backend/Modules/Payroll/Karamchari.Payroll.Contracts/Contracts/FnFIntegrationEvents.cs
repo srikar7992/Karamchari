@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FnFIntegrationEvents.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Contracts;
 
 // Integration events published to Azure Service Bus for cross-module consumption

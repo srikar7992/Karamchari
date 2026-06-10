@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="VacancyPipelineProjectionHandler.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Threading;
 using System.Threading.Tasks;
 using Karamchari.Core.Contracts.IntegrationEvents;

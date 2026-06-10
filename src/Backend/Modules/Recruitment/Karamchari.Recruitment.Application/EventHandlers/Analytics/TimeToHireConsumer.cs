@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TimeToHireConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Core.Messaging;
 using Karamchari.Recruitment.Application.Analytics;

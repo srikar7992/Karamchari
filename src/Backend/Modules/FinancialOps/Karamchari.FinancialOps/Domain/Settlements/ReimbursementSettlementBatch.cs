@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ReimbursementSettlementBatch.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;
 using Karamchari.FinancialOps.Contracts.Primitives;

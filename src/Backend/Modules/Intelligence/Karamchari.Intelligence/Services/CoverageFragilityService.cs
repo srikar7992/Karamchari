@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CoverageFragilityService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Intelligence.Domain.Workforce;
 using Karamchari.Intelligence.Persistence;
 using Karamchari.Intelligence.Services.Scoring;

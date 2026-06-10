@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="UpdateEmployeeCommandValidator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentValidation;
 using Karamchari.HR.Contracts.Employees;
 

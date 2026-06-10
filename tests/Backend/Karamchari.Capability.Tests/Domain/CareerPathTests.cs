@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CareerPathTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Capability.Domain.Pathing;
 using Karamchari.Capability.Domain.Primitives;

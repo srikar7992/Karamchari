@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IImportServices.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.DataMigration.Services;
 
 /// <summary>

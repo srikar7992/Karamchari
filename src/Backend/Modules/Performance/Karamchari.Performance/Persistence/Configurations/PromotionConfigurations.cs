@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PromotionConfigurations.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Performance.Domain.Promotions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

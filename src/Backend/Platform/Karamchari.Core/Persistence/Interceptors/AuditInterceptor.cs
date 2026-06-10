@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AuditInterceptor.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Core.Multitenancy;
 using Microsoft.EntityFrameworkCore;

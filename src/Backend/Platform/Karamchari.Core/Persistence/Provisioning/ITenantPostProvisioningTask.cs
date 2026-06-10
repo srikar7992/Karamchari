@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ITenantPostProvisioningTask.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Core.Persistence.Provisioning;
 
 using Microsoft.EntityFrameworkCore;

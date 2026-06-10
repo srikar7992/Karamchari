@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecommendationService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.PlatformIntelligence.Domain.Recommendations;
 using Karamchari.PlatformIntelligence.Domain.Risk;

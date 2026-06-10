@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CreateEmployeeOnCandidateHiredConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.HR.Domain.Employees;
 using Karamchari.HR.Persistence;
 using Karamchari.Recruitment.Contracts;

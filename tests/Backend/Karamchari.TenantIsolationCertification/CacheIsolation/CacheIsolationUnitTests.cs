@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CacheIsolationUnitTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text;
 using FluentAssertions;
 using Karamchari.Core.Caching.Tenant;

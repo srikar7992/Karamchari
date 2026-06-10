@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="HRDbContextFactory.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using Karamchari.HR.Persistence;
 using Microsoft.EntityFrameworkCore;

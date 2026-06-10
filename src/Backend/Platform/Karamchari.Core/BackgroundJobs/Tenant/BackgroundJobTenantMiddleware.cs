@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BackgroundJobTenantMiddleware.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Globalization;
 using Karamchari.Core.Multitenancy;

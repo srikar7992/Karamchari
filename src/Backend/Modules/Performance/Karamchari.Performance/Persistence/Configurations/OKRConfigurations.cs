@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OKRConfigurations.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Performance.Domain.OKRs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DepartmentCreatedConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.HR.Domain.Departments.Events;
 using MassTransit;
 using Microsoft.Extensions.Logging;

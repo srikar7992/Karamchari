@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LeaveBalanceService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Persistence;
 using Microsoft.EntityFrameworkCore;

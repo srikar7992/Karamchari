@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AuthorizationGovernanceTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Reflection;
 using Karamchari.Core.Security;
 using Karamchari.Identity.Services;

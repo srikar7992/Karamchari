@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ForgedHeaderValidator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Microsoft.Extensions.Logging;
 
 namespace Karamchari.Core.Security.Tenant;

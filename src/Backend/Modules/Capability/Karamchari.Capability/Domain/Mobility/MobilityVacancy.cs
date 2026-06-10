@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="MobilityVacancy.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Capability.Domain.Mobility;
 
 /// <summary>

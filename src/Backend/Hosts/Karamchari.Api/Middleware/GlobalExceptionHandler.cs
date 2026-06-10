@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GlobalExceptionHandler.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Net;
 using Karamchari.Core.Multitenancy;

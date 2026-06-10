@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ProvidentFundCalculatorTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Domain.DeductionRules;
 using Karamchari.Payroll.Services.Deductions;
 

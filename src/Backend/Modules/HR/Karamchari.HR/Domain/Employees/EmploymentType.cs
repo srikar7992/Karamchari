@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmploymentType.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.HR.Domain.Employees;
 
 /// <summary>

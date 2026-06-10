@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantSetter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Tests.Helpers;
 
 using System.Reflection;

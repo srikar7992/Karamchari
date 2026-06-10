@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ArrearCalculation.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Payroll.Domain.Arrears.Events;
 

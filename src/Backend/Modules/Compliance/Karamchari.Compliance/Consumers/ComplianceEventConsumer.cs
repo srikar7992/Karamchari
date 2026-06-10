@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ComplianceEventConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compliance.Services;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using MassTransit;

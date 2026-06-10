@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ComplianceSnapshotService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compliance.Domain.Reporting;
 using Karamchari.Compliance.Domain.Violations;
 using Karamchari.Compliance.Persistence;

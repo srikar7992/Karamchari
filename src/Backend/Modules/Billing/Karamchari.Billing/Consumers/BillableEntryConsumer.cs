@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BillableEntryConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Billing.Domain.BillableEntries;
 using Karamchari.Billing.Domain.Contracts;
 using Karamchari.Billing.Persistence;

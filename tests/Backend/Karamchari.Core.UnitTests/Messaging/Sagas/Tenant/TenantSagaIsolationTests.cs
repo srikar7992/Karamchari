@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantSagaIsolationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Core.UnitTests.Messaging.Sagas.Tenant;
 
 using FluentAssertions;

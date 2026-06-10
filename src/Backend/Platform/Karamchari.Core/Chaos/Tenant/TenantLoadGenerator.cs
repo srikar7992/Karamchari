@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantLoadGenerator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 

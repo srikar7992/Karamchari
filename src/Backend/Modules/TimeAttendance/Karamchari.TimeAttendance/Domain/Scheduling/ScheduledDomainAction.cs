@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ScheduledDomainAction.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Domain.Scheduling;
 
 using Karamchari.Core.Domain.Primitives;

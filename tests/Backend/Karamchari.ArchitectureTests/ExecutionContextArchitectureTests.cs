@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ExecutionContextArchitectureTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Messaging.Tenant;
 using NetArchTest.Rules;

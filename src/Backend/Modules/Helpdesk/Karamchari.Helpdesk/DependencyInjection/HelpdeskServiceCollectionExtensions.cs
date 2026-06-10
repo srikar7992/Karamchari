@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="HelpdeskServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Helpdesk.Persistence;
 using Microsoft.EntityFrameworkCore;

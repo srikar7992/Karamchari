@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantOptions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Karamchari.Core.Multitenancy;

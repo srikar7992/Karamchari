@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LoanInstallment.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Domain.Loans;
 
 /// <summary>

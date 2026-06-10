@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LeaveValidationEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Services.Validation;
 
 /// <summary>

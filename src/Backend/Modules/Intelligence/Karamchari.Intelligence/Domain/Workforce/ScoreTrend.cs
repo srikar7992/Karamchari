@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ScoreTrend.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Intelligence.Domain.Workforce;
 
 /// <summary>Direction of a workforce score over time.</summary>

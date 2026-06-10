@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ProjectionDeadLetter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;

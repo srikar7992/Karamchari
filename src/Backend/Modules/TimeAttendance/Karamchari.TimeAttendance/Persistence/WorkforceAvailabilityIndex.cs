@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkforceAvailabilityIndex.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 
 namespace Karamchari.TimeAttendance.Persistence;

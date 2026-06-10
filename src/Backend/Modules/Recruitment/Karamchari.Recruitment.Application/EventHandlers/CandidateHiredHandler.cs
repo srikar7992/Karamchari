@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CandidateHiredHandler.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using Karamchari.Recruitment.Contracts;
 using Karamchari.Recruitment.Domain;

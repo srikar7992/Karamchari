@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkflowDefinitionTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Domain.Workflows;
 using Karamchari.Workflow.Domain;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkforcePlanningModels.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using System.Text.Json.Serialization;
 

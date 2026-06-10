@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ISettlementExecutionProvider.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.FinancialOps.Contracts.Settlements;
 
 namespace Karamchari.FinancialOps.Domain.Settlements;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IShiftConstraint.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Domain.Compliance;
 using Karamchari.TimeAttendance.Domain.Shifts;
 

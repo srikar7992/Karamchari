@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ScenarioEvaluationService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.PlatformIntelligence.Domain.Platform;
 using Karamchari.PlatformIntelligence.Domain.Scenarios;

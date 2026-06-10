@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IApprovalWorkflowResolver.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Services;
 
 using Karamchari.TimeAttendance.Domain.Approval;

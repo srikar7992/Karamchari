@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TimesheetApprovedAnalyticsConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Contracts;
 using Karamchari.TimeAttendance.Domain.Analytics;
 using Karamchari.TimeAttendance.Domain.Timesheets;

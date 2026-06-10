@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="HubNotificationPushService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 

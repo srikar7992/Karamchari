@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmployeeService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Contracts.IntegrationEvents.V1;
 using Karamchari.Core.Multitenancy;
 using Karamchari.HR.Contracts.Employees;

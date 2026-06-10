@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ImportJobStateMachineTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.DataMigration.Domain.Importing;
 using Xunit;

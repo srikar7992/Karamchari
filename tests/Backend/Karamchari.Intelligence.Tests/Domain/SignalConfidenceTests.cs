@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SignalConfidenceTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Intelligence.Domain.Primitives;
 using Xunit;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IntelligenceProjectionConsumers.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Threading.Tasks;
 using Karamchari.Compensation.Contracts.IntegrationEvents;
 using Karamchari.Core.Contracts.IntegrationEvents;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ICapabilityModule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using MassTransit;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;

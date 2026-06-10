@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantPropagationValidationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using FluentAssertions;

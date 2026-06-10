@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ValueComparers.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 

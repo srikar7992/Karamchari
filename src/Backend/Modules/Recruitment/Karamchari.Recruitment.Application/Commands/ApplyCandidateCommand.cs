@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ApplyCandidateCommand.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Recruitment.Application;
 using Karamchari.Recruitment.Domain;

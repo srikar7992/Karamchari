@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ConfidenceEvaluationEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Intelligence.Domain.Primitives;
 
 namespace Karamchari.Intelligence.Domain.Signals;

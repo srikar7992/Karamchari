@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OrganizationHierarchyCleanupWorker.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 

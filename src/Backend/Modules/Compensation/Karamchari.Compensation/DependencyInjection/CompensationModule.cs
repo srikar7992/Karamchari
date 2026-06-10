@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CompensationModule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using MassTransit;
 using Microsoft.AspNetCore.Routing;

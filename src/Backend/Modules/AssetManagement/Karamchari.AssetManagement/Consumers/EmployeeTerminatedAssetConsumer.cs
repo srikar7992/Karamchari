@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmployeeTerminatedAssetConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.AssetManagement.Domain;
 using Karamchari.AssetManagement.Persistence;
 using Karamchari.Core.Contracts.IntegrationEvents;

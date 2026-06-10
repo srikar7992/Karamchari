@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ResilienceExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 

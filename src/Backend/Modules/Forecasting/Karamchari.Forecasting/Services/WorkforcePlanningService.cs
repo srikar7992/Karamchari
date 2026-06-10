@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkforcePlanningService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Forecasting.Domain.Workforce;
 using Karamchari.Forecasting.Persistence;
 using Microsoft.Data.SqlClient;

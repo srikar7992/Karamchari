@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IncidentSimulationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Messaging.Tenant;

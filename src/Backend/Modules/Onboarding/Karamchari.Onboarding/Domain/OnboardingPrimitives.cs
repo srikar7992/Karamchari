@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OnboardingPrimitives.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Onboarding.Domain;
 
 public record OnboardingCaseId(Guid Value);

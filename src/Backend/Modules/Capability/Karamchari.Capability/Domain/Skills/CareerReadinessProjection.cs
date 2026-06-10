@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CareerReadinessProjection.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System;
 using Karamchari.Capability.Domain.Primitives;
 

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantJobContextSerializer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;

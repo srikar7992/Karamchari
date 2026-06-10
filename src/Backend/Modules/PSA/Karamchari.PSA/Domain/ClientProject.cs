@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ClientProject.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.PSA.Domain;
 
 using Karamchari.Core.Multitenancy;

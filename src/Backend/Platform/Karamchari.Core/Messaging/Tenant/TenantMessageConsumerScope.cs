@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantMessageConsumerScope.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;
 using MassTransit;

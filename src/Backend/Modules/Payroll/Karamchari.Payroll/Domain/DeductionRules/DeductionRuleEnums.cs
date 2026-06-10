@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DeductionRuleEnums.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Domain.DeductionRules;
 
 public enum StatutoryDeductionType

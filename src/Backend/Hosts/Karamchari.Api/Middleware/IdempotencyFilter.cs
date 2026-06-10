@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IdempotencyFilter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Core.Domain.Idempotency;
 using Karamchari.Core.Persistence;

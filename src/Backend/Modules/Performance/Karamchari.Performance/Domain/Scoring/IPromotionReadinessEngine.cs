@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IPromotionReadinessEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Performance.Domain.Scoring;
 
 /// <summary>

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DefaultOKRScoringStrategy.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Performance.Domain.OKRs;
 
 namespace Karamchari.Performance.Domain.Scoring;

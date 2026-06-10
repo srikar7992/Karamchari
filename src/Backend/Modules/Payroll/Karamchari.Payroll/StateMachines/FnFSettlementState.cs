@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FnFSettlementState.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using MassTransit;
 
 namespace Karamchari.Payroll.StateMachines;

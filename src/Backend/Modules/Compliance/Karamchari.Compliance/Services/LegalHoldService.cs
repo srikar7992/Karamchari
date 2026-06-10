@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LegalHoldService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compliance.Domain.LegalHold;
 using Karamchari.Compliance.Domain.Retention;
 using Karamchari.Compliance.Persistence;

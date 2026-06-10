@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AbsenceTrendAnalyzer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Domain.Attendance;
 using Karamchari.TimeAttendance.Persistence;
 using Microsoft.EntityFrameworkCore;

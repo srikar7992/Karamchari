@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecruitmentArchitectureTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Reflection;
 using NetArchTest.Rules;
 using Xunit;

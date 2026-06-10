@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmployeeCompensationRecord.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compensation.Contracts.IntegrationEvents;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;

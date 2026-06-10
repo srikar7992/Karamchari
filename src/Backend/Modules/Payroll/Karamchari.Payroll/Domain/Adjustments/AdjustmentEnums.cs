@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AdjustmentEnums.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Domain.Adjustments;
 
 public enum AdjustmentType

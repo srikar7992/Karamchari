@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AttendanceMetrics.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics.Metrics;
 using System.Reflection;
 

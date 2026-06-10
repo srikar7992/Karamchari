@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LearningEnrollmentTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Capability.Domain.Learning;
 using Karamchari.Capability.Domain.Primitives;

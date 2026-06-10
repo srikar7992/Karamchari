@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="MessagingServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Messaging.Tenant;
 using MassTransit;
 using Microsoft.Extensions.Configuration;

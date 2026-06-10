@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ImportApiCertificationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BillableEntryTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Billing.Domain.BillableEntries;
 using Xunit;

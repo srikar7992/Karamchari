@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IdentityModule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Identity.Infrastructure;
 using MassTransit;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ILeaveValidationRule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Services.Validation;
 
 using Karamchari.TimeAttendance.Domain.Leaves;

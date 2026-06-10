@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ForecastingServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Forecasting.Persistence;
 using Karamchari.Forecasting.Services;

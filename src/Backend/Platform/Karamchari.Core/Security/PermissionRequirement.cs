@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PermissionRequirement.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Microsoft.AspNetCore.Authorization;
 
 namespace Karamchari.Core.Security;

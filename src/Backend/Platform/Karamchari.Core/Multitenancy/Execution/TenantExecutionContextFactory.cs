@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantExecutionContextFactory.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Globalization;
 using System.Security.Claims;

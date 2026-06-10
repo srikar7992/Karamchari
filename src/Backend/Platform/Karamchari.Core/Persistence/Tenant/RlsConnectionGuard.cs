@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RlsConnectionGuard.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;

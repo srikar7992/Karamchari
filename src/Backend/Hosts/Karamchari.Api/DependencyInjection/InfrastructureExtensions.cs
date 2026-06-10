@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InfrastructureExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Threading.RateLimiting;
 using FluentValidation;
 using Karamchari.HR.Persistence;

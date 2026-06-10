@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantExecutionContext.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 

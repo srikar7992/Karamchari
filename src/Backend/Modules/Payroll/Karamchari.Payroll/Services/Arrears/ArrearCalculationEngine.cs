@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ArrearCalculationEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Arrears;
 using Microsoft.EntityFrameworkCore;

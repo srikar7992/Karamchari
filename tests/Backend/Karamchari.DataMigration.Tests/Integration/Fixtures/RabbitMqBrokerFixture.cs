@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RabbitMqBrokerFixture.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Messaging.Tenant;

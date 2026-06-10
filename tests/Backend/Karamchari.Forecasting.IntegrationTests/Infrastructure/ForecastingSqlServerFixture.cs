@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ForecastingSqlServerFixture.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Karamchari.Forecasting.Consumers;

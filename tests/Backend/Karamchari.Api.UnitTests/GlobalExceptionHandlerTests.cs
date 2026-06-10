@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GlobalExceptionHandlerTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;

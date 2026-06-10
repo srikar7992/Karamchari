@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IntelligenceServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Intelligence.Consumers;
 using Karamchari.Intelligence.Persistence;

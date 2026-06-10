@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ITaxCalculatorService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Services.Calculation;
 
 public sealed record TaxCalculationInput(

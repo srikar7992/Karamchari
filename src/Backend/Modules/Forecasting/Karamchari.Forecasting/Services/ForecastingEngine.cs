@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ForecastingEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Billing.Contracts;
 using Karamchari.Forecasting.Domain;
 using Karamchari.Forecasting.Persistence;

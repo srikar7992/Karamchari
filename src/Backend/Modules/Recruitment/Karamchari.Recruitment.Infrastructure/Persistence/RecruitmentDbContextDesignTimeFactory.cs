@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecruitmentDbContextDesignTimeFactory.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;

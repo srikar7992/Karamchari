@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GeoConfidenceScorer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Domain.Biometric;
 using Karamchari.TimeAttendance.Domain.Geo;
 using Karamchari.TimeAttendance.Persistence;

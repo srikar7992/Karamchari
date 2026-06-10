@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FinancialOpsModule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.FinancialOps.Domain.Reimbursements;
 using Karamchari.FinancialOps.Persistence;

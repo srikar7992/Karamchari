@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ArrearConsumers.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Arrears;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ShiftRosteringEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Domain.Schedules;
 using Karamchari.TimeAttendance.Domain.Shifts;
 using Karamchari.TimeAttendance.Persistence;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GoalType.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Performance.Domain.Goals;
 
 /// <summary>

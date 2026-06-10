@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="Phase10_ComplianceTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Tests;
 
 using FluentAssertions;

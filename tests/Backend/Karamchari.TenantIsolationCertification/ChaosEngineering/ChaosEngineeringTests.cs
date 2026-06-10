@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ChaosEngineeringTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics;
 using FluentAssertions;
 using Karamchari.Core.Multitenancy;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CompetencyRequirement.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Performance.Domain.Skills;
 
 namespace Karamchari.Performance.Domain.Career;

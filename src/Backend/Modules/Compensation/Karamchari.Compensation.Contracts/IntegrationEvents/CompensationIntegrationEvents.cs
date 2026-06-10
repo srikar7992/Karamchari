@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CompensationIntegrationEvents.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 // Compensation Planning bounded context â€” integration event contracts.
 // PLACEHOLDER: BC not yet implemented. Contracts defined here to allow
 // Performance BC to publish toward this namespace and avoid coupling.

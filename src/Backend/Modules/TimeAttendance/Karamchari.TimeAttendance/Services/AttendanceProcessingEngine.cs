@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AttendanceProcessingEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Text.Json;
 using Karamchari.Core.Domain.Primitives;

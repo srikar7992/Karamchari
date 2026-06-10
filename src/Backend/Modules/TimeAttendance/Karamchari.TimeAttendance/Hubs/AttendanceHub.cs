@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AttendanceHub.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Hubs;
 
 using System.Security.Claims;

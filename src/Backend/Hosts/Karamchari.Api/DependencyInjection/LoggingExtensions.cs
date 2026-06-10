@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LoggingExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Observability.Tenant;
 using Serilog;
 using Serilog.Events;

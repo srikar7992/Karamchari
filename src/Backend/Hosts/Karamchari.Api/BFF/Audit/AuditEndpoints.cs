@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AuditEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Claims;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;

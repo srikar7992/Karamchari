@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CollectionCaseConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Billing.Contracts;
 using Karamchari.Billing.Domain.Collections;
 using Karamchari.Billing.Persistence;

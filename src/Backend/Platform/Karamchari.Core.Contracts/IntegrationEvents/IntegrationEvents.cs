@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IntegrationEvents.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 // Integration event contracts shared across all bounded contexts.
 // These are pure data records â€” no domain logic, no EF entities, no framework dependencies.
 // Versioned using nested namespaces so consumers can pin to a stable version

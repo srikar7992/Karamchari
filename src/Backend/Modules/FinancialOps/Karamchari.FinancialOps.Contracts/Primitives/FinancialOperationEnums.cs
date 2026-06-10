@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FinancialOperationEnums.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.FinancialOps.Contracts.Primitives;
 
 /// <summary>

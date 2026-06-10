@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FinancialOperationalPeriodTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.FinancialOps.Domain.Periods;
 using Xunit;

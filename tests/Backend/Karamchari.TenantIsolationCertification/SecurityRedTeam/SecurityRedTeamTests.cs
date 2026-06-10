@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SecurityRedTeamTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Cryptography;
 using System.Text;
 using FluentAssertions;

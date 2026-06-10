@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="MigrationRecoveryTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Persistence.Migrations.Tenant;
 using Microsoft.Extensions.Logging;

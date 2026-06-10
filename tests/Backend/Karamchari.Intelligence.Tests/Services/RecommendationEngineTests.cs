@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecommendationEngineTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Intelligence.Domain.Workforce;
 using Karamchari.Intelligence.Services;

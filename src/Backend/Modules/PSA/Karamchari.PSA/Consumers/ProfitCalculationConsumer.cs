@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ProfitCalculationConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.PSA.Consumers;
 
 using EFCore.BulkExtensions;

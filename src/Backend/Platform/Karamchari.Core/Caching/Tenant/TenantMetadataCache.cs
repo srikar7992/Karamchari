@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantMetadataCache.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 

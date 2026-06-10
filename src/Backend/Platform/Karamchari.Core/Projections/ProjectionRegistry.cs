@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ProjectionRegistry.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Core.Projections;
 
 internal sealed class ProjectionRegistry : IProjectionRegistry

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OnboardingIntegrationEvents.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Messaging;
 
 namespace Karamchari.Onboarding.Contracts.IntegrationEvents;

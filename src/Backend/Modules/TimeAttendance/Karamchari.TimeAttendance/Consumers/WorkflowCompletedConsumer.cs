@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkflowCompletedConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Domain.Workflows;
 using Karamchari.TimeAttendance.Domain.Leaves;

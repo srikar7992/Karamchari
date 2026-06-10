@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="MessagingTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics;
 using FluentAssertions;
 using Karamchari.Core.Messaging.Tenant;

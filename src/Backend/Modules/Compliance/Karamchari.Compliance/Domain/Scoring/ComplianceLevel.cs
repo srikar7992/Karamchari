@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ComplianceLevel.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Compliance.Domain.Scoring;
 
 public enum ComplianceLevel

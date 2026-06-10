@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AssetManagementModule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.AssetManagement.DependencyInjection;
 using Karamchari.Core.DependencyInjection;
 using MassTransit;

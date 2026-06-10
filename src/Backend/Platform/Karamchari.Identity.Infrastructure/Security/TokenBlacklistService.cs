@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TokenBlacklistService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Identity.Domain;
 using Karamchari.Identity.Infrastructure.Persistence;
 using Karamchari.Identity.Services;

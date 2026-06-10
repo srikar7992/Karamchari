@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="UnsafeQueryAccessException.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Globalization;
 
 namespace Karamchari.Core.Persistence.Filters;

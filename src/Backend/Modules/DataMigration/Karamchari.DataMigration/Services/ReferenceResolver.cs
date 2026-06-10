@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ReferenceResolver.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.HR.Persistence;
 using Karamchari.Payroll.Data;
 using Karamchari.TimeAttendance.Persistence;

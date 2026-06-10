@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SalaryRevisionImportValidatorTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.DataMigration.Features.SalaryRevision;
 using Karamchari.DataMigration.Services;

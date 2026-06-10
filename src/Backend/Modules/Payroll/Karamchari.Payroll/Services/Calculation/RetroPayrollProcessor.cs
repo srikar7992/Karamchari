@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RetroPayrollProcessor.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain.Adjustments;

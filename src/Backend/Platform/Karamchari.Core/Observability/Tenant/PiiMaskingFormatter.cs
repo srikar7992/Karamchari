@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PiiMaskingFormatter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.RegularExpressions;
 
 namespace Karamchari.Core.Observability.Tenant;

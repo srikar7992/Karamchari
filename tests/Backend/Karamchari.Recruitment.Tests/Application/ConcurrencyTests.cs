@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ConcurrencyTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Recruitment.Application.Commands;
 using Karamchari.Recruitment.Domain;

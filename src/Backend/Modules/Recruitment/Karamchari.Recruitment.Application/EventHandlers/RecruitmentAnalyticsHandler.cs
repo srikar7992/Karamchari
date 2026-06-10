@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecruitmentAnalyticsHandler.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Messaging;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Recruitment.Contracts;

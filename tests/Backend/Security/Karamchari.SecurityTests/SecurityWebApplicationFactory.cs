@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SecurityWebApplicationFactory.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Karamchari.Identity.Infrastructure.Persistence;

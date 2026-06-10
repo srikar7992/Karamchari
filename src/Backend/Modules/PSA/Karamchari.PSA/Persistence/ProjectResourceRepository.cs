@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ProjectResourceRepository.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.PSA.Persistence;
 
 using Karamchari.PSA.Domain;

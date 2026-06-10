@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecruitmentEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Claims;
 using Karamchari.Core.Security;
 using Karamchari.Recruitment.Application.Commands;

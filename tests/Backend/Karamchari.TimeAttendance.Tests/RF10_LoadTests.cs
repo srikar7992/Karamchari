@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RF10_LoadTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Tests;
 
 using FluentAssertions;

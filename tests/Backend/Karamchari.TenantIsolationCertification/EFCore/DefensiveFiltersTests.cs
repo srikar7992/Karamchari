@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DefensiveFiltersTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Data.Common;
 using FluentAssertions;
 using Karamchari.Core.Multitenancy;

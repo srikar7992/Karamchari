@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="Phase13DomainIsolationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Karamchari.Compliance.Domain.Violations;

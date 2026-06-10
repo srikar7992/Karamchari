@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OfferWorkflowCommands.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Recruitment.Domain;
 using MediatR;

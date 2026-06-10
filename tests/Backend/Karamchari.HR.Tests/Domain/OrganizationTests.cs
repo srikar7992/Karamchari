@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OrganizationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.HR.Domain.Organization;
 using Karamchari.HR.Domain.Relationships;

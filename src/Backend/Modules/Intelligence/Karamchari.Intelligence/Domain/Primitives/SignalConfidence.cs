@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SignalConfidence.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Intelligence.Domain.Primitives;
 
 /// <summary>

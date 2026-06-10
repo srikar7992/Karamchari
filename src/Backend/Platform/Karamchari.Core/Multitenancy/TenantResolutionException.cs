@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantResolutionException.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Core.Multitenancy;
 
 /// <summary>

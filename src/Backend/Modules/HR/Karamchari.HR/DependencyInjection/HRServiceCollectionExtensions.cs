@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="HRServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compensation.Contracts.IntegrationEvents;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Core.Messaging;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantCacheGuard.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Multitenancy;
 using Microsoft.Extensions.Logging;
 

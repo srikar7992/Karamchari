@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SchemaValidator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using Karamchari.Governance.Domain.Contracts;
 using Karamchari.Governance.Persistence;

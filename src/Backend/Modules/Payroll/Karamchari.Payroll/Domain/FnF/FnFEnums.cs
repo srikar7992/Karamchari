@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="FnFEnums.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Domain.FnF;
 
 /// <summary>

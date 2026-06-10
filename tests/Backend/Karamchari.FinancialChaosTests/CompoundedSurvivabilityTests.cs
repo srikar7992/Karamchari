@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CompoundedSurvivabilityTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Multitenancy;
 using Karamchari.FinancialOps.Contracts.Primitives;

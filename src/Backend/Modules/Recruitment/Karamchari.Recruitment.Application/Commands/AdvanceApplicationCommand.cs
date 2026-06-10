@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AdvanceApplicationCommand.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Recruitment.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

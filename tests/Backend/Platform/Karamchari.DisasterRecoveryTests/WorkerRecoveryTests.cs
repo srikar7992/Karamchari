@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkerRecoveryTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Collections.Concurrent;
 using FluentAssertions;
 using Karamchari.Core.Messaging.Outbox;

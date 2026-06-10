@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BackgroundJobTenantSafetyTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.BackgroundJobs.Tenant;
 using Karamchari.Core.Multitenancy;

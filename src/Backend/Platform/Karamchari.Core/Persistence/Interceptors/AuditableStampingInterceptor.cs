@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AuditableStampingInterceptor.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Claims;
 using Karamchari.Core.Domain.Primitives;
 using Microsoft.AspNetCore.Http;

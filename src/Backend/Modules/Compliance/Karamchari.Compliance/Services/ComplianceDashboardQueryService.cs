@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ComplianceDashboardQueryService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compliance.Domain.LegalHold;
 using Karamchari.Compliance.Domain.Reporting;
 using Karamchari.Compliance.Domain.Retention;

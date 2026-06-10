@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecruitmentWorkerExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Recruitment.Application.EventHandlers.Analytics;
 using Karamchari.Recruitment.Worker.Consumers;
 using MassTransit;

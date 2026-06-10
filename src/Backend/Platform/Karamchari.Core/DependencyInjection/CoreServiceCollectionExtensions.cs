@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CoreServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Messaging;
 using Karamchari.Core.Messaging.Outbox;
 using Karamchari.Core.Middleware;

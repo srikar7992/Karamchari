@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OKRCycleStatus.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Performance.Domain.OKRs;
 
 /// <summary>

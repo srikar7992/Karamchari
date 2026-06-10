@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecomputeQueueDrainer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Forecasting.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

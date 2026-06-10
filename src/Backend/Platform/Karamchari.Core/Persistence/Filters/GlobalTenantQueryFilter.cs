@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GlobalTenantQueryFilter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Globalization;
 using System.Linq.Expressions;
 using Karamchari.Core.Multitenancy;

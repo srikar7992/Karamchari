@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ScheduledShiftCreatedConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Domain.Attendance;
 using Karamchari.TimeAttendance.Domain.Rostering.Events;
 using Karamchari.TimeAttendance.Persistence;

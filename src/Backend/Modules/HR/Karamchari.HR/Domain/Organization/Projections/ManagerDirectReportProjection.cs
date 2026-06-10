@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ManagerDirectReportProjection.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System;
 
 namespace Karamchari.HR.Domain.Organization.Projections;

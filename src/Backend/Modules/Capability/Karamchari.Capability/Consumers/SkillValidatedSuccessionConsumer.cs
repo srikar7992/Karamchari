@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SkillValidatedSuccessionConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Threading.Tasks;
 using Karamchari.Capability.Projections;
 using Karamchari.Core.Contracts.IntegrationEvents;

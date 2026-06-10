@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RegulatoryRule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Compliance.Domain.Violations;
 using Karamchari.Core.Domain.Primitives;
 

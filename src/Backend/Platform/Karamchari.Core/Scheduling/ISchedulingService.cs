@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ISchedulingService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Threading;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GovernanceServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Governance.Persistence;
 using Karamchari.Governance.Services;

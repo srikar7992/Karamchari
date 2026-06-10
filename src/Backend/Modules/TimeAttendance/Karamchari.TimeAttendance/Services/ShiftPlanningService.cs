@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ShiftPlanningService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Domain.Compliance;
 using Karamchari.TimeAttendance.Domain.Schedules;
 using Karamchari.TimeAttendance.Domain.Schedules.Constraints;

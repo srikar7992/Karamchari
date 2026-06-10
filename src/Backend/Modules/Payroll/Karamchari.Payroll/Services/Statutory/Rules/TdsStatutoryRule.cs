@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TdsStatutoryRule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Services.Statutory.Rules;
 
 using Karamchari.Payroll.Domain.Statutory;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ExpenseClaimTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.FinancialOps.Contracts.Primitives;
 using Karamchari.FinancialOps.Contracts.Reimbursements;

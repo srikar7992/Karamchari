@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantExecutionContextTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Multitenancy.Execution;

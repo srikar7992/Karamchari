@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CacheIsolationTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text;
 using System.Text.RegularExpressions;
 using FluentAssertions;

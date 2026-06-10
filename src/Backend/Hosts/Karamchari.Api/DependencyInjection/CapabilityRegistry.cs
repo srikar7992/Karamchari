@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CapabilityRegistry.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.AssetManagement.DependencyInjection;
 using Karamchari.Billing.DependencyInjection;
 using Karamchari.Capability.DependencyInjection;

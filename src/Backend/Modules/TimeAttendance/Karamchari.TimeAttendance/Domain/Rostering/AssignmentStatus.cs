@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AssignmentStatus.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Domain.Rostering;
 
 public enum AssignmentStatus

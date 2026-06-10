@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EsicGenerator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using ClosedXML.Excel;
 using Karamchari.Payroll.Domain.Compliance;
 

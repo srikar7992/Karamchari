@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IRetroPayrollProcessor.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Domain.Adjustments;
 
 namespace Karamchari.Payroll.Services.Calculation;

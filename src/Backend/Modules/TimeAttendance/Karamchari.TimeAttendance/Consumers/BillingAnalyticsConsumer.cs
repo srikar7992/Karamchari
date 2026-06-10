@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="BillingAnalyticsConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Billing.Contracts;
 using Karamchari.TimeAttendance.Domain.Analytics;
 using Karamchari.TimeAttendance.Persistence;

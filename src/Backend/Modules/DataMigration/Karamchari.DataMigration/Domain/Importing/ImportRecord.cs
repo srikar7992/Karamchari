@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ImportRecord.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.DataMigration.Domain.Importing;
 
 /// <summary>

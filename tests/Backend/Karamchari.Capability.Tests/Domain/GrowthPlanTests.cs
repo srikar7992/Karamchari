@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GrowthPlanTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Capability.Domain.Growth;
 using Karamchari.Capability.Domain.Primitives;

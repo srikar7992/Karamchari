@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PerStateGoldenPayrollTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Services.Calculation;
 using Karamchari.Payroll.Services.Deductions;
 

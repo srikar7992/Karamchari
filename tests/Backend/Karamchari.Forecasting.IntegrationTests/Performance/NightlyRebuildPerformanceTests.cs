@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="NightlyRebuildPerformanceTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Forecasting.IntegrationTests.Infrastructure;
 using Microsoft.EntityFrameworkCore;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OnboardingProcessTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.HR.Domain.Employees;
 using Xunit;

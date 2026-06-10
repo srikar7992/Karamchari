@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecommendationEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Intelligence.Domain.Workforce;
 using Karamchari.Intelligence.Services.Scoring;
 

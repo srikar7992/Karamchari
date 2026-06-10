@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OrganizationService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.HR.Contracts.Organization;
 using Karamchari.HR.Domain.Departments;
 using Karamchari.HR.Persistence;

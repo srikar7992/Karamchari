@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IDocumentIntelligenceService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.HR.Services;
 
 /// <summary>

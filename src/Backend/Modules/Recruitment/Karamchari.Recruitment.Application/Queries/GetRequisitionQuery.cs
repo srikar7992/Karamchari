@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GetRequisitionQuery.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Recruitment.Contracts;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

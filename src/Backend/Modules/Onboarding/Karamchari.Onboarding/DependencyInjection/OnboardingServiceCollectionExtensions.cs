@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="OnboardingServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Onboarding.Persistence;
 using MassTransit;

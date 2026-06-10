@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LeaveEvents.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Domain.Primitives;
 
 namespace Karamchari.TimeAttendance.Domain.Leaves.Events;

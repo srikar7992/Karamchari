@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AnalyticsBroadcaster.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.PSA.Hubs;
 
 using Microsoft.AspNetCore.SignalR;

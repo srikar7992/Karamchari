@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="WorkforcePlanningConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Contracts.IntegrationEvents.V1;
 using Karamchari.Forecasting.Domain.Workforce;

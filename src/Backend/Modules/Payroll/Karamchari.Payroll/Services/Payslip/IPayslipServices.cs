@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IPayslipServices.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Services.Payslip;
 
 /// <summary>

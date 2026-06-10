@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PSAServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.PSA.Hubs;
 using Karamchari.PSA.Persistence;

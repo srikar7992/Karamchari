@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SecurityValidatorsTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Security.Tenant;
 using Karamchari.TenantIsolationCertification.Infrastructure;

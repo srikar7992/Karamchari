@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ConsumerReplayTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Contracts.IntegrationEvents.V1;

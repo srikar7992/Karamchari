@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DataMigrationServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.DependencyInjection;
 using Karamchari.DataMigration.Features.Employees;
 using Karamchari.DataMigration.Features.HistoricalPayroll;

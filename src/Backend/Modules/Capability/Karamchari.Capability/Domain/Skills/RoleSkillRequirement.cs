@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RoleSkillRequirement.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Capability.Domain.Primitives;
 using Karamchari.Core.Domain.Primitives;
 using Karamchari.Core.Multitenancy;

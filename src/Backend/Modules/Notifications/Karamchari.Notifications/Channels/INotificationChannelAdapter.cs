@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="INotificationChannelAdapter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Notifications.Domain;
 
 namespace Karamchari.Notifications.Channels;

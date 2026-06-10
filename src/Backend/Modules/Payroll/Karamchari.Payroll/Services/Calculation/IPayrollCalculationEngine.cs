@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IPayrollCalculationEngine.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Payroll.Domain.Results;
 
 namespace Karamchari.Payroll.Services.Calculation;

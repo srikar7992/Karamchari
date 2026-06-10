@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AttendanceNotificationConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Notifications.Domain;
 using Karamchari.Notifications.Orchestration;
 using Karamchari.TimeAttendance.Contracts;

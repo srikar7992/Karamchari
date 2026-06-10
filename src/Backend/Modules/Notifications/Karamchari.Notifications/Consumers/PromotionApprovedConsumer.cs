@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PromotionApprovedConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Globalization;
 using Karamchari.Notifications.Domain;
 using Karamchari.Notifications.Orchestration;

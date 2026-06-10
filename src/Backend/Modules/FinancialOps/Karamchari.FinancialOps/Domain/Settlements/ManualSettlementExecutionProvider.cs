@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ManualSettlementExecutionProvider.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.FinancialOps.Contracts.Settlements;
 using Microsoft.Extensions.Logging;
 

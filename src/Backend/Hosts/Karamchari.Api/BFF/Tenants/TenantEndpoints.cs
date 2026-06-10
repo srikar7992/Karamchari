@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="TenantEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Api.BFF.Common;
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Persistence.Provisioning;

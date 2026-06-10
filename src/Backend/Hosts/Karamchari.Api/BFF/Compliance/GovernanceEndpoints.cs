@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="GovernanceEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Claims;
 using Karamchari.Compliance.Domain.LegalHold;
 using Karamchari.Compliance.Domain.Violations;

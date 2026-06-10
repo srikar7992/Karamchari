@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="LeaveBalanceProjectionRebuilder.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Projections;
 using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Persistence;

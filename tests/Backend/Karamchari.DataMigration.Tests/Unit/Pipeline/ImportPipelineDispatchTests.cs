@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ImportPipelineDispatchTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.DataMigration.API;
 using Karamchari.DataMigration.Domain.Importing;

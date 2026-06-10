@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="InboxConsumerFilter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text.Json;
 using MassTransit;
 using Microsoft.Extensions.Logging;

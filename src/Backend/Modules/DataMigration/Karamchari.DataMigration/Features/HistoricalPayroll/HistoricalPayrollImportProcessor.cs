@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="HistoricalPayrollImportProcessor.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.DataMigration.Domain.Importing;
 using Karamchari.DataMigration.Persistence;
 using Karamchari.DataMigration.Services;

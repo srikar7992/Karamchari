@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ProfessionalTaxRule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Payroll.Services.Statutory.Rules;
 
 /// <summary>

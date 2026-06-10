@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="SecurityHeadersMiddleware.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics;
 using Karamchari.Core.Multitenancy.Execution;
 

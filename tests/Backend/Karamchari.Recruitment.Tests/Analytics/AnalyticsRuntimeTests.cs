@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="AnalyticsRuntimeTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Core.Messaging;
 using Karamchari.Recruitment.Application.EventHandlers.Analytics;

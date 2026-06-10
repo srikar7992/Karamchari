@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ConfidenceEvaluationEngineTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Intelligence.Domain.Primitives;
 using Karamchari.Intelligence.Domain.Signals;

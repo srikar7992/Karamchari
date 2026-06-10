@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PlatformIntelligenceEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Security.Claims;
 using Karamchari.PlatformIntelligence.Persistence;
 using Karamchari.PlatformIntelligence.Services;

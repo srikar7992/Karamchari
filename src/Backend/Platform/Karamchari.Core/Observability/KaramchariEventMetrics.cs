@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="KaramchariEventMetrics.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Diagnostics.Metrics;
 
 namespace Karamchari.Core.Observability;

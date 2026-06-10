@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RecomputeQueuePerformanceTests.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using Karamchari.Forecasting.Domain.Workforce;
 using Karamchari.Forecasting.IntegrationTests.Infrastructure;

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PublishViolation.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Domain.Rostering.Validation;
 
 public sealed record PublishViolation(

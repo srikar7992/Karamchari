@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="PayrollBatchConsumer.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using EFCore.BulkExtensions;
 using Karamchari.Core.Contracts;
 using Karamchari.Core.Multitenancy;

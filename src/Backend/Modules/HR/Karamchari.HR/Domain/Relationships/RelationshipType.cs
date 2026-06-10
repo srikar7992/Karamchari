@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RelationshipType.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.HR.Domain.Relationships;
 
 /// <summary>Type of reporting or functional relationship between two employees.</summary>

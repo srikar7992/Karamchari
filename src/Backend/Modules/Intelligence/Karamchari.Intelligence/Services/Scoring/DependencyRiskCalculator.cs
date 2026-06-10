@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DependencyRiskCalculator.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Intelligence.Domain.Workforce;
 
 namespace Karamchari.Intelligence.Services.Scoring;

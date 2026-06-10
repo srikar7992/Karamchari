@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="DeliveryResult.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.Notifications.Domain;
 
 /// <summary>Result of a single delivery attempt for one channel.</summary>

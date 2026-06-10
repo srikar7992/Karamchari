@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CompOffAccrualService.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.TimeAttendance.Domain.Leaves;
 using Karamchari.TimeAttendance.Domain.Policy;
 using Karamchari.TimeAttendance.Persistence;

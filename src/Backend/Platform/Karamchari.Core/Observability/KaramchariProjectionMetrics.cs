@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="KaramchariProjectionMetrics.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

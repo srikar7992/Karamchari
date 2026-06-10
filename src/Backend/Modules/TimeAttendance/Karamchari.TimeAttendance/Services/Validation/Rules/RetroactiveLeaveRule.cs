@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="RetroactiveLeaveRule.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.TimeAttendance.Services.Validation.Rules;
 
 /// <summary>

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="ImportJobQueued.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace Karamchari.DataMigration.Contracts.Events;
 
 /// <summary>

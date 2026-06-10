@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EmailChannelAdapter.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Notifications.Domain;
 using Karamchari.Notifications.Email;
 using Microsoft.Extensions.Logging;
