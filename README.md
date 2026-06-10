@@ -41,6 +41,10 @@ To provision and start the local developer stack:
         ```powershell
         ./verify-local.ps1
         ```
+    *   **Unified PASS/WARN/FAIL probe** (docker, SQL, Redis, RabbitMQ, observability stack, API):
+        ```powershell
+        ./health-check.ps1
+        ```
 
 Once running, the API Gateway is available at `https://localhost:60462/scalar` (redirects automatically from `/`).
 
@@ -56,6 +60,8 @@ All project documentation is organized under the [docs/](docs) folder:
     -   [decisions/](docs/architecture/decisions): Execution flow definitions (Tenant Execution, Replay/Retry).
     -   [database-registry.md](docs/architecture/database-registry.md): Metadata owner registry for all 18 database contexts.
 -   [domains/](docs/domains): Explanations of business rules and objectives for each domain module.
+-   [release-readiness.md](docs/release-readiness.md): Living release readiness checklist with per-item status and evidence.
+-   Per-module READMEs live beside each module project under [src/Backend/Modules/](src/Backend/Modules) (purpose, events published/consumed, tables, dependencies, tests).
 -   [operations/](docs/operations): Operational runbooks:
     -   [runbooks/](docs/operations/runbooks): Step-by-step procedures.
     -   [monitoring/](docs/operations/monitoring): Observability guides (OTel, logging, metrics, event topologies).
@@ -82,6 +88,6 @@ For local development workflows:
 ## 5. Deployment & Pipelines
 
 Continuous integration is handled via GitHub Actions:
-*   [ci.yml](.github/workflows/ci.yml): Compiles the backend and validates formatting.
+*   [ci.yml](.github/workflows/ci.yml): Restores with locked dependencies, verifies formatting and copyright headers, builds with warnings-as-errors, runs tests with a ratcheting line-coverage floor, architecture tests, the tenant isolation gate, dependency audit, and secret scanning.
 *   [deploy-api.yml](.github/workflows/deploy-api.yml): Builds Docker containers and pushes builds to Azure App Services.
 *   [tenant-isolation-certification.yml](.github/workflows/tenant-isolation-certification.yml): Nightly stress/chaos runner validating multi-tenant isolation.
