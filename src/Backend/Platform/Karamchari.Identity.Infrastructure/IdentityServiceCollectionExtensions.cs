@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IdentityServiceCollectionExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Karamchari.Identity.Infrastructure.Configuration;
@@ -188,6 +195,20 @@ internal sealed class ConfigureJwtBearerOptions : IPostConfigureOptions<JwtBeare
 
         options.Events = new JwtBearerEvents
         {
+            // SignalR cannot send an Authorization header during the WebSocket handshake,
+            // so hub connections carry the bearer token in the access_token query parameter
+            // (the standard SignalR pattern). Only honored for /hubs paths.
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken)
+                    && context.HttpContext.Request.Path.StartsWithSegments("/hubs", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            },
             OnTokenValidated = async context =>
             {
                 var blacklist = context.HttpContext.RequestServices.GetRequiredService<ITokenBlacklistService>();

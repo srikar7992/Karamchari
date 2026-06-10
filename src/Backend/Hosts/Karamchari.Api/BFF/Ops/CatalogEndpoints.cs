@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="CatalogEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Core.Contracts.EventCatalog;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +19,9 @@ public static class CatalogEndpoints
 {
     public static WebApplication MapCatalogEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/catalog/events");
+        // Anonymous by design (see class summary); declared explicitly so the endpoint
+        // catalog audit can enforce that every endpoint states its authorization posture.
+        var group = app.MapGroup("/api/v1/catalog/events").AllowAnonymous();
 
         group.MapGet("/", ListEvents).WithName("Catalog.Events.List");
         group.MapGet("/{eventName}", GetEvent).WithName("Catalog.Events.Get");

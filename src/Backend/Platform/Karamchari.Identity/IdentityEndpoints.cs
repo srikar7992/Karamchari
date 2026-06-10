@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="IdentityEndpoints.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Identity.Contracts;
 using Karamchari.Identity.Services;
 using Microsoft.AspNetCore.Builder;
@@ -19,9 +26,12 @@ public static class IdentityEndpoints
         // Abuse protection: all auth endpoints are rate-limited per client IP ("auth" policy).
         var group = app.MapGroup("/api/identity").RequireRateLimiting("auth");
 
-        group.MapPost("/register", Register);
-        group.MapPost("/login", Login);
-        group.MapPost("/refresh", Refresh);
+        // Anonymous access is intentional for the credential-acquisition endpoints and is
+        // declared explicitly so the endpoint catalog audit can enforce that every endpoint
+        // states its authorization posture.
+        group.MapPost("/register", Register).AllowAnonymous();
+        group.MapPost("/login", Login).AllowAnonymous();
+        group.MapPost("/refresh", Refresh).AllowAnonymous();
         group.MapPost("/logout", Logout).RequireAuthorization();
 
         return app;

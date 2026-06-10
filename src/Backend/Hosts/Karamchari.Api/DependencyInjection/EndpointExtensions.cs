@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="EndpointExtensions.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Api.BFF.AssetManagement;
 using Karamchari.Api.BFF.Attendance;
 using Karamchari.Api.BFF.Audit;
@@ -25,6 +32,7 @@ using Karamchari.Api.BFF.Search;
 using Karamchari.Api.BFF.Succession;
 using Karamchari.Api.BFF.Tenants;
 using Karamchari.Api.BFF.Workflow;
+using Karamchari.Api.EndpointRegistry;
 using Karamchari.Identity;
 using Karamchari.Notifications.RealTime;
 using Karamchari.PSA.Hubs;
@@ -50,13 +58,19 @@ public static class EndpointExtensions
         // Infrastructure
         app.MapIdentityEndpoints();
 
-        // Hubs
-        app.MapHub<AttendanceHub>("/hubs/attendance");
-        app.MapHub<AnalyticsHub>("/hubs/analytics");
-        app.MapHub<NotificationHub>("/hubs/notifications");
+        // Hubs. Authenticated: SignalR clients pass the bearer token via the access_token
+        // query parameter, which the JWT handler maps for /hubs paths (see
+        // ConfigureJwtBearerOptions.OnMessageReceived in Karamchari.Identity.Infrastructure).
+        app.MapHub<AttendanceHub>("/hubs/attendance").RequireAuthorization();
+        app.MapHub<AnalyticsHub>("/hubs/analytics").RequireAuthorization();
+        app.MapHub<NotificationHub>("/hubs/notifications").RequireAuthorization();
 
         // Analytics Daily Metrics (Remaining from Program.cs)
-        app.MapGet("/api/analytics/projects/daily", GetDailyProjectMetrics);
+        app.MapGet("/api/analytics/projects/daily", GetDailyProjectMetrics)
+            .RequireAuthorization();
+
+        // Operational endpoint registry (route/module/authorization audit surface)
+        app.MapEndpointCatalogEndpoints();
 
         // Map Endpoints via Capability Modules
         var modules = CapabilityRegistry.GetModules(app.Configuration);

@@ -1,3 +1,10 @@
+// -----------------------------------------------------------------------
+// <copyright file="Program.cs" company="Karamchari">
+// Copyright (c) Karamchari.
+// All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
 using Karamchari.Api.DependencyInjection;
 using Karamchari.Api.Middleware;
 using Karamchari.Core.DependencyInjection;
@@ -131,7 +138,8 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
             PreferredSecuritySchemes = new List<string> { "Bearer" }
         };
     });
-    app.MapGet("/", () => Results.Redirect("/scalar"));
+    // Development-only convenience redirect to the Scalar API reference.
+    app.MapGet("/", () => Results.Redirect("/scalar")).AllowAnonymous();
 }
 
 app.UseRateLimiter();
