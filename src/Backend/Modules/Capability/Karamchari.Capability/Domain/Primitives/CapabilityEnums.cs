@@ -110,6 +110,30 @@ public enum CareerReadinessBand
     NeedsDevelopment,
 }
 
+/// <summary>Organizational importance of a position for succession planning prioritization.</summary>
+public enum PositionCriticality
+{
+    /// <summary>Replaceable with standard recruiting; succession tracking optional.</summary>
+    Low,
+    /// <summary>Meaningful impact if vacant; succession pool recommended.</summary>
+    Medium,
+    /// <summary>Significant operational impact if vacant; succession pool required.</summary>
+    High,
+    /// <summary>Vacancy threatens core operations; bench must include ReadyNow successors.</summary>
+    MissionCritical,
+}
+
+/// <summary>Succession risk level derived from the ReadyNow successor count for a critical position.</summary>
+public enum SuccessionRiskLevel
+{
+    /// <summary>Two or more ReadyNow successors exist.</summary>
+    Low,
+    /// <summary>Exactly one ReadyNow successor exists.</summary>
+    Medium,
+    /// <summary>No ReadyNow successors exist.</summary>
+    High,
+}
+
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>

@@ -588,6 +588,88 @@ namespace Karamchari.Capability.Migrations
                     b.ToTable("Capability_CareerProgressionEdges", "__tenant__");
                 });
 
+            modelBuilder.Entity("Karamchari.Capability.Domain.Succession.CriticalPosition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("PositionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoleRequirementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Criticality")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeactivatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "PositionId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CriticalPosition_Tenant_Position");
+
+                    b.HasIndex("TenantId", "RoleRequirementId")
+                        .HasDatabaseName("IX_CriticalPosition_RoleRequirement");
+
+                    b.ToTable("Capability_CriticalPositions", "__tenant__");
+                });
+
+            modelBuilder.Entity("Karamchari.Capability.Domain.Succession.SuccessorCandidateProjection", b =>
+                {
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("PositionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("ReadinessScore")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<string>("Band")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdatedUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("TenantId", "PositionId", "EmployeeId");
+
+                    b.HasIndex("TenantId", "PositionId", "Band", "Rank")
+                        .HasDatabaseName("IX_SuccessorCandidate_PositionRanking");
+
+                    b.HasIndex("TenantId", "EmployeeId")
+                        .HasDatabaseName("IX_SuccessorCandidate_EmployeePools");
+
+                    b.ToTable("Capability_SuccessorCandidateProjections", "__tenant__");
+                });
+
             modelBuilder.Entity("Karamchari.Capability.Domain.Skills.CareerReadinessProjection", b =>
                 {
                     b.Property<string>("TenantId")

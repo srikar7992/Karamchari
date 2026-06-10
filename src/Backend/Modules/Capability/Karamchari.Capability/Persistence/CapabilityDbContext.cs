@@ -5,6 +5,7 @@ using Karamchari.Capability.Domain.Marketplace;
 using Karamchari.Capability.Domain.Mobility;
 using Karamchari.Capability.Domain.Pathing;
 using Karamchari.Capability.Domain.Skills;
+using Karamchari.Capability.Domain.Succession;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -79,6 +80,12 @@ public class CapabilityDbContext : KaramchariDbContext
 
     /// <summary>Directed role progression edges used for BFS career path traversal.</summary>
     public DbSet<CareerProgressionEdge> CareerProgressionEdges => Set<CareerProgressionEdge>();
+
+    /// <summary>Positions designated as critical for succession planning.</summary>
+    public DbSet<CriticalPosition> CriticalPositions => Set<CriticalPosition>();
+
+    /// <summary>Pre-computed successor readiness per employee per critical position.</summary>
+    public DbSet<SuccessorCandidateProjection> SuccessorCandidateProjections => Set<SuccessorCandidateProjection>();
 
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -383,6 +390,36 @@ public class CapabilityDbContext : KaramchariDbContext
             // Reverse lookup: inbound edges to a role (useful for "what leads here?")
             b.HasIndex(x => new { x.TenantId, x.ToRoleRequirementId })
                 .HasDatabaseName("IX_CareerPath_ToRole");
+        });
+
+        modelBuilder.Entity<CriticalPosition>(b =>
+        {
+            b.ToTable("Capability_CriticalPositions");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Criticality).HasConversion<string>().HasMaxLength(32).IsRequired();
+            // Uniqueness: one critical-position record per position per tenant
+            b.HasIndex(x => new { x.TenantId, x.PositionId })
+                .IsUnique()
+                .HasDatabaseName("IX_CriticalPosition_Tenant_Position");
+            // Succession handler lookup: positions linked to a given role requirement
+            b.HasIndex(x => new { x.TenantId, x.RoleRequirementId })
+                .HasDatabaseName("IX_CriticalPosition_RoleRequirement");
+        });
+
+        modelBuilder.Entity<SuccessorCandidateProjection>(b =>
+        {
+            b.ToTable("Capability_SuccessorCandidateProjections");
+            b.HasKey(x => new { x.TenantId, x.PositionId, x.EmployeeId });
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.ReadinessScore).HasPrecision(9, 4);
+            b.Property(x => x.Band).HasConversion<string>().HasMaxLength(32).IsRequired();
+            // Executive bench view: ordered candidate list for a position
+            b.HasIndex(x => new { x.TenantId, x.PositionId, x.Band, x.Rank })
+                .HasDatabaseName("IX_SuccessorCandidate_PositionRanking");
+            // Employee succession pool view: all positions this employee is tracked for
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId })
+                .HasDatabaseName("IX_SuccessorCandidate_EmployeePools");
         });
     }
 }

@@ -65,12 +65,16 @@ public static class CapabilityServiceCollectionExtensions
         services.RegisterTenantTable("Capability_MobilityVacancies");
         services.RegisterTenantTable("Capability_InternalMobilityProjections");
         services.RegisterTenantTable("Capability_CareerProgressionEdges");
+        services.RegisterTenantTable("Capability_CriticalPositions");
+        services.RegisterTenantTable("Capability_SuccessorCandidateProjections");
 
         services.AddScoped<Karamchari.Capability.Projections.EmployeeSkillCoverageProjectionHandler>();
         services.AddScoped<Karamchari.Capability.Projections.EmployeeSkillGapProjectionHandler>();
         services.AddScoped<Karamchari.Capability.Projections.CareerReadinessProjectionHandler>();
         services.AddScoped<Karamchari.Capability.Projections.InternalMobilityProjectionHandler>();
+        services.AddScoped<Karamchari.Capability.Projections.SuccessorCandidateProjectionHandler>();
         services.AddScoped<Karamchari.Capability.Services.CareerPathService>();
+        services.AddScoped<Karamchari.Capability.Services.SuccessionQueryService>();
 
         return services;
     }
@@ -88,5 +92,6 @@ public static class CapabilityServiceCollectionExtensions
         busConfigurator.AddConsumer<Karamchari.Capability.Consumers.SkillValidatedMobilityConsumer>();
         busConfigurator.AddConsumer<Karamchari.Capability.Consumers.VacancyOpenedMobilityConsumer>();
         busConfigurator.AddConsumer<Karamchari.Capability.Consumers.VacancyClosedMobilityConsumer>();
+        busConfigurator.AddConsumer<Karamchari.Capability.Consumers.SkillValidatedSuccessionConsumer>();
     }
 }
