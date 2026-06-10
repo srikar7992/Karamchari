@@ -64,11 +64,13 @@ public static class CapabilityServiceCollectionExtensions
         services.RegisterTenantTable("Capability_CareerReadinessProjections");
         services.RegisterTenantTable("Capability_MobilityVacancies");
         services.RegisterTenantTable("Capability_InternalMobilityProjections");
+        services.RegisterTenantTable("Capability_CareerProgressionEdges");
 
         services.AddScoped<Karamchari.Capability.Projections.EmployeeSkillCoverageProjectionHandler>();
         services.AddScoped<Karamchari.Capability.Projections.EmployeeSkillGapProjectionHandler>();
         services.AddScoped<Karamchari.Capability.Projections.CareerReadinessProjectionHandler>();
         services.AddScoped<Karamchari.Capability.Projections.InternalMobilityProjectionHandler>();
+        services.AddScoped<Karamchari.Capability.Services.CareerPathService>();
 
         return services;
     }

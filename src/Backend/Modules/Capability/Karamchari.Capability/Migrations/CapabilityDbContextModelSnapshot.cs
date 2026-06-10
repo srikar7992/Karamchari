@@ -558,6 +558,36 @@ namespace Karamchari.Capability.Migrations
                     b.ToTable("Capability_InternalMobilityProjections", "__tenant__");
                 });
 
+            modelBuilder.Entity("Karamchari.Capability.Domain.Pathing.CareerProgressionEdge", b =>
+                {
+                    b.Property<string>("TenantId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("FromRoleRequirementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ToRoleRequirementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("Weight")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.HasKey("TenantId", "FromRoleRequirementId", "ToRoleRequirementId");
+
+                    b.HasIndex("TenantId", "FromRoleRequirementId")
+                        .HasDatabaseName("IX_CareerPath_FromRole");
+
+                    b.HasIndex("TenantId", "ToRoleRequirementId")
+                        .HasDatabaseName("IX_CareerPath_ToRole");
+
+                    b.ToTable("Capability_CareerProgressionEdges", "__tenant__");
+                });
+
             modelBuilder.Entity("Karamchari.Capability.Domain.Skills.CareerReadinessProjection", b =>
                 {
                     b.Property<string>("TenantId")

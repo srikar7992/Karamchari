@@ -3,6 +3,7 @@ using Karamchari.Capability.Domain.Growth;
 using Karamchari.Capability.Domain.Learning;
 using Karamchari.Capability.Domain.Marketplace;
 using Karamchari.Capability.Domain.Mobility;
+using Karamchari.Capability.Domain.Pathing;
 using Karamchari.Capability.Domain.Skills;
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
@@ -75,6 +76,9 @@ public class CapabilityDbContext : KaramchariDbContext
 
     /// <summary>Pre-computed mobility scores for employees against open vacancies. Row absent = vacancy closed.</summary>
     public DbSet<InternalMobilityProjection> InternalMobilityProjections => Set<InternalMobilityProjection>();
+
+    /// <summary>Directed role progression edges used for BFS career path traversal.</summary>
+    public DbSet<CareerProgressionEdge> CareerProgressionEdges => Set<CareerProgressionEdge>();
 
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -365,6 +369,20 @@ public class CapabilityDbContext : KaramchariDbContext
             // Employee marketplace: all vacancies the employee is eligible for
             b.HasIndex(x => new { x.TenantId, x.EmployeeId, x.Eligible, x.ReadinessScore })
                 .HasDatabaseName("IX_Mobility_EmployeeOpportunities");
+        });
+
+        modelBuilder.Entity<CareerProgressionEdge>(b =>
+        {
+            b.ToTable("Capability_CareerProgressionEdges");
+            b.HasKey(x => new { x.TenantId, x.FromRoleRequirementId, x.ToRoleRequirementId });
+            b.Property(x => x.TenantId).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Weight).HasPrecision(9, 4);
+            // Graph traversal: outbound edges from a role
+            b.HasIndex(x => new { x.TenantId, x.FromRoleRequirementId })
+                .HasDatabaseName("IX_CareerPath_FromRole");
+            // Reverse lookup: inbound edges to a role (useful for "what leads here?")
+            b.HasIndex(x => new { x.TenantId, x.ToRoleRequirementId })
+                .HasDatabaseName("IX_CareerPath_ToRole");
         });
     }
 }
