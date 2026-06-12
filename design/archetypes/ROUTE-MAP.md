@@ -71,8 +71,8 @@ Implemented screens (karamchari-web) are marked ●.
 |---|---|
 | Requisition List / Detail / Create | registry |
 | Candidate Pipeline ● | registry |
-| Candidate Detail | record-detail |
-| Offer Management | approval |
+| Candidate Detail ● | record-detail |
+| Offer Management ● | approval |
 | Recruitment Analytics | analytics |
 
 ## Time & Attendance

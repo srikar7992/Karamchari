@@ -18,6 +18,8 @@ import { PeriodFinalization } from '@/pages/PeriodFinalization'
 import { Employee360 } from '@/pages/Employee360'
 import { OnboardingCase } from '@/pages/OnboardingCase'
 import { CandidatePipeline } from '@/pages/CandidatePipeline'
+import { CandidateDetail } from '@/pages/CandidateDetail'
+import { OfferManagement } from '@/pages/OfferManagement'
 import { SuccessionWorkspace } from '@/pages/SuccessionWorkspace'
 import { ComplianceDashboard } from '@/pages/ComplianceDashboard'
 import { WorkflowStudio } from '@/pages/WorkflowStudio'
@@ -30,7 +32,8 @@ function pageFromHash(): PageId {
     'pulse', 'executive', 'manager', 'my-dashboard', 'attendance', 'team-attendance',
     'shift-definitions', 'approvals', 'notifications',
     'roster', 'payroll', 'payroll-run', 'period-finalization', 'directory', 'employee-360',
-    'onboarding', 'candidates', 'succession', 'compliance', 'workflow-studio',
+    'onboarding', 'candidates', 'candidate-detail', 'offer-management',
+    'succession', 'compliance', 'workflow-studio',
     'leave-policies', 'approval-rules',
   ]
   return (valid as string[]).includes(h) ? (h as PageId) : 'pulse'
@@ -70,6 +73,8 @@ function App() {
       {page === 'employee-360' && <Employee360 />}
       {page === 'onboarding' && <OnboardingCase />}
       {page === 'candidates' && <CandidatePipeline />}
+      {page === 'candidate-detail' && <CandidateDetail />}
+      {page === 'offer-management' && <OfferManagement />}
       {page === 'succession' && <SuccessionWorkspace />}
       {page === 'compliance' && <ComplianceDashboard />}
       {page === 'workflow-studio' && <WorkflowStudio />}

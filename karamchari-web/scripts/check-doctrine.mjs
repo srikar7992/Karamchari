@@ -13,6 +13,7 @@ const pagesDir = join(root, 'src', 'pages')
 const exceptionsPath = join(root, '..', 'design', 'EXCEPTIONS.md')
 const routeMapPath = join(root, '..', 'design', 'archetypes', 'ROUTE-MAP.md')
 const lawbookPath = join(root, '..', 'design', 'LAWBOOK.md')
+const lifecyclesPath = join(root, '..', 'design', 'LIFECYCLES.md')
 
 // Mirrors ARCHETYPES in src/lib/doctrine.ts (design/archetypes/README.md). Frozen at twelve.
 const ARCHETYPES = [
@@ -206,6 +207,27 @@ if (existsSync(lawbookPath)) {
   lawStats = { total: laws.length, cited: laws.length - dead.length }
 }
 
+// ---- Lifecycle coverage -------------------------------------------------------
+// Journeys, not screens (design/LIFECYCLES.md). Status is derived: a stage is
+// implemented when its page id exists in the PageId union in src/lib/nav.ts,
+// so the register cannot drift from the code.
+let lifecycleStats = null
+if (existsSync(lifecyclesPath)) {
+  const navSrc = readFileSync(join(root, 'src', 'lib', 'nav.ts'), 'utf8')
+  const unionBlock = navSrc.match(/export type PageId =([\s\S]*?)\n\n/)?.[1] ?? ''
+  const pageIds = new Set([...unionBlock.matchAll(/'([\w-]+)'/g)].map((m) => m[1]))
+  const lifecycles = []
+  for (const line of readFileSync(lifecyclesPath, 'utf8').split('\n')) {
+    const m = line.match(/^\|\s*([^|]+?)\s*\|\s*([a-z][\w-]*(?:,\s*[a-z][\w-]*)+)\s*\|/)
+    if (!m) continue
+    const stages = m[2].split(',').map((s) => s.trim())
+    const built = stages.filter((s) => pageIds.has(s)).length
+    const status = built === stages.length ? 'complete' : built === 0 ? 'not started' : 'partial'
+    lifecycles.push({ name: m[1], built, total: stages.length, status })
+  }
+  if (lifecycles.length) lifecycleStats = lifecycles
+}
+
 // ---- Route map drift --------------------------------------------------------
 // "No screen ships without a row here" (ROUTE-MAP.md). Every page must be marked
 // implemented (●) in the route map, and vice versa.
@@ -243,4 +265,15 @@ if (routeMap) {
 }
 if (lawStats) {
   console.log(`Lawbook: ${lawStats.total} laws registered · ${lawStats.cited} cited on shipped surfaces.`)
+}
+if (lifecycleStats) {
+  const complete = lifecycleStats.filter((l) => l.status === 'complete').length
+  const partial = lifecycleStats.filter((l) => l.status === 'partial').length
+  const notStarted = lifecycleStats.filter((l) => l.status === 'not started').length
+  console.log(
+    `Lifecycle coverage: ${complete}/${lifecycleStats.length} complete · ${partial} partial · ${notStarted} not started.`
+  )
+  for (const l of lifecycleStats) {
+    console.log(`  ${l.name}: ${l.built}/${l.total} stages — ${l.status}`)
+  }
 }

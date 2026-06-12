@@ -16,6 +16,8 @@ export type PageId =
   | 'employee-360'
   | 'onboarding'
   | 'candidates'
+  | 'candidate-detail'
+  | 'offer-management'
   | 'succession'
   | 'compliance'
   | 'workflow-studio'
@@ -61,6 +63,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: 'employee-360', label: 'Employee 360', icon: 'badge', persona: 'MGR' },
       { id: 'onboarding', label: 'Onboarding', icon: 'flag', persona: 'MGR' },
       { id: 'candidates', label: 'Candidates', icon: 'linear_scale', persona: 'MGR' },
+      { id: 'candidate-detail', label: 'Candidate Dossier', icon: 'contact_page', persona: 'MGR' },
+      { id: 'offer-management', label: 'Offers', icon: 'history_edu', persona: 'MGR' },
     ],
   },
   {
@@ -106,6 +110,8 @@ export const PAGE_TELEMETRY: Record<PageId, { surface: string; layer: string }> 
   'employee-360': { surface: 'SRF-TOP-063', layer: 'L06 JALA' },
   onboarding: { surface: 'SRF-TOP-068', layer: 'L06 JALA' },
   candidates: { surface: 'SRF-TOP-071', layer: 'L06 JALA' },
+  'candidate-detail': { surface: 'SRF-TOP-072', layer: 'L06 JALA' },
+  'offer-management': { surface: 'SRF-FLW-042', layer: 'L03 PRAVAHA' },
   succession: { surface: 'SRF-KAL-077', layer: 'L07 KALA' },
   compliance: { surface: 'SRF-DHR-082', layer: 'L08 DHARMA' },
   'workflow-studio': { surface: 'SRF-FLW-040', layer: 'L03 PRAVAHA' },

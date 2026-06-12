@@ -167,14 +167,14 @@ export function PayrollRunConsole() {
         <h3 className="font-mono-label text-mono-label text-on-surface-variant mb-4 uppercase tracking-widest">
           1. Run Lifecycle
         </h3>
-        <div className="flex flex-col md:flex-row border border-outline-variant bg-surface">
+        <div className="flex flex-col lg:flex-row border border-outline-variant bg-surface">
           {RUN_SEQUENCE.map((s, i) => {
             const done = i < stateIdx
             const active = i === stateIdx
             return (
               <div
                 key={s}
-                className={`flex-1 p-5 relative ${i < RUN_SEQUENCE.length - 1 ? 'border-b md:border-b-0 md:border-r border-outline-variant' : ''} ${
+                className={`flex-1 p-5 relative ${i < RUN_SEQUENCE.length - 1 ? 'border-b lg:border-b-0 lg:border-r border-outline-variant' : ''} ${
                   active ? 'bg-surface-container-low' : ''
                 } ${!done && !active ? 'opacity-50' : ''}`}
               >

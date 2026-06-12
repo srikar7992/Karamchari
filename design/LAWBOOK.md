@@ -25,9 +25,12 @@ an edit; in-flight processes complete under the version they started with
 | LV-CF-01 | Earned leave carries forward up to 30 days at period close; the excess lapses and the lapse is ledgered. | Leave | web + engine |
 | EXP-AUTH-01 | Expense claims at or below ₹5,000 require a single approver; above that, two-step approval with finance review. | Financial Ops | web + engine |
 | SWP-SLA-01 | Shift swap confirmations are due within 48 hours of counterparty acceptance; on breach the swap escalates to the shift coordinator. | Scheduling | web + engine |
+| OFF-AUTH-01 | Approving an offer requires hiring authority for the requisition; compensation above band P75 additionally requires CHRO endorsement, recorded in the offer ledger. | Recruitment | web + engine |
+| HIRE-ID-01 | An employee identity is created only from an accepted offer; the hire act records candidate, offer version, actor, and authority. | Recruitment | web + engine |
 
 ## Amendment log
 
 | Date | Change |
 |---|---|
 | 2026-06-12 | Lawbook constituted with nine laws already cited or governed on shipped surfaces; web citation check added to doctrine court |
+| 2026-06-12 | OFF-AUTH-01 and HIRE-ID-01 registered for Sprint E recruitment surfaces (Candidate Detail, Offer Management) |

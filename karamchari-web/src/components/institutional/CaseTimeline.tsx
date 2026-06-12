@@ -25,10 +25,12 @@ interface CaseTimelineProps {
 export function CaseTimeline({ entries, className = '' }: CaseTimelineProps) {
   return (
     <div className={`space-y-4 ${className}`}>
-      {entries.map((e) => {
+      {entries.map((e, i) => {
         const tone = TONES[e.tone ?? 'neutral']
+        // Ledgers are append-only and never reorder, so the index is a stable,
+        // collision-free key; ts+tag is not (two acts can share a millisecond).
         return (
-          <div key={e.ts + e.tag} className={`pl-4 border-l-2 ${tone.line} relative`}>
+          <div key={`${i}-${e.tag}`} className={`pl-4 border-l-2 ${tone.line} relative`}>
             <div className={`absolute w-2 h-2 ${tone.dot} rounded-full -left-[5px] top-1`} />
             <div className="flex justify-between items-baseline mb-1">
               <span className="font-mono text-[10px] text-on-surface-variant">{e.ts}</span>
