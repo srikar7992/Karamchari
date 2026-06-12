@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 11% 98%;
+    --foreground: 240 2% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 2% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 2% 11%;
+    --muted: 0 8% 94%;
+    --muted-foreground: 240 3% 28%;
+    --accent: 0 8% 94%;
+    --accent-foreground: 240 2% 11%;
+    --destructive: 0 75% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5% 79%;
+    --input: 240 5% 79%;
+    --ring: 25 49% 46%;
+    --radius: 0.25rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-surface text-on-surface antialiased;
+    font-family: 'Geist', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: #b16a3c;
+    color: #fff;
+  }
+}
+
+/* ---- Karamchari structural language ---- */
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  -webkit-font-smoothing: antialiased;
+}
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Yantra grid: faint structural graph paper */
+.yantra-grid {
+  background-size: 48px 48px;
+  background-image:
+    linear-gradient(to right, rgba(14, 15, 18, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 15, 18, 0.05) 1px, transparent 1px);
+}
+
+/* Hairline borders: institutional restraint, not card shadows */
+.structural-hairline {
+  border: 1px solid rgba(14, 15, 18, 0.12);
+}
+.hairline-all {
+  border: 1px solid rgba(14, 15, 18, 0.12);
+}
+.hairline { border: 1px solid rgba(14, 15, 18, 0.12); }
+.hairline-t { border-top: 1px solid rgba(14, 15, 18, 0.12); }
+.hairline-b { border-bottom: 1px solid rgba(14, 15, 18, 0.12); }
+.hairline-r { border-right: 1px solid rgba(14, 15, 18, 0.12); }
+.hairline-l { border-left: 1px solid rgba(14, 15, 18, 0.12); }
+.hairline-strong { border: 1px solid rgba(14, 15, 18, 0.32); }
+
+/* Corner ticks: drafting-table registration marks */
+.corner-tick {
+  position: relative;
+}
+.corner-tick::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 8px;
+  height: 8px;
+  border-top: 1px solid #1c1b1c;
+  border-left: 1px solid #1c1b1c;
+}
+.corner-tick::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-bottom: 1px solid #1c1b1c;
+  border-right: 1px solid #1c1b1c;
+}
+
+/* Bindu: the locus of state. A dot, never a siren. */
+.bindu {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  vertical-align: middle;
+}
+.bindu.good { background: #2d5d4b; }
+.bindu.caution { background: #9c842a; }
+.bindu.rakta-critical { background: #7a2b2b; }
+.bindu.neutral { background: #77777b; }
+.bindu.copper { background: #b16a3c; }
+
+/* Tonal wash for canvas regions */
+.tonal-wash {
+  background:
+    radial-gradient(1200px 500px at 80% -10%, rgba(217, 210, 194, 0.25), transparent),
+    #fcf8f8;
+}
+
+.plate-container {
+  box-shadow: 0 1px 0 rgba(14, 15, 18, 0.04);
+}
+
+/* Quiet scrollbars */
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #c7c6cb; border-radius: 0; }
+*::-webkit-scrollbar-thumb:hover { background: #77777b; }
