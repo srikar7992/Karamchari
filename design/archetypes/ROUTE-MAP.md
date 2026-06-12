@@ -104,9 +104,9 @@ Implemented screens (karamchari-web) are marked ●.
 
 | Screen | Archetype |
 |---|---|
-| Leave Type & Policy Admin | administration |
+| Leave Type & Policy Admin ● | administration |
 | Accrual & Carry-Forward Console | command-center |
-| Approval SLA & Escalation Admin | administration |
+| Approval SLA & Escalation Admin ● | administration |
 | Leave Investigation & Absence Cases | case |
 | Leave Liability & Statutory Reports | analytics |
 

@@ -12,6 +12,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const pagesDir = join(root, 'src', 'pages')
 const exceptionsPath = join(root, '..', 'design', 'EXCEPTIONS.md')
 const routeMapPath = join(root, '..', 'design', 'archetypes', 'ROUTE-MAP.md')
+const lawbookPath = join(root, '..', 'design', 'LAWBOOK.md')
 
 // Mirrors ARCHETYPES in src/lib/doctrine.ts (design/archetypes/README.md). Frozen at twelve.
 const ARCHETYPES = [
@@ -184,6 +185,27 @@ for (const file of readdirSync(pagesDir).filter((f) => f.endsWith('.tsx'))) {
   }
 }
 
+// ---- Lawbook citation check ---------------------------------------------------
+// Every law marked web-enforced in design/LAWBOOK.md must be cited somewhere in
+// src/. A registered law nobody cites is dead text.
+let lawStats = null
+if (existsSync(lawbookPath)) {
+  const laws = []
+  for (const line of readFileSync(lawbookPath, 'utf8').split('\n')) {
+    const m = line.match(/^\|\s*([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)\s*\|[^|]+\|[^|]+\|\s*([^|]*web[^|]*)\|/)
+    if (m) laws.push(m[1])
+  }
+  const srcFiles = readdirSync(join(root, 'src'), { recursive: true })
+    .filter((f) => /\.(tsx?|mjs)$/.test(String(f)))
+    .map((f) => readFileSync(join(root, 'src', String(f)), 'utf8'))
+  const allSrc = srcFiles.join('\n')
+  const dead = laws.filter((id) => !allSrc.includes(id))
+  for (const id of dead) {
+    violations.push(`LAWBOOK.md: law ${id} is web-enforced but cited nowhere in src/ — dead law (design/LAWBOOK.md)`)
+  }
+  lawStats = { total: laws.length, cited: laws.length - dead.length }
+}
+
 // ---- Route map drift --------------------------------------------------------
 // "No screen ships without a row here" (ROUTE-MAP.md). Every page must be marked
 // implemented (●) in the route map, and vice versa.
@@ -218,4 +240,7 @@ if (routeMap) {
     .join(' · ')
   console.log(`Surface coverage: ${routeMap.implementedTotal}/${inventoryTotal} inventory screens (${covPct}%).`)
   console.log(`  ${breakdown}`)
+}
+if (lawStats) {
+  console.log(`Lawbook: ${lawStats.total} laws registered · ${lawStats.cited} cited on shipped surfaces.`)
 }
