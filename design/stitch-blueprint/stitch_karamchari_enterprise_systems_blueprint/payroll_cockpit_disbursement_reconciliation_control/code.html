@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Karamchari - Payroll Cockpit</title>
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&amp;family=JetBrains+Mono:wght@500&amp;family=Newsreader:opsz,wght@6..72,300&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#c7c6ca",
+                    "tamra-copper-bright": "#C68A60",
+                    "primary-fixed": "#e3e2e6",
+                    "tertiary-fixed": "#ebe1d9",
+                    "on-tertiary-fixed": "#1f1b16",
+                    "on-primary-container": "#848387",
+                    "background": "#fcf8f8",
+                    "rakta-critical": "#7A2B2B",
+                    "sthira-forest": "#2D5D4B",
+                    "surface-container-low": "#f7f3f2",
+                    "secondary-fixed": "#e7e2d8",
+                    "tamra-copper": "#B16A3C",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#fcf8f8",
+                    "outline": "#77777b",
+                    "inverse-on-surface": "#f4f0ef",
+                    "primary-container": "#1b1b1f",
+                    "secondary-container": "#e7e2d8",
+                    "cloud": "#D9D2C2",
+                    "on-tertiary-container": "#8a827c",
+                    "secondary": "#615e57",
+                    "on-primary-fixed": "#1b1b1f",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e5e2e1",
+                    "on-secondary-fixed": "#1d1c16",
+                    "yantra-indigo": "#1B2A4E",
+                    "surface-container-high": "#ebe7e7",
+                    "surface-dim": "#ddd9d9",
+                    "secondary-fixed-dim": "#cac6bd",
+                    "on-surface-variant": "#46464b",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#5e5e62",
+                    "on-error": "#ffffff",
+                    "on-surface": "#1c1b1c",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#1f1b16",
+                    "primary-fixed-dim": "#c7c6ca",
+                    "surface-container": "#f1eded",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#cec5be",
+                    "primary": "#000000",
+                    "on-primary-fixed-variant": "#46464a",
+                    "inverse-surface": "#313030",
+                    "on-secondary-container": "#67645c",
+                    "tertiary": "#000000",
+                    "surface-bright": "#fcf8f8",
+                    "on-tertiary-fixed-variant": "#4c4640",
+                    "pita-caution": "#9C842A",
+                    "on-background": "#1c1b1c",
+                    "graphite": "#2A2D33",
+                    "outline-variant": "#c7c6cb",
+                    "hiranya-gold": "#C9A86A",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-secondary-fixed-variant": "#494740",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "page-margin": "64px",
+                    "grid-12": "12px",
+                    "section-padding": "96px",
+                    "gutter": "48px"
+            },
+            "fontFamily": {
+                    "tabular-data": ["Geist"],
+                    "pull-quote": ["Newsreader"],
+                    "mono-label": ["JetBrains Mono"],
+                    "display-xl-mobile": ["Newsreader"],
+                    "section-title": ["Newsreader"],
+                    "body-standard": ["Geist"],
+                    "display-xl": ["Newsreader"]
+            },
+            "fontSize": {
+                    "tabular-data": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                    "pull-quote": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.015em", "fontWeight": "300" }],
+                    "mono-label": ["10.5px", { "lineHeight": "1.2", "letterSpacing": "0.12em", "fontWeight": "500" }],
+                    "display-xl-mobile": ["72px", { "lineHeight": "1.0", "fontWeight": "300" }],
+                    "section-title": ["56px", { "lineHeight": "1.02", "letterSpacing": "-0.02em", "fontWeight": "300" }],
+                    "body-standard": ["15px", { "lineHeight": "1.55", "fontWeight": "400" }],
+                    "display-xl": ["124px", { "lineHeight": "0.94", "letterSpacing": "-0.035em", "fontWeight": "300" }]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for ledger aesthetic */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c7c6cb; /* outline-variant */
+            border-radius: 0;
+        }
+    </style>
+</head>
+<body class="bg-surface text-primary font-body-standard text-body-standard antialiased selection:bg-tamra-copper selection:text-on-tertiary">
+<!-- App Container -->
+<div class="flex h-screen w-full overflow-hidden">
+<!-- SideNavBar Component -->
+<nav class="h-screen w-64 border-r border-outline-variant bg-surface dark:bg-surface-container-lowest text-primary dark:text-on-surface font-body-standard text-body-standard flex flex-col h-full py-unit flex-shrink-0 z-20">
+<!-- Header Brand -->
+<div class="px-6 py-8 mb-4 border-b border-outline-variant">
+<h1 class="font-section-title text-section-title text-primary dark:text-on-surface text-[32px] leading-none mb-1 tracking-tight">Karamchari</h1>
+<p class="font-mono-label text-mono-label text-on-surface-variant">Institutional OS</p>
+</div>
+<!-- Navigation Links -->
+<ul class="flex flex-col space-y-1 px-4 flex-1">
+<li>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">home</span>
+<span>Home</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">assignment</span>
+<span>My Work</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+<span>Team</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+<span>Workforce</span>
+</a>
+</li>
+<!-- Active Nav Item -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 text-tamra-copper font-bold border-r-2 border-tamra-copper bg-surface-container-low transition-colors duration-200 opacity-80" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span>Payroll</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+<span>Insights</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-surface">
+<!-- TopNavBar Component -->
+<!-- Adjusted layout from JSON style_shell_layout to fit flex flow rather than absolute positioning for stability -->
+<header class="w-full h-16 border-b border-outline-variant bg-surface dark:bg-surface-container-lowest text-primary dark:text-on-surface font-body-standard text-body-standard flex justify-between items-center px-gutter flex-shrink-0 z-10">
+<div class="flex items-center">
+<span class="font-mono-label text-mono-label text-on-surface-variant">PAYROLL COCKPIT / CYCLE Q3-24</span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-tamra-copper transition-colors duration-200 flex items-center justify-center w-8 h-8">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:text-tamra-copper transition-colors duration-200 flex items-center justify-center w-8 h-8">
+<span class="material-symbols-outlined">move_to_inbox</span>
+</button>
+<button class="hover:text-tamra-copper transition-colors duration-200 flex items-center justify-center w-8 h-8">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<main class="flex-1 overflow-y-auto p-gutter bg-background">
+<!-- Page Header -->
+<div class="mb-12 flex justify-between items-end border-b border-outline-variant pb-6">
+<div>
+<h2 class="font-section-title text-section-title text-primary">Command Center</h2>
+<p class="font-body-standard text-body-standard text-on-surface-variant mt-2 max-w-xl">Operational overview for the current pay cycle. All financial figures are locked pending final anomaly resolution.</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 border border-outline-variant bg-surface text-primary font-mono-label text-mono-label hover:bg-surface-container-high transition-colors">
+                            DOWNLOAD LEDGER
+                        </button>
+<button class="px-6 py-3 bg-primary text-on-tertiary font-mono-label text-mono-label hover:opacity-90 transition-opacity">
+                            PUBLISH PAYROLL
+                        </button>
+</div>
+</div>
+<!-- Section 1: Cycle Progress -->
+<section class="mb-12">
+<h3 class="font-mono-label text-mono-label text-on-surface-variant mb-4 uppercase tracking-widest">1. Cycle Progress</h3>
+<div class="flex border border-outline-variant bg-surface">
+<!-- Step 1 -->
+<div class="flex-1 p-6 border-r border-outline-variant relative">
+<div class="flex justify-between items-start mb-8">
+<span class="font-mono-label text-mono-label text-on-surface-variant">01</span>
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+</div>
+<div class="font-body-standard text-body-standard text-on-surface-variant">Open</div>
+<div class="font-mono-label text-mono-label text-outline-variant mt-1">COMPLETED SEP 14</div>
+</div>
+<!-- Step 2 -->
+<div class="flex-1 p-6 border-r border-outline-variant relative">
+<div class="flex justify-between items-start mb-8">
+<span class="font-mono-label text-mono-label text-on-surface-variant">02</span>
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+</div>
+<div class="font-body-standard text-body-standard text-on-surface-variant">Locked</div>
+<div class="font-mono-label text-mono-label text-outline-variant mt-1">COMPLETED SEP 16</div>
+</div>
+<!-- Step 3 (Active) -->
+<div class="flex-1 p-6 border-r border-outline-variant bg-surface-container-low relative">
+<div class="absolute inset-x-0 top-0 h-[2px] bg-tamra-copper"></div>
+<div class="flex justify-between items-start mb-8">
+<span class="font-mono-label text-mono-label text-tamra-copper">03</span>
+<div class="w-2 h-2 rounded-full bg-tamra-copper animate-pulse"></div>
+</div>
+<div class="font-body-standard text-body-standard text-primary font-medium">Calculated</div>
+<div class="font-mono-label text-mono-label text-tamra-copper mt-1">PENDING REVIEW</div>
+</div>
+<!-- Step 4 -->
+<div class="flex-1 p-6 relative opacity-50">
+<div class="flex justify-between items-start mb-8">
+<span class="font-mono-label text-mono-label text-on-surface-variant">04</span>
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+</div>
+<div class="font-body-standard text-body-standard text-on-surface-variant">Published</div>
+<div class="font-mono-label text-mono-label text-outline-variant mt-1">AWAITING TRIGGER</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-12 gap-6">
+<!-- Section 2: Reconciliation Summary -->
+<section class="col-span-8 flex flex-col">
+<h3 class="font-mono-label text-mono-label text-on-surface-variant mb-4 uppercase tracking-widest">2. Reconciliation Summary</h3>
+<div class="grid grid-cols-2 gap-px bg-outline-variant border border-outline-variant flex-1">
+<!-- Total Gross -->
+<div class="bg-surface p-8 flex flex-col justify-between">
+<div class="font-body-standard text-body-standard text-on-surface-variant mb-12">Total Gross Disbursement</div>
+<div>
+<div class="font-mono-label text-mono-label text-primary text-[20px] mb-2 leading-none">USD 4,285,910.45</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-yantra-indigo">arrow_upward</span>
+<span class="font-mono-label text-mono-label text-yantra-indigo">+ 2.4% vs prev cycle</span>
+</div>
+</div>
+</div>
+<!-- Net Pay -->
+<div class="bg-surface p-8 flex flex-col justify-between">
+<div class="font-body-standard text-body-standard text-on-surface-variant mb-12">Total Net Pay</div>
+<div>
+<div class="font-mono-label text-mono-label text-primary text-[20px] mb-2 leading-none">USD 2,981,402.10</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-yantra-indigo">arrow_upward</span>
+<span class="font-mono-label text-mono-label text-yantra-indigo">+ 1.8% vs prev cycle</span>
+</div>
+</div>
+</div>
+<!-- Tax Withheld -->
+<div class="bg-surface p-8 flex flex-col justify-between">
+<div class="font-body-standard text-body-standard text-on-surface-variant mb-12">Statutory Tax Withheld</div>
+<div>
+<div class="font-mono-label text-mono-label text-primary text-[16px] mb-2 leading-none">USD 945,210.00</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-outline">horizontal_rule</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant">0.0% variance expected</span>
+</div>
+</div>
+</div>
+<!-- Deductions -->
+<div class="bg-surface p-8 flex flex-col justify-between">
+<div class="font-body-standard text-body-standard text-on-surface-variant mb-12">Voluntary Deductions</div>
+<div>
+<div class="font-mono-label text-mono-label text-primary text-[16px] mb-2 leading-none">USD 359,298.35</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-rakta-critical">arrow_upward</span>
+<span class="font-mono-label text-mono-label text-rakta-critical">+ 8.4% investigation req.</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3 & 4 Right Column -->
+<div class="col-span-4 flex flex-col gap-6">
+<!-- Section 3: Anomalies & Resolve Queue -->
+<section class="flex-1 flex flex-col">
+<div class="flex justify-between items-end mb-4">
+<h3 class="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest">3. Resolve Queue</h3>
+<span class="font-mono-label text-mono-label text-rakta-critical">3 BLOCKS</span>
+</div>
+<div class="border border-outline-variant bg-surface flex-1 overflow-hidden flex flex-col">
+<div class="overflow-y-auto">
+<!-- Anomaly Item -->
+<div class="p-4 border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-rakta-critical"></div>
+<span class="font-mono-label text-mono-label text-primary">ID-8842</span>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">USD 4,200.00</span>
+</div>
+<div class="font-tabular-data text-tabular-data text-on-surface-variant">Missing routing number for new hire (J. Doe).</div>
+</div>
+<!-- Anomaly Item -->
+<div class="p-4 border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-pita-caution"></div>
+<span class="font-mono-label text-mono-label text-primary">ID-8845</span>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">USD 850.00</span>
+</div>
+<div class="font-tabular-data text-tabular-data text-on-surface-variant">Unapproved overtime hours submitted post-lock.</div>
+</div>
+<!-- Anomaly Item -->
+<div class="p-4 hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-pita-caution"></div>
+<span class="font-mono-label text-mono-label text-primary">ID-8850</span>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">USD 12,400.00</span>
+</div>
+<div class="font-tabular-data text-tabular-data text-on-surface-variant">Bonus payout exceeds standard standard deviation threshold.</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: Disbursement Status -->
+<section>
+<h3 class="font-mono-label text-mono-label text-on-surface-variant mb-4 uppercase tracking-widest">4. Disbursement Readout</h3>
+<div class="border border-outline-variant bg-surface p-6">
+<div class="flex justify-between items-center mb-6">
+<span class="font-tabular-data text-tabular-data text-primary">Bank File Generation</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant">AWAITING PUB</span>
+</div>
+<div class="w-full h-1 bg-surface-container-high mb-6 overflow-hidden">
+<div class="h-full bg-outline-variant w-0"></div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center pb-4 border-b border-outline-variant">
+<span class="font-tabular-data text-tabular-data text-on-surface-variant">Provider</span>
+<span class="font-mono-label text-mono-label text-primary">INSTITUTIONAL CLEARING</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-tabular-data text-tabular-data text-on-surface-variant">Settlement Date</span>
+<span class="font-mono-label text-mono-label text-primary">2024-09-30</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

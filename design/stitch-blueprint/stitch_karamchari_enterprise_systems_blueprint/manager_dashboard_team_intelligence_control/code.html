@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Karamchari - Team Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Newsreader:opsz,wght@6..72,300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#c7c6ca",
+                        "tamra-copper-bright": "#C68A60",
+                        "primary-fixed": "#e3e2e6",
+                        "tertiary-fixed": "#ebe1d9",
+                        "on-tertiary-fixed": "#1f1b16",
+                        "on-primary-container": "#848387",
+                        "background": "#fcf8f8",
+                        "rakta-critical": "#7A2B2B",
+                        "sthira-forest": "#2D5D4B",
+                        "surface-container-low": "#f7f3f2",
+                        "secondary-fixed": "#e7e2d8",
+                        "tamra-copper": "#B16A3C",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#fcf8f8",
+                        "outline": "#77777b",
+                        "inverse-on-surface": "#f4f0ef",
+                        "primary-container": "#1b1b1f",
+                        "secondary-container": "#e7e2d8",
+                        "cloud": "#D9D2C2",
+                        "on-tertiary-container": "#8a827c",
+                        "secondary": "#615e57",
+                        "on-primary-fixed": "#1b1b1f",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "on-secondary-fixed": "#1d1c16",
+                        "yantra-indigo": "#1B2A4E",
+                        "surface-container-high": "#ebe7e7",
+                        "surface-dim": "#ddd9d9",
+                        "secondary-fixed-dim": "#cac6bd",
+                        "on-surface-variant": "#46464b",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#5e5e62",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1c1b1c",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#1f1b16",
+                        "primary-fixed-dim": "#c7c6ca",
+                        "surface-container": "#f1eded",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#cec5be",
+                        "primary": "#000000",
+                        "on-primary-fixed-variant": "#46464a",
+                        "inverse-surface": "#313030",
+                        "on-secondary-container": "#67645c",
+                        "tertiary": "#000000",
+                        "surface-bright": "#fcf8f8",
+                        "on-tertiary-fixed-variant": "#4c4640",
+                        "pita-caution": "#9C842A",
+                        "on-background": "#1c1b1c",
+                        "graphite": "#2A2D33",
+                        "outline-variant": "#c7c6cb",
+                        "hiranya-gold": "#C9A86A",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#494740",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "page-margin": "64px",
+                        "grid-12": "12px",
+                        "section-padding": "96px",
+                        "gutter": "48px"
+                    },
+                    "fontFamily": {
+                        "tabular-data": ["Geist"],
+                        "pull-quote": ["Newsreader"],
+                        "mono-label": ["JetBrains Mono"],
+                        "display-xl-mobile": ["Newsreader"],
+                        "section-title": ["Newsreader"],
+                        "body-standard": ["Geist"],
+                        "display-xl": ["Newsreader"]
+                    },
+                    "fontSize": {
+                        "tabular-data": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "pull-quote": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.015em", "fontWeight": "300" }],
+                        "mono-label": ["10.5px", { "lineHeight": "1.2", "letterSpacing": "0.12em", "fontWeight": "500" }],
+                        "display-xl-mobile": ["72px", { "lineHeight": "1.0", "fontWeight": "300" }],
+                        "section-title": ["56px", { "lineHeight": "1.02", "letterSpacing": "-0.02em", "fontWeight": "300" }],
+                        "body-standard": ["15px", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "display-xl": ["124px", { "lineHeight": "0.94", "letterSpacing": "-0.035em", "fontWeight": "300" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        
+        /* Subtle Tonal Wash for Dashboard Depth */
+        .tonal-wash {
+            background: linear-gradient(176deg, theme('colors.surface-container-lowest') 0%, theme('colors.surface-container-low') 100%);
+        }
+        
+        /* Corner Ticks for Plates */
+        .plate-container {
+            position: relative;
+        }
+        .plate-container::before, .plate-container::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            pointer-events: none;
+        }
+        .plate-container::before {
+            top: -1px;
+            left: -1px;
+            border-top: 1px solid theme('colors.primary');
+            border-left: 1px solid theme('colors.primary');
+        }
+        .plate-container::after {
+            bottom: -1px;
+            right: -1px;
+            border-bottom: 1px solid theme('colors.primary');
+            border-right: 1px solid theme('colors.primary');
+        }
+        
+        /* Hairlines */
+        .hairline-b { border-bottom: 1px solid rgba(14,15,18,0.12); }
+        .hairline-t { border-top: 1px solid rgba(14,15,18,0.12); }
+        .hairline-l { border-left: 1px solid rgba(14,15,18,0.12); }
+        .hairline-r { border-right: 1px solid rgba(14,15,18,0.12); }
+        .hairline-all { border: 1px solid rgba(14,15,18,0.12); }
+        
+        /* Status Bindu */
+        .bindu {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .bindu.critical { background-color: theme('colors.rakta-critical'); }
+        .bindu.caution { background-color: theme('colors.pita-caution'); }
+        .bindu.active { background-color: theme('colors.tamra-copper'); }
+        .bindu.good { background-color: theme('colors.sthira-forest'); }
+
+        /* Custom scrollbar for data tables */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.outline-variant');
+        }
+    </style>
+</head>
+<body class="font-body-standard text-body-standard flex h-screen overflow-hidden">
+<!-- SideNavBar (Shared Component JSON injected styling) -->
+<nav class="hidden md:flex flex-col h-full py-unit bg-surface text-primary font-body-standard text-body-standard h-screen w-64 border-r border-outline-variant flex-shrink-0">
+<!-- Header / Brand Logo -->
+<div class="px-6 py-6 border-b border-outline-variant mb-6">
+<h1 class="font-section-title text-section-title text-primary text-[32px] tracking-tight leading-none mb-1">Karamchari</h1>
+<p class="font-mono-label text-mono-label text-on-surface-variant uppercase">Institutional OS</p>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 px-4 space-y-1">
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">home</span>
+<span>Home</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">assignment</span>
+<span>My Work</span>
+</a>
+<!-- Active State (Team - matching the dashboard context) -->
+<a class="flex items-center gap-3 px-3 py-2 text-tamra-copper font-bold border-r-2 border-tamra-copper bg-surface-container-low opacity-80" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span>Team</span>
+</a>
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">badge</span>
+<span>Workforce</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">payments</span>
+<span>Payroll</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">analytics</span>
+<span>Insights</span>
+</a>
+</div>
+<!-- User Profile Minimal -->
+<div class="mt-auto px-4 py-4 border-t border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-surface-tint rounded flex items-center justify-center text-on-primary">
+<span class="font-mono-label text-mono-label">MGR</span>
+</div>
+<div>
+<div class="font-medium text-sm text-primary">Ananya R.</div>
+<div class="font-mono-label text-mono-label text-on-surface-variant">Regional Director</div>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar (Shared Component JSON injected styling, Mobile TopAppBar fallback behavior handled by flex logic) -->
+<header class="flex justify-between items-center px-gutter w-full h-16 border-b border-outline-variant bg-surface text-primary font-body-standard text-body-standard flex-shrink-0">
+<!-- Left: Search Bar -->
+<div class="flex-1 max-w-md">
+<div class="relative flex items-center group">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant group-focus-within:text-yantra-indigo pointer-events-none">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-transparent border-b border-outline-variant focus:border-yantra-indigo focus:outline-none transition-colors font-tabular-data text-tabular-data placeholder-on-surface-variant" placeholder="Search team members, requests..." type="text"/>
+</div>
+</div>
+<!-- Right: Actions -->
+<div class="flex items-center gap-6">
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 hover:scale-95 transition-transform relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-tamra-copper rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 hover:scale-95 transition-transform">
+<span class="material-symbols-outlined">move_to_inbox</span>
+</button>
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 hover:scale-95 transition-transform">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<div class="flex-1 overflow-y-auto px-6 md:px-page-margin py-12 tonal-wash">
+<!-- Page Header -->
+<div class="mb-12">
+<p class="font-mono-label text-mono-label text-on-surface-variant mb-4 tracking-widest uppercase">Overview</p>
+<h2 class="font-section-title text-section-title text-primary">Team Pulse</h2>
+</div>
+<!-- 12-Column Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-grid-12">
+<!-- Section 1: Team Attendance Board (col-span-8) -->
+<div class="col-span-1 md:col-span-8 bg-[#ECE6D9] hairline-all p-6 plate-container flex flex-col h-[420px]">
+<div class="flex justify-between items-end mb-6 hairline-b pb-4">
+<div>
+<h3 class="font-pull-quote text-pull-quote text-primary">Attendance Board</h3>
+<p class="font-mono-label text-mono-label text-on-surface-variant mt-2">TODAY'S ROSTER • <span class="text-primary font-bold">42/45</span> PRESENT</p>
+</div>
+<button class="bg-transparent border border-outline-variant text-primary px-[22px] py-[9px] hover:bg-surface-container-high transition-colors font-mono-label text-mono-label">VIEW ALL</button>
+</div>
+<div class="flex-1 overflow-y-auto pr-2">
+<table class="w-full text-left font-tabular-data text-tabular-data">
+<thead>
+<tr>
+<th class="pb-3 font-mono-label text-mono-label text-on-surface-variant uppercase border-b border-outline-variant font-normal">Associate</th>
+<th class="pb-3 font-mono-label text-mono-label text-on-surface-variant uppercase border-b border-outline-variant font-normal">Location</th>
+<th class="pb-3 font-mono-label text-mono-label text-on-surface-variant uppercase border-b border-outline-variant font-normal">Shift</th>
+<th class="pb-3 font-mono-label text-mono-label text-on-surface-variant uppercase border-b border-outline-variant font-normal text-right">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-outline-variant">
+<td class="py-[14px]">Suresh Kumar</td>
+<td class="py-[14px] text-on-surface-variant">Zone A - Floor 2</td>
+<td class="py-[14px] text-on-surface-variant">09:00 - 18:00</td>
+<td class="py-[14px] text-right"><span class="bindu good mr-2"></span>In</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-[14px]">Priya Sharma</td>
+<td class="py-[14px] text-on-surface-variant">Zone B - Floor 1</td>
+<td class="py-[14px] text-on-surface-variant">09:00 - 18:00</td>
+<td class="py-[14px] text-right"><span class="bindu good mr-2"></span>In</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-[14px]">Rajesh Patel</td>
+<td class="py-[14px] text-on-surface-variant">Remote</td>
+<td class="py-[14px] text-on-surface-variant">10:00 - 19:00</td>
+<td class="py-[14px] text-right"><span class="bindu caution mr-2"></span>Late (14m)</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-[14px]">Anita Desai</td>
+<td class="py-[14px] text-on-surface-variant">Zone A - Floor 3</td>
+<td class="py-[14px] text-on-surface-variant">08:00 - 17:00</td>
+<td class="py-[14px] text-right"><span class="bindu rakta-critical mr-2"></span>Absent</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-[14px]">Vikram Singh</td>
+<td class="py-[14px] text-on-surface-variant">Zone C - Floor 1</td>
+<td class="py-[14px] text-on-surface-variant">09:00 - 18:00</td>
+<td class="py-[14px] text-right"><span class="bindu good mr-2"></span>In</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Section 2: Approvals Queue (col-span-4) -->
+<div class="col-span-1 md:col-span-4 bg-surface-container-lowest hairline-all p-6 plate-container flex flex-col h-[420px]">
+<div class="mb-6 hairline-b pb-4 flex justify-between items-center">
+<h3 class="font-pull-quote text-pull-quote text-primary text-[24px]">Action Queue</h3>
+<span class="bg-primary text-on-primary font-mono-label px-2 py-1">7 Pending</span>
+</div>
+<div class="flex-1 overflow-y-auto space-y-4 pr-2">
+<!-- Approval Card 1 -->
+<div class="hairline-all p-4 bg-surface hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<span class="font-mono-label text-mono-label text-on-surface-variant">LEAVE REQUEST</span>
+<span class="text-xs text-on-surface-variant">2h ago</span>
+</div>
+<p class="font-medium text-primary mb-1">Ramesh D. • 2 Days (Sick)</p>
+<p class="text-sm text-on-surface-variant mb-4">Oct 12 - Oct 13</p>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-on-primary font-mono-label py-2 hover:opacity-90">APPROVE</button>
+<button class="flex-1 bg-transparent border border-outline-variant text-primary font-mono-label py-2 hover:bg-surface-container-high">REVIEW</button>
+</div>
+</div>
+<!-- Approval Card 2 -->
+<div class="hairline-all p-4 bg-surface hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<span class="font-mono-label text-mono-label text-on-surface-variant">EXPENSE CLAIM</span>
+<span class="text-xs text-on-surface-variant">5h ago</span>
+</div>
+<p class="font-medium text-primary mb-1">Meera K. • ₹4,500</p>
+<p class="text-sm text-on-surface-variant mb-4">Client Dinner - Q3 Offsite</p>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-on-primary font-mono-label py-2 hover:opacity-90">APPROVE</button>
+<button class="flex-1 bg-transparent border border-outline-variant text-primary font-mono-label py-2 hover:bg-surface-container-high">REVIEW</button>
+</div>
+</div>
+</div>
+</div>
+</div> <!-- End First Row -->
+<!-- Spacer -->
+<div class="h-8"></div>
+<!-- Second Row Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-grid-12 mb-section-padding">
+<!-- Section 3: Team Goals & OKR (col-span-7) -->
+<div class="col-span-1 md:col-span-7 bg-surface-container-lowest hairline-all p-6">
+<div class="mb-6">
+<h3 class="font-pull-quote text-pull-quote text-primary text-[28px] mb-2">Q3 Objectives</h3>
+<p class="font-mono-label text-mono-label text-on-surface-variant uppercase">Engineering Delivery Pod Alpha</p>
+</div>
+<div class="space-y-6">
+<!-- Goal 1 -->
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="font-tabular-data font-medium">Platform Migration v2.0</span>
+<span class="font-mono-label text-mono-label">68%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 68%;"></div>
+</div>
+<p class="text-sm text-on-surface-variant mt-2">On track. Database sharding complete.</p>
+</div>
+<!-- Goal 2 -->
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="font-tabular-data font-medium">Reduce Defect Leakage</span>
+<span class="font-mono-label text-mono-label text-pita-caution">42%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-pita-caution" style="width: 42%;"></div>
+</div>
+<p class="text-sm text-on-surface-variant mt-2">At risk. QA automation pipeline delayed by 2 weeks.</p>
+</div>
+<!-- Goal 3 -->
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="font-tabular-data font-medium">API Documentation Coverage</span>
+<span class="font-mono-label text-mono-label text-sthira-forest">95%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-sthira-forest" style="width: 95%;"></div>
+</div>
+<p class="text-sm text-on-surface-variant mt-2">Completed ahead of schedule.</p>
+</div>
+</div>
+</div>
+<!-- Section 4: Team Risk Panel (col-span-5) -->
+<div class="col-span-1 md:col-span-5 bg-yantra-indigo text-on-primary p-6 plate-container">
+<div class="mb-6">
+<h3 class="font-pull-quote text-pull-quote text-on-primary text-[28px] mb-2">Risk Signals</h3>
+<p class="font-mono-label text-mono-label text-outline-variant uppercase">Capacity &amp; Burnout Analytics</p>
+</div>
+<div class="space-y-4">
+<div class="flex items-start gap-4 pb-4 border-b border-[rgba(255,255,255,0.1)]">
+<span class="material-symbols-outlined text-rakta-critical mt-1">warning</span>
+<div>
+<p class="font-medium">High Utilization Alert</p>
+<p class="text-sm text-outline-variant mt-1">3 team members logging &gt;55hrs/week for the last 3 weeks.</p>
+<div class="mt-2 flex gap-2">
+<span class="text-xs bg-[rgba(255,255,255,0.1)] px-2 py-1">T. Chen</span>
+<span class="text-xs bg-[rgba(255,255,255,0.1)] px-2 py-1">M. Singh</span>
+<span class="text-xs bg-[rgba(255,255,255,0.1)] px-2 py-1">R. Das</span>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-4 pb-4 border-b border-[rgba(255,255,255,0.1)]">
+<span class="material-symbols-outlined text-pita-caution mt-1">schedule</span>
+<div>
+<p class="font-medium">Leave Balances Expiring</p>
+<p class="text-sm text-outline-variant mt-1">4 members have &gt;15 days accrued leave expiring in Dec.</p>
+<button class="mt-3 text-sm font-mono-label underline decoration-1 underline-offset-4 hover:text-outline-variant transition-colors">INITIATE LEAVE PLAN</button>
+</div>
+</div>
+</div>
+</div>
+</div> <!-- End Second Row -->
+</div> <!-- End Canvas -->
+</main>
+<!-- Bottom Navigation Bar for Mobile (Hidden on Desktop) -->
+<nav class="md:hidden fixed bottom-0 w-full h-16 bg-surface border-t border-outline-variant flex justify-around items-center px-2 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="text-[10px] font-mono-label uppercase">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">assignment</span>
+<span class="text-[10px] font-mono-label uppercase">Work</span>
+</a>
+<!-- Active -->
+<a class="flex flex-col items-center justify-center w-full h-full text-tamra-copper relative" href="#">
+<span class="absolute top-0 w-8 h-[2px] bg-tamra-copper rounded-b-full"></span>
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="text-[10px] font-mono-label uppercase font-bold">Team</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">payments</span>
+<span class="text-[10px] font-mono-label uppercase">Pay</span>
+</a>
+</nav>
+</body></html>

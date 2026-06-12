@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sutra - EMP Attendance Interface</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Local font Geist usually loaded via custom source, falling back to sans if unavailable in standard CDNs, but config will define it -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#c7c6ca",
+                        "tamra-copper-bright": "#C68A60",
+                        "primary-fixed": "#e3e2e6",
+                        "tertiary-fixed": "#ebe1d9",
+                        "on-tertiary-fixed": "#1f1b16",
+                        "on-primary-container": "#848387",
+                        "background": "#fcf8f8",
+                        "rakta-critical": "#7A2B2B",
+                        "sthira-forest": "#2D5D4B",
+                        "surface-container-low": "#f7f3f2",
+                        "secondary-fixed": "#e7e2d8",
+                        "tamra-copper": "#B16A3C",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#fcf8f8",
+                        "outline": "#77777b",
+                        "inverse-on-surface": "#f4f0ef",
+                        "primary-container": "#1b1b1f",
+                        "secondary-container": "#e7e2d8",
+                        "cloud": "#D9D2C2",
+                        "on-tertiary-container": "#8a827c",
+                        "secondary": "#615e57",
+                        "on-primary-fixed": "#1b1b1f",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "on-secondary-fixed": "#1d1c16",
+                        "yantra-indigo": "#1B2A4E",
+                        "surface-container-high": "#ebe7e7",
+                        "surface-dim": "#ddd9d9",
+                        "secondary-fixed-dim": "#cac6bd",
+                        "on-surface-variant": "#46464b",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#5e5e62",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1c1b1c",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#1f1b16",
+                        "primary-fixed-dim": "#c7c6ca",
+                        "surface-container": "#f1eded",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#cec5be",
+                        "primary": "#000000",
+                        "on-primary-fixed-variant": "#46464a",
+                        "inverse-surface": "#313030",
+                        "on-secondary-container": "#67645c",
+                        "tertiary": "#000000",
+                        "surface-bright": "#fcf8f8",
+                        "on-tertiary-fixed-variant": "#4c4640",
+                        "pita-caution": "#9C842A",
+                        "on-background": "#1c1b1c",
+                        "graphite": "#2A2D33",
+                        "outline-variant": "#c7c6cb",
+                        "hiranya-gold": "#C9A86A",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#494740",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "page-margin": "64px",
+                        "grid-12": "12px",
+                        "section-padding": "96px",
+                        "gutter": "48px"
+                    },
+                    "fontFamily": {
+                        "tabular-data": ["Geist", "sans-serif"],
+                        "pull-quote": ["Newsreader", "serif"],
+                        "mono-label": ["JetBrains Mono", "monospace"],
+                        "display-xl-mobile": ["Newsreader", "serif"],
+                        "section-title": ["Newsreader", "serif"],
+                        "body-standard": ["Geist", "sans-serif"],
+                        "display-xl": ["Newsreader", "serif"]
+                    },
+                    "fontSize": {
+                        "tabular-data": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "pull-quote": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.015em", "fontWeight": "300" }],
+                        "mono-label": ["10.5px", { "lineHeight": "1.2", "letterSpacing": "0.12em", "fontWeight": "500" }],
+                        "display-xl-mobile": ["72px", { "lineHeight": "1.0", "fontWeight": "300" }],
+                        "section-title": ["56px", { "lineHeight": "1.02", "letterSpacing": "-0.02em", "fontWeight": "300" }],
+                        "body-standard": ["15px", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "display-xl": ["124px", { "lineHeight": "0.94", "letterSpacing": "-0.035em", "fontWeight": "300" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Base styles from guidance */
+        body {
+            background-color: #fcf8f8; /* background */
+            color: #1c1b1c; /* on-background */
+            font-family: "Geist", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Structural Hairlines */
+        .hairline-b { border-bottom: 1px solid rgba(14,15,18,0.12); }
+        .hairline-t { border-top: 1px solid rgba(14,15,18,0.12); }
+        .hairline-r { border-right: 1px solid rgba(14,15,18,0.12); }
+        .hairline-l { border-left: 1px solid rgba(14,15,18,0.12); }
+        .hairline-all { border: 1px solid rgba(14,15,18,0.12); }
+        
+        /* Corner Ticks */
+        .corner-tick-tl::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 8px; height: 8px;
+            border-top: 1px solid #1c1b1c; border-left: 1px solid #1c1b1c;
+        }
+        .corner-tick-tr::after {
+            content: ''; position: absolute; top: 0; right: 0; width: 8px; height: 8px;
+            border-top: 1px solid #1c1b1c; border-right: 1px solid #1c1b1c;
+        }
+        .corner-tick-bl::before {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 8px; height: 8px;
+            border-bottom: 1px solid #1c1b1c; border-left: 1px solid #1c1b1c;
+        }
+        .corner-tick-br::after {
+            content: ''; position: absolute; bottom: 0; right: 0; width: 8px; height: 8px;
+            border-bottom: 1px solid #1c1b1c; border-right: 1px solid #1c1b1c;
+        }
+
+        /* Bindu Indicator */
+        .bindu {
+            width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+        }
+        
+        /* Specific animations */
+        @keyframes pulse-tamra {
+            0% { box-shadow: 0 0 0 0 rgba(177, 106, 60, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(177, 106, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(177, 106, 60, 0); }
+        }
+        .pulse-active {
+            animation: pulse-tamra 2s infinite;
+        }
+
+        /* Tonal Wash Gradient (Allowed minimal depth) */
+        .tonal-wash {
+            background: linear-gradient(184deg, #fcf8f8 0%, #f4f0ef 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col min-h-screen bg-background pb-20 md:pb-0">
+<!-- TopAppBar Mobile / Desktop Top Nav -->
+<header class="w-full top-0 sticky z-50 bg-background dark:bg-primary-container hairline-b">
+<div class="flex justify-between items-center px-grid-12 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center space-x-4">
+<button class="text-on-surface-variant dark:text-on-secondary-container hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-150 ease-in-out p-2 rounded-DEFAULT">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">grid_view</span>
+</button>
+</div>
+<div class="font-section-title text-section-title-mobile text-primary dark:text-primary-fixed tracking-tight">
+                Sutra
+            </div>
+<div class="flex items-center space-x-4">
+<button class="text-on-surface-variant dark:text-on-secondary-container hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-150 ease-in-out p-2 rounded-DEFAULT relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+<span class="absolute top-2 right-2 bindu bg-tamra-copper"></span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow w-full max-w-lg mx-auto px-6 py-8 flex flex-col gap-6">
+<!-- Shift Status Banner -->
+<div class="flex flex-col items-center justify-center text-center space-y-2 pt-4">
+<h2 class="font-pull-quote text-pull-quote text-on-surface">Active Shift</h2>
+<div class="flex items-center gap-2 font-mono-label text-mono-label text-sthira-forest uppercase tracking-widest">
+<span class="bindu bg-sthira-forest"></span> On Location
+            </div>
+</div>
+<!-- Timer Plate -->
+<div class="relative bg-surface-container-lowest hairline-all p-8 flex flex-col items-center justify-center corner-tick-tl corner-tick-br mt-4 shadow-sm">
+<div class="absolute top-4 left-4 font-mono-label text-mono-label text-on-surface-variant uppercase">Elasped</div>
+<div class="font-tabular-data text-[64px] leading-none font-light tracking-tight text-primary mt-6 mb-2" id="shift-timer">
+                04:22:15
+            </div>
+<div class="font-mono-label text-mono-label text-on-surface-variant">
+                Started at 08:00 AM PST
+            </div>
+</div>
+<!-- Primary Action -->
+<div class="w-full mt-2">
+<button class="w-full bg-tamra-copper text-on-tertiary font-mono-label text-mono-label py-4 px-6 rounded-DEFAULT flex items-center justify-center gap-3 hover:bg-tamra-copper-bright transition-colors pulse-active uppercase tracking-widest">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pause_circle</span>
+                Log Break
+            </button>
+</div>
+<!-- Secondary Actions Grid -->
+<div class="grid grid-cols-2 gap-4 mt-2">
+<button class="bg-transparent hairline-all text-primary font-mono-label text-mono-label py-3 px-4 rounded-DEFAULT flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">location_on</span>
+                Verify Geo
+            </button>
+<button class="bg-transparent hairline-all text-primary font-mono-label text-mono-label py-3 px-4 rounded-DEFAULT flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">logout</span>
+                End Shift
+            </button>
+</div>
+<!-- Recent Logs Table -->
+<div class="mt-8">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-4 hairline-b pb-2">Recent Punches</div>
+<div class="flex flex-col">
+<!-- Row 1 -->
+<div class="flex justify-between items-center py-3 hairline-b">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tamra-copper" style="font-variation-settings: 'FILL' 0;">login</span>
+<div class="flex flex-col">
+<span class="font-tabular-data text-tabular-data text-on-surface">Clock In</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant mt-1">Zone A - Main Entrance</span>
+</div>
+</div>
+<span class="font-tabular-data text-tabular-data text-on-surface">08:00 AM</span>
+</div>
+<!-- Row 2 -->
+<div class="flex justify-between items-center py-3 hairline-b">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 0;">restaurant</span>
+<div class="flex flex-col">
+<span class="font-tabular-data text-tabular-data text-on-surface">Break Start</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant mt-1">Cafeteria</span>
+</div>
+</div>
+<span class="font-tabular-data text-tabular-data text-on-surface">12:00 PM</span>
+</div>
+<!-- Row 3 -->
+<div class="flex justify-between items-center py-3 hairline-b">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 0;">check_circle</span>
+<div class="flex flex-col">
+<span class="font-tabular-data text-tabular-data text-on-surface">Break End</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant mt-1">Cafeteria</span>
+</div>
+</div>
+<span class="font-tabular-data text-tabular-data text-on-surface">12:30 PM</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 bg-background dark:bg-primary-container hairline-t">
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-container hover:text-primary dark:hover:text-primary-fixed scale-95 active:scale-90 transition-transform duration-100 w-16">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">assignment_turned_in</span>
+<span class="font-mono-label text-mono-label text-[10px]">My Work</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-container hover:text-primary dark:hover:text-primary-fixed scale-95 active:scale-90 transition-transform duration-100 w-16">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">group</span>
+<span class="font-mono-label text-mono-label text-[10px]">Team</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-container hover:text-primary dark:hover:text-primary-fixed scale-95 active:scale-90 transition-transform duration-100 w-16">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">analytics</span>
+<span class="font-mono-label text-mono-label text-[10px]">Insights</span>
+</button>
+<button class="flex flex-col items-center justify-center text-tamra-copper dark:text-tamra-copper-bright font-bold scale-95 active:scale-90 transition-transform duration-100 w-16">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+<span class="font-mono-label text-mono-label text-[10px]">Profile</span>
+</button>
+</nav>
+<script>
+        // Simple timer increment logic
+        const timerElement = document.getElementById('shift-timer');
+        let totalSeconds = (4 * 3600) + (22 * 60) + 15; // Starting at 04:22:15
+
+        setInterval(() => {
+            totalSeconds++;
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            const formattedTime = 
+                String(hours).padStart(2, '0') + ':' + 
+                String(minutes).padStart(2, '0') + ':' + 
+                String(seconds).padStart(2, '0');
+                
+            if(timerElement) timerElement.textContent = formattedTime;
+        }, 1000);
+    </script>
+</body></html>

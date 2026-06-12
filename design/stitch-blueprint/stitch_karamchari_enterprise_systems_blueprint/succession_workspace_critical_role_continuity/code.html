@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Succession Plan Workspace | Karamchari</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,300&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#c7c6ca",
+                        "tamra-copper-bright": "#C68A60",
+                        "primary-fixed": "#e3e2e6",
+                        "tertiary-fixed": "#ebe1d9",
+                        "on-tertiary-fixed": "#1f1b16",
+                        "on-primary-container": "#848387",
+                        "background": "#fcf8f8",
+                        "rakta-critical": "#7A2B2B",
+                        "sthira-forest": "#2D5D4B",
+                        "surface-container-low": "#f7f3f2",
+                        "secondary-fixed": "#e7e2d8",
+                        "tamra-copper": "#B16A3C",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#fcf8f8",
+                        "outline": "#77777b",
+                        "inverse-on-surface": "#f4f0ef",
+                        "primary-container": "#1b1b1f",
+                        "secondary-container": "#e7e2d8",
+                        "cloud": "#D9D2C2",
+                        "on-tertiary-container": "#8a827c",
+                        "secondary": "#615e57",
+                        "on-primary-fixed": "#1b1b1f",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "on-secondary-fixed": "#1d1c16",
+                        "yantra-indigo": "#1B2A4E",
+                        "surface-container-high": "#ebe7e7",
+                        "surface-dim": "#ddd9d9",
+                        "secondary-fixed-dim": "#cac6bd",
+                        "on-surface-variant": "#46464b",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#5e5e62",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1c1b1c",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#1f1b16",
+                        "primary-fixed-dim": "#c7c6ca",
+                        "surface-container": "#f1eded",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#cec5be",
+                        "primary": "#000000",
+                        "on-primary-fixed-variant": "#46464a",
+                        "inverse-surface": "#313030",
+                        "on-secondary-container": "#67645c",
+                        "tertiary": "#000000",
+                        "surface-bright": "#fcf8f8",
+                        "on-tertiary-fixed-variant": "#4c4640",
+                        "pita-caution": "#9C842A",
+                        "on-background": "#1c1b1c",
+                        "graphite": "#2A2D33",
+                        "outline-variant": "#c7c6cb",
+                        "hiranya-gold": "#C9A86A",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#494740",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "page-margin": "64px",
+                        "grid-12": "12px",
+                        "section-padding": "96px",
+                        "gutter": "48px"
+                    },
+                    "fontFamily": {
+                        "tabular-data": ["Geist"],
+                        "pull-quote": ["Newsreader"],
+                        "mono-label": ["JetBrains Mono"],
+                        "display-xl-mobile": ["Newsreader"],
+                        "section-title": ["Newsreader"],
+                        "body-standard": ["Geist"],
+                        "display-xl": ["Newsreader"]
+                    },
+                    "fontSize": {
+                        "tabular-data": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "pull-quote": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.015em", "fontWeight": "300" }],
+                        "mono-label": ["10.5px", { "lineHeight": "1.2", "letterSpacing": "0.12em", "fontWeight": "500" }],
+                        "display-xl-mobile": ["72px", { "lineHeight": "1.0", "fontWeight": "300" }],
+                        "section-title": ["56px", { "lineHeight": "1.02", "letterSpacing": "-0.02em", "fontWeight": "300" }],
+                        "body-standard": ["15px", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "display-xl": ["124px", { "lineHeight": "0.94", "letterSpacing": "-0.035em", "fontWeight": "300" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        .hairline-b { border-bottom: 1px solid theme('colors.outline-variant'); }
+        .hairline-t { border-top: 1px solid theme('colors.outline-variant'); }
+        .hairline-l { border-left: 1px solid theme('colors.outline-variant'); }
+        .hairline-r { border-right: 1px solid theme('colors.outline-variant'); }
+        .hairline-all { border: 1px solid theme('colors.outline-variant'); }
+        
+        .corner-tick {
+            position: relative;
+        }
+        .corner-tick::before, .corner-tick::after {
+            content: '';
+            position: absolute;
+            background-color: theme('colors.primary');
+        }
+        .corner-tick-tl::before { top: 0; left: 0; width: 8px; height: 1px; }
+        .corner-tick-tl::after { top: 0; left: 0; width: 1px; height: 8px; }
+        .corner-tick-tr::before { top: 0; right: 0; width: 8px; height: 1px; }
+        .corner-tick-tr::after { top: 0; right: 0; width: 1px; height: 8px; }
+        
+        .card-plate {
+            background-color: theme('colors.secondary-container'); /* Ivory-2 approx */
+        }
+        .bindu {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="font-body-standard text-body-standard antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<nav class="bg-surface text-primary font-body-standard text-body-standard h-screen w-64 border-r border-outline-variant flat no shadows flex flex-col h-full py-unit hidden md:flex z-10 shrink-0">
+<div class="px-6 py-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary text-on-primary flex items-center justify-center rounded-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">corporate_fare</span>
+</div>
+<div>
+<div class="font-section-title text-[24px] leading-none text-primary">Karamchari</div>
+<div class="font-mono-label text-mono-label text-on-surface-variant mt-1 uppercase">Institutional OS</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-1 px-4 flex-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>Home</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span>My Work</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span>Team</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-tamra-copper font-bold border-r-2 border-tamra-copper bg-surface-container-low hover:bg-surface-container-high transition-colors duration-200 opacity-80" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">badge</span>
+<span>Workforce</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span>Payroll</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Insights</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-screen overflow-hidden bg-background">
+<!-- TopNavBar -->
+<header class="bg-surface text-primary font-body-standard text-body-standard w-full h-16 border-b border-outline-variant flat no shadows flex justify-between items-center px-gutter shrink-0">
+<div class="font-section-title text-[28px] leading-none text-primary md:hidden">Karamchari</div>
+<div class="hidden md:flex items-center gap-4 text-yantra-indigo font-mono-label text-mono-label">
+<span>SUCCESSION PLAN WORKSPACE</span>
+<span class="text-outline-variant">/</span>
+<span class="text-on-surface-variant">VP OF ENGINEERING</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:text-tamra-copper transition-colors duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-tamra-copper transition-colors duration-200">
+<span class="material-symbols-outlined">move_to_inbox</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-tamra-copper transition-colors duration-200">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 overflow-y-auto">
+<div class="max-w-[1280px] mx-auto px-page-margin py-section-padding space-y-[96px]">
+<!-- Header / Critical Role Profile -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-start">
+<div class="md:col-span-8 space-y-6">
+<div class="font-mono-label text-mono-label text-yantra-indigo uppercase tracking-widest mb-4 flex items-center gap-2">
+<span class="bindu bg-rakta-critical"></span> CRITICAL ROLE PROFILE
+                        </div>
+<h1 class="font-section-title text-section-title text-primary">Vice President of Engineering</h1>
+<p class="font-pull-quote text-pull-quote text-on-surface-variant max-w-2xl">
+                            Incumbent risk assessed at high due to impending retirement window within 12-18 months. Immediate succession pipeline activation required.
+                        </p>
+</div>
+<div class="md:col-span-4 card-plate hairline-all p-6 corner-tick corner-tick-tl">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-6 hairline-b pb-2">Incumbent Status</div>
+<div class="flex items-center gap-4 mb-6">
+<img alt="Profile" class="w-16 h-16 rounded-sm grayscale" data-alt="A professional headshot of a mature female executive with silver hair, wearing a dark blazer over a crisp white shirt. The photo is composed with a minimalist, high-contrast black and white aesthetic, featuring deep shadows and a clean, light background. She exudes a sense of quiet authority, mathematical precision, and strategic foresight, perfectly aligning with an enterprise-grade, sage-architect design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSwGqdu8l4KOu_tBCMlA0VkaVEWTDyYqgBGPQ4nwUOKzUcOf3QZa5nYpr87ijzb7XH9BMpjy764a1CLvDyxow54B2libl4YZ3Rr9OJ_J3K_hBg20cfMxres-JMKTC3aQliK58KdF1MNfvIpVupFa5beu4uWZx9ytroFiPeb6Aa7534mbYwmzEJqihVC__WWVSHj47XGZdVYwUzuSnf9FXUcSBGeeczjEJ5Fw3Sbo1QZDorM9t9e_yY4DlRVY-19jC8OqoqTWqmca-X"/>
+<div>
+<div class="font-bold text-primary">Sarah Jenkins</div>
+<div class="text-on-surface-variant text-sm mt-1">Tenure: 8 Years</div>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Flight Risk</span>
+<span class="font-tabular-data text-tabular-data text-rakta-critical font-medium">HIGH (85%)</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant">Impact of Loss</span>
+<span class="font-tabular-data text-tabular-data font-medium">CRITICAL</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Succession Bench & 9-Box (Bento Layout) -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-grid-12">
+<!-- Succession Bench -->
+<div class="md:col-span-7 card-plate hairline-all p-8 flex flex-col h-[500px]">
+<div class="flex justify-between items-end hairline-b pb-4 mb-6">
+<h2 class="font-mono-label text-mono-label text-primary uppercase">Succession Bench</h2>
+<span class="text-sm text-on-surface-variant">3 Candidates</span>
+</div>
+<div class="flex-1 overflow-y-auto pr-4 space-y-4">
+<!-- Candidate 1 -->
+<div class="group hairline-all bg-surface p-4 hover:bg-surface-container-low transition-colors duration-200 cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container text-on-primary-container flex items-center justify-center font-mono-label text-mono-label">MK</div>
+<div>
+<div class="font-medium text-primary">Marcus Kim</div>
+<div class="text-xs text-on-surface-variant mt-0.5">Dir. Cloud Infrastructure</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-tabular-data text-tabular-data text-sthira-forest font-medium">92%</div>
+<div class="text-[10px] uppercase text-on-surface-variant">Readiness</div>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-surface-variant text-xs text-on-surface">Ready Now</span>
+<span class="px-2 py-1 hairline-all text-xs text-on-surface-variant">Top Talent</span>
+</div>
+</div>
+<!-- Candidate 2 -->
+<div class="group hairline-all bg-surface p-4 hover:bg-surface-container-low transition-colors duration-200 cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container text-on-primary-container flex items-center justify-center font-mono-label text-mono-label">EL</div>
+<div>
+<div class="font-medium text-primary">Elena Rodriguez</div>
+<div class="text-xs text-on-surface-variant mt-0.5">Dir. Platform Eng</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-tabular-data text-tabular-data text-pita-caution font-medium">78%</div>
+<div class="text-[10px] uppercase text-on-surface-variant">Readiness</div>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-surface-variant text-xs text-on-surface">1-2 Years</span>
+<span class="px-2 py-1 hairline-all text-xs text-on-surface-variant">High Potential</span>
+</div>
+</div>
+<!-- Candidate 3 -->
+<div class="group hairline-all bg-surface p-4 hover:bg-surface-container-low transition-colors duration-200 cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container text-on-primary-container flex items-center justify-center font-mono-label text-mono-label">DP</div>
+<div>
+<div class="font-medium text-primary">David Patel</div>
+<div class="text-xs text-on-surface-variant mt-0.5">Sr. Eng Manager</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-tabular-data text-tabular-data text-tamra-copper font-medium">65%</div>
+<div class="text-[10px] uppercase text-on-surface-variant">Readiness</div>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-surface-variant text-xs text-on-surface">3-5 Years</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 9-Box Calibration -->
+<div class="md:col-span-5 bg-yantra-indigo text-on-primary p-8 flex flex-col h-[500px]">
+<h2 class="font-mono-label text-mono-label text-secondary-container uppercase opacity-70 mb-6 hairline-b border-surface-tint pb-4">Calibration Map</h2>
+<div class="flex-1 grid grid-cols-3 grid-rows-3 gap-1 p-1 bg-inverse-surface">
+<!-- Top Row (High Potential) -->
+<div class="bg-yantra-indigo/90 p-2 flex items-start justify-end relative group">
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="text-[10px] opacity-40 absolute bottom-2 left-2">Enigma</span>
+</div>
+<div class="bg-yantra-indigo/90 p-2 flex items-start justify-end relative group">
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-4 h-4 bg-secondary-container rounded-sm flex items-center justify-center text-[8px] text-primary font-bold">EL</div>
+<span class="text-[10px] opacity-40 absolute bottom-2 left-2">Growth</span>
+</div>
+<div class="bg-sthira-forest/30 p-2 flex items-start justify-end relative group">
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-4 h-4 bg-secondary-container rounded-sm flex items-center justify-center text-[8px] text-primary font-bold">MK</div>
+<span class="text-[10px] opacity-40 absolute bottom-2 left-2">Future Leader</span>
+</div>
+<!-- Middle Row (Moderate Potential) -->
+<div class="bg-yantra-indigo/90 p-2 flex items-start justify-end relative group">
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="text-[10px] opacity-40 absolute bottom-2 left-2">Dilemma</span>
+</div>
+<div class="bg-yantra-indigo/90 p-2 flex items-start justify-end relative group">
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-4 h-4 bg-secondary-container rounded-sm flex items-center justify-center text-[8px] text-primary font-bold">DP</div>
+<span class="text-[10px] opacity-40 absolute bottom-2 left-2">Core</span>
+</div>
+<div class="bg-yantra-indigo/90 p-2 flex items-start justify-end relative group">
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="text-[10px] opacity-40 absolute bottom-2 left-2">High Impact</span>
+</div>
+<!-- Bottom Row (Low Potential) -->
+<div class="bg-yantra-indigo/90 p-2 flex items-start justify-end relative group">
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="text-[10px] opacity-40 absolute bottom-2 left-2">Risk</span>
+</div>
+<div class="bg-yantra-indigo/90 p-2 flex items-start justify-end relative group">
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="text-[10px] opacity-40 absolute bottom-2 left-2">Effective</span>
+</div>
+<div class="bg-yantra-indigo/90 p-2 flex items-start justify-end relative group">
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="text-[10px] opacity-40 absolute bottom-2 left-2">Trusted Prof.</span>
+</div>
+</div>
+<div class="flex justify-between text-[10px] mt-4 opacity-50 uppercase tracking-widest font-mono-label text-mono-label">
+<span>← Performance →</span>
+</div>
+</div>
+</section>
+<!-- Readiness Gaps (Buddhi AI) -->
+<section class="pt-8 hairline-t">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-tamra-copper">psychiatry</span>
+<h2 class="font-section-title text-[32px] text-primary">Readiness Gaps &amp; Mitigation</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- MK Gaps -->
+<div class="hairline-l pl-6">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-4">Marcus Kim (92%)</div>
+<div class="space-y-6">
+<div>
+<div class="flex items-center gap-2 text-sm font-medium mb-1">
+<span class="bindu bg-pita-caution"></span> Cross-functional Org Design
+                                    </div>
+<p class="text-sm text-on-surface-variant">Requires exposure to non-technical departmental structuring.</p>
+<div class="mt-2 p-3 bg-surface-container-low hairline-all text-xs">
+<span class="font-bold text-tamra-copper">Buddhi Suggestion:</span> Interim rotation on the Q3 Enterprise Restructure Taskforce.
+                                    </div>
+</div>
+</div>
+</div>
+<!-- EL Gaps -->
+<div class="hairline-l pl-6">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-4">Elena Rodriguez (78%)</div>
+<div class="space-y-6">
+<div>
+<div class="flex items-center gap-2 text-sm font-medium mb-1">
+<span class="bindu bg-rakta-critical"></span> Executive Board Communication
+                                    </div>
+<p class="text-sm text-on-surface-variant">Current communication style overly technical for C-suite alignment.</p>
+<div class="mt-2 p-3 bg-surface-container-low hairline-all text-xs">
+<span class="font-bold text-tamra-copper">Buddhi Suggestion:</span> Assign Executive Coach (Comm. Focus) + Present Q4 Tech Roadmap to Board.
+                                    </div>
+</div>
+</div>
+</div>
+<!-- DP Gaps -->
+<div class="hairline-l pl-6">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-4">David Patel (65%)</div>
+<div class="space-y-6">
+<div>
+<div class="flex items-center gap-2 text-sm font-medium mb-1">
+<span class="bindu bg-rakta-critical"></span> Strategic Budget Allocation
+                                    </div>
+<p class="text-sm text-on-surface-variant">Lacks experience managing portfolios over $5M.</p>
+<div class="mt-2 p-3 bg-surface-container-low hairline-all text-xs">
+<span class="font-bold text-tamra-copper">Buddhi Suggestion:</span> Co-own FY24 Engineering CapEx budget planning with incumbent.
+                                    </div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="pb-section-padding"></div> <!-- Bottom Spacer -->
+</div>
+</main>
+</div>
+</body></html>

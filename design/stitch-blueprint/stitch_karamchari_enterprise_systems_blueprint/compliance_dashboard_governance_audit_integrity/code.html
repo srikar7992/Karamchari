@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Compliance Dashboard - Karamchari</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#c7c6ca",
+                    "tamra-copper-bright": "#C68A60",
+                    "primary-fixed": "#e3e2e6",
+                    "tertiary-fixed": "#ebe1d9",
+                    "on-tertiary-fixed": "#1f1b16",
+                    "on-primary-container": "#848387",
+                    "background": "#fcf8f8",
+                    "rakta-critical": "#7A2B2B",
+                    "sthira-forest": "#2D5D4B",
+                    "surface-container-low": "#f7f3f2",
+                    "secondary-fixed": "#e7e2d8",
+                    "tamra-copper": "#B16A3C",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#fcf8f8",
+                    "outline": "#77777b",
+                    "inverse-on-surface": "#f4f0ef",
+                    "primary-container": "#1b1b1f",
+                    "secondary-container": "#e7e2d8",
+                    "cloud": "#D9D2C2",
+                    "on-tertiary-container": "#8a827c",
+                    "secondary": "#615e57",
+                    "on-primary-fixed": "#1b1b1f",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e5e2e1",
+                    "on-secondary-fixed": "#1d1c16",
+                    "yantra-indigo": "#1B2A4E",
+                    "surface-container-high": "#ebe7e7",
+                    "surface-dim": "#ddd9d9",
+                    "secondary-fixed-dim": "#cac6bd",
+                    "on-surface-variant": "#46464b",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#5e5e62",
+                    "on-error": "#ffffff",
+                    "on-surface": "#1c1b1c",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#1f1b16",
+                    "primary-fixed-dim": "#c7c6ca",
+                    "surface-container": "#f1eded",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#cec5be",
+                    "primary": "#000000",
+                    "on-primary-fixed-variant": "#46464a",
+                    "inverse-surface": "#313030",
+                    "on-secondary-container": "#67645c",
+                    "tertiary": "#000000",
+                    "surface-bright": "#fcf8f8",
+                    "on-tertiary-fixed-variant": "#4c4640",
+                    "pita-caution": "#9C842A",
+                    "on-background": "#1c1b1c",
+                    "graphite": "#2A2D33",
+                    "outline-variant": "#c7c6cb",
+                    "hiranya-gold": "#C9A86A",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-secondary-fixed-variant": "#494740",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "page-margin": "64px",
+                    "grid-12": "12px",
+                    "section-padding": "96px",
+                    "gutter": "48px"
+            },
+            "fontFamily": {
+                    "tabular-data": [
+                            "Geist"
+                    ],
+                    "pull-quote": [
+                            "Newsreader"
+                    ],
+                    "mono-label": [
+                            "JetBrains Mono"
+                    ],
+                    "display-xl-mobile": [
+                            "Newsreader"
+                    ],
+                    "section-title": [
+                            "Newsreader"
+                    ],
+                    "body-standard": [
+                            "Geist"
+                    ],
+                    "display-xl": [
+                            "Newsreader"
+                    ]
+            },
+            "fontSize": {
+                    "tabular-data": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.4",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "pull-quote": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.015em",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "mono-label": [
+                            "10.5px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "0.12em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "display-xl-mobile": [
+                            "72px",
+                            {
+                                    "lineHeight": "1.0",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "section-title": [
+                            "56px",
+                            {
+                                    "lineHeight": "1.02",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "body-standard": [
+                            "15px",
+                            {
+                                    "lineHeight": "1.55",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-xl": [
+                            "124px",
+                            {
+                                    "lineHeight": "0.94",
+                                    "letterSpacing": "-0.035em",
+                                    "fontWeight": "300"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-standard text-body-standard antialiased flex flex-col md:flex-row min-h-screen selection:bg-tamra-copper selection:text-white">
+<!-- SideNavBar (Web) -->
+<nav class="hidden md:flex flex-col h-screen w-64 border-r border-outline-variant bg-surface dark:bg-surface-container-lowest py-unit shrink-0 sticky top-0">
+<div class="px-6 py-4 mb-8">
+<h1 class="font-section-title text-[32px] leading-none text-primary dark:text-on-surface tracking-tight">Karamchari</h1>
+<p class="font-mono-label text-mono-label text-on-surface-variant mt-2 uppercase tracking-wider">Institutional OS</p>
+</div>
+<ul class="flex-1 px-4 space-y-1">
+<li>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors" data-icon="home" data-weight="regular">home</span>
+<span class="font-body-standard text-[14px]">Home</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors" data-icon="assignment" data-weight="regular">assignment</span>
+<span class="font-body-standard text-[14px]">My Work</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors" data-icon="groups" data-weight="regular">groups</span>
+<span class="font-body-standard text-[14px]">Team</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors" data-icon="badge" data-weight="regular">badge</span>
+<span class="font-body-standard text-[14px]">Workforce</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors" data-icon="payments" data-weight="regular">payments</span>
+<span class="font-body-standard text-[14px]">Payroll</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-tamra-copper font-bold border-r-2 border-tamra-copper bg-surface-container-low transition-colors duration-200 group opacity-80" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="analytics" data-weight="fill" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-body-standard text-[14px]">Insights</span>
+</a>
+</li>
+</ul>
+<div class="px-6 py-4 mt-auto border-t border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center overflow-hidden shrink-0">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="account_circle">account_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-mono-label text-[10px] text-on-surface truncate">J. Doe</span>
+<span class="text-[10px] text-on-surface-variant truncate">Compliance Officer</span>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col min-w-0 bg-surface">
+<!-- TopNavBar -->
+<header class="w-full h-16 border-b border-outline-variant bg-surface dark:bg-surface-container-lowest flex justify-between items-center px-6 lg:px-gutter sticky top-0 z-10 shrink-0">
+<div class="flex items-center gap-4 flex-1">
+<button class="md:hidden text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-surface-container-low border border-outline-variant rounded-sm focus-within:border-yantra-indigo focus-within:ring-1 focus-within:ring-yantra-indigo transition-all w-64">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-[13px] w-full p-0 text-on-surface placeholder:text-on-surface-variant font-body-standard" placeholder="Search entity, policy, ID..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="move_to_inbox">move_to_inbox</span>
+</button>
+<button class="md:hidden text-on-surface-variant hover:text-tamra-copper transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-6 lg:p-12 xl:p-page-margin max-w-[1440px] mx-auto w-full flex flex-col gap-8">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-outline-variant">
+<div>
+<h2 class="font-section-title text-section-title text-primary tracking-tight leading-none mb-3">Compliance Matrix</h2>
+<p class="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest">Real-time Regulatory Posture &amp; Audit Surface</p>
+</div>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 bg-transparent border border-outline-variant text-primary font-mono-label text-[11px] tracking-wider uppercase hover:bg-surface-container-low transition-colors">Export Ledger</button>
+<button class="px-5 py-2.5 bg-primary text-on-primary font-mono-label text-[11px] tracking-wider uppercase hover:bg-inverse-surface transition-colors">Run Deep Scan</button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-min">
+<!-- 1. Global Compliance Score (Sutra Ivory chip) -->
+<div class="md:col-span-4 bg-tertiary-fixed border border-outline-variant p-6 relative flex flex-col justify-between min-h-[240px]">
+<!-- Corner ticks -->
+<div class="absolute top-0 left-0 w-2 h-2 border-t border-l border-primary"></div>
+<div class="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-primary"></div>
+<div class="flex justify-between items-start">
+<span class="font-mono-label text-mono-label text-on-tertiary-fixed uppercase tracking-widest">Global Posture</span>
+<span class="w-2 h-2 rounded-full bg-sthira-forest"></span> <!-- Sthira Forest "Governance" voice -->
+</div>
+<div class="mt-8">
+<div class="flex items-baseline gap-2">
+<span class="font-pull-quote text-[64px] leading-none text-on-tertiary-fixed tracking-tight">98.4</span>
+<span class="font-mono-label text-[14px] text-on-tertiary-fixed-variant">%</span>
+</div>
+<p class="font-body-standard text-[13px] text-on-tertiary-fixed-variant mt-2 border-t border-[rgba(31,27,22,0.12)] pt-2">Systemic alignment verified across 47 active jurisdictions. No critical deviations detected in current cycle.</p>
+</div>
+</div>
+<!-- 2. Violation Queue -->
+<div class="md:col-span-8 bg-surface-container-lowest border border-outline-variant p-0 flex flex-col relative">
+<div class="p-4 border-b border-outline-variant bg-surface flex justify-between items-center">
+<span class="font-mono-label text-mono-label text-primary uppercase tracking-widest">Violation Queue [Active]</span>
+<span class="px-2 py-1 bg-surface-container-high border border-outline-variant text-[10px] font-mono-label tracking-wider">3 Items</span>
+</div>
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant bg-surface-container-low">
+<th class="py-3 px-4 font-mono-label text-[10px] text-on-surface-variant uppercase tracking-wider font-normal">ID</th>
+<th class="py-3 px-4 font-mono-label text-[10px] text-on-surface-variant uppercase tracking-wider font-normal">Policy Breach</th>
+<th class="py-3 px-4 font-mono-label text-[10px] text-on-surface-variant uppercase tracking-wider font-normal">Entity</th>
+<th class="py-3 px-4 font-mono-label text-[10px] text-on-surface-variant uppercase tracking-wider font-normal">Severity</th>
+<th class="py-3 px-4 font-mono-label text-[10px] text-on-surface-variant uppercase tracking-wider font-normal text-right">Action</th>
+</tr>
+</thead>
+<tbody class="font-tabular-data text-tabular-data text-on-surface">
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="py-3 px-4 text-on-surface-variant">#VL-892</td>
+<td class="py-3 px-4">Data Residency Gap (EU-04)</td>
+<td class="py-3 px-4">Node_Frankfurt_02</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-rakta-critical"></span>
+<span class="text-[12px]">Critical</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="text-[11px] font-mono-label text-tamra-copper hover:text-tamra-copper-bright uppercase tracking-wider">Audit</button>
+</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="py-3 px-4 text-on-surface-variant">#VL-891</td>
+<td class="py-3 px-4">Access Log Obfuscation</td>
+<td class="py-3 px-4">Service_Acct_Admin</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-pita-caution"></span>
+<span class="text-[12px]">Elevated</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="text-[11px] font-mono-label text-primary hover:text-tamra-copper uppercase tracking-wider">Audit</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-3 px-4 text-on-surface-variant">#VL-889</td>
+<td class="py-3 px-4">Missed Training Mandate</td>
+<td class="py-3 px-4">Dept_Engineering</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-sthira-forest"></span>
+<span class="text-[12px]">Monitored</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="text-[11px] font-mono-label text-primary hover:text-tamra-copper uppercase tracking-wider">Audit</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- 3. Regulatory Register -->
+<div class="md:col-span-5 bg-surface-container-lowest border border-outline-variant flex flex-col">
+<div class="p-4 border-b border-outline-variant bg-surface">
+<span class="font-mono-label text-mono-label text-primary uppercase tracking-widest">Regulatory Register</span>
+</div>
+<div class="p-0 flex-1 overflow-y-auto max-h-[300px]">
+<ul class="divide-y divide-outline-variant">
+<li class="p-4 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[18px] text-sthira-forest" data-icon="verified_user">verified_user</span>
+<div>
+<div class="font-mono-label text-[11px] text-primary tracking-wider">GDPR (EU)</div>
+<div class="text-[12px] text-on-surface-variant mt-0.5">Full compliance verified. Next audit: Q3.</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline opacity-0 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</li>
+<li class="p-4 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[18px] text-pita-caution" data-icon="policy">policy</span>
+<div>
+<div class="font-mono-label text-[11px] text-primary tracking-wider">CCPA (US-CA)</div>
+<div class="text-[12px] text-on-surface-variant mt-0.5">Pending minor updates to consent flow.</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline opacity-0 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</li>
+<li class="p-4 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[18px] text-sthira-forest" data-icon="fact_check">fact_check</span>
+<div>
+<div class="font-mono-label text-[11px] text-primary tracking-wider">SOC2 Type II</div>
+<div class="text-[12px] text-on-surface-variant mt-0.5">Continuous monitoring active.</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline opacity-0 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</li>
+<li class="p-4 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[18px] text-rakta-critical" data-icon="gavel">gavel</span>
+<div>
+<div class="font-mono-label text-[11px] text-primary tracking-wider">HIPAA (US)</div>
+<div class="text-[12px] text-on-surface-variant mt-0.5">BAA missing for Vendor_X_Tech.</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline opacity-0 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- 4. Audit Trail Explorer -->
+<div class="md:col-span-7 bg-surface-container-lowest border border-outline-variant p-6 relative">
+<!-- Corner ticks -->
+<div class="absolute top-0 right-0 w-2 h-2 border-t border-r border-outline-variant"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-outline-variant"></div>
+<div class="flex justify-between items-center mb-6">
+<span class="font-mono-label text-mono-label text-primary uppercase tracking-widest">Audit Trail Explorer</span>
+<div class="flex gap-2">
+<input class="px-3 py-1.5 bg-surface border border-outline-variant rounded-none text-[12px] font-tabular-data focus:ring-1 focus:ring-primary focus:border-primary w-32 placeholder:text-on-surface-variant" placeholder="Entity ID..." type="text"/>
+<button class="px-3 py-1.5 bg-surface-container-high border border-outline-variant text-primary font-mono-label text-[10px] uppercase hover:bg-surface-dim transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="filter_list">filter_list</span>
+                                Filter
+                             </button>
+</div>
+</div>
+<div class="space-y-4">
+<!-- Log Entry -->
+<div class="pl-4 border-l-2 border-outline-variant relative">
+<div class="absolute w-2 h-2 bg-outline-variant rounded-full -left-[5px] top-1"></div>
+<div class="flex justify-between items-baseline mb-1">
+<span class="font-mono-label text-[10px] text-on-surface-variant">2023-10-27T14:32:01Z</span>
+<span class="font-mono-label text-[9px] bg-surface-container-high px-1.5 py-0.5 border border-outline-variant">ACT_READ</span>
+</div>
+<p class="font-tabular-data text-[13px] text-primary">User <span class="font-mono-label text-[11px] bg-surface px-1 border border-outline-variant mx-1">usr_98x2</span> accessed restricted table <span class="font-mono-label text-[11px] bg-surface px-1 border border-outline-variant mx-1">tbl_financials_q3</span> via API key.</p>
+</div>
+<!-- Log Entry -->
+<div class="pl-4 border-l-2 border-sthira-forest relative">
+<div class="absolute w-2 h-2 bg-sthira-forest rounded-full -left-[5px] top-1"></div>
+<div class="flex justify-between items-baseline mb-1">
+<span class="font-mono-label text-[10px] text-on-surface-variant">2023-10-27T12:15:44Z</span>
+<span class="font-mono-label text-[9px] bg-surface-container-high px-1.5 py-0.5 border border-outline-variant text-sthira-forest">POL_PASS</span>
+</div>
+<p class="font-tabular-data text-[13px] text-primary">Automated GDPR compliance sweep completed. 0 anomalies detected in dataset <span class="font-mono-label text-[11px] bg-surface px-1 border border-outline-variant mx-1">ds_eu_customers</span>.</p>
+</div>
+<!-- Log Entry -->
+<div class="pl-4 border-l-2 border-rakta-critical relative">
+<div class="absolute w-2 h-2 bg-rakta-critical rounded-full -left-[5px] top-1"></div>
+<div class="flex justify-between items-baseline mb-1">
+<span class="font-mono-label text-[10px] text-on-surface-variant">2023-10-27T09:02:11Z</span>
+<span class="font-mono-label text-[9px] bg-surface-container-high px-1.5 py-0.5 border border-outline-variant text-rakta-critical">SYS_WARN</span>
+</div>
+<p class="font-tabular-data text-[13px] text-primary">Multiple failed authentication attempts (5) from unrecognized IP <span class="font-mono-label text-[11px] bg-surface px-1 border border-outline-variant mx-1">192.168.1.104</span> targeting admin gateway.</p>
+</div>
+<!-- Log Entry -->
+<div class="pl-4 border-l-2 border-outline-variant relative">
+<div class="absolute w-2 h-2 bg-outline-variant rounded-full -left-[5px] top-1"></div>
+<div class="flex justify-between items-baseline mb-1">
+<span class="font-mono-label text-[10px] text-on-surface-variant">2023-10-26T18:45:00Z</span>
+<span class="font-mono-label text-[9px] bg-surface-container-high px-1.5 py-0.5 border border-outline-variant">ACT_MOD</span>
+</div>
+<p class="font-tabular-data text-[13px] text-primary">Configuration changed for resource <span class="font-mono-label text-[11px] bg-surface px-1 border border-outline-variant mx-1">s3_bucket_logs</span>. Encryption mandated by <span class="font-mono-label text-[11px] bg-surface px-1 border border-outline-variant mx-1">sys_admin_01</span>.</p>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border border-outline-variant text-center font-mono-label text-[10px] uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-colors">Load Older Entries</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

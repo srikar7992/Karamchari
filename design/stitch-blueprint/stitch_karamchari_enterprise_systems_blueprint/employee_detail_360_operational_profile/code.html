@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Employee Directory - Karamchari</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Newsreader:opsz,wght@6..72,300;400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#c7c6ca",
+                    "tamra-copper-bright": "#C68A60",
+                    "primary-fixed": "#e3e2e6",
+                    "tertiary-fixed": "#ebe1d9",
+                    "on-tertiary-fixed": "#1f1b16",
+                    "on-primary-container": "#848387",
+                    "background": "#fcf8f8",
+                    "rakta-critical": "#7A2B2B",
+                    "sthira-forest": "#2D5D4B",
+                    "surface-container-low": "#f7f3f2",
+                    "secondary-fixed": "#e7e2d8",
+                    "tamra-copper": "#B16A3C",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#fcf8f8",
+                    "outline": "#77777b",
+                    "inverse-on-surface": "#f4f0ef",
+                    "primary-container": "#1b1b1f",
+                    "secondary-container": "#e7e2d8",
+                    "cloud": "#D9D2C2",
+                    "on-tertiary-container": "#8a827c",
+                    "secondary": "#615e57",
+                    "on-primary-fixed": "#1b1b1f",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e5e2e1",
+                    "on-secondary-fixed": "#1d1c16",
+                    "yantra-indigo": "#1B2A4E",
+                    "surface-container-high": "#ebe7e7",
+                    "surface-dim": "#ddd9d9",
+                    "secondary-fixed-dim": "#cac6bd",
+                    "on-surface-variant": "#46464b",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#5e5e62",
+                    "on-error": "#ffffff",
+                    "on-surface": "#1c1b1c",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#1f1b16",
+                    "primary-fixed-dim": "#c7c6ca",
+                    "surface-container": "#f1eded",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#cec5be",
+                    "primary": "#000000",
+                    "on-primary-fixed-variant": "#46464a",
+                    "inverse-surface": "#313030",
+                    "on-secondary-container": "#67645c",
+                    "tertiary": "#000000",
+                    "surface-bright": "#fcf8f8",
+                    "on-tertiary-fixed-variant": "#4c4640",
+                    "pita-caution": "#9C842A",
+                    "on-background": "#1c1b1c",
+                    "graphite": "#2A2D33",
+                    "outline-variant": "#c7c6cb",
+                    "hiranya-gold": "#C9A86A",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-secondary-fixed-variant": "#494740",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "page-margin": "64px",
+                    "grid-12": "12px",
+                    "section-padding": "96px",
+                    "gutter": "48px"
+            },
+            "fontFamily": {
+                    "tabular-data": [
+                            "Geist"
+                    ],
+                    "pull-quote": [
+                            "Newsreader"
+                    ],
+                    "mono-label": [
+                            "JetBrains Mono"
+                    ],
+                    "display-xl-mobile": [
+                            "Newsreader"
+                    ],
+                    "section-title": [
+                            "Newsreader"
+                    ],
+                    "body-standard": [
+                            "Geist"
+                    ],
+                    "display-xl": [
+                            "Newsreader"
+                    ]
+            },
+            "fontSize": {
+                    "tabular-data": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.4",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "pull-quote": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.015em",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "mono-label": [
+                            "10.5px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "0.12em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "display-xl-mobile": [
+                            "72px",
+                            {
+                                    "lineHeight": "1.0",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "section-title": [
+                            "56px",
+                            {
+                                    "lineHeight": "1.02",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "body-standard": [
+                            "15px",
+                            {
+                                    "lineHeight": "1.55",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-xl": [
+                            "124px",
+                            {
+                                    "lineHeight": "0.94",
+                                    "letterSpacing": "-0.035em",
+                                    "fontWeight": "300"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        .hairline-border { border: 1px solid rgba(14, 15, 18, 0.12); }
+        .hairline-b { border-bottom: 1px solid rgba(14, 15, 18, 0.12); }
+        .hairline-t { border-top: 1px solid rgba(14, 15, 18, 0.12); }
+        .hairline-l { border-left: 1px solid rgba(14, 15, 18, 0.12); }
+        .hairline-r { border-right: 1px solid rgba(14, 15, 18, 0.12); }
+        
+        .tick-tl { position: absolute; top: -1px; left: -1px; width: 8px; height: 8px; border-top: 1px solid var(--primary); border-left: 1px solid var(--primary); pointer-events: none; }
+        .tick-tr { position: absolute; top: -1px; right: -1px; width: 8px; height: 8px; border-top: 1px solid var(--primary); border-right: 1px solid var(--primary); pointer-events: none; }
+        .tick-bl { position: absolute; bottom: -1px; left: -1px; width: 8px; height: 8px; border-bottom: 1px solid var(--primary); border-left: 1px solid var(--primary); pointer-events: none; }
+        .tick-br { position: absolute; bottom: -1px; right: -1px; width: 8px; height: 8px; border-bottom: 1px solid var(--primary); border-right: 1px solid var(--primary); pointer-events: none; }
+
+        .bindu { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-standard text-body-standard antialiased selection:bg-tamra-copper selection:text-on-tertiary">
+<!-- App Shell Container -->
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar Component -->
+<nav class="bg-surface dark:bg-surface-container-lowest text-primary dark:text-on-surface font-body-standard text-body-standard border-r border-outline-variant h-screen w-64 flex flex-col py-unit hidden md:flex shrink-0">
+<div class="px-6 py-8 hairline-b mb-4">
+<h1 class="font-section-title text-section-title text-primary dark:text-on-surface text-[32px] leading-none mb-1 tracking-tight">Karamchari</h1>
+<p class="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest">Institutional OS</p>
+</div>
+<ul class="flex-1 overflow-y-auto px-4 space-y-1">
+<li>
+<a class="flex items-center px-4 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-4 text-[20px]" data-icon="home">home</span>
+<span>Home</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-4 text-[20px]" data-icon="assignment">assignment</span>
+<span>My Work</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-4 text-[20px]" data-icon="groups">groups</span>
+<span>Team</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded text-tamra-copper font-bold border-r-2 border-tamra-copper bg-surface-container-low opacity-80" href="#">
+<span class="material-symbols-outlined mr-4 text-[20px]" data-icon="badge" data-weight="fill">badge</span>
+<span>Workforce</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-4 text-[20px]" data-icon="payments">payments</span>
+<span>Payroll</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-4 text-[20px]" data-icon="analytics">analytics</span>
+<span>Insights</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+<!-- TopNavBar Component -->
+<header class="bg-surface dark:bg-surface-container-lowest text-primary dark:text-on-surface font-body-standard text-body-standard border-b border-outline-variant w-full h-16 flex justify-between items-center px-gutter shrink-0">
+<div class="flex items-center w-1/3">
+<div class="relative w-full max-w-md hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-sm text-tabular-data font-tabular-data focus:border-yantra-indigo focus:ring-0 transition-colors" placeholder="Search directory..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-6">
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 relative group">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-rakta-critical rounded-full border border-surface"></span>
+</button>
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="move_to_inbox">move_to_inbox</span>
+</button>
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<div class="flex-1 overflow-y-auto bg-surface pb-section-padding">
+<div class="max-w-[1280px] mx-auto px-6 md:px-page-margin py-12">
+<!-- Dossier Header -->
+<div class="mb-12">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest mb-4 flex items-center">
+<span class="material-symbols-outlined text-[14px] mr-2" data-icon="arrow_back">arrow_back</span>
+<a class="hover:text-primary transition-colors" href="#">Directory</a> <span class="mx-2">/</span> Operator Dossier
+                        </div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h2 class="font-section-title text-section-title text-primary tracking-tight mb-2">Elena Rostova</h2>
+<p class="font-pull-quote text-pull-quote text-on-surface-variant italic">Senior Technical Architect</p>
+</div>
+<div class="flex gap-4">
+<button class="px-[22px] py-[14px] bg-transparent border border-outline-variant text-primary font-tabular-data text-tabular-data hover:bg-surface-container-low transition-colors flex items-center">
+<span class="material-symbols-outlined mr-2 text-[18px]" data-icon="edit">edit</span> Modify Record
+                                </button>
+<button class="px-[22px] py-[14px] bg-primary text-on-primary font-tabular-data text-tabular-data hover:bg-graphite transition-colors flex items-center">
+<span class="material-symbols-outlined mr-2 text-[18px]" data-icon="mail">mail</span> Contact Operator
+                                </button>
+</div>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-grid-12">
+<!-- Col 1: Identity & Position (4 cols) -->
+<div class="md:col-span-4 flex flex-col gap-grid-12">
+<!-- ID Card -->
+<div class="bg-surface-container-lowest hairline-border relative p-6 h-full min-h-[300px] flex flex-col justify-between">
+<div class="tick-tl"></div><div class="tick-tr"></div><div class="tick-bl"></div><div class="tick-br"></div>
+<div>
+<div class="flex justify-between items-start mb-6">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase">Identity Status</div>
+<div class="flex items-center gap-2 font-mono-label text-mono-label text-sthira-forest">
+<span class="bindu bg-sthira-forest"></span> Active
+                                        </div>
+</div>
+<div class="aspect-square w-32 bg-surface-container-high hairline-border mb-6 overflow-hidden relative">
+<img alt="Professional portrait" class="w-full h-full object-cover grayscale mix-blend-multiply" data-alt="A striking black and white professional portrait of a female technical architect. The image is captured in a minimalist, high-key studio environment with stark white background. The subject wears austere, modern structural clothing. The lighting emphasizes geometric shadows and clarity, conveying an atmosphere of quiet authority and mathematical precision. The overall aesthetic perfectly matches a brutalist enterprise dossier." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB37SB87c9fZqXPFJNk4QuIS09XDxrpd3kXFe22mfcR2AxVcIDbHSeVY3VyiH1lAvHppRU8ctBoaSlQReVvQt9c0WKpghsX2d7gzZvoBINil9F0tB9q7PrR9IMHU6WFnP7N1ElIVG0OX7gN5301G-HAIHUBktPMB4pbnO6zzYtMz2u2G3zs_E6-Zr9jx1vi6yUO89lX2HbiY6he-g647zhQmTVJrMwf_m9XOYJwyrkHiPWlo8YxpvI1LTDSnD2XYZx6pGEn87oyjgrW"/>
+</div>
+<div class="space-y-4 font-tabular-data text-tabular-data">
+<div>
+<div class="text-on-surface-variant text-[12px] mb-1">Internal ID</div>
+<div class="text-primary font-medium tracking-wide">EMP-8834-A</div>
+</div>
+<div>
+<div class="text-on-surface-variant text-[12px] mb-1">Department</div>
+<div class="text-primary">Core Infrastructure</div>
+</div>
+<div>
+<div class="text-on-surface-variant text-[12px] mb-1">Base Location</div>
+<div class="text-primary flex items-center">
+<span class="material-symbols-outlined text-[16px] mr-1 text-on-surface-variant" data-icon="location_on">location_on</span>
+                                                Zurich Node (Hybrid)
+                                            </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Col 2: Chain of Command & Metrics (8 cols) -->
+<div class="md:col-span-8 flex flex-col gap-grid-12">
+<!-- Reporting Structure -->
+<div class="bg-surface-container-lowest hairline-border p-6 relative">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-6 border-b border-outline-variant pb-2">Chain of Command</div>
+<div class="flex items-center justify-between font-tabular-data text-tabular-data">
+<div class="flex flex-col">
+<span class="text-[12px] text-on-surface-variant mb-1">Reports To</span>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-surface-container-high rounded-full overflow-hidden hairline-border">
+<img alt="Manager portrait" class="w-full h-full object-cover grayscale" data-alt="A small circular grayscale portrait of a male executive. The image is formal, shot against a stark white background with sharp, defined lighting. The subject exhibits a serious, authoritative expression typical of high-level management in an enterprise system. The visual style is strictly paper-like and devoid of decorative elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_Dn4JyKth9OgIMlytYZW5VRaKlN6sw4tczMmKhkHOQDOt1U9DFUQS_LPzvhHiBwoIArusbbLcYctslHKdxwWR2l78goMAxH3SVQIQ3X4-7rc_NfyFbyHbp2_DHlq1ilovIp5PRvS_vmvVAZrWXE9w1g5nGNHljrMaq2TGJR08gnfrgMV47s9an4TfXPigcohs4OkHMVWKyYxvfbaQW0FZpNn_n0LZSfVhm7XSBxHHxLX0H_Dy6CWniB9Ate1GkM_vInzYzWbwez0Z"/>
+</div>
+<div>
+<div class="font-medium text-primary">Marcus Vance</div>
+<div class="text-[12px] text-on-surface-variant">VP, Infrastructure Operations</div>
+</div>
+</div>
+</div>
+<div class="h-px w-16 bg-outline-variant hidden sm:block"></div>
+<div class="flex flex-col border-l sm:border-none border-outline-variant pl-4 sm:pl-0">
+<span class="text-[12px] text-on-surface-variant mb-1">Direct Reports</span>
+<div class="flex -space-x-2">
+<div class="w-8 h-8 bg-surface-container-high rounded-full hairline-border flex items-center justify-center text-[10px] font-medium z-30">MR</div>
+<div class="w-8 h-8 bg-surface-container-high rounded-full hairline-border flex items-center justify-center text-[10px] font-medium z-20">AL</div>
+<div class="w-8 h-8 bg-surface-container-high rounded-full hairline-border flex items-center justify-center text-[10px] font-medium z-10">TJ</div>
+<div class="w-8 h-8 bg-surface-container-high rounded-full hairline-border flex items-center justify-center text-[10px] font-medium z-0 bg-surface-variant text-on-surface-variant">+2</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Compensation & Projections -->
+<div class="bg-surface-container-low hairline-border p-6 flex-1 relative flex flex-col justify-between" style="background: linear-gradient(176deg, var(--surface-container-low) 0%, var(--surface-container-lowest) 100%);">
+<div class="tick-tr"></div>
+<div class="flex justify-between items-end mb-8 border-b border-outline-variant pb-4">
+<div>
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-2">Compensation Vector</div>
+<div class="font-pull-quote text-pull-quote text-primary tracking-tight">Tier 4 / Sr. Architect</div>
+</div>
+<div class="text-right">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-2">Compa-Ratio</div>
+<div class="font-tabular-data text-tabular-data text-primary text-xl">1.12</div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-6 font-tabular-data text-tabular-data">
+<div>
+<div class="text-[12px] text-on-surface-variant mb-1">Base Salary</div>
+<div class="text-primary font-medium tracking-wide">CHF 185,000</div>
+</div>
+<div>
+<div class="text-[12px] text-on-surface-variant mb-1">Target Bonus</div>
+<div class="text-primary font-medium">20%</div>
+</div>
+<div>
+<div class="text-[12px] text-on-surface-variant mb-1">Equity Vesting (Current Year)</div>
+<div class="text-primary font-medium">2,400 RSUs</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Skills & Flight Risk -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-grid-12 mt-grid-12">
+<!-- Capability Matrix -->
+<div class="bg-surface-container-lowest hairline-border p-6 relative">
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-6 border-b border-outline-variant pb-2 flex justify-between">
+<span>Capability Matrix</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="tune">tune</span>
+</div>
+<ul class="space-y-4 font-tabular-data text-tabular-data">
+<li class="flex items-center justify-between pb-2 border-b border-surface-variant border-dashed">
+<span class="text-primary">Distributed Systems Design</span>
+<span class="flex gap-1">
+<span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span>
+</span>
+</li>
+<li class="flex items-center justify-between pb-2 border-b border-surface-variant border-dashed">
+<span class="text-primary">Cloud Infrastructure (AWS/GCP)</span>
+<span class="flex gap-1">
+<span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-surface-variant"></span>
+</span>
+</li>
+<li class="flex items-center justify-between pb-2 border-b border-surface-variant border-dashed">
+<span class="text-primary">Technical Leadership</span>
+<span class="flex gap-1">
+<span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-surface-variant"></span><span class="w-6 h-1 bg-surface-variant"></span>
+</span>
+</li>
+<li class="flex items-center justify-between pb-2 border-b border-surface-variant border-dashed">
+<span class="text-primary">Go / Rust Engineering</span>
+<span class="flex gap-1">
+<span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-primary"></span><span class="w-6 h-1 bg-surface-variant"></span>
+</span>
+</li>
+</ul>
+</div>
+<!-- Retention & Recognition -->
+<div class="bg-surface-container-lowest hairline-border p-6 relative flex flex-col justify-between">
+<div>
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-6 border-b border-outline-variant pb-2">Retention Analytics</div>
+<div class="bg-surface-container-high p-4 border-l-2 border-pita-caution mb-6">
+<div class="flex items-center justify-between mb-2">
+<span class="font-mono-label text-mono-label text-primary uppercase">Flight Risk Assessment</span>
+<span class="text-pita-caution font-medium text-[12px] flex items-center"><span class="bindu bg-pita-caution mr-2"></span>Elevated</span>
+</div>
+<p class="font-tabular-data text-tabular-data text-on-surface-variant text-[13px] leading-relaxed">
+                                        Operator has reached 4.2 years of tenure in current role. Compa-ratio is healthy, but peer market velocity indicates risk. Recommend preemptive strategic project assignment within Q3.
+                                    </p>
+</div>
+</div>
+<div>
+<div class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-4">Recent Commendations</div>
+<div class="font-tabular-data text-tabular-data flex items-start gap-3">
+<span class="material-symbols-outlined text-tamra-copper text-[20px] mt-1" data-icon="workspace_premium">workspace_premium</span>
+<div>
+<div class="text-primary font-medium">Q1 Infrastructure Excellence Award</div>
+<div class="text-on-surface-variant text-[12px]">Awarded by CTO for flawless execution of the database migration protocol.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

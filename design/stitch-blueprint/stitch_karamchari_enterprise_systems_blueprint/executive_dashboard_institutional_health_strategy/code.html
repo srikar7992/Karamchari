@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Karamchari - Executive Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Geist:wght@100..900&amp;family=JetBrains+Mono:wght@100..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#c7c6ca",
+                    "tamra-copper-bright": "#C68A60",
+                    "primary-fixed": "#e3e2e6",
+                    "tertiary-fixed": "#ebe1d9",
+                    "on-tertiary-fixed": "#1f1b16",
+                    "on-primary-container": "#848387",
+                    "background": "#fcf8f8",
+                    "rakta-critical": "#7A2B2B",
+                    "sthira-forest": "#2D5D4B",
+                    "surface-container-low": "#f7f3f2",
+                    "secondary-fixed": "#e7e2d8",
+                    "tamra-copper": "#B16A3C",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#fcf8f8",
+                    "outline": "#77777b",
+                    "inverse-on-surface": "#f4f0ef",
+                    "primary-container": "#1b1b1f",
+                    "secondary-container": "#e7e2d8",
+                    "cloud": "#D9D2C2",
+                    "on-tertiary-container": "#8a827c",
+                    "secondary": "#615e57",
+                    "on-primary-fixed": "#1b1b1f",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e5e2e1",
+                    "on-secondary-fixed": "#1d1c16",
+                    "yantra-indigo": "#1B2A4E",
+                    "surface-container-high": "#ebe7e7",
+                    "surface-dim": "#ddd9d9",
+                    "secondary-fixed-dim": "#cac6bd",
+                    "on-surface-variant": "#46464b",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#5e5e62",
+                    "on-error": "#ffffff",
+                    "on-surface": "#1c1b1c",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#1f1b16",
+                    "primary-fixed-dim": "#c7c6ca",
+                    "surface-container": "#f1eded",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#cec5be",
+                    "primary": "#000000",
+                    "on-primary-fixed-variant": "#46464a",
+                    "inverse-surface": "#313030",
+                    "on-secondary-container": "#67645c",
+                    "tertiary": "#000000",
+                    "surface-bright": "#fcf8f8",
+                    "on-tertiary-fixed-variant": "#4c4640",
+                    "pita-caution": "#9C842A",
+                    "on-background": "#1c1b1c",
+                    "graphite": "#2A2D33",
+                    "outline-variant": "#c7c6cb",
+                    "hiranya-gold": "#C9A86A",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-secondary-fixed-variant": "#494740",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "page-margin": "64px",
+                    "grid-12": "12px",
+                    "section-padding": "96px",
+                    "gutter": "48px"
+            },
+            "fontFamily": {
+                    "tabular-data": [
+                            "Geist"
+                    ],
+                    "pull-quote": [
+                            "Newsreader"
+                    ],
+                    "mono-label": [
+                            "JetBrains Mono"
+                    ],
+                    "display-xl-mobile": [
+                            "Newsreader"
+                    ],
+                    "section-title": [
+                            "Newsreader"
+                    ],
+                    "body-standard": [
+                            "Geist"
+                    ],
+                    "display-xl": [
+                            "Newsreader"
+                    ]
+            },
+            "fontSize": {
+                    "tabular-data": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.4",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "pull-quote": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.015em",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "mono-label": [
+                            "10.5px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "0.12em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "display-xl-mobile": [
+                            "72px",
+                            {
+                                    "lineHeight": "1.0",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "section-title": [
+                            "56px",
+                            {
+                                    "lineHeight": "1.02",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "body-standard": [
+                            "15px",
+                            {
+                                    "lineHeight": "1.55",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-xl": [
+                            "124px",
+                            {
+                                    "lineHeight": "0.94",
+                                    "letterSpacing": "-0.035em",
+                                    "fontWeight": "300"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        .yantra-grid {
+            background-size: 48px 48px;
+            background-image: 
+                linear-gradient(to right, rgba(14,15,18,0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(14,15,18,0.05) 1px, transparent 1px);
+        }
+        .structural-hairline {
+            border: 1px solid rgba(14,15,18,0.12);
+        }
+        .corner-tick {
+            position: relative;
+        }
+        .corner-tick::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px; width: 8px; height: 8px;
+            border-top: 1px solid #1c1b1c; border-left: 1px solid #1c1b1c;
+        }
+        .corner-tick::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; right: -1px; width: 8px; height: 8px;
+            border-bottom: 1px solid #1c1b1c; border-right: 1px solid #1c1b1c;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-standard text-body-standard antialiased selection:bg-tamra-copper selection:text-white">
+<!-- Top Navigation (Mobile Hidden, Desktop Visible) -->
+<header class="hidden md:flex justify-between items-center px-gutter w-full ml-64 bg-surface h-16 border-b border-outline-variant fixed top-0 right-0 z-50">
+<div class="flex items-center gap-4">
+<span class="font-section-title text-section-title text-primary !text-2xl font-bold tracking-tight">Karamchari</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 p-2 rounded-full focus:outline-none">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 p-2 rounded-full focus:outline-none">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">move_to_inbox</span>
+</button>
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 p-2 rounded-full focus:outline-none">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Side Navigation (Web) -->
+<nav class="hidden md:flex flex-col h-full py-unit bg-surface h-screen w-64 border-r border-outline-variant fixed left-0 top-0 z-40">
+<div class="px-6 py-8 mb-8">
+<h1 class="font-section-title text-section-title text-primary !text-3xl font-extrabold tracking-tighter leading-none mb-2">Sutra</h1>
+<p class="font-mono-label text-mono-label text-on-surface-variant uppercase">Institutional OS</p>
+</div>
+<ul class="flex flex-col gap-2 w-full mt-4">
+<!-- Active state logic applies here. Intent: Dashboard/Insights -> Insights -->
+<li>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 w-full text-left" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-body-standard text-body-standard">Home</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 w-full text-left" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-body-standard text-body-standard">My Work</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 w-full text-left" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-body-standard text-body-standard">Team</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 w-full text-left" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span class="font-body-standard text-body-standard">Workforce</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 w-full text-left" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-body-standard text-body-standard">Payroll</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-4 px-6 py-3 text-tamra-copper font-bold border-r-2 border-tamra-copper bg-surface-container-low w-full text-left" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-body-standard text-body-standard">Insights</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-16 min-h-screen yantra-grid pb-24 md:pb-8">
+<div class="max-w-[1280px] mx-auto px-6 md:px-page-margin py-12">
+<!-- Page Header -->
+<header class="mb-16 border-b border-outline-variant pb-8">
+<p class="font-mono-label text-mono-label text-on-surface-variant mb-4 tracking-widest uppercase">Command Center</p>
+<h2 class="font-section-title text-section-title text-primary md:!text-display-xl-mobile">Executive Dashboard</h2>
+<p class="font-pull-quote text-pull-quote text-on-surface-variant mt-4 max-w-3xl">Institutional health, talent topography, and strategic risk vectors for the current fiscal quarter.</p>
+</header>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-grid-12">
+<!-- 1. Institutional Health Score -->
+<section class="col-span-1 md:col-span-4 structural-hairline bg-surface-container-low p-8 corner-tick flex flex-col justify-between min-h-[320px]">
+<div>
+<h3 class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-2">Institutional Pulse</h3>
+<p class="font-tabular-data text-tabular-data text-on-surface mb-8">Composite health score derived from retention, engagement, and operational velocity.</p>
+</div>
+<div>
+<div class="flex items-end gap-4 mb-4">
+<span class="font-section-title text-section-title !text-7xl leading-none tracking-tighter text-primary">87</span>
+<span class="font-body-standard text-body-standard text-sthira-forest mb-2 flex items-center">
+<span class="material-symbols-outlined text-[16px] mr-1">arrow_upward</span> +2.4%
+                            </span>
+</div>
+<div class="w-full bg-surface-variant h-1 mt-6">
+<div class="bg-primary h-1 w-[87%]"></div>
+</div>
+<div class="flex justify-between mt-2 font-mono-label text-mono-label text-on-surface-variant">
+<span>Critical (&lt; 60)</span>
+<span>Optimal (&gt; 85)</span>
+</div>
+</div>
+</section>
+<!-- 2. Workforce Risk Forecast -->
+<section class="col-span-1 md:col-span-8 structural-hairline bg-surface p-8">
+<div class="flex justify-between items-start mb-8 border-b border-outline-variant pb-4">
+<div>
+<h3 class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-2">Risk Vectors</h3>
+<h4 class="font-pull-quote text-pull-quote text-primary !text-2xl">Attrition &amp; Burnout Forecast</h4>
+</div>
+<button class="border border-outline px-4 py-2 font-mono-label text-mono-label hover:bg-surface-container-high transition-colors">Generate Report</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="border-l border-rakta-critical pl-4">
+<p class="font-mono-label text-mono-label text-rakta-critical uppercase mb-1">High Flight Risk</p>
+<p class="font-section-title text-section-title !text-4xl text-primary">12%</p>
+<p class="font-tabular-data text-tabular-data text-on-surface-variant mt-2">Engineering (Senior)</p>
+</div>
+<div class="border-l border-pita-caution pl-4">
+<p class="font-mono-label text-mono-label text-pita-caution uppercase mb-1">Burnout Indicators</p>
+<p class="font-section-title text-section-title !text-4xl text-primary">28%</p>
+<p class="font-tabular-data text-tabular-data text-on-surface-variant mt-2">Sales &amp; Operations</p>
+</div>
+<div class="border-l border-outline-variant pl-4">
+<p class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-1">Voluntary Turnover (YTD)</p>
+<p class="font-section-title text-section-title !text-4xl text-primary">4.2%</p>
+<p class="font-tabular-data text-tabular-data text-on-surface-variant mt-2">Org Average</p>
+</div>
+</div>
+</section>
+<!-- 3. Global Talent Heatmap (9-Box) -->
+<section class="col-span-1 md:col-span-12 structural-hairline bg-surface-container-lowest p-8 mt-4">
+<header class="mb-8">
+<h3 class="font-mono-label text-mono-label text-on-surface-variant uppercase mb-2">Talent Distribution</h3>
+<h4 class="font-pull-quote text-pull-quote text-primary !text-2xl">9-Box Organizational Topography</h4>
+</header>
+<div class="grid grid-cols-3 grid-rows-3 gap-1 h-[400px]">
+<!-- Top Row (High Potential) -->
+<div class="bg-[#ECE6D9] flex flex-col justify-between p-4 border border-[rgba(14,15,18,0.05)]">
+<span class="font-mono-label text-mono-label text-on-surface-variant">High Pot / Low Perf</span>
+<span class="font-tabular-data text-tabular-data self-end text-lg">5%</span>
+</div>
+<div class="bg-[#D9D2C2] flex flex-col justify-between p-4 border border-[rgba(14,15,18,0.05)]">
+<span class="font-mono-label text-mono-label text-on-surface-variant">High Pot / Med Perf</span>
+<span class="font-tabular-data text-tabular-data self-end text-lg">12%</span>
+</div>
+<div class="bg-[#B16A3C] bg-opacity-20 flex flex-col justify-between p-4 border border-[rgba(14,15,18,0.05)] corner-tick">
+<span class="font-mono-label text-mono-label text-tamra-copper font-bold">Future Leaders</span>
+<span class="font-tabular-data text-tabular-data self-end text-tamra-copper font-bold text-xl">8%</span>
+</div>
+<!-- Middle Row (Moderate Potential) -->
+<div class="bg-surface-container-high flex flex-col justify-between p-4 border border-[rgba(14,15,18,0.05)]">
+<span class="font-mono-label text-mono-label text-on-surface-variant">Med Pot / Low Perf</span>
+<span class="font-tabular-data text-tabular-data self-end text-lg">10%</span>
+</div>
+<div class="bg-[#ECE6D9] flex flex-col justify-between p-4 border border-[rgba(14,15,18,0.05)]">
+<span class="font-mono-label text-mono-label text-on-surface-variant">Core Players</span>
+<span class="font-tabular-data text-tabular-data self-end text-xl font-bold">35%</span>
+</div>
+<div class="bg-[#D9D2C2] flex flex-col justify-between p-4 border border-[rgba(14,15,18,0.05)]">
+<span class="font-mono-label text-mono-label text-on-surface-variant">High Performers</span>
+<span class="font-tabular-data text-tabular-data self-end text-lg">15%</span>
+</div>
+<!-- Bottom Row (Low Potential) -->
+<div class="bg-surface-variant flex flex-col justify-between p-4 border border-[rgba(14,15,18,0.05)]">
+<span class="font-mono-label text-mono-label text-on-surface-variant">Risk Zone</span>
+<span class="font-tabular-data text-tabular-data self-end text-lg">4%</span>
+</div>
+<div class="bg-surface-container-high flex flex-col justify-between p-4 border border-[rgba(14,15,18,0.05)]">
+<span class="font-mono-label text-mono-label text-on-surface-variant">Inconsistent</span>
+<span class="font-tabular-data text-tabular-data self-end text-lg">7%</span>
+</div>
+<div class="bg-[#ECE6D9] flex flex-col justify-between p-4 border border-[rgba(14,15,18,0.05)]">
+<span class="font-mono-label text-mono-label text-on-surface-variant">Solid Professionals</span>
+<span class="font-tabular-data text-tabular-data self-end text-lg">4%</span>
+</div>
+</div>
+</section>
+<!-- 4. Strategic Recommendations (Buddhi) -->
+<section class="col-span-1 md:col-span-12 structural-hairline bg-yantra-indigo text-on-primary p-8 mt-4 relative overflow-hidden">
+<!-- Subtle bg pattern for the 'Ink' section -->
+<div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px);"></div>
+<div class="relative z-10 flex flex-col md:flex-row gap-8 items-start">
+<div class="md:w-1/3">
+<h3 class="font-mono-label text-mono-label text-surface-variant uppercase mb-4 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tamra-copper-bright inline-block"></span>
+                                Buddhi Intelligence
+                            </h3>
+<h4 class="font-pull-quote text-pull-quote text-white !text-3xl mb-4">Strategic Structural Interventions</h4>
+<p class="font-body-standard text-body-standard text-surface-dim opacity-80">Synthesized from cross-functional performance data, engagement surveys, and market compensation benchmarks.</p>
+</div>
+<div class="md:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="border border-[rgba(255,255,255,0.2)] p-6 bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">
+<span class="material-symbols-outlined text-tamra-copper-bright mb-4 block" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+<h5 class="font-body-standard text-body-standard text-white font-bold mb-2">Flatten Engineering Hierarchy</h5>
+<p class="font-tabular-data text-tabular-data text-surface-dim opacity-80">Span of control in Core Eng is currently 1:4. Recommending a shift to 1:8 to increase deployment velocity and reduce middle-management overhead.</p>
+</div>
+<div class="border border-[rgba(255,255,255,0.2)] p-6 bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">
+<span class="material-symbols-outlined text-pita-caution mb-4 block" style="font-variation-settings: 'FILL' 1;">payments</span>
+<h5 class="font-body-standard text-body-standard text-white font-bold mb-2">Compensation Realignment</h5>
+<p class="font-tabular-data text-tabular-data text-surface-dim opacity-80">Data Science cohort is currently 12% below market median. High flight risk detected among top 10% performers. Immediate correction advised.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Navigation (Visible Mobile, Hidden Desktop) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-surface border-t border-outline-variant z-50 flex justify-around items-center h-16 px-4 pb-safe">
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-tamra-copper" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-mono-label text-[10px]">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-tamra-copper" href="#">
+<span class="material-symbols-outlined mb-1">badge</span>
+<span class="font-mono-label text-[10px]">Workforce</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-tamra-copper" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-mono-label text-[10px] font-bold">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-tamra-copper" href="#">
+<span class="material-symbols-outlined mb-1">account_circle</span>
+<span class="font-mono-label text-[10px]">Profile</span>
+</a>
+</nav>
+</body></html>

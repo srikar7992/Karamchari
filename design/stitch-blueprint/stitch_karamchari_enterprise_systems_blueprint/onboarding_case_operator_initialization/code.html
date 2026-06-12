@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Karamchari - Onboarding Case Detail</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-primary": "#c7c6ca",
+                        "tamra-copper-bright": "#C68A60",
+                        "primary-fixed": "#e3e2e6",
+                        "tertiary-fixed": "#ebe1d9",
+                        "on-tertiary-fixed": "#1f1b16",
+                        "on-primary-container": "#848387",
+                        "background": "#fcf8f8",
+                        "rakta-critical": "#7A2B2B",
+                        "sthira-forest": "#2D5D4B",
+                        "surface-container-low": "#f7f3f2",
+                        "secondary-fixed": "#e7e2d8",
+                        "tamra-copper": "#B16A3C",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#fcf8f8",
+                        "outline": "#77777b",
+                        "inverse-on-surface": "#f4f0ef",
+                        "primary-container": "#1b1b1f",
+                        "secondary-container": "#e7e2d8",
+                        "cloud": "#D9D2C2",
+                        "on-tertiary-container": "#8a827c",
+                        "secondary": "#615e57",
+                        "on-primary-fixed": "#1b1b1f",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "on-secondary-fixed": "#1d1c16",
+                        "yantra-indigo": "#1B2A4E",
+                        "surface-container-high": "#ebe7e7",
+                        "surface-dim": "#ddd9d9",
+                        "secondary-fixed-dim": "#cac6bd",
+                        "on-surface-variant": "#46464b",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#5e5e62",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1c1b1c",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#1f1b16",
+                        "primary-fixed-dim": "#c7c6ca",
+                        "surface-container": "#f1eded",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#cec5be",
+                        "primary": "#000000",
+                        "on-primary-fixed-variant": "#46464a",
+                        "inverse-surface": "#313030",
+                        "on-secondary-container": "#67645c",
+                        "tertiary": "#000000",
+                        "surface-bright": "#fcf8f8",
+                        "on-tertiary-fixed-variant": "#4c4640",
+                        "pita-caution": "#9C842A",
+                        "on-background": "#1c1b1c",
+                        "graphite": "#2A2D33",
+                        "outline-variant": "#c7c6cb",
+                        "hiranya-gold": "#C9A86A",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#494740",
+                        "error-container": "#ffdad6"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
+                    },
+                    spacing: {
+                        unit: "8px",
+                        "page-margin": "64px",
+                        "grid-12": "12px",
+                        "section-padding": "96px",
+                        "gutter": "48px"
+                    },
+                    fontFamily: {
+                        "tabular-data": ["Geist", "sans-serif"],
+                        "pull-quote": ["Newsreader", "serif"],
+                        "mono-label": ["JetBrains Mono", "monospace"],
+                        "display-xl-mobile": ["Newsreader", "serif"],
+                        "section-title": ["Newsreader", "serif"],
+                        "body-standard": ["Geist", "sans-serif"],
+                        "display-xl": ["Newsreader", "serif"]
+                    },
+                    fontSize: {
+                        "tabular-data": ["14px", { lineHeight: "1.4", fontWeight: "400" }],
+                        "pull-quote": ["32px", { lineHeight: "1.2", letterSpacing: "-0.015em", fontWeight: "300" }],
+                        "mono-label": ["10.5px", { lineHeight: "1.2", letterSpacing: "0.12em", fontWeight: "500" }],
+                        "display-xl-mobile": ["72px", { lineHeight: "1.0", fontWeight: "300" }],
+                        "section-title": ["56px", { lineHeight: "1.02", letterSpacing: "-0.02em", fontWeight: "300" }],
+                        "body-standard": ["15px", { lineHeight: "1.55", fontWeight: "400" }],
+                        "display-xl": ["124px", { lineHeight: "0.94", letterSpacing: "-0.035em", fontWeight: "300" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom styles for precise control */
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #fcf8f8; /* background */
+            color: #1c1b1c; /* on-background */
+            margin: 0;
+            padding: 0;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Structural Hairline utility */
+        .hairline-bottom {
+            border-bottom: 1px solid rgba(14, 15, 18, 0.12);
+        }
+        .hairline-top {
+            border-top: 1px solid rgba(14, 15, 18, 0.12);
+        }
+        .hairline-x {
+            border-left: 1px solid rgba(14, 15, 18, 0.12);
+            border-right: 1px solid rgba(14, 15, 18, 0.12);
+        }
+        .hairline-all {
+            border: 1px solid rgba(14, 15, 18, 0.12);
+        }
+
+        /* Checkbox styling */
+        .procedural-checkbox:checked {
+            background-color: #1B2A4E; /* yantra-indigo */
+            border-color: #1B2A4E;
+        }
+        
+        /* Bindu status indicator */
+        .bindu {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased flex">
+<!-- JSON Component: SideNavBar -->
+<aside class="fixed left-0 top-0 z-40 bg-surface h-screen w-64 border-r border-outline-variant flex flex-col py-unit hidden md:flex">
+<!-- Brand / Header -->
+<div class="px-6 py-6 mb-4">
+<h1 class="font-section-title text-section-title text-primary" style="font-size: 32px; line-height: 1;">Karamchari</h1>
+<p class="font-mono-label text-mono-label text-on-surface-variant uppercase mt-1 tracking-widest">Institutional OS</p>
+</div>
+<!-- Navigation Tabs -->
+<nav class="flex-1 flex flex-col gap-1 px-3">
+<a class="flex items-center gap-4 px-3 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-body-standard text-body-standard">Home</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="font-body-standard text-body-standard">My Work</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-body-standard text-body-standard">Team</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-4 px-3 py-3 text-tamra-copper font-bold border-r-2 border-tamra-copper bg-surface-container-low opacity-80" href="#">
+<span class="material-symbols-outlined icon-fill" data-icon="badge">badge</span>
+<span class="font-body-standard text-body-standard">Workforce</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-body-standard text-body-standard">Payroll</span>
+</a>
+<a class="flex items-center gap-4 px-3 py-3 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-body-standard text-body-standard">Insights</span>
+</a>
+</nav>
+<!-- User Profile Placeholder -->
+<div class="px-6 py-6 border-t border-outline-variant mt-auto">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">person</span>
+</div>
+<div>
+<p class="font-mono-label text-mono-label text-primary">A. HR_ADMIN</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- JSON Component: TopNavBar -->
+<header class="fixed top-0 right-0 z-30 bg-surface w-full h-16 border-b border-outline-variant flex justify-between items-center px-gutter md:pl-[288px] md:pr-12">
+<!-- Search -->
+<div class="flex-1 flex items-center">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]" data-icon="search">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded py-1.5 pl-10 pr-3 font-body-standard text-body-standard text-primary focus:border-yantra-indigo focus:ring-0 focus:outline-none placeholder:text-on-surface-variant transition-colors" placeholder="Search case ledger..." type="text"/>
+</div>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-6">
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 relative group">
+<span class="material-symbols-outlined group-active:scale-95 transition-transform" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-rakta-critical rounded-full border border-surface"></span>
+</button>
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 group">
+<span class="material-symbols-outlined group-active:scale-95 transition-transform" data-icon="move_to_inbox">move_to_inbox</span>
+</button>
+<button class="text-on-surface-variant hover:text-tamra-copper transition-colors duration-200 group">
+<span class="material-symbols-outlined group-active:scale-95 transition-transform" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 pt-16 min-h-screen pb-section-padding">
+<!-- Header Section -->
+<div class="px-page-margin pt-16 pb-8 hairline-bottom">
+<div class="max-w-[1280px] mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<span class="font-mono-label text-mono-label text-on-surface-variant tracking-widest uppercase mb-4 block">Case Ledger // OB-2024-891</span>
+<h2 class="font-section-title text-section-title text-primary m-0 p-0 tracking-tight">Namaskaram, Aditi.</h2>
+<p class="font-body-standard text-body-standard text-on-surface-variant mt-2 max-w-2xl">
+                            Onboarding procedural flow for Principal Engineer. Scheduled integration date is established.
+                        </p>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-[22px] py-[14px] bg-transparent border border-outline-variant text-primary font-mono-label text-mono-label uppercase tracking-widest hover:bg-surface-container-low transition-colors rounded-sm">
+                            Halt Process
+                        </button>
+<button class="px-[22px] py-[14px] bg-primary text-on-primary font-mono-label text-mono-label uppercase tracking-widest hover:bg-surface-tint transition-colors rounded-sm">
+                            Approve Next Phase
+                        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Layout Grid -->
+<div class="max-w-[1280px] mx-auto px-page-margin pt-12 grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column: Procedural Tasks & Timeline (8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-12">
+<!-- 1. Onboarding Progress Timeline -->
+<section>
+<div class="mb-6 flex justify-between items-baseline">
+<h3 class="font-mono-label text-mono-label text-primary uppercase tracking-widest border-b border-primary inline-block pb-1">Integration Timeline</h3>
+<span class="font-tabular-data text-tabular-data text-on-surface-variant">45% Complete</span>
+</div>
+<div class="bg-surface-container-lowest hairline-all p-8 relative rounded-sm">
+<!-- Progress Line -->
+<div class="absolute top-[48px] left-12 right-12 h-[1px] bg-outline-variant z-0"></div>
+<div class="absolute top-[48px] left-12 w-[45%] h-[2px] bg-tamra-copper z-0"></div>
+<div class="relative z-10 flex justify-between">
+<!-- Node 1 -->
+<div class="flex flex-col items-center gap-3 w-24">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-tamra-copper flex items-center justify-center text-tamra-copper bg-surface">
+<span class="material-symbols-outlined text-[16px]" data-icon="check">check</span>
+</div>
+<span class="font-mono-label text-mono-label text-center text-primary">Pre-Arrival</span>
+</div>
+<!-- Node 2 -->
+<div class="flex flex-col items-center gap-3 w-24">
+<div class="w-8 h-8 rounded-full bg-tamra-copper border-2 border-tamra-copper flex items-center justify-center text-on-primary shadow-[0_0_0_4px_rgba(177,106,60,0.1)]">
+<span class="material-symbols-outlined text-[16px]" data-icon="pending">pending</span>
+</div>
+<span class="font-mono-label text-mono-label text-center text-primary font-bold">Day 1 Focus</span>
+</div>
+<!-- Node 3 -->
+<div class="flex flex-col items-center gap-3 w-24">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-outline-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="school">school</span>
+</div>
+<span class="font-mono-label text-mono-label text-center text-on-surface-variant">Week 1 Academics</span>
+</div>
+<!-- Node 4 -->
+<div class="flex flex-col items-center gap-3 w-24">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-outline-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="flag">flag</span>
+</div>
+<span class="font-mono-label text-mono-label text-center text-on-surface-variant">Month 1 Review</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. Tasks & Documents Ledger -->
+<section>
+<div class="mb-6 flex justify-between items-baseline">
+<h3 class="font-mono-label text-mono-label text-primary uppercase tracking-widest border-b border-primary inline-block pb-1">Documentation Ledger</h3>
+<div class="flex gap-4">
+<span class="font-mono-label text-mono-label text-rakta-critical flex items-center gap-1"><span class="bindu bg-rakta-critical"></span> 1 Pending</span>
+<span class="font-mono-label text-mono-label text-sthira-forest flex items-center gap-1"><span class="bindu bg-sthira-forest"></span> 3 Verified</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest hairline-all rounded-sm flex flex-col">
+<!-- Table Header -->
+<div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-outline-variant bg-surface-container-low">
+<div class="col-span-1 font-mono-label text-mono-label text-on-surface-variant">STAT</div>
+<div class="col-span-5 font-mono-label text-mono-label text-on-surface-variant">REQUIREMENT</div>
+<div class="col-span-3 font-mono-label text-mono-label text-on-surface-variant">OWNER</div>
+<div class="col-span-3 font-mono-label text-mono-label text-on-surface-variant text-right">ACTION</div>
+</div>
+<!-- Row 1: Done -->
+<div class="grid grid-cols-12 gap-4 px-6 py-4 border-b border-outline-variant items-center hover:bg-surface transition-colors">
+<div class="col-span-1 flex items-center pl-1">
+<span class="bindu bg-sthira-forest"></span>
+</div>
+<div class="col-span-5 flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="badge">badge</span>
+<span class="font-body-standard text-body-standard text-primary">Government ID Proof</span>
+</div>
+<div class="col-span-3 font-tabular-data text-tabular-data text-on-surface-variant">EMP</div>
+<div class="col-span-3 text-right">
+<button class="text-yantra-indigo font-mono-label text-mono-label hover:underline">View Artifact</button>
+</div>
+</div>
+<!-- Row 2: Done -->
+<div class="grid grid-cols-12 gap-4 px-6 py-4 border-b border-outline-variant items-center hover:bg-surface transition-colors">
+<div class="col-span-1 flex items-center pl-1">
+<span class="bindu bg-sthira-forest"></span>
+</div>
+<div class="col-span-5 flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="account_balance">account_balance</span>
+<span class="font-body-standard text-body-standard text-primary">Payroll Bank Information</span>
+</div>
+<div class="col-span-3 font-tabular-data text-tabular-data text-on-surface-variant">EMP</div>
+<div class="col-span-3 text-right">
+<button class="text-yantra-indigo font-mono-label text-mono-label hover:underline">View Artifact</button>
+</div>
+</div>
+<!-- Row 3: Pending/Critical -->
+<div class="grid grid-cols-12 gap-4 px-6 py-4 border-b border-outline-variant items-center bg-surface-container-low border-l-2 border-l-rakta-critical">
+<div class="col-span-1 flex items-center pl-1">
+<span class="bindu bg-rakta-critical animate-pulse"></span>
+</div>
+<div class="col-span-5 flex items-center gap-3">
+<span class="material-symbols-outlined text-rakta-critical" data-icon="contract">contract</span>
+<span class="font-body-standard text-body-standard text-primary font-bold">Non-Disclosure Agreement</span>
+</div>
+<div class="col-span-3 font-tabular-data text-tabular-data text-on-surface-variant">EMP</div>
+<div class="col-span-3 text-right">
+<button class="px-[12px] py-[6px] bg-rakta-critical text-on-primary font-mono-label text-mono-label rounded-sm">Issue Nudge</button>
+</div>
+</div>
+<!-- Row 4: Done by HR -->
+<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-surface transition-colors">
+<div class="col-span-1 flex items-center pl-1">
+<input checked="" class="procedural-checkbox rounded-sm border-outline-variant text-yantra-indigo focus:ring-yantra-indigo" disabled="" type="checkbox"/>
+</div>
+<div class="col-span-5 flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="laptop_mac">laptop_mac</span>
+<span class="font-body-standard text-body-standard text-primary">Hardware Provisioning</span>
+</div>
+<div class="col-span-3 font-tabular-data text-tabular-data text-on-surface-variant">IT_OPS</div>
+<div class="col-span-3 text-right font-tabular-data text-tabular-data text-on-surface-variant">
+                                12-Oct-24
+                            </div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Context & Culture (4 cols) -->
+<div class="lg:col-span-4 flex flex-col gap-12">
+<!-- 3. Team Welcome (Recognition) -->
+<section>
+<div class="mb-6 flex justify-between items-baseline">
+<h3 class="font-mono-label text-mono-label text-primary uppercase tracking-widest border-b border-primary inline-block pb-1">Cultural Induction</h3>
+</div>
+<div class="bg-[#ECE6D9] hairline-all p-6 rounded-sm relative">
+<!-- Corner Tick (Top Right) -->
+<div class="absolute top-0 right-0 w-3 h-3 border-t border-r border-primary"></div>
+<!-- Corner Tick (Bottom Left) -->
+<div class="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-primary"></div>
+<div class="flex gap-4 items-start mb-4">
+<div class="w-12 h-12 rounded-sm bg-surface-variant overflow-hidden shrink-0 border border-outline-variant">
+<!-- Generated Image Placeholder -->
+<img alt="Avatar" class="w-full h-full object-cover grayscale opacity-80 mix-blend-multiply" data-alt="A professional, minimalist corporate headshot of a mid-30s South Asian female engineering manager in a brightly lit modern office with high-key white lighting. She has a subtle, composed expression. The photograph relies on a sophisticated palette of deep blacks, pristine whites, and neutral grays, matching a modern light-mode brutalist UI aesthetic. No vibrant background colors; strictly architectural and professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDf76pkWfFzwgHIj-cKGcKKRS4MMkmpZ1gz3RI9hY-QFA0_sPoBFwjaftbNgnl4C6arpD_IHktcxcMmDnm3vsufx2BoW0Q-Lm96saQZKflhiFZud7aCmLseenU3LBnlLe_BZw6_zf7C65X6MUnYhn6dI9_Bb1cO2n9oOX72WUjEsVkNVz5zyw2X-Ux2Gxfg491YcMp2vRr3HUcWN5Bgu5bHWMp6ngySU4oBUjt6G9BdcHQ_X1BOrVJe3eBWc22mIlCVL6BzV8OhLPwc"/>
+</div>
+<div>
+<p class="font-mono-label text-mono-label text-on-surface-variant mb-1">From: Director of Engineering</p>
+<p class="font-body-standard text-body-standard text-primary italic">"Aditi brings a rigorous structural approach to our backend systems. Her work at her previous ledger firm aligns perfectly with our Sage-Architect principles. Awaiting her contributions."</p>
+</div>
+</div>
+<button class="w-full py-[9px] bg-transparent border border-outline-variant text-primary font-mono-label text-mono-label uppercase tracking-widest hover:bg-surface-container-lowest transition-colors rounded-sm mt-2">
+                            Add Welcome Note
+                        </button>
+</div>
+</section>
+<!-- 4. Training Enrollments -->
+<section>
+<div class="mb-6 flex justify-between items-baseline">
+<h3 class="font-mono-label text-mono-label text-primary uppercase tracking-widest border-b border-primary inline-block pb-1">Academic Modules</h3>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Module Card 1 -->
+<a class="group block bg-surface-container-lowest hairline-all p-4 rounded-sm hover:border-yantra-indigo hover:bg-surface transition-all" href="#">
+<div class="flex justify-between items-start mb-2">
+<span class="font-mono-label text-mono-label text-tamra-copper bg-surface-container-low px-2 py-1 rounded-sm">Mandatory</span>
+<span class="material-symbols-outlined text-outline group-hover:text-yantra-indigo transition-colors" data-icon="arrow_outward">arrow_outward</span>
+</div>
+<h4 class="font-body-standard text-body-standard text-primary font-bold mb-1">Information Security Level 1</h4>
+<p class="font-tabular-data text-tabular-data text-on-surface-variant">Est. time: 45 mins • Due Day 3</p>
+</a>
+<!-- Module Card 2 -->
+<a class="group block bg-surface-container-lowest hairline-all p-4 rounded-sm hover:border-yantra-indigo hover:bg-surface transition-all" href="#">
+<div class="flex justify-between items-start mb-2">
+<span class="font-mono-label text-mono-label text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-sm">Recommended</span>
+<span class="material-symbols-outlined text-outline group-hover:text-yantra-indigo transition-colors" data-icon="arrow_outward">arrow_outward</span>
+</div>
+<h4 class="font-body-standard text-body-standard text-primary font-bold mb-1">Architecture Principles</h4>
+<p class="font-tabular-data text-tabular-data text-on-surface-variant">Est. time: 120 mins • Ongoing</p>
+</a>
+</div>
+</section>
+</div>
+</div>
+</main>
+</body></html>
