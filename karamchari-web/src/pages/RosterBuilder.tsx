@@ -1,12 +1,13 @@
 import { PageHeader } from '@/components/shell/PageHeader'
 import { Icon } from '@/components/shell/Icon'
+import { RiskCard, BinduButton, LedgerStrip } from '@/components/institutional'
 import type { PageClassification } from '@/lib/doctrine'
 
 export const PAGE_CLASSIFICATION: PageClassification = {
   persona: 'MGR',
   archetype: 'builder',
   signals: 1,
-  risks: 1,
+  risks: 3,
   narratives: 0,
   maps: 1,
   bindu: true,
@@ -84,7 +85,7 @@ export function RosterBuilder() {
               <Icon name="content_copy" className="!text-[18px]" />
               Copy Last Week
             </button>
-            <button className="px-5 py-2.5 bg-tamra-copper text-white font-mono-label text-mono-label uppercase hover:bg-tamra-copper-bright transition-colors flex items-center gap-2">
+            <button className="px-5 py-2.5 border border-outline-variant text-primary font-mono-label text-mono-label uppercase hover:bg-surface-container-low transition-colors flex items-center gap-2">
               <Icon name="auto_awesome" className="!text-[18px]" />
               Auto-Fill
             </button>
@@ -221,6 +222,48 @@ export function RosterBuilder() {
           </div>
         </div>
       </div>
+
+      {/* Publish consequences — visible before the act, not buried in validation */}
+      <section className="mt-8 bg-surface-container-lowest hairline-all p-6">
+        <div className="flex flex-col md:flex-row justify-between md:items-start gap-8">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <RiskCard
+              severity="critical"
+              title="Coverage Risk"
+              body="Wed Oct 18 morning at 85% with 2 unfilled gaps. Publishing locks the shortfall into the attendance plan."
+            />
+            <RiskCard
+              severity="elevated"
+              title="Skill Risk"
+              body="R. Iyer (Trainee) unassigned all week; no QA-certified backup rostered for Wed. Floor duty requires certification."
+            />
+            <RiskCard
+              severity="monitored"
+              title="Statutory Risk"
+              body="M. Patel rostered 5 consecutive evening shifts. Rest rule REST-11H satisfied; fatigue threshold at 80% of limit."
+            />
+          </div>
+          <div className="md:w-64 shrink-0 flex flex-col gap-3">
+            <BinduButton className="py-3">Publish Roster</BinduButton>
+            <button className="py-3 bg-transparent border border-outline-variant text-on-surface-variant font-mono-label text-mono-label uppercase tracking-widest hover:bg-surface-container-low hover:text-primary transition-colors">
+              Save Draft
+            </button>
+            <p className="font-tabular-data text-[12px] text-on-surface-variant">
+              Publication transfers this roster from draft to institution: attendance, coverage,
+              overtime, and payroll all derive from it.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <LedgerStrip
+        className="mt-8"
+        entries={[
+          { label: 'Artifact', value: 'ROSTER-W42 · draft v3' },
+          { label: 'Shift Primitives', value: 'MORN / EVE (Scheduling.ShiftDefinitions v6)' },
+          { label: 'Last Edit', value: '2026-06-12T07:41:12Z · Ananya R.' },
+        ]}
+      />
     </>
   )
 }

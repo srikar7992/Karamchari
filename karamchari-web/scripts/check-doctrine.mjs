@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const pagesDir = join(root, 'src', 'pages')
 const exceptionsPath = join(root, '..', 'design', 'EXCEPTIONS.md')
+const routeMapPath = join(root, '..', 'design', 'archetypes', 'ROUTE-MAP.md')
 
 // Mirrors ARCHETYPES in src/lib/doctrine.ts (design/archetypes/README.md). Frozen at twelve.
 const ARCHETYPES = [
@@ -47,6 +48,30 @@ const exceptions = loadExceptions()
 const violations = []
 const waived = []
 
+// Archetype reuse metrics — capability should grow faster than unique UI code.
+const archetypesUsed = new Set()
+let pageCount = 0
+let composedPages = 0
+
+// Institutional surface coverage — portfolio view from the route map.
+// Inventory totals come from the Distribution table; implemented screens are ● rows.
+function loadRouteMap() {
+  if (!existsSync(routeMapPath)) return null
+  const text = readFileSync(routeMapPath, 'utf8')
+  const inventory = {}
+  for (const m of text.matchAll(/^\|\s*([\w-]+)\s*\|\s*(\d+)\s*\|/gm)) {
+    if (ARCHETYPES.includes(m[1])) inventory[m[1]] = Number(m[2])
+  }
+  const implemented = {}
+  let implementedTotal = 0
+  for (const m of text.matchAll(/^\|[^|]*●[^|]*\|\s*([\w-]+)\s*\|/gm)) {
+    if (!ARCHETYPES.includes(m[1])) continue
+    implemented[m[1]] = (implemented[m[1]] ?? 0) + 1
+    implementedTotal++
+  }
+  return { inventory, implemented, implementedTotal }
+}
+
 function report(file, ruleKeyword, message) {
   const ex = exceptions.find((e) => e.surface.includes(file) && e.rule.toLowerCase().includes(ruleKeyword))
   if (ex && !ex.expired) {
@@ -67,6 +92,8 @@ for (const file of readdirSync(pagesDir).filter((f) => f.endsWith('.tsx'))) {
   const path = join(pagesDir, file)
   const src = readFileSync(path, 'utf8')
   const lines = src.split('\n')
+  pageCount++
+  if (src.includes('@/components/institutional')) composedPages++
 
   // 1. Bindu rule: max one copper-filled action element per page.
   //    Status dots and borders are signals, not actions, and are exempt.
@@ -132,7 +159,9 @@ for (const file of readdirSync(pagesDir).filter((f) => f.endsWith('.tsx'))) {
   }
   if (!archetype) {
     report(file, 'archetype', `${file}: PAGE_CLASSIFICATION missing archetype (DOCTRINE §4b)`)
-  } else if (!ARCHETYPES.includes(archetype)) {
+  } else if (ARCHETYPES.includes(archetype)) {
+    archetypesUsed.add(archetype)
+  } else {
     report(
       file,
       'archetype',
@@ -155,6 +184,16 @@ for (const file of readdirSync(pagesDir).filter((f) => f.endsWith('.tsx'))) {
   }
 }
 
+// ---- Route map drift --------------------------------------------------------
+// "No screen ships without a row here" (ROUTE-MAP.md). Every page must be marked
+// implemented (●) in the route map, and vice versa.
+const routeMap = loadRouteMap()
+if (routeMap && routeMap.implementedTotal !== pageCount) {
+  violations.push(
+    `ROUTE-MAP.md drift: ${routeMap.implementedTotal} screens marked implemented (●) but ${pageCount} pages exist (design/archetypes/ROUTE-MAP.md)`
+  )
+}
+
 // ---- Verdict ----------------------------------------------------------------
 if (waived.length) {
   console.warn('Waived by active exceptions:\n' + waived.map((w) => '  ' + w).join('\n'))
@@ -166,3 +205,17 @@ if (violations.length) {
 console.log(
   'Doctrine compliance: all pages pass (Bindu, serif, motion, breathing, classification, budgets, archetypes).'
 )
+const pct = pageCount ? Math.round((composedPages / pageCount) * 100) : 0
+console.log(
+  `Archetype reuse: ${pageCount} pages on ${archetypesUsed.size}/${ARCHETYPES.length} archetypes · ` +
+    `${composedPages}/${pageCount} pages composed from institutional components (${pct}%).`
+)
+if (routeMap) {
+  const inventoryTotal = Object.values(routeMap.inventory).reduce((a, b) => a + b, 0)
+  const covPct = inventoryTotal ? ((routeMap.implementedTotal / inventoryTotal) * 100).toFixed(1) : '0'
+  const breakdown = ARCHETYPES.filter((a) => routeMap.implemented[a])
+    .map((a) => `${a} ${routeMap.implemented[a]}/${routeMap.inventory[a] ?? '?'}`)
+    .join(' · ')
+  console.log(`Surface coverage: ${routeMap.implementedTotal}/${inventoryTotal} inventory screens (${covPct}%).`)
+  console.log(`  ${breakdown}`)
+}

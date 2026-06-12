@@ -6,6 +6,8 @@ import { ExecutiveDashboard } from '@/pages/ExecutiveDashboard'
 import { ManagerDashboard } from '@/pages/ManagerDashboard'
 import { MyDashboard } from '@/pages/MyDashboard'
 import { AttendanceOps } from '@/pages/AttendanceOps'
+import { TeamAttendanceBoard } from '@/pages/TeamAttendanceBoard'
+import { ShiftDefinitions } from '@/pages/ShiftDefinitions'
 import { ApprovalsInbox } from '@/pages/ApprovalsInbox'
 import { NotificationCenter } from '@/pages/NotificationCenter'
 import { EmployeeDirectory } from '@/pages/EmployeeDirectory'
@@ -22,7 +24,8 @@ import { ComplianceDashboard } from '@/pages/ComplianceDashboard'
 function pageFromHash(): PageId {
   const h = window.location.hash.replace(/^#\/?/, '')
   const valid: PageId[] = [
-    'pulse', 'executive', 'manager', 'my-dashboard', 'attendance', 'approvals', 'notifications',
+    'pulse', 'executive', 'manager', 'my-dashboard', 'attendance', 'team-attendance',
+    'shift-definitions', 'approvals', 'notifications',
     'roster', 'payroll', 'payroll-run', 'period-finalization', 'directory', 'employee-360',
     'onboarding', 'candidates', 'succession', 'compliance',
   ]
@@ -51,6 +54,8 @@ function App() {
       {page === 'manager' && <ManagerDashboard />}
       {page === 'my-dashboard' && <MyDashboard />}
       {page === 'attendance' && <AttendanceOps />}
+      {page === 'team-attendance' && <TeamAttendanceBoard />}
+      {page === 'shift-definitions' && <ShiftDefinitions />}
       {page === 'approvals' && <ApprovalsInbox />}
       {page === 'notifications' && <NotificationCenter />}
       {page === 'directory' && <EmployeeDirectory onNavigate={navigate} />}

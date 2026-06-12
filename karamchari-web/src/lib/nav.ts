@@ -4,6 +4,8 @@ export type PageId =
   | 'manager'
   | 'my-dashboard'
   | 'attendance'
+  | 'team-attendance'
+  | 'shift-definitions'
   | 'approvals'
   | 'notifications'
   | 'roster'
@@ -41,6 +43,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: 'pulse', label: 'System Pulse', icon: 'monitoring', persona: 'SYS' },
       { id: 'my-dashboard', label: 'My Dashboard', icon: 'person', persona: 'EMP' },
       { id: 'attendance', label: 'Attendance', icon: 'where_to_vote', persona: 'EMP' },
+      { id: 'team-attendance', label: 'Team Board', icon: 'pin_drop', persona: 'MGR' },
       { id: 'approvals', label: 'Approvals', icon: 'fact_check', persona: 'MGR' },
       { id: 'notifications', label: 'Notifications', icon: 'notifications', persona: 'EMP' },
     ],
@@ -71,7 +74,10 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Rarely',
     layer: 'Sutra · Sthiti',
-    items: [{ id: 'compliance', label: 'Compliance', icon: 'gavel', persona: 'CMP' }],
+    items: [
+      { id: 'compliance', label: 'Compliance', icon: 'gavel', persona: 'CMP' },
+      { id: 'shift-definitions', label: 'Shift Definitions', icon: 'schedule', persona: 'SYS' },
+    ],
   },
 ]
 
@@ -82,6 +88,8 @@ export const PAGE_TELEMETRY: Record<PageId, { surface: string; layer: string }> 
   manager: { surface: 'SRF-MGR-022', layer: 'L02 KARMA' },
   'my-dashboard': { surface: 'SRF-EMP-008', layer: 'L02 KARMA' },
   attendance: { surface: 'SRF-OPS-031', layer: 'L02 KARMA' },
+  'team-attendance': { surface: 'SRF-OPS-033', layer: 'L02 KARMA' },
+  'shift-definitions': { surface: 'SRF-ADM-091', layer: 'L05 STHITI' },
   approvals: { surface: 'SRF-FLW-038', layer: 'L03 PRAVAHA' },
   notifications: { surface: 'SRF-PLS-005', layer: 'L01 SPANDA' },
   directory: { surface: 'SRF-TOP-061', layer: 'L06 JALA' },

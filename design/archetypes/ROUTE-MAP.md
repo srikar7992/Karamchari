@@ -37,7 +37,7 @@ Implemented screens (karamchari-web) are marked ●.
 | Screen | Archetype |
 |---|---|
 | Manager Dashboard ● | dashboard |
-| Team Attendance Board | command-center |
+| Team Attendance Board ● | command-center |
 | Regularization Approval Queue | approval |
 | Team Leave Calendar & Approvals | approval |
 | Review Inbox & Team Goals | approval |
@@ -82,7 +82,7 @@ Implemented screens (karamchari-web) are marked ●.
 | Attendance Records Browser | registry |
 | Attendance Health Dashboard | analytics |
 | Attendance Policy Admin | administration |
-| Shift Definition Admin | administration |
+| Shift Definition Admin ● | administration |
 | Biometric Device Admin | administration |
 | Biometric Enrollment | case |
 | Geo Zone Admin | administration |
