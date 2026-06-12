@@ -18,6 +18,7 @@ export type PageId =
   | 'candidates'
   | 'succession'
   | 'compliance'
+  | 'workflow-studio'
 
 export type Persona = 'EMP' | 'MGR' | 'EXEC' | 'CMP' | 'SYS'
 
@@ -77,6 +78,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'compliance', label: 'Compliance', icon: 'gavel', persona: 'CMP' },
       { id: 'shift-definitions', label: 'Shift Definitions', icon: 'schedule', persona: 'SYS' },
+      { id: 'workflow-studio', label: 'Workflow Studio', icon: 'account_tree', persona: 'SYS' },
     ],
   },
 ]
@@ -102,6 +104,7 @@ export const PAGE_TELEMETRY: Record<PageId, { surface: string; layer: string }> 
   candidates: { surface: 'SRF-TOP-071', layer: 'L06 JALA' },
   succession: { surface: 'SRF-KAL-077', layer: 'L07 KALA' },
   compliance: { surface: 'SRF-DHR-082', layer: 'L08 DHARMA' },
+  'workflow-studio': { surface: 'SRF-FLW-040', layer: 'L03 PRAVAHA' },
 }
 
 export const PERSONA_META: Record<Persona, { name: string; role: string }> = {

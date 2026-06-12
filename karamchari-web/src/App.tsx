@@ -20,6 +20,7 @@ import { OnboardingCase } from '@/pages/OnboardingCase'
 import { CandidatePipeline } from '@/pages/CandidatePipeline'
 import { SuccessionWorkspace } from '@/pages/SuccessionWorkspace'
 import { ComplianceDashboard } from '@/pages/ComplianceDashboard'
+import { WorkflowStudio } from '@/pages/WorkflowStudio'
 
 function pageFromHash(): PageId {
   const h = window.location.hash.replace(/^#\/?/, '')
@@ -27,7 +28,7 @@ function pageFromHash(): PageId {
     'pulse', 'executive', 'manager', 'my-dashboard', 'attendance', 'team-attendance',
     'shift-definitions', 'approvals', 'notifications',
     'roster', 'payroll', 'payroll-run', 'period-finalization', 'directory', 'employee-360',
-    'onboarding', 'candidates', 'succession', 'compliance',
+    'onboarding', 'candidates', 'succession', 'compliance', 'workflow-studio',
   ]
   return (valid as string[]).includes(h) ? (h as PageId) : 'pulse'
 }
@@ -68,6 +69,7 @@ function App() {
       {page === 'candidates' && <CandidatePipeline />}
       {page === 'succession' && <SuccessionWorkspace />}
       {page === 'compliance' && <ComplianceDashboard />}
+      {page === 'workflow-studio' && <WorkflowStudio />}
     </AppShell>
   )
 }

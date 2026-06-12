@@ -268,7 +268,7 @@ Implemented screens (karamchari-web) are marked ●.
 |---|---|
 | Tenant Administration | administration |
 | User & Role Administration | administration |
-| Workflow Definition Studio | builder |
+| Workflow Definition Studio ● | builder |
 | Webhook & Integration Admin | administration |
 | Event Catalog Browser | registry |
 | Endpoint Catalog Viewer | registry |
