@@ -25,6 +25,17 @@ import { ComplianceDashboard } from '@/pages/ComplianceDashboard'
 import { WorkflowStudio } from '@/pages/WorkflowStudio'
 import { LeavePolicies } from '@/pages/LeavePolicies'
 import { ApprovalRules } from '@/pages/ApprovalRules'
+import { LabShell, type LabId } from '@/labs/LabShell'
+import { ConstitutionalLedger } from '@/labs/ConstitutionalLedger'
+import { Observatory } from '@/labs/Observatory'
+import { LivingTopology } from '@/labs/LivingTopology'
+
+// Visual experiments (design/EXPERIMENTS.md) live under #/lab/* outside the
+// governed PageId space: no nav entry, no telemetry, no doctrine checks.
+function labFromHash(): LabId | null {
+  const m = window.location.hash.match(/^#\/?lab\/(ledger|observatory|topology)$/)
+  return m ? (m[1] as LabId) : null
+}
 
 function pageFromHash(): PageId {
   const h = window.location.hash.replace(/^#\/?/, '')
@@ -41,9 +52,14 @@ function pageFromHash(): PageId {
 
 function App() {
   const [page, setPage] = useState<PageId>(pageFromHash)
+  const [lab, setLab] = useState<LabId | null>(labFromHash)
 
   useEffect(() => {
-    const onHash = () => setPage(pageFromHash())
+    const onHash = () => {
+      setLab(labFromHash())
+      setPage(pageFromHash())
+      window.scrollTo({ top: 0 })
+    }
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
@@ -51,7 +67,18 @@ function App() {
   const navigate = (id: PageId) => {
     window.location.hash = `/${id}`
     setPage(id)
+    setLab(null)
     window.scrollTo({ top: 0 })
+  }
+
+  if (lab) {
+    return (
+      <LabShell active={lab}>
+        {lab === 'ledger' && <ConstitutionalLedger />}
+        {lab === 'observatory' && <Observatory />}
+        {lab === 'topology' && <LivingTopology />}
+      </LabShell>
+    )
   }
 
   return (
