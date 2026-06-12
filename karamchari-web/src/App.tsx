@@ -29,11 +29,12 @@ import { LabShell, type LabId } from '@/labs/LabShell'
 import { ConstitutionalLedger } from '@/labs/ConstitutionalLedger'
 import { Observatory } from '@/labs/Observatory'
 import { LivingTopology } from '@/labs/LivingTopology'
+import { ModernPulse } from '@/labs/ModernPulse'
 
 // Visual experiments (design/EXPERIMENTS.md) live under #/lab/* outside the
 // governed PageId space: no nav entry, no telemetry, no doctrine checks.
 function labFromHash(): LabId | null {
-  const m = window.location.hash.match(/^#\/?lab\/(ledger|observatory|topology)$/)
+  const m = window.location.hash.match(/^#\/?lab\/(ledger|observatory|topology|modern)$/)
   return m ? (m[1] as LabId) : null
 }
 
@@ -77,6 +78,7 @@ function App() {
         {lab === 'ledger' && <ConstitutionalLedger />}
         {lab === 'observatory' && <Observatory />}
         {lab === 'topology' && <LivingTopology />}
+        {lab === 'modern' && <ModernPulse />}
       </LabShell>
     )
   }

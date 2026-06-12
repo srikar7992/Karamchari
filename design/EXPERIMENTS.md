@@ -24,6 +24,7 @@ mark, budget compliance. Nothing moves from lab to production by relocation.
 | Constitutional Ledger | #/lab/ledger | Employee record as continuous constitutional record — git history + court record + institutional biography, not tabs |
 | Observatory | #/lab/observatory | Executive surface as instrument room (mission control / central bank), not KPI grid; includes atmospheric pressure states (watch condition compresses margins and typography) |
 | Living Topology | #/lab/topology | Team attendance as territory map — zones expand with health, contract under risk; the institution literally changes shape |
+| Modern Pulse | #/lab/modern | Ultra-modern youthful probe — gradients, glassmorphism, glow, spring hover, count-up numbers, staggered entrances. Every doctrine rule intentionally broken; the question is whether the product should move here wholly, per persona, or not at all |
 
 ## Findings log
 

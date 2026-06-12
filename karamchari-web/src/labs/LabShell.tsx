@@ -3,16 +3,17 @@
 
 import type { ReactNode } from 'react'
 
-export type LabId = 'ledger' | 'observatory' | 'topology'
+export type LabId = 'ledger' | 'observatory' | 'topology' | 'modern'
 
 export const LAB_ROUTES: { id: LabId; label: string }[] = [
   { id: 'ledger', label: 'A · Constitutional Ledger' },
   { id: 'observatory', label: 'B · Observatory' },
   { id: 'topology', label: 'C · Living Topology' },
+  { id: 'modern', label: 'D · Modern Pulse' },
 ]
 
 export function LabShell({ active, children }: { active: LabId; children: ReactNode }) {
-  const dark = active === 'observatory'
+  const dark = active === 'observatory' || active === 'modern'
   return (
     <div>
       <div
