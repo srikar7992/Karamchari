@@ -261,6 +261,7 @@ Implemented screens (karamchari-web) are marked ●.
 | Screen | Archetype |
 |---|---|
 | Executive Dashboard ● | dashboard |
+| Executive Observatory ● | dashboard |
 
 ## Administration & Platform Operations
 

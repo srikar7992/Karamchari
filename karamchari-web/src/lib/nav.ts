@@ -1,6 +1,7 @@
 export type PageId =
   | 'pulse'
   | 'executive'
+  | 'observatory'
   | 'manager'
   | 'my-dashboard'
   | 'attendance'
@@ -35,14 +36,19 @@ export interface NavItem {
 
 export interface NavGroup {
   label: string
+  rhythm: string
+  sanskrit: string
   layer: string
   items: NavItem[]
 }
 
 // Ordered by cadence of human contact (design/DOCTRINE.md §2), not layer number.
+// `rhythm` names the band as a movement of institutional life, not a module folder.
 export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Daily',
+    rhythm: 'Daily Rhythm',
+    sanskrit: 'दैनिक',
     layer: 'Ops · Pulse',
     items: [
       { id: 'pulse', label: 'System Pulse', icon: 'monitoring', persona: 'SYS' },
@@ -55,6 +61,8 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: 'Weekly',
+    rhythm: 'Weekly Operations',
+    sanskrit: 'साप्ताहिक',
     layer: 'Ops · Topology',
     items: [
       { id: 'manager', label: 'Team Pulse', icon: 'groups', persona: 'MGR' },
@@ -69,9 +77,12 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: 'Monthly',
+    rhythm: 'Monthly Governance',
+    sanskrit: 'मासिक',
     layer: 'Buddhi · Kāla',
     items: [
       { id: 'executive', label: 'Executive', icon: 'insights', persona: 'EXEC' },
+      { id: 'observatory', label: 'Observatory', icon: 'hub', persona: 'EXEC' },
       { id: 'succession', label: 'Succession', icon: 'account_tree', persona: 'EXEC' },
       { id: 'payroll', label: 'Payroll Cockpit', icon: 'payments', persona: 'MGR' },
       { id: 'payroll-run', label: 'Run Console', icon: 'play_circle', persona: 'MGR' },
@@ -80,6 +91,8 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: 'Rarely',
+    rhythm: 'Institutional Memory',
+    sanskrit: 'कदाचित्',
     layer: 'Sutra · Sthiti',
     items: [
       { id: 'compliance', label: 'Compliance', icon: 'gavel', persona: 'CMP' },
@@ -95,6 +108,7 @@ export const NAV_GROUPS: NavGroup[] = [
 export const PAGE_TELEMETRY: Record<PageId, { surface: string; layer: string }> = {
   pulse: { surface: 'SRF-PULSE-001', layer: 'L01 SPANDA' },
   executive: { surface: 'SRF-EXEC-014', layer: 'L04 BUDDHI' },
+  observatory: { surface: 'SRF-EXEC-015', layer: 'L04 BUDDHI' },
   manager: { surface: 'SRF-MGR-022', layer: 'L02 KARMA' },
   'my-dashboard': { surface: 'SRF-EMP-008', layer: 'L02 KARMA' },
   attendance: { surface: 'SRF-OPS-031', layer: 'L02 KARMA' },
@@ -117,6 +131,46 @@ export const PAGE_TELEMETRY: Record<PageId, { surface: string; layer: string }> 
   'workflow-studio': { surface: 'SRF-FLW-040', layer: 'L03 PRAVAHA' },
   'leave-policies': { surface: 'SRF-ADM-092', layer: 'L05 STHITI' },
   'approval-rules': { surface: 'SRF-FLW-041', layer: 'L03 PRAVAHA' },
+}
+
+// Surface context exposed in the chrome (cavecrew §5): which archetype the page
+// is, and which laws are live on it. Archetype mirrors each page's
+// PAGE_CLASSIFICATION; laws are listed only where a real registered law governs
+// the surface (design/LAWBOOK.md) — absent where none applies.
+export const PAGE_CONTEXT: Record<PageId, { archetype: string; laws?: string[] }> = {
+  pulse: { archetype: 'command-center' },
+  executive: { archetype: 'dashboard' },
+  observatory: { archetype: 'dashboard' },
+  manager: { archetype: 'dashboard' },
+  'my-dashboard': { archetype: 'dashboard' },
+  attendance: { archetype: 'topology', laws: ['CONT-LIMIT-01', 'OPS-SAFE-03'] },
+  'team-attendance': { archetype: 'command-center' },
+  'shift-definitions': { archetype: 'administration' },
+  approvals: { archetype: 'approval' },
+  notifications: { archetype: 'timeline' },
+  directory: { archetype: 'registry' },
+  roster: { archetype: 'builder' },
+  payroll: { archetype: 'command-center' },
+  'payroll-run': { archetype: 'command-center' },
+  'period-finalization': { archetype: 'command-center' },
+  'employee-360': { archetype: 'record-detail' },
+  onboarding: { archetype: 'case' },
+  candidates: { archetype: 'registry' },
+  'candidate-detail': { archetype: 'record-detail' },
+  'offer-management': { archetype: 'approval' },
+  succession: { archetype: 'topology' },
+  compliance: { archetype: 'dashboard' },
+  'workflow-studio': { archetype: 'builder', laws: ['GF-02', 'WF-RULE-007'] },
+  'leave-policies': { archetype: 'administration' },
+  'approval-rules': { archetype: 'administration' },
+}
+
+// Institutional situational awareness, surfaced at the head of the directory.
+export const INSTITUTIONAL_STATE = {
+  cycle: 'Jun 2026',
+  activeWorkflows: 24,
+  openRisks: 3,
+  inFlight: 214,
 }
 
 export const PERSONA_META: Record<Persona, { name: string; role: string }> = {

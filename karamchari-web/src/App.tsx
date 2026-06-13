@@ -3,6 +3,7 @@ import { AppShell } from '@/components/shell/AppShell'
 import type { PageId } from '@/lib/nav'
 import { PulseHome } from '@/pages/PulseHome'
 import { ExecutiveDashboard } from '@/pages/ExecutiveDashboard'
+import { ExecutiveObservatory } from '@/pages/ExecutiveObservatory'
 import { ManagerDashboard } from '@/pages/ManagerDashboard'
 import { MyDashboard } from '@/pages/MyDashboard'
 import { AttendanceOps } from '@/pages/AttendanceOps'
@@ -41,7 +42,7 @@ function labFromHash(): LabId | null {
 function pageFromHash(): PageId {
   const h = window.location.hash.replace(/^#\/?/, '')
   const valid: PageId[] = [
-    'pulse', 'executive', 'manager', 'my-dashboard', 'attendance', 'team-attendance',
+    'pulse', 'executive', 'observatory', 'manager', 'my-dashboard', 'attendance', 'team-attendance',
     'shift-definitions', 'approvals', 'notifications',
     'roster', 'payroll', 'payroll-run', 'period-finalization', 'directory', 'employee-360',
     'onboarding', 'candidates', 'candidate-detail', 'offer-management',
@@ -51,9 +52,14 @@ function pageFromHash(): PageId {
   return (valid as string[]).includes(h) ? (h as PageId) : 'pulse'
 }
 
+type Theme = 'day' | 'night'
+
 function App() {
   const [page, setPage] = useState<PageId>(pageFromHash)
   const [lab, setLab] = useState<LabId | null>(labFromHash)
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem('karam-theme') as Theme) || 'day'
+  )
 
   useEffect(() => {
     const onHash = () => {
@@ -64,6 +70,13 @@ function App() {
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
+
+  // Institutional Night Mode — one class on <html> drives shell (dark:) + .obs vars.
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'night')
+    localStorage.setItem('karam-theme', theme)
+  }, [theme])
+  const toggleTheme = () => setTheme((t) => (t === 'day' ? 'night' : 'day'))
 
   const navigate = (id: PageId) => {
     window.location.hash = `/${id}`
@@ -84,9 +97,10 @@ function App() {
   }
 
   return (
-    <AppShell active={page} onNavigate={navigate}>
+    <AppShell active={page} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme}>
       {page === 'pulse' && <PulseHome onNavigate={navigate} />}
       {page === 'executive' && <ExecutiveDashboard />}
+      {page === 'observatory' && <ExecutiveObservatory />}
       {page === 'manager' && <ManagerDashboard />}
       {page === 'my-dashboard' && <MyDashboard />}
       {page === 'attendance' && <AttendanceOps />}

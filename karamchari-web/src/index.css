@@ -38,7 +38,94 @@
     background: #b16a3c;
     color: #fff;
   }
+  /* Night Institution foundation — slate beneath every surface */
+  html.dark,
+  html.dark body {
+    background-color: #171a1f;
+    color: #ece6db;
+  }
 }
+
+/* ---- Institutional token values (var-backed, theme-aware) ---- */
+:root {
+  --c-bg: #fcf8f8;
+  --c-surface: #fcf8f8;
+  --c-surface-dim: #ddd9d9;
+  --c-surface-bright: #fcf8f8;
+  --c-sc-lowest: #ffffff;
+  --c-sc-low: #f7f3f2;
+  --c-sc: #f1eded;
+  --c-sc-high: #ebe7e7;
+  --c-sc-highest: #e5e2e1;
+  --c-surface-variant: #e5e2e1;
+  --c-on-surface: #1c1b1c;
+  --c-on-surface-variant: #46464b;
+  --c-on-bg: #1c1b1c;
+  --c-outline: #77777b;
+  --c-outline-variant: #c7c6cb;
+  --c-secondary-container: #e7e2d8;
+  --c-on-secondary-container: #67645c;
+}
+html.dark {
+  --c-bg: #171a1f;
+  --c-surface: #171a1f;
+  --c-surface-dim: #20252c;
+  --c-surface-bright: #1f242b;
+  --c-sc-lowest: #1f242b;
+  --c-sc-low: #1c2026;
+  --c-sc: #20252c;
+  --c-sc-high: #252b33;
+  --c-sc-highest: #2a313a;
+  --c-surface-variant: #2a313a;
+  --c-on-surface: #ece6db;
+  --c-on-surface-variant: #b6b1a8;
+  --c-on-bg: #ece6db;
+  --c-outline: #8b8b90;
+  --c-outline-variant: #2b313a;
+  --c-secondary-container: #20252c;
+  --c-on-secondary-container: #c4bfb4;
+  /* shadcn neutrals */
+  --border: 215 14% 22%;
+  --input: 215 14% 22%;
+  --muted: 220 10% 16%;
+  --muted-foreground: 40 8% 70%;
+  --card: 220 13% 12%;
+  --card-foreground: 40 14% 90%;
+  --popover: 220 13% 12%;
+  --popover-foreground: 40 14% 90%;
+}
+
+/* ============================================================
+   NIGHT INSTITUTION — legacy page coverage.
+   ui3 surfaces flip via .obs vars; pages still on the original
+   Tailwind tokens are made readable at night by overriding those
+   utilities, scoped to `main` so the indigo shell stays untouched.
+   ============================================================ */
+/* Dual-role tokens (used as both text and bg) + non-token utilities: handled
+   per-property here so backgrounds and text don't collide. Scoped to `main` so
+   the indigo shell is untouched. */
+.dark main .text-primary,
+.dark main .text-ink,
+.dark main .text-ink-2 { color: #ece6db; }
+.dark main .text-secondary,
+.dark main .text-graphite { color: #cfc9bf; }
+.dark main .text-on-secondary-container { color: #c4bfb4; }
+
+.dark main .bg-ivory,
+.dark main .bg-ivory-2,
+.dark main .bg-ivory-3,
+.dark main .bg-cloud { background-color: #1f242b; }
+.dark main .tonal-wash { background: #171a1f; }
+.dark main .bg-graphite { background-color: #20252c; }
+
+.dark main .hairline,
+.dark main .hairline-all,
+.dark main .hairline-t,
+.dark main .hairline-b,
+.dark main .hairline-l,
+.dark main .hairline-r,
+.dark main .structural-hairline { border-color: rgba(236, 230, 219, 0.12); }
+.dark main .hairline-strong { border-color: rgba(236, 230, 219, 0.30); }
 
 /* ---- Karamchari structural language ---- */
 
@@ -62,11 +149,34 @@
 }
 
 /* Yantra grid: faint structural graph paper */
-.yantra-grid {
-  background-size: 48px 48px;
-  background-image:
-    linear-gradient(to right, rgba(14, 15, 18, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(14, 15, 18, 0.05) 1px, transparent 1px);
+/* yantra-grid: graph-paper background retired — kept as a no-op so existing
+   class references stay valid. */
+.yantra-grid { background-image: none; }
+
+/* Background chakra — faint construction yantra beneath the institution.
+   Present in both lightings; pinned to the canvas edge, behind all content. */
+.kx-watermark {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.kx-watermark svg {
+  width: 600px;
+  height: 600px;
+  margin-right: -120px;
+  color: rgba(34, 58, 71, 0.07);
+  transition: color 300ms ease;
+}
+.dark .kx-watermark svg {
+  color: rgba(236, 230, 219, 0.06);
+}
+@media (max-width: 920px) {
+  .kx-watermark { display: none; }
 }
 
 /* Hairline borders: institutional restraint, not card shadows */
@@ -138,3 +248,147 @@
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb { background: #c7c6cb; border-radius: 0; }
 *::-webkit-scrollbar-thumb:hover { background: #77777b; }
+
+/* ============================================================
+   OBSERVATORY GRAMMAR (ui3) — scoped under .obs so the existing
+   24 pages are untouched. Chamfered surfaces (not rounded cards),
+   copper-as-seal, blueprint depth, institutional spine, three voices.
+   Palette is the production doctrine palette, not the prototype's.
+   ============================================================ */
+.obs {
+  --ch: 7px;
+  --ch-sm: 4px;
+  --obs-copper: #b16a3c;
+  --obs-copper-soft: #c68a60;
+  --obs-ink: #0e0f12;           /* authority/ink surface bg — stays dark in both themes */
+  --obs-forest: #2d5d4b;
+  --obs-risk: #9c842a;          /* constrained amber, never bright red */
+  --obs-risk-hi: #7a2b2b;
+  --obs-hair: rgba(14, 15, 18, 0.12);
+  --obs-hair-2: rgba(14, 15, 18, 0.20);
+  --obs-hair-strong: rgba(14, 15, 18, 0.34);
+  --obs-mute: #77777b;
+  --obs-text-2: #46464b;
+  /* Day Institution — paper foundation */
+  --obs-fg: #0e0f12;            /* primary text + lines drawn on the canvas */
+  --obs-line: 14, 15, 18;       /* rgb channel for hairlines/grids: rgba(var(--obs-line), a) */
+  --obs-surf: #ffffff;          /* normal surface — paper */
+  --obs-sunken: #ece6d9;
+  --obs-canvas: transparent;    /* body ivory shows through */
+  --obs-tick: #ffffff;          /* spine tick inactive fill */
+  --obs-grid-fine: rgba(14, 15, 18, 0.022);
+  --obs-grid-major: rgba(14, 15, 18, 0.036);
+  --obs-auth-shadow: rgba(14, 15, 18, 0.26);
+}
+
+/* Night Institution — drafting table under lamps, not colour inversion.
+   Same semantics, new lighting: slate foundation, paper text, copper barely
+   lifted (authority, not accent), blueprint grid a touch more present. */
+.dark .obs {
+  --obs-copper: #b86a3d;        /* slight lift only — still authority */
+  --obs-copper-soft: #d09a72;
+  --obs-ink: #08090c;           /* authority surface sits below the slate, projects via seal + shadow */
+  --obs-forest: #4f9079;        /* coverage reads illuminated from within */
+  --obs-risk: #c4aa42;
+  --obs-risk-hi: #c0635a;
+  --obs-hair: rgba(236, 230, 219, 0.12);
+  --obs-hair-2: rgba(236, 230, 219, 0.20);
+  --obs-hair-strong: rgba(236, 230, 219, 0.32);
+  --obs-mute: #8b8b90;
+  --obs-text-2: #b6b1a8;
+  --obs-fg: #ece6db;            /* institutional paper */
+  --obs-line: 236, 230, 219;
+  --obs-surf: #1f242b;          /* recedes toward the slate */
+  --obs-sunken: #161a1f;
+  --obs-canvas: #171a1f;        /* Sutra Slate */
+  --obs-tick: #20252c;
+  --obs-grid-fine: rgba(236, 230, 219, 0.05);
+  --obs-grid-major: rgba(236, 230, 219, 0.09);
+  --obs-auth-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* Chamfer clip — the diagonal corner cut that replaces rounded corners */
+.obs .cham {
+  clip-path: polygon(
+    var(--ch) 0, 100% 0, 100% calc(100% - var(--ch)),
+    calc(100% - var(--ch)) 100%, 0 100%, 0 var(--ch)
+  );
+}
+.obs .cham-sm {
+  clip-path: polygon(
+    var(--ch-sm) 0, 100% 0, 100% calc(100% - var(--ch-sm)),
+    calc(100% - var(--ch-sm)) 100%, 0 100%, 0 var(--ch-sm)
+  );
+}
+/* risk geometry: cut on the opposite diagonal — sharper, alert */
+.obs .cham-risk {
+  clip-path: polygon(
+    0 0, calc(100% - var(--ch)) 0, 100% var(--ch),
+    100% 100%, var(--ch) 100%, 0 calc(100% - var(--ch))
+  );
+}
+/* authority silhouette: folded-seal corner, top-right */
+.obs .cham-seal {
+  clip-path: polygon(0 0, calc(100% - 38px) 0, 100% 38px, 100% 100%, 0 100%);
+}
+
+/* Three voices */
+.obs .voice-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+.obs .voice-code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-ligatures: none; }
+.obs .voice-serif { font-family: 'Newsreader', Georgia, serif; }
+.obs .tnum { font-variant-numeric: tabular-nums; }
+
+/* Blueprint depth — drafting-paper grid beneath the canvas (felt, not seen) */
+.obs-canvas {
+  background-color: var(--obs-canvas);
+}
+
+/* Institutional Spine — the signature continuity device */
+.obs-spine { position: sticky; top: 96px; align-self: start; }
+.obs-spine-line { position: absolute; left: 5px; top: 4px; bottom: 4px; width: 1px; background: var(--obs-hair-2); }
+.obs-spine-node { position: relative; padding: 0 0 0 22px; min-height: 22px; display: flex; align-items: center; cursor: pointer; background: none; border: none; text-align: left; }
+.obs-spine-tick {
+  position: absolute; left: 0; top: 50%; width: 11px; height: 11px;
+  transform: translateY(-50%) rotate(45deg);
+  background: var(--obs-tick); border: 1.5px solid var(--obs-hair-strong);
+  transition: border-color 200ms, background 200ms, box-shadow 200ms;
+}
+.obs-spine-node[data-on="1"] .obs-spine-tick {
+  border-color: var(--obs-copper); background: var(--obs-copper);
+  box-shadow: 0 0 0 4px rgba(177,106,60,0.2);
+}
+.obs-spine-label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9.5px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--obs-mute); transition: color 200ms;
+}
+.obs-spine-node[data-on="1"] .obs-spine-label { color: var(--obs-ink); }
+
+/* Interactive feedback — tint survives chamfer clip + inline bg */
+.obs .obs-interactive { transition: box-shadow 150ms; }
+.obs .obs-interactive:hover { box-shadow: inset 0 0 0 200px rgba(14,15,18,0.035); }
+
+/* Emergence — fade + 8px rise, doctrine motion (150-250ms, no bounce) */
+@keyframes obs-emerge { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.obs [data-emerge] { animation: obs-emerge 230ms cubic-bezier(0.22,0.61,0.36,1) backwards; animation-delay: var(--obs-delay, 0ms); }
+
+/* Ambient pulse — pending authority only, one per screen */
+@keyframes obs-breathe { 0%,100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+.obs .obs-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--obs-copper); animation: obs-breathe 2.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .obs [data-emerge] { animation: none; }
+  .obs .obs-pulse { animation: none; }
+}
+
+/* Responsive collapse — keep the reading column breathing on narrow canvases.
+   Stylesheet !important overrides the inline grid templates. */
+@media (max-width: 1180px) {
+  .obs .obs-split { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@media (max-width: 920px) {
+  .obs .obs-shell { grid-template-columns: minmax(0, 1fr) !important; }
+  .obs .obs-spine { display: none; }
+  .obs .obs-article-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 12px !important; }
+  .obs .obs-article-grid > :first-child { text-align: left !important; padding-left: 0 !important; }
+  .obs .obs-signals-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}

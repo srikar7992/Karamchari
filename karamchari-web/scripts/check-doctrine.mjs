@@ -102,8 +102,12 @@ for (const file of readdirSync(pagesDir).filter((f) => f.endsWith('.tsx'))) {
   //    Detection: bg-tamra-copper within a 6-line window of an opening <button>/<a>
   //    (attributes may span lines; `=>` arrows make simple tag-close detection unsafe).
   //    <BinduButton> from the institutional component library is a copper action
-  //    by construction and counts directly.
-  let copperActions = (src.match(/<BinduButton[\s/>]/g) ?? []).length
+  //    by construction and counts directly. <AuthoritySurface> (ui3 grammar) is
+  //    the supreme authority act — a sealed, hold-to-authorise ceremony that
+  //    replaces a major CTA — and likewise counts as exactly one copper action.
+  let copperActions =
+    (src.match(/<BinduButton[\s/>]/g) ?? []).length +
+    (src.match(/<AuthoritySurface[\s/>]/g) ?? []).length
   let window = 0
   for (const line of lines) {
     if (/<(button|a)(\s|>|$)/.test(line)) window = 6
@@ -276,4 +280,95 @@ if (lifecycleStats) {
   for (const l of lifecycleStats) {
     console.log(`  ${l.name}: ${l.built}/${l.total} stages — ${l.status}`)
   }
+}
+
+// ---- Wave 1 Migration Coverage -----------------------------------------------
+// Tracks pages migrated to the ui3 institutional grammar. Heuristic: import from
+// '@/components/observatory/surfaces' is the reliable semantic signal.
+const WAVE_1 = [
+  { label: 'Executive Observatory', file: 'src/pages/ExecutiveObservatory.tsx' },
+  { label: 'Employee 360',          file: 'src/pages/Employee360.tsx' },
+  { label: 'Attendance Topology',   file: 'src/pages/AttendanceOps.tsx' },
+  { label: 'Workflow Studio',       file: 'src/pages/WorkflowStudio.tsx' },
+]
+const migrated = WAVE_1.map(({ label, file }) => {
+  try {
+    const src = readFileSync(join(root, file), 'utf8')
+    return { label, done: src.includes("from '@/components/observatory/surfaces'") }
+  } catch { return { label, done: false } }
+})
+const migratedCount = migrated.filter(m => m.done).length
+console.log(`Wave 1 Migration: ${migratedCount}/${WAVE_1.length} screens on ui3 grammar.`)
+for (const m of migrated) {
+  console.log(`  ${m.done ? '✓' : '○'} ${m.label}`)
+}
+
+// ---- Visual Languages Proven -------------------------------------------------
+// Cognitive models, not UI patterns. Each language proves a distinct territory
+// of the grammar: Assessment, Biography, Territory, Law Composition, Influence Fields.
+// Detection is per-language because each has a distinct structural marker.
+const VISUAL_LANGUAGES = [
+  {
+    label: 'Assessment Language',
+    file: 'src/pages/ExecutiveObservatory.tsx',
+    detect: (src) => src.includes("from '@/components/observatory/surfaces'"),
+  },
+  {
+    label: 'Biography Language',
+    file: 'src/pages/Employee360.tsx',
+    detect: (src) => src.includes("from '@/components/observatory/surfaces'") && src.includes("archetype: 'record-detail'"),
+  },
+  {
+    label: 'Territory Language',
+    file: 'src/pages/AttendanceOps.tsx',
+    detect: (src) => src.includes("from '@/components/observatory/surfaces'") && src.includes("archetype: 'topology'"),
+  },
+  {
+    label: 'Law Composition Language',
+    file: 'src/pages/WorkflowStudio.tsx',
+    detect: (src) => src.includes("from '@/components/observatory/surfaces'"),
+  },
+  {
+    label: 'Influence Field Language',
+    file: 'src/pages/SuccessionWorkspace.tsx',
+    detect: (src) => src.includes("from '@/components/observatory/surfaces'") && src.includes("archetype: 'topology'"),
+  },
+]
+const provenLanguages = VISUAL_LANGUAGES.map(({ label, file, detect }) => {
+  try {
+    const src = readFileSync(join(root, file), 'utf8')
+    return { label, done: detect(src) }
+  } catch { return { label, done: false } }
+})
+const provenCount = provenLanguages.filter(l => l.done).length
+console.log(`Visual Languages: ${provenCount}/${VISUAL_LANGUAGES.length} cognitive models proven.`)
+for (const l of provenLanguages) {
+  console.log(`  ${l.done ? '✓' : '○'} ${l.label}`)
+}
+
+// ---- Institutional Night Mode coverage ---------------------------------------
+// "Switch theme" acceptance: a ui3 surface is night-ready when it stops hardcoding
+// the light-ink channel and drives colour through theme vars (.obs vars invert
+// under html.dark; the shell flips via dark: utilities). Enforces "migrate the
+// grammar together — no light-complete / dark-partial schizophrenia."
+const NIGHT_SURFACES = [
+  { label: 'Institutional Directory', file: 'src/components/shell/AppShell.tsx' },
+  { label: 'Executive Observatory',   file: 'src/pages/ExecutiveObservatory.tsx' },
+  { label: 'Employee 360',            file: 'src/pages/Employee360.tsx' },
+  { label: 'Attendance Topology',     file: 'src/pages/AttendanceOps.tsx' },
+  { label: 'Succession Fields',       file: 'src/pages/SuccessionWorkspace.tsx' },
+  { label: 'Workflow Studio',         file: 'src/pages/WorkflowStudio.tsx' },
+]
+// Light-ink literals that do NOT invert at night (paper-era hardcodes).
+const LIGHT_INK = /rgba\(\s*14\s*,\s*15\s*,\s*18|#0e0f12|#46464b|#77777b|#ece6d9|#ffffff/i
+const nightReady = NIGHT_SURFACES.map(({ label, file }) => {
+  try {
+    const src = readFileSync(join(root, file), 'utf8')
+    return { label, done: !LIGHT_INK.test(src) }
+  } catch { return { label, done: false } }
+})
+const nightCount = nightReady.filter(s => s.done).length
+console.log(`Night Mode: ${nightCount}/${NIGHT_SURFACES.length} ui3 surfaces survive inversion.`)
+for (const s of nightReady) {
+  console.log(`  ${s.done ? '✓' : '○'} ${s.label}`)
 }

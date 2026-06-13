@@ -1,14 +1,10 @@
-import { Icon } from '@/components/shell/Icon'
+import { useState } from 'react'
 import {
-  SignalCard,
-  RiskCard,
-  NarrativePlate,
-  BinduButton,
-  MapSurface,
-  CaseTimeline,
-  LedgerStrip,
-  type TimelineEntry,
-} from '@/components/institutional'
+  Surface, Label, Code,
+  ConstitutionalArticle, SpineRail, useScrollSpy,
+  SignalStrip, RiskSurface, AuthoritySurface,
+  type Signal, type Risk,
+} from '@/components/observatory/surfaces'
 import type { PageClassification } from '@/lib/doctrine'
 
 export const PAGE_CLASSIFICATION: PageClassification = {
@@ -17,280 +13,372 @@ export const PAGE_CLASSIFICATION: PageClassification = {
   signals: 4,
   risks: 1,
   narratives: 1,
-  maps: 1,
+  maps: 0,
   bindu: true,
 }
 
-const skills = [
-  { name: 'Distributed Systems Design', level: 5 },
-  { name: 'Cloud Infrastructure (AWS/GCP)', level: 4 },
-  { name: 'Technical Leadership', level: 3 },
-  { name: 'Go / Rust Engineering', level: 4 },
+// ---- Data -------------------------------------------------------------------
+
+type HistTone = 'neutral' | 'copper' | 'forest'
+const TONE_COLOR: Record<HistTone, string> = {
+  neutral: 'var(--obs-mute)',
+  copper:  'var(--obs-copper)',
+  forest:  'var(--obs-forest)',
+}
+
+const SIGNALS: Signal[] = [
+  { id: 's-tenure', label: 'Tenure',          value: '4.2',  unit: 'yrs',  ref: 'Current role since Mar 2024', delta: '+0.3',  dir: 'up',   spark: [3.1, 3.4, 3.7, 3.9, 4.0, 4.2] },
+  { id: 's-compa',  label: 'Compa-Ratio',      value: '1.12',               ref: 'vs Tier 4 band median',       delta: '+0.04', dir: 'up',   spark: [1.01, 1.04, 1.07, 1.09, 1.11, 1.12] },
+  { id: 's-att',    label: 'Attendance Score', value: '98.4', unit: '%',                                        delta: '+1.2%', dir: 'up',   spark: [94, 96, 97, 96.8, 97.5, 98.4] },
+  { id: 's-leave',  label: 'Leave Balance',    value: '14',   unit: 'days', ref: '3 expire 31 Dec',             delta: '-3d',   dir: 'down', spark: [22, 20, 18, 17, 15, 14] },
 ]
 
-const history: TimelineEntry[] = [
-  {
-    ts: '2026-04-02T10:15:00Z',
-    tag: 'COMP_REV',
-    tone: 'neutral',
-    body: 'Annual compensation revision applied. Base CHF 178,000 → CHF 185,000. Approved by M. Vance.',
-  },
-  {
-    ts: '2026-01-19T09:00:00Z',
-    tag: 'RECOG',
-    tone: 'copper',
-    body: 'Q1 Infrastructure Excellence Award conferred by CTO for the database migration protocol.',
-  },
-  {
-    ts: '2025-08-11T14:30:00Z',
-    tag: 'SKILL_VAL',
-    tone: 'good',
-    body: 'Skill validated: Distributed Systems Design, level 5. Evidence: migration design review board.',
-  },
-  {
-    ts: '2024-03-01T08:00:00Z',
-    tag: 'POS_ASSIGN',
-    tone: 'neutral',
-    body: 'Assigned to position Senior Technical Architect, Core Infrastructure. Reports to VP, Infrastructure Operations.',
-  },
-  {
-    ts: '2022-02-14T08:00:00Z',
-    tag: 'ONBOARD',
-    tone: 'good',
-    body: 'Onboarding case completed in 11 days. All documents verified; assets issued.',
-  },
+const FLIGHT_RISK: Risk = {
+  id: 'RET-EMP-001',
+  level: 'elevated',
+  title: 'Flight Risk — Elevated',
+  detail: '4.2 years tenure in current role. Compa-ratio healthy, but peer market velocity for Sr. Architects indicates elevated departure probability. Top drivers: role tenure (0.41), market demand (0.33), manager span (0.12).',
+  exposure: '78th percentile',
+  horizon: '6–9 months',
+  owner: 'M. Vance',
+}
+
+const SKILLS = [
+  { name: 'Distributed Systems Design',   level: 5, validated: true,  law: 'EMP-CAP-03' },
+  { name: 'Cloud Infrastructure (AWS/GCP)', level: 4, validated: true, law: 'EMP-CAP-03' },
+  { name: 'Technical Leadership',          level: 3, validated: false, law: null },
+  { name: 'Go / Rust Engineering',         level: 4, validated: true,  law: 'EMP-CAP-03' },
 ]
+
+const HISTORY: Array<{ ts: string; tag: string; tone: HistTone; law: string; body: string }> = [
+  { ts: '2026-04-02', tag: 'COMP_REV',   tone: 'neutral', law: 'COMP-REV-11',    body: 'Annual compensation revision applied. Base CHF 178,000 → CHF 185,000. Approved by M. Vance.' },
+  { ts: '2026-01-19', tag: 'RECOG',      tone: 'copper',  law: 'RECOG-AWARD-04', body: 'Q1 Infrastructure Excellence Award conferred by CTO for the database migration protocol.' },
+  { ts: '2025-08-11', tag: 'SKILL_VAL',  tone: 'forest',  law: 'EMP-CAP-03',     body: 'Skill validated: Distributed Systems Design, level 5. Evidence: migration design review board.' },
+  { ts: '2024-03-01', tag: 'POS_ASSIGN', tone: 'neutral', law: 'POS-ASSIGN-01',  body: 'Assigned: Senior Technical Architect, Core Infrastructure. Reports to VP, Infrastructure Operations.' },
+  { ts: '2022-02-14', tag: 'ONBOARD',    tone: 'forest',  law: 'ONBOARD-01',     body: 'Onboarding case completed in 11 days. All documents verified; assets issued.' },
+]
+
+const SPINE_NODES = [
+  { id: 'identity',     label: 'I · Identity' },
+  { id: 'service',      label: 'II · Service' },
+  { id: 'capability',   label: 'III · Capability' },
+  { id: 'recognition',  label: 'IV · Recognition' },
+  { id: 'compensation', label: 'V · Compensation' },
+  { id: 'authority',    label: 'VI · Authority' },
+  { id: 'record',       label: 'VII · Record' },
+]
+const CHAPTER_IDS = SPINE_NODES.map(n => n.id)
+
+// ---- Local helpers ----------------------------------------------------------
+
+function IField({ label, value, code = false }: { label: string; value: string; code?: boolean }) {
+  return (
+    <div>
+      <div className="voice-mono" style={{ fontSize: 9.5, color: 'var(--obs-mute)', marginBottom: 3 }}>{label}</div>
+      {code
+        ? <Code color="var(--obs-fg)" style={{ fontSize: 12 }}>{value}</Code>
+        : <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--obs-fg)' }}>{value}</div>
+      }
+    </div>
+  )
+}
+
+function RailNode({ initials, name, role }: { initials: string; name: string; role: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="cham-sm" style={{ width: 36, height: 36, background: 'var(--obs-sunken)', border: '1px solid var(--obs-hair-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span className="voice-mono" style={{ fontSize: 9.5 }}>{initials}</span>
+      </div>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--obs-fg)' }}>{name}</div>
+        <div className="voice-mono" style={{ color: 'var(--obs-mute)', marginTop: 2 }}>{role}</div>
+      </div>
+    </div>
+  )
+}
+
+function SkillRow({ name, level, validated, law }: { name: string; level: number; validated: boolean; law: string | null }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12, borderBottom: '1px solid var(--obs-hair)' }}>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--obs-fg)' }}>{name}</div>
+        {validated && law && <Code color="var(--obs-mute)">{law}</Code>}
+      </div>
+      <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <span key={n} style={{ width: 20, height: 2, background: n <= level ? 'var(--obs-copper)' : 'var(--obs-hair-2)', display: 'block' }} />
+        ))}
+        <span className="voice-mono" style={{ color: 'var(--obs-mute)', fontSize: 9.5, marginLeft: 6 }}>{level}/5</span>
+      </div>
+    </div>
+  )
+}
+
+function HistEntry({ ts, tag, tone, law, body }: { ts: string; tag: string; tone: HistTone; law: string; body: string }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '112px 1fr', gap: 20, paddingBottom: 18, marginBottom: 18, borderBottom: '1px solid var(--obs-hair)' }}>
+      <div>
+        <div className="voice-mono" style={{ fontSize: 9.5, color: 'var(--obs-mute)' }}>{ts}</div>
+        <Code color={TONE_COLOR[tone]} style={{ marginTop: 4, display: 'block' }}>{tag}</Code>
+      </div>
+      <div>
+        <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--obs-fg)' }}>{body}</div>
+        <Code color="var(--obs-mute)" style={{ marginTop: 5, display: 'block' }}>{law}</Code>
+      </div>
+    </div>
+  )
+}
+
+function LedgerMeta({ k, v }: { k: string; v: string }) {
+  return (
+    <div>
+      <div className="voice-mono" style={{ fontSize: 9.5, color: 'var(--obs-mute)', marginBottom: 3 }}>{k}</div>
+      <Code color="var(--obs-mute)">{v}</Code>
+    </div>
+  )
+}
+
+// ---- Page -------------------------------------------------------------------
 
 export function Employee360() {
+  const active = useScrollSpy(CHAPTER_IDS)
+  const [mandatePublished, setMandatePublished] = useState(false)
+
   return (
-    <>
-      {/* Dossier header */}
-      <div className="mb-12">
-        <div className="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest mb-4 flex items-center">
-          <Icon name="arrow_back" className="!text-[14px] mr-2" />
-          <a className="hover:text-primary transition-colors cursor-pointer">Directory</a>
-          <span className="mx-2">/</span> Operator Dossier
+    <div className="obs obs-canvas" style={{ minHeight: '100vh', padding: '32px 24px 80px' }}>
+
+      {/* Screen head */}
+      <div style={{ marginBottom: 40 }}>
+        <div className="voice-mono" style={{ fontSize: 9.5, color: 'var(--obs-mute)', letterSpacing: '0.16em', marginBottom: 14 }}>
+          EMPLOYEE DIRECTORY / EMP-8834-A / INSTITUTIONAL BIOGRAPHY
         </div>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
           <div>
-            <h2 className="font-section-title text-section-title !text-4xl md:!text-section-title text-primary tracking-tight mb-2">
+            <div className="voice-serif" style={{ fontSize: 44, lineHeight: 1.05, letterSpacing: '-0.022em', color: 'var(--obs-fg)', fontWeight: 400 }}>
               Elena Rostova
-            </h2>
-            <p className="font-pull-quote text-pull-quote text-on-surface-variant italic">
-              Senior Technical Architect
-            </p>
+            </div>
+            <div className="voice-mono" style={{ marginTop: 8, color: 'var(--obs-mute)', letterSpacing: '0.1em' }}>
+              Senior Technical Architect · Core Infrastructure · Zurich
+            </div>
           </div>
-          <div className="flex gap-4">
-            <button className="px-[22px] py-[14px] bg-transparent border border-outline-variant text-primary font-tabular-data text-tabular-data hover:bg-surface-container-low transition-colors flex items-center">
-              <Icon name="edit" className="!text-[18px] mr-2" /> Modify Record
-            </button>
-            <button className="px-[22px] py-[14px] bg-primary text-on-primary font-tabular-data text-tabular-data hover:bg-graphite transition-colors flex items-center">
-              <Icon name="mail" className="!text-[18px] mr-2" /> Contact Operator
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 4 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--obs-forest)' }} />
+            <span className="voice-mono" style={{ color: 'var(--obs-forest)' }}>Active · On-roll</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12">
-        {/* Identity rail */}
-        <div className="md:col-span-4">
-          <div className="bg-surface-container-lowest hairline-all corner-tick relative p-6 h-full min-h-[300px] flex flex-col justify-between">
-            <div>
-              <div className="flex justify-between items-start mb-6">
-                <div className="font-mono-label text-mono-label text-on-surface-variant uppercase">
-                  Identity Status
+      {/* Shell: spine | biography */}
+      <div className="obs-shell" style={{ display: 'grid', gridTemplateColumns: '148px minmax(0,1fr)', gap: 48 }}>
+        <SpineRail nodes={SPINE_NODES} active={active} />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
+
+          {/* Chapter I — Identity */}
+          <section id="identity">
+            <ConstitutionalArticle title="Chapter I" code="EMP-ID-01" lead emergeDelay={0}>
+              Elena Rostova entered the institution on 14 February 2022 as a systems architect. Four years of
+              institutional contribution have compounded into the senior-most individual contributor in Core
+              Infrastructure. The institution holds in her the capability anchor for distributed systems design —
+              a class of knowledge that cannot be reconstructed inside a fiscal quarter.
+            </ConstitutionalArticle>
+            <div className="obs-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1.618fr', gap: 20, marginTop: 28 }}>
+              <Surface pad="28px" emergeDelay={80}>
+                <Label style={{ marginBottom: 18 }}>Identity</Label>
+                <div className="cham" style={{ width: 72, height: 72, background: 'var(--obs-sunken)', border: '1px solid var(--obs-hair-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 }}>
+                  <span className="voice-serif" style={{ fontSize: 24, color: 'var(--obs-fg)', fontWeight: 300, letterSpacing: '-0.02em' }}>ER</span>
                 </div>
-                <div className="flex items-center gap-2 font-mono-label text-mono-label text-sthira-forest">
-                  <span className="bindu good" /> Active
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <IField label="Internal ID" value="EMP-8834-A" code />
+                  <IField label="Department" value="Core Infrastructure" />
+                  <IField label="Location" value="Zurich Node (Hybrid)" />
+                  <IField label="Assets Held" value="3 (Laptop, Token, Badge)" />
+                  <IField label="Joined" value="14 Feb 2022" />
                 </div>
-              </div>
-              <div className="aspect-square w-32 bg-ivory-2 hairline-all mb-6 flex items-center justify-center">
-                <span className="font-serif font-light text-[44px] text-graphite tracking-tight">ER</span>
-              </div>
-              <div className="space-y-4 font-tabular-data text-tabular-data">
+              </Surface>
+              <Surface pad="28px" emergeDelay={140}>
+                <Label style={{ marginBottom: 18 }}>Chain of Command</Label>
+                <RailNode initials="MV" name="Marcus Vance" role="VP, Infrastructure Operations" />
+                <div style={{ margin: '16px 0', height: 1, background: 'var(--obs-hair)' }} />
                 <div>
-                  <div className="text-on-surface-variant text-[12px] mb-1">Internal ID</div>
-                  <div className="text-primary font-medium tracking-wide font-mono text-[13px]">EMP-8834-A</div>
-                </div>
-                <div>
-                  <div className="text-on-surface-variant text-[12px] mb-1">Department</div>
-                  <div className="text-primary">Core Infrastructure</div>
-                </div>
-                <div>
-                  <div className="text-on-surface-variant text-[12px] mb-1">Base Location</div>
-                  <div className="text-primary flex items-center">
-                    <Icon name="location_on" className="!text-[16px] mr-1 text-on-surface-variant" />
-                    Zurich Node (Hybrid)
+                  <div className="voice-mono" style={{ color: 'var(--obs-mute)', marginBottom: 10 }}>Direct Reports · 5</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {['MR', 'AL', 'TJ', 'PR', 'KB'].map(ini => (
+                      <div key={ini} className="cham-sm" style={{ width: 34, height: 34, background: 'var(--obs-sunken)', border: '1px solid var(--obs-hair-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span className="voice-mono" style={{ fontSize: 9.5 }}>{ini}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
+                <div style={{ margin: '16px 0', height: 1, background: 'var(--obs-hair)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <IField label="Position ID" value="POS-ARCH-SR-004" code />
+                  <IField label="Grade" value="Tier 4 / Senior Architect" />
+                </div>
+              </Surface>
+            </div>
+          </section>
+
+          {/* Chapter II — Institutional Service */}
+          <section id="service">
+            <ConstitutionalArticle title="Chapter II" code="POS-ASSIGN-01" emergeDelay={0}>
+              Senior Technical Architect, Core Infrastructure, effective 1 March 2024. Third role assignment
+              within the institution. Prior positions: Technical Architect (2023–2024) and Senior Engineer
+              (2022–2023). Reporting line: VP Infrastructure Operations. Span of control: five engineers across
+              distributed systems and cloud platform teams.
+            </ConstitutionalArticle>
+            <Surface pad="28px" emergeDelay={60} style={{ marginTop: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
                 <div>
-                  <div className="text-on-surface-variant text-[12px] mb-1">Assets Held</div>
-                  <div className="text-primary">3 (Laptop, Token, Badge)</div>
+                  <Label style={{ marginBottom: 10 }}>Current Role</Label>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--obs-fg)', lineHeight: 1.3 }}>Sr. Technical Architect</div>
+                  <div className="voice-mono" style={{ color: 'var(--obs-mute)', marginTop: 5 }}>Since 01 Mar 2024</div>
+                </div>
+                <div>
+                  <Label style={{ marginBottom: 10 }}>Department</Label>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--obs-fg)', lineHeight: 1.3 }}>Core Infrastructure</div>
+                  <div className="voice-mono" style={{ color: 'var(--obs-mute)', marginTop: 5 }}>Engineering Division</div>
+                </div>
+                <div>
+                  <Label style={{ marginBottom: 10 }}>Employment Type</Label>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--obs-fg)', lineHeight: 1.3 }}>Full-Time · Permanent</div>
+                  <Code color="var(--obs-mute)" style={{ marginTop: 5, display: 'block' }}>EMP-TYPE-FT-01</Code>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </Surface>
+          </section>
 
-        {/* Chain of command + compensation */}
-        <div className="md:col-span-8 flex flex-col gap-grid-12">
-          <MapSurface kicker="Chain of Command">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 font-tabular-data text-tabular-data">
-              <div className="flex flex-col">
-                <span className="text-[12px] text-on-surface-variant mb-1">Reports To</span>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-surface-container-high rounded-full hairline-all flex items-center justify-center text-[10px] font-medium">
-                    MV
+          {/* Chapter III — Capability Growth */}
+          <section id="capability">
+            <ConstitutionalArticle title="Chapter III" code="EMP-CAP-03" emergeDelay={0}>
+              Skill record validated across four domains. Distributed Systems Design reached level 5 in August
+              2025 — assessed by institutional review board, not self-reported. Capability trajectory consistent
+              with Senior Architect grade expectations. Technical Leadership remains at level 3, not yet
+              submitted for institutional validation.
+            </ConstitutionalArticle>
+            <Surface pad="28px" emergeDelay={60} style={{ marginTop: 20 }}>
+              <Label style={{ marginBottom: 20 }}>Capability Matrix</Label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {SKILLS.map(s => <SkillRow key={s.name} {...s} />)}
+              </div>
+            </Surface>
+            <div className="obs-signals-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginTop: 14 }}>
+              {SIGNALS.map((s, i) => <SignalStrip key={s.id} sig={s} emergeDelay={i * 55} />)}
+            </div>
+          </section>
+
+          {/* Chapter IV — Recognition */}
+          <section id="recognition">
+            <ConstitutionalArticle title="Chapter IV" code="RECOG-AWARD-04" emergeDelay={0}>
+              One institutional award in 2026. The Q1 Infrastructure Excellence Award is conferred by the CTO
+              directly — it requires cross-divisional impact and independent verification, not line-manager
+              nomination. Citation references the database migration protocol: an operation affecting 11,240
+              on-roll employees across seven payroll regions with zero data loss.
+            </ConstitutionalArticle>
+            <Surface variant="ink" pad="28px" emergeDelay={80} style={{ marginTop: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20 }}>
+                <div style={{ flex: 1 }}>
+                  <Label color="var(--obs-copper-soft)" style={{ marginBottom: 12 }}>Q1 Infrastructure Excellence Award · 2026</Label>
+                  <div className="voice-serif" style={{ fontSize: 22, color: '#f2ede3', lineHeight: 1.42, maxWidth: 520 }}>
+                    "Flawless execution of the database migration protocol, preserving institutional
+                    data integrity across seven payroll regions."
+                  </div>
+                  <div className="voice-mono" style={{ marginTop: 18, color: 'rgba(242,237,227,0.5)' }}>
+                    Conferred by CTO · 19 Jan 2026 · RECOG-AWARD-04
+                  </div>
+                </div>
+                <div className="cham" style={{ width: 44, height: 44, background: 'rgba(177,106,60,0.14)', border: '1px solid rgba(177,106,60,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--obs-copper)" aria-hidden="true">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+              </div>
+            </Surface>
+          </section>
+
+          {/* Chapter V — Compensation */}
+          <section id="compensation">
+            <ConstitutionalArticle title="Chapter V" code="COMP-REV-11" emergeDelay={0}>
+              Compensation standing: Tier 4 / Senior Architect band, compa-ratio 1.12 against P50–P75. Last
+              revision April 2026: base increased from CHF 178,000 to CHF 185,000, authorised by VP
+              Infrastructure Operations under COMP-REV-11. Equity position: 2,400 RSUs vesting in current year.
+            </ConstitutionalArticle>
+            <Surface pad="28px" emergeDelay={60} style={{ marginTop: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22, paddingBottom: 16, borderBottom: '1px solid var(--obs-hair)' }}>
+                <div>
+                  <Label style={{ marginBottom: 6 }}>Compensation Vector</Label>
+                  <div className="voice-serif" style={{ fontSize: 20, color: 'var(--obs-fg)' }}>Tier 4 / Senior Architect</div>
+                </div>
+                <Code color="var(--obs-mute)">Band P50–P75</Code>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24 }}>
+                <IField label="Base Salary" value="CHF 185,000" />
+                <IField label="Target Bonus" value="20%" />
+                <IField label="Equity (Current Year)" value="2,400 RSUs" />
+              </div>
+            </Surface>
+          </section>
+
+          {/* Chapter VI — Authority Actions */}
+          <section id="authority">
+            <ConstitutionalArticle title="Chapter VI" code="RETN-AUTH-07" emergeDelay={0}>
+              Retention risk elevated to the 78th percentile within a 6–9 month horizon. A strategic mandate
+              under RETN-AUTH-07 creates a binding institutional record and triggers the retention protocol.
+              The mandate commits the institution to specific action before the departure window. Commitment
+              is irreversible — failure to act before the horizon creates an unacknowledged institutional risk.
+            </ConstitutionalArticle>
+            <div className="obs-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1.25fr', gap: 20, marginTop: 20 }}>
+              <RiskSurface risk={FLIGHT_RISK} emergeDelay={60} />
+              <AuthoritySurface
+                run="Strategic Mandate"
+                authorityCode="RETN-AUTH-07"
+                fields={[
+                  { k: 'Employee', v: 'EMP-8834-A', sub: 'Elena Rostova' },
+                  { k: 'Action',   v: 'Retention',  sub: 'Strategic Mandate' },
+                  { k: 'Horizon',  v: 'Q3 2026',    sub: 'Target window' },
+                ]}
+                buttonLabel="Initiate Mandate"
+                publishedLabel="Mandate committed"
+                onPublished={() => setMandatePublished(true)}
+              />
+            </div>
+          </section>
+
+          {/* Chapter VII — Institutional Record */}
+          <section id="record">
+            <ConstitutionalArticle title="Chapter VII" code="AUD-TRAIL-01" emergeDelay={0}>
+              Institutional record: five entries since onboarding, each citing its authority law. The record is
+              append-only — no entry may be deleted, amended, or reordered. It is the institution's account of
+              this person, not the person's account of themselves. Every consequential act leaves a mark here.
+            </ConstitutionalArticle>
+            <Surface pad="28px" emergeDelay={60} style={{ marginTop: 20 }}>
+              <Label style={{ marginBottom: 20 }}>Immutable Record · EMP-8834-A</Label>
+              {HISTORY.map((h, i) => <HistEntry key={i} {...h} />)}
+              {mandatePublished && (
+                <div data-emerge="" style={{ ['--obs-delay' as string]: '80ms', display: 'grid', gridTemplateColumns: '112px 1fr', gap: 20, paddingTop: 18 }}>
+                  <div>
+                    <div className="voice-mono" style={{ fontSize: 9.5, color: 'var(--obs-mute)' }}>2026-06-13</div>
+                    <Code color="var(--obs-copper)" style={{ marginTop: 4, display: 'block' }}>RETN_MANDATE</Code>
                   </div>
                   <div>
-                    <div className="font-medium text-primary">Marcus Vance</div>
-                    <div className="text-[12px] text-on-surface-variant">VP, Infrastructure Operations</div>
-                  </div>
-                </div>
-              </div>
-              <div className="h-px w-16 bg-outline-variant hidden sm:block" />
-              <div className="flex flex-col">
-                <span className="text-[12px] text-on-surface-variant mb-1">Direct Reports</span>
-                <div className="flex -space-x-2">
-                  {['MR', 'AL', 'TJ'].map((m, i) => (
-                    <div
-                      key={m}
-                      className="w-8 h-8 bg-surface-container-high rounded-full hairline-all flex items-center justify-center text-[10px] font-medium"
-                      style={{ zIndex: 30 - i * 10 }}
-                    >
-                      {m}
+                    <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--obs-fg)' }}>
+                      Strategic retention mandate RETN-STRAT-Q3-2026 committed. Authority: MGR acting under RETN-AUTH-07.
                     </div>
-                  ))}
-                  <div className="w-8 h-8 bg-surface-variant text-on-surface-variant rounded-full hairline-all flex items-center justify-center text-[10px] font-medium">
-                    +2
+                    <Code color="var(--obs-mute)" style={{ marginTop: 5, display: 'block' }}>RETN-AUTH-07</Code>
                   </div>
                 </div>
-              </div>
+              )}
+            </Surface>
+            <div style={{ marginTop: 20, display: 'flex', gap: 28, flexWrap: 'wrap', padding: '12px 0', borderTop: '1px solid var(--obs-hair)', borderBottom: '1px solid var(--obs-hair)' }}>
+              <LedgerMeta k="Record"        v="EMP-8834-A" />
+              <LedgerMeta k="Projection"    v="EmployeeDetailProjection v412" />
+              <LedgerMeta k="Freshness"     v="2026-06-12T07:40:11Z" />
+              <LedgerMeta k="Last Mutation" v="COMP_REV by M. Vance" />
             </div>
-          </MapSurface>
+          </section>
 
-          <div className="bg-surface-container-low hairline-all p-6 flex-1 relative flex flex-col justify-between">
-            <div className="flex justify-between items-end mb-8 border-b border-outline-variant pb-4">
-              <div>
-                <div className="font-mono-label text-mono-label text-on-surface-variant uppercase mb-2">
-                  Compensation Vector
-                </div>
-                <div className="font-pull-quote text-pull-quote text-primary tracking-tight">
-                  Tier 4 / Sr. Architect
-                </div>
-              </div>
-              <div className="text-right font-mono text-[10px] uppercase tracking-wider text-on-surface-variant">
-                Band P50–P75
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 font-tabular-data text-tabular-data">
-              <div>
-                <div className="text-[12px] text-on-surface-variant mb-1">Base Salary</div>
-                <div className="text-primary font-medium tracking-wide">CHF 185,000</div>
-              </div>
-              <div>
-                <div className="text-[12px] text-on-surface-variant mb-1">Target Bonus</div>
-                <div className="text-primary font-medium">20%</div>
-              </div>
-              <div>
-                <div className="text-[12px] text-on-surface-variant mb-1">Equity Vesting (Current Year)</div>
-                <div className="text-primary font-medium">2,400 RSUs</div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-
-      {/* Signal row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-grid-12 mt-grid-12">
-        <SignalCard label="Tenure" value="4.2" unit="Years" note="In current role since Mar 2024." />
-        <SignalCard
-          label="Compa-Ratio"
-          value="1.12"
-          bindu="good"
-          note="Healthy against Tier 4 band median."
-        />
-        <SignalCard
-          label="Attendance Score"
-          value="98.4"
-          unit="%"
-          bar={{ pct: 98, tone: 'bg-sthira-forest' }}
-        />
-        <SignalCard label="Leave Balance" value="14" unit="Days" note="3 days expire 31 Dec." />
-      </div>
-
-      {/* Capability + risk/narrative */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-grid-12 mt-grid-12">
-        <div className="bg-surface-container-lowest hairline-all p-6 relative">
-          <div className="font-mono-label text-mono-label text-on-surface-variant uppercase mb-6 border-b border-outline-variant pb-2 flex justify-between">
-            <span>Capability Matrix</span>
-            <Icon name="tune" className="!text-[16px]" />
-          </div>
-          <ul className="space-y-4 font-tabular-data text-tabular-data">
-            {skills.map((s) => (
-              <li
-                key={s.name}
-                className="flex items-center justify-between pb-2 border-b border-surface-variant border-dashed"
-              >
-                <span className="text-primary">{s.name}</span>
-                <span className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <span key={n} className={`w-6 h-1 ${n <= s.level ? 'bg-primary' : 'bg-surface-variant'}`} />
-                  ))}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <div className="font-tabular-data text-tabular-data mt-6 pt-4 hairline-t flex items-start gap-3">
-            <Icon name="workspace_premium" className="text-tamra-copper !text-[20px] mt-1" />
-            <div>
-              <div className="text-primary font-medium">Q1 Infrastructure Excellence Award</div>
-              <div className="text-on-surface-variant text-[12px]">
-                Awarded by CTO for flawless execution of the database migration protocol.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-grid-12">
-          <div className="bg-surface-container-lowest hairline-all p-6">
-            <div className="font-mono-label text-mono-label text-on-surface-variant uppercase mb-6 border-b border-outline-variant pb-2">
-              Retention Analytics
-            </div>
-            <RiskCard
-              severity="elevated"
-              title="Flight Risk — Elevated"
-              body="4.2 years tenure in current role. Compa-ratio healthy, but peer market velocity for Sr. Architects indicates risk. Top drivers: role tenure (0.41), market demand (0.33), manager span (0.12)."
-            />
-          </div>
-          <NarrativePlate
-            source="Buddhi · drivers from EmployeeFlightRiskPrediction, 2026-06-11"
-            actions={<BinduButton>Initiate Retention Action</BinduButton>}
-          >
-            "Elena anchors the institution's infrastructure capability. The record shows mastery still
-            compounding, but the role stopped growing eleven months ago. A strategic mandate within Q3 retains
-            her at materially lower cost than her replacement."
-          </NarrativePlate>
-        </div>
-      </div>
-
-      {/* Institutional history */}
-      <div className="bg-surface-container-lowest hairline-all p-6 mt-grid-12">
-        <div className="font-mono-label text-mono-label text-on-surface-variant uppercase mb-6 border-b border-outline-variant pb-2">
-          Institutional History
-        </div>
-        <CaseTimeline entries={history} />
-      </div>
-
-      <LedgerStrip
-        className="mt-8"
-        entries={[
-          { label: 'Record', value: 'EMP-8834-A' },
-          { label: 'Projection', value: 'EmployeeDetailProjection v412' },
-          { label: 'Freshness', value: '2026-06-12T07:40:11Z' },
-          { label: 'Last Mutation', value: 'COMP_REV by M. Vance' },
-        ]}
-      />
-    </>
+    </div>
   )
 }
