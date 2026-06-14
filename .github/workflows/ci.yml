@@ -146,9 +146,12 @@ jobs:
         run: npm run build
         working-directory: src/Frontend/portal
         env:
-          # Next.js prerenders /admin/* at build and requires this at build time.
+          # Next.js prerenders /admin/* at build. config.ts requireEnv throws in
+          # production builds when any NEXT_PUBLIC_* is unset, so provide all three.
           # Use the secret when configured, otherwise a CI-only default.
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000' }}
+          NEXT_PUBLIC_DEFAULT_TENANT_ID: ${{ secrets.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'sch_oakridge' }}
+          NEXT_PUBLIC_GATEWAY_FINGERPRINT: ${{ secrets.NEXT_PUBLIC_GATEWAY_FINGERPRINT || 'local-dev-gateway' }}
 
       - name: Mobile deterministic install
         run: npm ci --ignore-scripts --loglevel=error
@@ -173,6 +176,9 @@ jobs:
         uses: trufflesecurity/trufflehog@v3.89.2
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          # On PRs scan the PR diff; on push to main scan the pushed range.
+          # Using default_branch..HEAD made base==head on push to main, which
+          # TruffleHog rejects ("BASE and HEAD commits are the same").
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.event.pull_request.head.sha || github.event.after }}
           extra_args: --only-verified

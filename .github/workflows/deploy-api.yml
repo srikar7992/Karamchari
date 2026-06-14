@@ -27,12 +27,12 @@ jobs:
 
       # - name: Build and Push Docker Image
       #   run: |
-      #     docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} -f src/Backend/Karamchari.Api/Dockerfile .
+      #     docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} -f src/Backend/Hosts/Karamchari.Api/Dockerfile .
       #     docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Build Docker Image (Validation)
         run: |
-          docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} -f src/Backend/Karamchari.Api/Dockerfile .
+          docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} -f src/Backend/Hosts/Karamchari.Api/Dockerfile .
 
   deploy-dev:
     needs: build-and-push
