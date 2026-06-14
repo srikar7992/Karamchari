@@ -199,7 +199,11 @@ public sealed partial class RetryStormGenerator
 
         foreach (var operationId in operationIds)
         {
-            var simulatedTenantIds = new[] { normalizedTenantId, "contaminated_tenant", "", "invalid_" };
+            // Candidates are all distinct from the real tenant: this generator's job is to
+            // inject context corruption, so every simulated attempt must be a genuine
+            // corruption. Including the valid tenant here made the run randomly inject zero
+            // corruptions (~1.6% of single-operation runs), flaking the certification gate.
+            var simulatedTenantIds = new[] { "contaminated_tenant", "", "invalid_", normalizedTenantId + "_corrupt" };
 
             for (int attempt = 1; attempt <= 3; attempt++)
             {
