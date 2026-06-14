@@ -92,7 +92,7 @@ jobs:
         run: dotnet list src/Backend/Karamchari.sln package --vulnerable --include-transitive
 
       - name: Publish API validation
-        run: dotnet publish src/Backend/Karamchari.Api/Karamchari.Api.csproj --no-restore -c Release -o artifacts/publish/Karamchari.Api -warnaserror
+        run: dotnet publish src/Backend/Hosts/Karamchari.Api/Karamchari.Api.csproj --no-restore -c Release -o artifacts/publish/Karamchari.Api -warnaserror
 
       - name: Upload test and coverage artifacts
         if: always()
