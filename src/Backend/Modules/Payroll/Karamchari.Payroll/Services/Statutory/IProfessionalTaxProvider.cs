@@ -18,6 +18,14 @@ public interface IProfessionalTaxProvider
     /// Gets the tax amount for a specific state, gross salary, and month.
     /// </summary>
     ProfessionalTaxResult GetTaxAmount(string stateCode, decimal monthlyGross, int month, FinancialYear year);
+
+    /// <summary>
+    /// Pre-loads and caches the PT slabs for a financial year from an async context.
+    /// Call this once before a synchronous statutory pipeline runs so that
+    /// <see cref="GetTaxAmount"/> resolves from cache and never blocks a thread on a
+    /// database round-trip. Idempotent: a no-op when the year is already cached.
+    /// </summary>
+    Task PrimeAsync(FinancialYear year, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

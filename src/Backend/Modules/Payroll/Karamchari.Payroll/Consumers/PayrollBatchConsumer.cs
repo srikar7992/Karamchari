@@ -121,6 +121,15 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
         var results = new List<PayrollLedgerEntry>();
         var completionEvents = new List<EmployeePayCalculatedEvent>();
 
+        // The rule set is loop-invariant for the batch (same FY, same providers), so build
+        // it once. Pre-warm the PT slab cache for the year before the synchronous statutory
+        // pipeline runs, so per-employee tax lookups resolve from cache instead of blocking
+        // a thread-pool thread on a DB round-trip inside the sync path.
+        var ruleSet = new FY20262027RuleSet(
+            new List<Guid> { Guid.Parse("00000000-0000-0000-0000-000000000001") },
+            _ptProvider, _projectionService, _exemptionCalculator, _taxSlabProvider, _declarationRepository);
+        await _ptProvider.PrimeAsync(ruleSet.Year, context.CancellationToken);
+
         foreach (var profile in profiles)
         {
             // For salaried employees use AnnualCTC (the agreed total cost) as the CTC breakdown
@@ -148,10 +157,6 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
             // external per-period deductions from the derived monthly gross.
             var breakdown = CTCBreakdownService.Calculate(annualCtc, plan);
             decimal finalMonthlyGross = breakdown.MonthlyGross - externalDeductionMonthly;
-
-            var ruleSet = new FY20262027RuleSet(
-                new List<Guid> { Guid.Parse("00000000-0000-0000-0000-000000000001") },
-                _ptProvider, _projectionService, _exemptionCalculator, _taxSlabProvider, _declarationRepository);
 
             var statutoryContext = new StatutoryContext(breakdown, profile, ruleSet.Year, DateTime.UtcNow.Month);
             var statutoryResult = await StatutoryPipelineEngine.ExecuteAsync(statutoryContext, ruleSet);

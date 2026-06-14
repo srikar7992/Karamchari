@@ -28,6 +28,16 @@ public sealed class CandidateHiredHandler(
 
         var tenantId = tenantProvider.GetCurrentTenantId();
 
+        // The hired event carries the agreed compensation, sourced from the accepted offer
+        // for this application. There may be superseded (declined/expired) offers, so take the
+        // accepted one; fall back to zero only if none is found (defensive — a hire should
+        // always have an accepted offer).
+        var acceptedOffer = await dbContext.Offers
+            .AsNoTracking()
+            .Where(o => o.ApplicationId == notification.ApplicationId && o.Status == OfferStatus.Accepted)
+            .OrderByDescending(o => o.IssuedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
         await publishEndpoint.Publish(new CandidateHiredIntegrationEvent(
             notification.CandidateId.Value,
             notification.ApplicationId.Value,
@@ -39,8 +49,8 @@ public sealed class CandidateHiredHandler(
             application.CandidateSnapshot.PhoneNumber,
             application.HiredAt ?? DateTimeOffset.UtcNow,
             application.HiredBy ?? "system",
-            0, // TODO: Pull from accepted Offer
-            "USD"
+            acceptedOffer?.BaseSalary ?? 0m,
+            acceptedOffer?.Currency ?? "USD"
         ), cancellationToken);
     }
 }

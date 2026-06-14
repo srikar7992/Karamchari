@@ -53,22 +53,40 @@ public sealed class CachedProfessionalTaxProvider : IProfessionalTaxProvider
         return new ProfessionalTaxResult(match.MonthlyTaxAmount, true, $"PT Slab: â‚¹{match.MinGross:N0}-â‚¹{match.MaxGross:N0} (â‚¹{match.MonthlyTaxAmount})");
     }
 
+    /// <inheritdoc/>
+    public async Task PrimeAsync(FinancialYear year, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(year);
+
+        var cacheKey = CacheKey(year);
+        if (_cache.TryGetValue(cacheKey, out _))
+        {
+            return;
+        }
+
+        var slabs = await _repository.GetSlabsAsync(year);
+        _cache.Set(cacheKey, BuildSlabMap(slabs), CacheDuration);
+    }
+
     private Dictionary<string, List<ProfessionalTaxSlab>> GetCachedSlabs(FinancialYear year)
     {
-        string cacheKey = $"PT_Slabs_{year.StartYear}_{year.EndYear}";
-
-        return _cache.GetOrCreate(cacheKey, entry =>
+        return _cache.GetOrCreate(CacheKey(year), entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = CacheDuration;
-            // Note: In a real app, this would be a synchronous block or a pre-warmed cache
-            // since we are calling it from a synchronous StatutoryPipeline.
-            // For now, we'll use Task.Run(...).Result as a temporary bridge or assume it's pre-loaded.
+            // Fallback path only: the batch pipeline pre-warms this cache via PrimeAsync
+            // from an async context. This synchronous block is reached only on a cache
+            // miss outside that path (e.g. an ad-hoc single payslip), so it costs at most
+            // one blocking DB round-trip per year-key per hour rather than one per employee.
             var slabs = _repository.GetSlabsAsync(year).GetAwaiter().GetResult();
-
-            return slabs
-                .Where(s => s.IsActive)
-                .GroupBy(s => s.StateCode)
-                .ToDictionary(g => g.Key, g => g.ToList());
+            return BuildSlabMap(slabs);
         }) ?? new Dictionary<string, List<ProfessionalTaxSlab>>();
     }
+
+    private static string CacheKey(FinancialYear year) => $"PT_Slabs_{year.StartYear}_{year.EndYear}";
+
+    private static Dictionary<string, List<ProfessionalTaxSlab>> BuildSlabMap(IEnumerable<ProfessionalTaxSlab> slabs) =>
+        slabs
+            .Where(s => s.IsActive)
+            .GroupBy(s => s.StateCode)
+            .ToDictionary(g => g.Key, g => g.ToList());
 }
