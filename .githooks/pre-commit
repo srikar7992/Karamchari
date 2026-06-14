@@ -40,10 +40,20 @@ if [ -n "$NPM_FILES" ]; then
 fi
 
 echo ">> Scanning for hardcoded secrets..."
-SECRET_VIOLATIONS=$(git diff --cached -G"(?i)(password|secret|api[_-]?key|token|connectionstring|accountkey|sharedaccesskey)\s*[:=]\s*[\"'][^\"']{8,}[\"']" --name-only)
+# git diff -G uses POSIX ERE, which rejects PCRE inline flags like (?i); grep -i
+# gives case-insensitivity instead. Scan added lines only; report files, not the
+# matching lines, so secret values are never echoed.
+SECRET_PATTERN='(password|secret|api[_-]?key|token|connectionstring|accountkey|sharedaccesskey)[[:space:]]*[:=][[:space:]]*["'\''][^"'\'']{8,}["'\'']'
+SECRET_VIOLATIONS=""
+for f in $STAGED_FILES; do
+    if git diff --cached -U0 -- "$f" | grep -E '^\+' | grep -iqE "$SECRET_PATTERN"; then
+        SECRET_VIOLATIONS="$SECRET_VIOLATIONS$f
+"
+    fi
+done
 if [ -n "$SECRET_VIOLATIONS" ]; then
     echo "Potential hardcoded secrets found in the following files:"
-    echo "$SECRET_VIOLATIONS"
+    printf '%s' "$SECRET_VIOLATIONS"
     echo "Remove secrets and use user-secrets or environment variables."
     exit 1
 fi
