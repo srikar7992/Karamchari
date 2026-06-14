@@ -47,13 +47,19 @@ public sealed class RecruitmentAnalyticsHandler(
         var app = await dbContext.Applications.FirstOrDefaultAsync(a => a.Id == notification.ApplicationId, cancellationToken);
         if (app == null) return;
 
+        var reqTitle = await dbContext.Requisitions
+            .AsNoTracking()
+            .Where(r => r.Id == app.RequisitionId)
+            .Select(r => r.Title)
+            .FirstOrDefaultAsync(cancellationToken) ?? "Unknown";
+
         var integrationEvent = new CandidateAppliedIntegrationEvent(
             app.Id.Value,
             app.CandidateId.Value,
             app.RequisitionId.Value,
             tenantProvider.GetCurrentTenantId(),
             $"{app.CandidateSnapshot.FirstName} {app.CandidateSnapshot.LastName}",
-            "Position", // TODO: Pull Req Title
+            reqTitle,
             app.AppliedAt);
 
         await PublishWrapped(integrationEvent, "CandidateApplied", cancellationToken);

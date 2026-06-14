@@ -52,16 +52,17 @@ public sealed class GeneratePayslipConsumer : IConsumer<PayrollRunCompletedInteg
         var profile = await _dbContext.PayrollProfiles
             .FirstOrDefaultAsync(p => p.EmployeeId == message.EmployeeId, context.CancellationToken);
 
-        // 2. Fetch YTD totals scoped to the current financial year.
-        //    The previous query fetched ALL ledger entries for the employee across all years,
-        //    which produces incorrect YTD figures after the first financial year.
-        //    We infer the financial year start from the ledger data in the message instead.
-        // TODO: Pass FinancialYearStart in the integration event (tracked as a future improvement).
-        //    For now, scope to the calendar year of the period to limit the result set.
-        var periodYear = DateTime.UtcNow.Year;
-        var ytdLedgerEntries = await _dbContext.PayrollLedger
-            .Where(e => e.EmployeeId == message.EmployeeId && e.Year == periodYear)
-            .ToListAsync(context.CancellationToken);
+        // 2. Fetch YTD totals scoped to the financial year of this run. The event now carries
+        //    FinancialYearStart, so YTD aggregates the correct April-March window rather than the
+        //    calendar year. Legacy messages (FinancialYearStart == 0, produced before the field
+        //    existed) fall back to the calendar year to limit the result set.
+        var ytdLedgerEntries = message.FinancialYearStart > 0
+            ? await _dbContext.PayrollLedger
+                .Where(e => e.EmployeeId == message.EmployeeId && e.FinancialYearStart == message.FinancialYearStart)
+                .ToListAsync(context.CancellationToken)
+            : await _dbContext.PayrollLedger
+                .Where(e => e.EmployeeId == message.EmployeeId && e.Year == DateTime.UtcNow.Year)
+                .ToListAsync(context.CancellationToken);
 
         var ytdTotals = new Dictionary<string, decimal>
         {

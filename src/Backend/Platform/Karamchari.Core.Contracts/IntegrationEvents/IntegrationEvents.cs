@@ -372,6 +372,10 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V2
     /// <param name="Earnings">Itemised earnings by component name.</param>
     /// <param name="Deductions">Itemised deductions by component name.</param>
     /// <param name="TaxRegime">Tax regime applied (e.g. "OldRegime", "NewRegime").</param>
+    /// <param name="FinancialYearStart">Starting calendar year of the financial year this run
+    /// belongs to (e.g. 2026 for FY 2026-2027). Lets the payslip consumer scope YTD totals to
+    /// the financial year rather than the calendar year. Defaults to 0 for messages produced
+    /// before this field existed; consumers treat 0 as "fall back to calendar year".</param>
     public record PayrollRunCompletedIntegrationEvent(
         Guid EmployeeId,
         string EmployeeName,
@@ -381,7 +385,8 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V2
         decimal NetPay,
         Dictionary<string, decimal> Earnings,
         Dictionary<string, decimal> Deductions,
-        string TaxRegime);
+        string TaxRegime,
+        int FinancialYearStart = 0);
 }
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.Workforce

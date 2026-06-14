@@ -326,7 +326,12 @@ public sealed class WorkforcePlanningProjection
             if (rates.TryGetValue(dayKey, out var dayOnly)) return dayOnly;
             return HistoricalAbsenteeismRate;
         }
-        catch { return HistoricalAbsenteeismRate; }
+        catch (JsonException)
+        {
+            // Stored JSON is corrupt/unparseable: fall back to the historical rate.
+            // Only JSON faults are tolerated here; other exceptions propagate.
+            return HistoricalAbsenteeismRate;
+        }
     }
 
     [Obsolete("Use UpdateAbsenceRates(Dictionary<string, decimal>) for composite day+month keys.")]
@@ -352,7 +357,11 @@ public sealed class WorkforcePlanningProjection
                     result.TryAdd(dow, v);
             return result;
         }
-        catch { return []; }
+        catch (JsonException)
+        {
+            // Corrupt/unparseable stored JSON: treat as no rates. Other faults propagate.
+            return [];
+        }
     }
 }
 

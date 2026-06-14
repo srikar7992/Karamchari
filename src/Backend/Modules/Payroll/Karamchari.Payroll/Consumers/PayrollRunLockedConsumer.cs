@@ -68,7 +68,8 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
                 entry.NetPay,
                 entry.Earnings.ToDictionary(k => k.Key, v => v.Value),
                 entry.Deductions.ToDictionary(k => k.Key, v => v.Value),
-                profile?.TaxRegime.ToString() ?? "New"
+                profile?.TaxRegime.ToString() ?? "New",
+                entry.FinancialYearStart
             ), context.CancellationToken);
         }
 

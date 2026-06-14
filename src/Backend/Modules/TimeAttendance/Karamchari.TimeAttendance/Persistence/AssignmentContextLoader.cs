@@ -30,21 +30,26 @@ public static class AssignmentContextLoader
         string tenantId,
         DateOnly workDate,
         TimeAttendanceDbContext db,
+        DateOnly? rangeEnd = null,
         CancellationToken ct = default)
     {
         if (employeeIds.Count == 0) return [];
 
+        // Leaves are loaded for [workDate, leaveRangeEnd]. Single-date callers leave rangeEnd
+        // null (window collapses to workDate); multi-day callers (e.g. publishing a multi-week
+        // roster) pass the period end so approved leaves in later weeks are not missed.
+        DateOnly leaveRangeEnd = rangeEnd is { } r && r > workDate ? r : workDate;
         DateOnly weekStart = workDate.AddDays(-(int)workDate.DayOfWeek);
         DateOnly weekEnd = weekStart.AddDays(6);
         DateOnly fairnessStart = weekStart.AddDays(-21);
 
-        // Query 1: Leaves covering workDate
+        // Query 1: Leaves overlapping [workDate, leaveRangeEnd]
         var leavesByEmployee = (await db.LeaveRequests
             .Where(l =>
                 l.TenantId == tenantId &&
                 employeeIds.Contains(l.EmployeeId) &&
                 l.Status == LeaveRequestStatus.Approved &&
-                l.StartDate <= workDate && l.EndDate >= workDate)
+                l.StartDate <= leaveRangeEnd && l.EndDate >= workDate)
             .Select(l => new { l.EmployeeId, l.StartDate, l.EndDate })
             .ToListAsync(ct))
             .GroupBy(l => l.EmployeeId)
@@ -120,7 +125,7 @@ public static class AssignmentContextLoader
         TimeAttendanceDbContext db,
         CancellationToken ct = default)
     {
-        Dictionary<Guid, AssignmentContext> map = await BulkAsync([employeeId], tenantId, workDate, db, ct);
+        Dictionary<Guid, AssignmentContext> map = await BulkAsync([employeeId], tenantId, workDate, db, ct: ct);
         return map.TryGetValue(employeeId, out AssignmentContext? ctx) ? ctx : new AssignmentContext();
     }
 

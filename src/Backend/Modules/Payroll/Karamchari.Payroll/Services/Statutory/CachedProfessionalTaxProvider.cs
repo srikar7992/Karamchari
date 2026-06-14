@@ -47,10 +47,10 @@ public sealed class CachedProfessionalTaxProvider : IProfessionalTaxProvider
 
         if (match == null)
         {
-            return new ProfessionalTaxResult(0m, false, $"No matching PT slab found for gross â‚¹{monthlyGross:N2} in state {stateCode}.");
+            return new ProfessionalTaxResult(0m, false, $"No matching PT slab found for gross ₹{monthlyGross:N2} in state {stateCode}.");
         }
 
-        return new ProfessionalTaxResult(match.MonthlyTaxAmount, true, $"PT Slab: â‚¹{match.MinGross:N0}-â‚¹{match.MaxGross:N0} (â‚¹{match.MonthlyTaxAmount})");
+        return new ProfessionalTaxResult(match.MonthlyTaxAmount, true, $"PT Slab: ₹{match.MinGross:N0}-₹{match.MaxGross:N0} (₹{match.MonthlyTaxAmount})");
     }
 
     /// <inheritdoc/>

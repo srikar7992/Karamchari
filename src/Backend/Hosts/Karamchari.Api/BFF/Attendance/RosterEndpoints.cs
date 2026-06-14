@@ -181,10 +181,10 @@ public static class RosterEndpoints
                 .Distinct()
                 .ToList();
 
-            // TODO: rosterStart is used as the context date — leaves in weeks 2+ of a multi-week
-            // roster are not loaded. Correct fix: load leaves for the full [rosterStart, rosterEnd] range.
+            // Load approved leaves across the whole roster period so conflicts in weeks 2+ of a
+            // multi-week roster are caught, not just those overlapping the start date.
             var employeeContexts = await AssignmentContextLoader.BulkAsync(
-                employeeIds, tenantId, roster.StartDate, db, ct);
+                employeeIds, tenantId, roster.StartDate, db, roster.EndDate, ct);
 
             var validation = RosterPublishValidator.Validate(roster, shifts, coverageRules, employeeContexts);
             if (!validation.IsValid)
@@ -366,7 +366,7 @@ public static class RosterEndpoints
 
         // 5 batched queries regardless of candidate count — O(1) queries instead of O(N) per-employee loop.
         var contexts = await AssignmentContextLoader.BulkAsync(
-            candidateEmployeeIds, tenantId, shift.WorkDate, db, ct);
+            candidateEmployeeIds, tenantId, shift.WorkDate, db, ct: ct);
 
         // Build SchedulingCandidates for scorer
         var schedulingCandidates = candidateEmployeeIds.Select(empId =>
@@ -845,7 +845,7 @@ public static class RosterEndpoints
         // Load contexts once for the first shift's work date. Each assignment updates the in-memory
         // contexts so rest/overtime constraints are correct across shifts in the same week.
         var contexts = await AssignmentContextLoader.BulkAsync(
-            candidateIds, tenantId, unfilledShifts[0].WorkDate, db, ct);
+            candidateIds, tenantId, unfilledShifts[0].WorkDate, db, ct: ct);
 
         DateOnly loadedForDate = unfilledShifts[0].WorkDate;
 
@@ -862,7 +862,7 @@ public static class RosterEndpoints
             if (shiftWeekStart != loadedWeekStart)
             {
                 var prevContexts = contexts;
-                contexts = await AssignmentContextLoader.BulkAsync(candidateIds, tenantId, shift.WorkDate, db, ct);
+                contexts = await AssignmentContextLoader.BulkAsync(candidateIds, tenantId, shift.WorkDate, db, ct: ct);
 
                 // Merge in-session assignments from the prior week's context into the fresh context.
                 // These won't be in the DB yet (pre-SaveChanges) but must be visible to constraint evaluation.
