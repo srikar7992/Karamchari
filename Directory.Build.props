@@ -68,6 +68,10 @@
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-g94r-2vxg-569j" />
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-4625-4j76-fww9" />
     <NuGetAuditSuppress Include="https://nuget.org/packages/System.Diagnostics.DiagnosticSource/NU1510" />
+    <!-- MessagePack 2.5.x via NBomber 6.4.1 (perf-test tool only, not shipped and
+         not run by `dotnet test`). Patched only in MessagePack 3.x, a major bump
+         NBomber does not yet target. Revisit when NBomber updates. -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-hv8m-jj95-wg3x" />
   </ItemGroup>
 
   <!-- Centralized output paths to keep src/Backend tree clean. -->
