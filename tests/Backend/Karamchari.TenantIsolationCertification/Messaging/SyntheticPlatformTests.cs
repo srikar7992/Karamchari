@@ -62,7 +62,11 @@ public class SyntheticPlatformTests
             .BuildServiceProvider();
 
         var harness = provider.GetRequiredService<ITestHarness>();
-        harness.TestTimeout = TimeSpan.FromSeconds(15);
+        // Consumed.Any<T>() gives up after the harness inactivity timeout (default
+        // 1.2s); under full-suite parallel load the consume can take longer to
+        // register, so widen both timeouts to make the wait deterministic.
+        harness.TestInactivityTimeout = TimeSpan.FromSeconds(10);
+        harness.TestTimeout = TimeSpan.FromSeconds(30);
         await harness.Start();
 
         var tenantId = "synthetic-tenant";
@@ -105,6 +109,8 @@ public class SyntheticPlatformTests
             .BuildServiceProvider();
 
         var harness = provider.GetRequiredService<ITestHarness>();
+        harness.TestInactivityTimeout = TimeSpan.FromSeconds(10);
+        harness.TestTimeout = TimeSpan.FromSeconds(30);
         await harness.Start();
 
         // Act - Tamper with TenantId but provide an invalid signature
@@ -153,6 +159,8 @@ public class SyntheticPlatformTests
             .BuildServiceProvider();
 
         var harness = provider.GetRequiredService<ITestHarness>();
+        harness.TestInactivityTimeout = TimeSpan.FromSeconds(10);
+        harness.TestTimeout = TimeSpan.FromSeconds(30);
         await harness.Start();
 
         var tenantId = "rotate-tenant";
