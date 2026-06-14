@@ -13,6 +13,7 @@ export type PageId =
   | 'payroll'
   | 'payroll-run'
   | 'period-finalization'
+  | 'payslip-browser'
   | 'directory'
   | 'employee-360'
   | 'onboarding'
@@ -87,6 +88,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: 'payroll', label: 'Payroll Cockpit', icon: 'payments', persona: 'MGR' },
       { id: 'payroll-run', label: 'Run Console', icon: 'play_circle', persona: 'MGR' },
       { id: 'period-finalization', label: 'Period Close', icon: 'event_available', persona: 'MGR' },
+      { id: 'payslip-browser', label: 'Payslips', icon: 'receipt_long', persona: 'EMP' },
     ],
   },
   {
@@ -121,6 +123,7 @@ export const PAGE_TELEMETRY: Record<PageId, { surface: string; layer: string }> 
   payroll: { surface: 'SRF-PAY-051', layer: 'L02 KARMA' },
   'payroll-run': { surface: 'SRF-PAY-052', layer: 'L02 KARMA' },
   'period-finalization': { surface: 'SRF-OPS-047', layer: 'L02 KARMA' },
+  'payslip-browser': { surface: 'SRF-PAY-053', layer: 'L02 KARMA' },
   'employee-360': { surface: 'SRF-TOP-063', layer: 'L06 JALA' },
   onboarding: { surface: 'SRF-TOP-068', layer: 'L06 JALA' },
   candidates: { surface: 'SRF-TOP-071', layer: 'L06 JALA' },
@@ -153,6 +156,7 @@ export const PAGE_CONTEXT: Record<PageId, { archetype: string; laws?: string[] }
   payroll: { archetype: 'command-center' },
   'payroll-run': { archetype: 'command-center' },
   'period-finalization': { archetype: 'command-center' },
+  'payslip-browser': { archetype: 'record-detail' },
   'employee-360': { archetype: 'record-detail' },
   onboarding: { archetype: 'case' },
   candidates: { archetype: 'registry' },

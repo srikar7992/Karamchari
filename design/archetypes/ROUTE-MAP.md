@@ -119,7 +119,7 @@ Implemented screens (karamchari-web) are marked ●.
 | Salary Structure Admin | administration |
 | Tax & Statutory Config | administration |
 | IT Declaration Review | approval |
-| Payslip Browser | registry |
+| Payslip Browser ● (Payroll Settlement) | record-detail |
 | Arrears Console | approval |
 | Corrections Console | approval |
 | Disbursement Center | command-center |

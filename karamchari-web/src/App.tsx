@@ -16,6 +16,7 @@ import { RosterBuilder } from '@/pages/RosterBuilder'
 import { PayrollCockpit } from '@/pages/PayrollCockpit'
 import { PayrollRunConsole } from '@/pages/PayrollRunConsole'
 import { PeriodFinalization } from '@/pages/PeriodFinalization'
+import { PayslipBrowser } from '@/pages/PayslipBrowser'
 import { Employee360 } from '@/pages/Employee360'
 import { OnboardingCase } from '@/pages/OnboardingCase'
 import { CandidatePipeline } from '@/pages/CandidatePipeline'
@@ -44,7 +45,7 @@ function pageFromHash(): PageId {
   const valid: PageId[] = [
     'pulse', 'executive', 'observatory', 'manager', 'my-dashboard', 'attendance', 'team-attendance',
     'shift-definitions', 'approvals', 'notifications',
-    'roster', 'payroll', 'payroll-run', 'period-finalization', 'directory', 'employee-360',
+    'roster', 'payroll', 'payroll-run', 'period-finalization', 'payslip-browser', 'directory', 'employee-360',
     'onboarding', 'candidates', 'candidate-detail', 'offer-management',
     'succession', 'compliance', 'workflow-studio',
     'leave-policies', 'approval-rules',
@@ -113,6 +114,7 @@ function App() {
       {page === 'payroll' && <PayrollCockpit />}
       {page === 'payroll-run' && <PayrollRunConsole />}
       {page === 'period-finalization' && <PeriodFinalization />}
+      {page === 'payslip-browser' && <PayslipBrowser />}
       {page === 'employee-360' && <Employee360 />}
       {page === 'onboarding' && <OnboardingCase />}
       {page === 'candidates' && <CandidatePipeline />}
