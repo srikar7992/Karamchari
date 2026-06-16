@@ -168,6 +168,17 @@ public sealed class Employee : AggregateRoot<Guid>, ITenantOwned
     }
 
     /// <summary>
+    /// Transfers the employee to a physical branch/location.
+    /// </summary>
+    public void TransferToBranch(Guid branchId, DateTimeOffset effectiveFrom, Guid changedBy, string? correlationId = null)
+    {
+        var previousValue = BranchId?.ToString() ?? "None";
+        BranchId = branchId;
+
+        AddHistory(EmployeeHistoryType.BranchTransfer, previousValue, branchId.ToString(), effectiveFrom, changedBy, correlationId);
+    }
+
+    /// <summary>
     /// Terminates the employee's employment.
     /// </summary>
     public void Terminate(DateTimeOffset effectiveFrom, Guid changedBy, string? correlationId = null)

@@ -5,6 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Api.Cors;
 using Karamchari.Api.DependencyInjection;
 using Karamchari.Api.Middleware;
 using Karamchari.Core.DependencyInjection;
@@ -111,6 +112,13 @@ builder.Services.AddOpenApi(options =>
 // 4. Messaging & Async Processing
 builder.Services.AddKaramchariMassTransit(builder.Configuration, builder.Environment);
 
+// 4b. Development portal CORS (registered only; applied in the pipeline below for
+// Development/Local). Lets the local SPA (Vite :5191 / Next portal :3000) call the API.
+if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Local"))
+{
+    builder.Services.AddKaramchariDevCors();
+}
+
 var app = builder.Build();
 
 // 5. Request Pipeline
@@ -142,6 +150,12 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
     app.MapGet("/", () => Results.Redirect("/scalar")).AllowAnonymous();
 }
 
+// CORS must run before auth so preflight (OPTIONS) is answered for the SPA.
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
+{
+    app.UseKaramchariDevCors();
+}
+
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseKaramchariTenantAuthorization();
@@ -151,6 +165,29 @@ app.UseKaramchariTenantObservability();
 // 6. Endpoints & Health
 app.MapKaramchariHealthChecks();
 app.MapKaramchariEndpoints();
+
+// Standalone domain-data seeding against an already-provisioned database — does NOT
+// migrate or re-clone tenant schemas (so it won't wipe existing tenant data). Lets us
+// (re)seed business records without a full --provision-dev-tenants rebuild.
+if (args.Contains("--seed-domain-data"))
+{
+    using var seedScope = app.Services.CreateScope();
+    var seedLogger = seedScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        seedLogger.LogInformation("Seeding domain data into provisioned tenants...");
+        await Karamchari.Api.Seeding.DomainDataSeeder.SeedAsync(seedScope.ServiceProvider, seedLogger);
+        seedLogger.LogInformation("Domain data seeding complete.");
+        await Serilog.Log.CloseAndFlushAsync();
+        Environment.Exit(0);
+    }
+    catch (Exception ex)
+    {
+        seedLogger.LogError(ex, "Domain data seeding failed.");
+        await Serilog.Log.CloseAndFlushAsync();
+        Environment.Exit(1);
+    }
+}
 
 if (args.Contains("--provision-dev-tenants"))
 {
@@ -231,6 +268,10 @@ if (args.Contains("--provision-dev-tenants"))
         // Seed documented developer login users (admin@{tenant}.local, etc.) so a new
         // engineer can authenticate immediately without creating data by hand.
         await Karamchari.Api.Seeding.DevDataSeeder.SeedAsync(scope.ServiceProvider, logger);
+
+        // Seed foundational domain data (HR employees per tenant) so the wired
+        // frontend surfaces have live records to reason over.
+        await Karamchari.Api.Seeding.DomainDataSeeder.SeedAsync(scope.ServiceProvider, logger);
 
         logger.LogInformation("Provisioning + developer seeding complete.");
         await Serilog.Log.CloseAndFlushAsync();

@@ -472,9 +472,13 @@ public class TimeAttendanceDbContext(DbContextOptions<TimeAttendanceDbContext> o
                 v.ToTable("Leave_PolicyVersions");
                 v.WithOwner().HasForeignKey("PolicyId");
                 v.HasKey(x => x.Id);
+                // EF Core 10 forbids a JSON column inside an owned type that is itself
+                // mapped to a table (Leave_PolicyVersions). Map the version's Rules as a
+                // nested owned type (columns + TenureBrackets child table) instead of JSON.
+                // The parent LeavePolicy.Rules above stays JSON — allowed there, as it sits
+                // on a real entity rather than a table-mapped owned type.
                 v.OwnsOne(x => x.Rules, r =>
                 {
-                    r.ToJson();
                     r.Property(p => p.AccrualFrequency).HasConversion<string>();
                     r.Property(p => p.Category).HasConversion<string>();
                     r.OwnsMany(p => p.TenureBrackets);

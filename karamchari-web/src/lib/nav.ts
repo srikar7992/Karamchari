@@ -25,6 +25,9 @@ export type PageId =
   | 'workflow-studio'
   | 'leave-policies'
   | 'approval-rules'
+  | 'asset-registry'
+  | 'asset-detail'
+  | 'asset-assignment'
 
 export type Persona = 'EMP' | 'MGR' | 'EXEC' | 'CMP' | 'SYS'
 
@@ -74,6 +77,9 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: 'candidates', label: 'Candidates', icon: 'linear_scale', persona: 'MGR' },
       { id: 'candidate-detail', label: 'Candidate Dossier', icon: 'contact_page', persona: 'MGR' },
       { id: 'offer-management', label: 'Offers', icon: 'history_edu', persona: 'MGR' },
+      { id: 'asset-registry', label: 'Asset Registry', icon: 'inventory_2', persona: 'MGR' },
+      { id: 'asset-detail', label: 'Asset Detail', icon: 'inventory', persona: 'MGR' },
+      { id: 'asset-assignment', label: 'Asset Custody', icon: 'assignment_ind', persona: 'MGR' },
     ],
   },
   {
@@ -134,6 +140,9 @@ export const PAGE_TELEMETRY: Record<PageId, { surface: string; layer: string }> 
   'workflow-studio': { surface: 'SRF-FLW-040', layer: 'L03 PRAVAHA' },
   'leave-policies': { surface: 'SRF-ADM-092', layer: 'L05 STHITI' },
   'approval-rules': { surface: 'SRF-FLW-041', layer: 'L03 PRAVAHA' },
+  'asset-registry': { surface: 'SRF-AST-101', layer: 'L05 STHITI' },
+  'asset-detail': { surface: 'SRF-AST-102', layer: 'L05 STHITI' },
+  'asset-assignment': { surface: 'SRF-AST-103', layer: 'L05 STHITI' },
 }
 
 // Surface context exposed in the chrome (cavecrew §5): which archetype the page
@@ -167,6 +176,9 @@ export const PAGE_CONTEXT: Record<PageId, { archetype: string; laws?: string[] }
   'workflow-studio': { archetype: 'builder', laws: ['GF-02', 'WF-RULE-007'] },
   'leave-policies': { archetype: 'administration' },
   'approval-rules': { archetype: 'administration' },
+  'asset-registry': { archetype: 'registry' },
+  'asset-detail': { archetype: 'record-detail' },
+  'asset-assignment': { archetype: 'registry' },
 }
 
 // Institutional situational awareness, surfaced at the head of the directory.

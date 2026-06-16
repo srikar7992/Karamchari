@@ -1,6 +1,13 @@
+import { useEffect, useMemo, useState } from 'react'
 import { SignalCard, InstitutionalTable, LedgerStrip, type TableColumn } from '@/components/institutional'
 import type { PageClassification } from '@/lib/doctrine'
+import { api, ApiError } from '@/lib/api'
+import { ensureDevSession } from '@/lib/auth'
 
+// Shifts are institutional primitives, not local exceptions. PHASE 0 (live seam):
+// real JWT + GET /api/v1/workforce/rosters/shifts. Columns mirror the BFF
+// ShiftDefinition contract; "rosters using" is not exposed by the BFF, so it is
+// not shown rather than fabricated.
 export const PAGE_CLASSIFICATION: PageClassification = {
   persona: 'SYS',
   archetype: 'administration',
@@ -11,33 +18,38 @@ export const PAGE_CLASSIFICATION: PageClassification = {
   bindu: false,
 }
 
+// BFF contract: ShiftDefinition (TimeOnly serializes as "HH:mm:ss").
+interface ShiftDto {
+  id: string
+  code: string
+  name: string
+  category: number | string
+  startTime: string
+  endTime: string
+  lateArrivalGraceMinutes: number
+  autoBreakDeductionMinutes: number
+  isActive: boolean
+  createdAtUtc: string
+}
+
 interface ShiftDef {
   code: string
   name: string
   window: string
   paidBreak: string
   grace: string
-  rosters: number
   active: boolean
   effective: string
 }
 
-// Shifts are institutional primitives, not local exceptions. Variation belongs in
-// parameters (grace, break, zone overrides), never in a fifth near-duplicate row.
-const DEFINITIONS: ShiftDef[] = [
-  { code: 'MORN', name: 'Morning', window: '06:00–14:00', paidBreak: '30 min', grace: '15 min', rosters: 142, active: true, effective: '2025-04-01' },
-  { code: 'EVE', name: 'Evening', window: '14:00–22:00', paidBreak: '30 min', grace: '15 min', rosters: 118, active: true, effective: '2025-04-01' },
-  { code: 'NGT', name: 'Night', window: '22:00–06:00', paidBreak: '45 min', grace: '20 min', rosters: 37, active: true, effective: '2025-04-01' },
-  { code: 'GEN', name: 'General', window: '09:00–18:00', paidBreak: '60 min', grace: '10 min', rosters: 15, active: true, effective: '2025-07-01' },
-]
+const hhmm = (t: string): string => (t ? t.slice(0, 5) : '—')
 
 const columns: TableColumn<ShiftDef>[] = [
   { key: 'code', header: 'Code', render: (d) => <span className="font-mono text-[12px] text-primary">{d.code}</span> },
   { key: 'name', header: 'Definition', render: (d) => <span className="text-primary">{d.name}</span> },
   { key: 'window', header: 'Window', render: (d) => <span className="font-mono text-[12px]">{d.window}</span> },
-  { key: 'paidBreak', header: 'Paid Break' },
+  { key: 'paidBreak', header: 'Auto Break' },
   { key: 'grace', header: 'Grace' },
-  { key: 'rosters', header: 'Rosters Using', align: 'right', render: (d) => <span className="font-mono text-[12px]">{d.rosters}</span> },
   {
     key: 'status',
     header: 'Status',
@@ -52,6 +64,44 @@ const columns: TableColumn<ShiftDef>[] = [
 ]
 
 export function ShiftDefinitions() {
+  const [defs, setDefs] = useState<ShiftDef[]>([])
+  const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      try {
+        setState('loading')
+        await ensureDevSession()
+        const dtos = await api.get<ShiftDto[]>('/api/v1/workforce/rosters/shifts')
+        if (!alive) return
+        setDefs(
+          dtos.map((s) => ({
+            code: s.code,
+            name: s.name,
+            window: `${hhmm(s.startTime)}–${hhmm(s.endTime)}`,
+            paidBreak: s.autoBreakDeductionMinutes > 0 ? `${s.autoBreakDeductionMinutes} min` : '—',
+            grace: `${s.lateArrivalGraceMinutes} min`,
+            active: s.isActive,
+            effective: (s.createdAtUtc ?? '').slice(0, 10),
+          })),
+        )
+        setState('ready')
+      } catch (e) {
+        if (!alive) return
+        setError(e instanceof ApiError ? `${e.status} ${e.statusText}` : (e as Error).message)
+        setState('error')
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  const activeCount = useMemo(() => defs.filter((d) => d.active).length, [defs])
+  const editor = defs[0]
+
   return (
     <>
       {/* Entity header */}
@@ -65,7 +115,7 @@ export function ShiftDefinitions() {
           </h2>
         </div>
         <span className="font-mono text-[12px] text-on-surface-variant uppercase tracking-widest">
-          4 Primitives · 312 Rosters Governed
+          {state === 'ready' ? `${defs.length} Primitives` : '—'} · <span className="text-tamra-copper">LIVE</span>
         </span>
       </div>
 
@@ -76,12 +126,26 @@ export function ShiftDefinitions() {
             1. Definition Register
           </h3>
           <div className="bg-surface-container-lowest hairline-all p-6">
-            <InstitutionalTable columns={columns} rows={DEFINITIONS} rowKey={(d) => d.code} />
-            <p className="font-tabular-data text-[12px] text-on-surface-variant mt-6">
-              New definitions require scheduling authority review. A request that differs from an
-              existing primitive only in start time or break length is a parameter change, not a
-              new definition; rosters override grace and break per zone without minting shifts.
-            </p>
+            {state === 'loading' && (
+              <p className="font-tabular-data text-tabular-data text-on-surface-variant py-8 text-center">
+                Authenticating and loading shift definitions from the BFF...
+              </p>
+            )}
+            {state === 'error' && (
+              <p className="font-tabular-data text-tabular-data text-rakta-critical py-8 text-center">
+                Could not load shift definitions: {error}
+              </p>
+            )}
+            {state === 'ready' && (
+              <>
+                <InstitutionalTable columns={columns} rows={defs} rowKey={(d) => d.code} />
+                <p className="font-tabular-data text-[12px] text-on-surface-variant mt-6">
+                  New definitions require scheduling authority review. A request that differs from an
+                  existing primitive only in start time or break length is a parameter change, not a
+                  new definition; rosters override grace and break per zone without minting shifts.
+                </p>
+              </>
+            )}
           </div>
         </section>
 
@@ -89,8 +153,8 @@ export function ShiftDefinitions() {
         <div className="md:col-span-4 flex flex-col gap-grid-12">
           <SignalCard
             label="Active Definitions"
-            value="4"
-            note="Unchanged for 11 months. Definition count is a governance metric; growth needs justification."
+            value={state === 'ready' ? String(activeCount) : '—'}
+            note="Definition count is a governance metric; growth needs justification."
             bindu="good"
           />
           <section className="bg-surface-container-lowest hairline-all p-6 flex-1">
@@ -99,11 +163,11 @@ export function ShiftDefinitions() {
             </h3>
             <div className="space-y-4 font-tabular-data text-tabular-data">
               {[
-                { label: 'Code', value: 'MORN' },
-                { label: 'Window', value: '06:00 – 14:00' },
-                { label: 'Paid Break', value: '30 min' },
-                { label: 'Grace Period', value: '15 min' },
-                { label: 'Overtime After', value: '8.0 h' },
+                { label: 'Code', value: editor?.code ?? '—' },
+                { label: 'Window', value: editor?.window ?? '—' },
+                { label: 'Auto Break', value: editor?.paidBreak ?? '—' },
+                { label: 'Grace Period', value: editor?.grace ?? '—' },
+                { label: 'Status', value: editor ? (editor.active ? 'Active' : 'Retired') : '—' },
               ].map((f) => (
                 <div key={f.label} className="flex justify-between items-center pb-3 hairline-b">
                   <span className="text-on-surface-variant text-[12px]">{f.label}</span>
@@ -126,15 +190,15 @@ export function ShiftDefinitions() {
       <div className="bg-ivory-2 hairline-all p-4 mb-8">
         <p className="font-tabular-data text-tabular-data text-on-surface">
           Definitions on this register govern attendance processing, grace evaluation, and payroll
-          hour derivation for all 312 rosters in the tenant.
+          hour derivation for every roster in the tenant.
         </p>
       </div>
 
       <LedgerStrip
         entries={[
           { label: 'Register', value: 'Scheduling.ShiftDefinitions' },
-          { label: 'Last Change', value: 'GEN created 2025-07-01 · S. Menon' },
-          { label: 'Version', value: 'v6' },
+          { label: 'Source', value: 'GET /workforce/rosters/shifts (live)' },
+          { label: 'Showing', value: state === 'ready' ? `${defs.length} definitions` : '—' },
         ]}
       />
     </>

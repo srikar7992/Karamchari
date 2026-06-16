@@ -31,6 +31,11 @@ public interface IEmployeeService
     Task<IReadOnlyList<EmployeeDto>> GetEmployeesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets an enriched employee profile (identity + resolved organizational names).
+    /// </summary>
+    Task<EmployeeProfileDto?> GetEmployeeProfileAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Updates employee details.
     /// </summary>
     Task UpdateEmployeeAsync(Guid id, UpdateEmployeeCommand command, CancellationToken cancellationToken = default);

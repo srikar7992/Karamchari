@@ -7,8 +7,12 @@
 
 namespace Karamchari.Core.Persistence.Provisioning;
 
+using System.Text.RegularExpressions;
 using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Persistence;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 /// <summary>Projection record used when discovering indexes on the dbo template tables.</summary>
@@ -30,6 +34,7 @@ public sealed class TenantProvisioningService
     private readonly RlsScriptGenerator _rlsGenerator;
     private readonly IEnumerable<ITenantPostProvisioningTask> _postProvisioningTasks;
     private readonly ILogger<TenantProvisioningService> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TenantProvisioningService"/> class.
@@ -46,13 +51,15 @@ public sealed class TenantProvisioningService
         ITenantModelDiscoveryService discoveryService,
         RlsScriptGenerator rlsGenerator,
         IEnumerable<ITenantPostProvisioningTask> postProvisioningTasks,
-        ILogger<TenantProvisioningService> logger)
+        ILogger<TenantProvisioningService> logger,
+        IServiceProvider serviceProvider)
     {
         _dbContext = dbContext;
         _discoveryService = discoveryService;
         _rlsGenerator = rlsGenerator;
         _postProvisioningTasks = postProvisioningTasks;
         _logger = logger;
+        _serviceProvider = serviceProvider;
     }
 
     /// <summary>
@@ -87,6 +94,11 @@ public sealed class TenantProvisioningService
         {
             throw new InvalidOperationException("No tenant artifacts discovered. Provisioning aborted.");
         }
+
+        // 1b. Ensure every discovered tenant table has a dbo template. Entities that exist
+        // in a context's model but have no migration (model drifted ahead of migrations)
+        // would otherwise have no template, and the clone below would fail. Idempotent.
+        await EnsureDboTemplatesFromModelAsync(artifacts);
 
         // 2. Create the Schema
 #pragma warning disable EF1002 // SQL injection: schemaName is validated at the API boundary
@@ -126,6 +138,204 @@ public sealed class TenantProvisioningService
         if (_logger.IsEnabled(LogLevel.Information))
         {
             _logger.LogInformation("Physical provisioning complete and verified for tenant {TenantId}", tenantId);
+        }
+    }
+
+    /// <summary>
+    /// Ensures every discovered tenant table has a <c>dbo</c> template, creating any missing
+    /// template directly from the owning DbContext's EF model. The provisioner clones tenant
+    /// schemas from these <c>dbo</c> templates; an entity present in a model but absent from
+    /// migrations (model drift) would have no template and abort provisioning. The EF model is
+    /// the single source of truth (matching <see cref="ITenantModelDiscoveryService"/>), so the
+    /// template is generated from the model rather than relying on a migration having created it.
+    /// </summary>
+    /// <remarks>
+    /// Idempotent: only tables absent from <c>dbo</c> are created. Columns + primary key are
+    /// created here; secondary indexes are generated too, and foreign keys are intentionally
+    /// dropped because the tenant clone copies columns only (FKs are never propagated). The
+    /// generated SQL targets the <c>__tenant__</c> placeholder, which is rewritten to <c>dbo</c>
+    /// explicitly so the template lands in <c>dbo</c> regardless of the active tenant schema.
+    /// </remarks>
+    private async Task EnsureDboTemplatesFromModelAsync(IReadOnlyCollection<TenantRelationalArtifact> artifacts)
+    {
+        // The set of tenant-scoped tables the clone step needs as dbo templates.
+        var tenantTables = artifacts
+            .Select(a => a.TableName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        _logger.LogInformation(
+            "Rebuilding {Count} dbo tenant template table(s) from the EF model (model is the single source of truth; migrations have drifted).",
+            tenantTables.Count);
+
+        // 1. Make dbo authoritative to the MODEL for tenant tables. Migrations may have created
+        //    stale-schema versions of these tables (the model drifted ahead in both tables and
+        //    columns) or none at all. This runs only on the --provision-dev-tenants bootstrap
+        //    against a freshly created database with no data, so dropping is safe. Drop every
+        //    dbo foreign key first (so table drops are not blocked), then drop each tenant table.
+        await _dbContext.Database.ExecuteSqlRawAsync(
+            "DECLARE @sql nvarchar(max) = N''; " +
+            "SELECT @sql += 'ALTER TABLE [dbo].[' + t.name + '] DROP CONSTRAINT [' + f.name + '];' " +
+            "FROM sys.foreign_keys f " +
+            "JOIN sys.tables t ON f.parent_object_id = t.object_id " +
+            "JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'dbo'; " +
+            "IF @sql <> N'' EXEC sp_executesql @sql;");
+
+        foreach (var name in tenantTables)
+        {
+#pragma warning disable EF1002 // table name originates from the EF model, not user input
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                $"IF OBJECT_ID(N'[dbo].[{name}]', N'U') IS NOT NULL DROP TABLE [dbo].[{name}];");
+#pragma warning restore EF1002
+        }
+
+        // 2. Collect the CREATE TABLE and CREATE INDEX batches for tenant tables from each
+        //    owning context's model. CREATE TABLE batches carry inline FK constraints, so they
+        //    cannot simply be skipped; they are created in dependency-resolving passes below.
+        var createTableByName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var indexBatches = new List<string>();
+
+        var contextTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(SafeGetTypes)
+            .Where(t => typeof(KaramchariDbContext).IsAssignableFrom(t) && !t.IsAbstract)
+            .ToList();
+
+        foreach (var type in contextTypes)
+        {
+            using var scope = _serviceProvider.CreateScope();
+
+            // Design-time-only contexts (the DesignTimeDbContext nested classes) are not
+            // registered in runtime DI; skip them. Mirrors TenantModelDiscoveryService.
+            if (scope.ServiceProvider.GetService(type) is not DbContext context)
+            {
+                continue;
+            }
+
+            // GenerateCreateScript() emits the full CREATE DDL for the context's model,
+            // resolving the design-time model internally. Entities map to the __tenant__
+            // placeholder schema; rewrite to dbo so the template lands in dbo.
+            var script = context.Database.GenerateCreateScript();
+            if (string.IsNullOrWhiteSpace(script))
+            {
+                continue;
+            }
+
+            script = script
+                .Replace("[__tenant__]", "[dbo]", StringComparison.Ordinal)
+                .Replace("__tenant__.", "dbo.", StringComparison.Ordinal);
+
+            // GenerateCreateScript separates batches with a GO line (a client directive, never
+            // sent to the server). Keep only batches targeting a tenant table — this skips the
+            // schema-creation batch and any dbo-pinned infrastructure (event store, outbox, etc.)
+            // the context's model also includes. Standalone ALTER ... ADD FOREIGN KEY batches are
+            // dropped (the clone copies columns + indexes only, never FKs); inline FKs inside a
+            // CREATE TABLE are kept and resolved by the multi-pass creation below.
+            foreach (var batch in Regex.Split(script, @"(?im)^[ \t]*GO[ \t]*\r?$"))
+            {
+                var sql = batch.Trim();
+                if (sql.Length == 0)
+                {
+                    continue;
+                }
+
+                var target = TargetTableName(sql);
+                if (target is null || !tenantTables.Contains(target))
+                {
+                    continue;
+                }
+
+                if (sql.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
+                {
+                    createTableByName.TryAdd(target, sql);
+                }
+                else if (sql.Contains("INDEX", StringComparison.OrdinalIgnoreCase))
+                {
+                    indexBatches.Add(sql);
+                }
+
+                // Standalone ALTER ... ADD CONSTRAINT FOREIGN KEY batches fall through (ignored).
+            }
+        }
+
+        var orphaned = tenantTables.Where(t => !createTableByName.ContainsKey(t)).ToList();
+        if (orphaned.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "Could not materialize dbo templates for discovered tenant tables that no registered "
+                + "DbContext model owns: " + string.Join(", ", orphaned));
+        }
+
+        // 3. Create the tables in passes. A CREATE TABLE with an inline FK to a tenant table not
+        //    yet created fails; defer it and retry next pass. Each pass must make progress.
+        var pending = new Dictionary<string, string>(createTableByName, StringComparer.OrdinalIgnoreCase);
+        while (pending.Count > 0)
+        {
+            var done = new List<string>();
+            SqlException? lastError = null;
+
+            foreach (var (name, sql) in pending)
+            {
+                try
+                {
+                    await _dbContext.Database.ExecuteSqlRawAsync(sql);
+                    done.Add(name);
+                }
+                catch (SqlException ex) when (ex.Number == 2714)
+                {
+                    done.Add(name); // already exists (shared across contexts)
+                }
+                catch (SqlException ex)
+                {
+                    lastError = ex; // most likely an inline FK to a not-yet-created table; retry
+                }
+            }
+
+            if (done.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "dbo template creation stalled; unresolved tables: " + string.Join(", ", pending.Keys),
+                    lastError);
+            }
+
+            foreach (var name in done)
+            {
+                pending.Remove(name);
+            }
+        }
+
+        // 4. Apply indexes now that every tenant table exists.
+        foreach (var sql in indexBatches)
+        {
+            try
+            {
+                await _dbContext.Database.ExecuteSqlRawAsync(sql);
+            }
+            catch (SqlException ex) when (ex.Number is 1913 or 2705 or 1781)
+            {
+                // index/column already present — safe to skip.
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extracts the dbo table a DDL batch targets (the first <c>[dbo].[Name]</c> reference in a
+    /// CREATE TABLE / CREATE INDEX / ALTER TABLE statement). Returns null when the batch does not
+    /// reference a dbo table (e.g. a schema-creation guard), so the caller can skip it.
+    /// </summary>
+    private static string? TargetTableName(string batch)
+    {
+        var match = Regex.Match(batch, @"\[dbo\]\.\[(?<name>[^\]]+)\]");
+        return match.Success ? match.Groups["name"].Value : null;
+    }
+
+    private static IEnumerable<Type> SafeGetTypes(System.Reflection.Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (System.Reflection.ReflectionTypeLoadException ex)
+        {
+            return ex.Types.Where(t => t is not null)!;
         }
     }
 

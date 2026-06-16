@@ -39,11 +39,14 @@ public static class DevPortalCors
             options.AddPolicy(PolicyName, policy =>
             {
                 policy
-                    .WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+                    .WithOrigins(
+                        "http://localhost:3000", "http://127.0.0.1:3000",
+                        "http://localhost:5191", "http://127.0.0.1:5191")
                     .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                     .WithHeaders(
                         "Content-Type",
                         "Accept",
+                        "Authorization",
                         "X-Tenant-Id",
                         "X-Karamchari-Gateway")
                     .WithExposedHeaders("Content-Type", "Content-Length");

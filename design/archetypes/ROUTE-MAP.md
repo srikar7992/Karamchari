@@ -209,9 +209,9 @@ Implemented screens (karamchari-web) are marked ●.
 
 | Screen | Archetype |
 |---|---|
-| Asset Registry | registry |
-| Asset Detail | record-detail |
-| Assignment & Lifecycle | registry |
+| Asset Registry ● | registry |
+| Asset Detail ● | record-detail |
+| Assignment & Lifecycle ● (Asset Custody) | registry |
 | Maintenance & Depreciation | registry |
 | Asset Category Admin | administration |
 

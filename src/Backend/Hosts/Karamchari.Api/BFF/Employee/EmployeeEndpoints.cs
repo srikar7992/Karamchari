@@ -37,6 +37,9 @@ public static class EmployeeEndpoints
         group.MapGet("/{id:guid}", GetEmployee)
             .WithName("Employee.Get");
 
+        group.MapGet("/{id:guid}/profile", GetEmployeeProfile)
+            .WithName("Employee.Profile");
+
         group.MapPut("/{id:guid}", UpdateEmployee)
             .WithName("Employee.Update")
             .WithValidation<UpdateEmployeeCommand>();
@@ -83,6 +86,16 @@ public static class EmployeeEndpoints
         var employee = await employeeService.GetEmployeeByIdAsync(id, ct);
         if (employee == null) return Results.NotFound();
         return Results.Ok(employee);
+    }
+
+    private static async Task<IResult> GetEmployeeProfile(
+        Guid id,
+        IEmployeeService employeeService,
+        CancellationToken ct)
+    {
+        var profile = await employeeService.GetEmployeeProfileAsync(id, ct);
+        if (profile == null) return Results.NotFound();
+        return Results.Ok(profile);
     }
 
     private static async Task<IResult> UpdateEmployee(

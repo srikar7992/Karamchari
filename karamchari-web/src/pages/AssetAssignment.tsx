@@ -5,10 +5,11 @@ import type { PageClassification } from '@/lib/doctrine'
 import { api, ApiError } from '@/lib/api'
 import { ensureDevSession, getLastLoginMs } from '@/lib/auth'
 
-// The workforce register: who the institution employs. PHASE 0 (live seam):
-// real JWT + GET /api/v1/hr/employees. Columns mirror the BFF EmployeeDto
-// contract exactly (no fabricated department/location) — the register reasons
-// over reality, not over a richer fiction than the backend can stand behind.
+// Custody in motion: who the institution has entrusted things to, and what it has
+// recovered. PHASE 0 (live seam): the BFF has no "list all custody records"
+// endpoint, so the ledger is assembled from GET /api/v1/assets + a per-asset
+// detail fetch, flattening each asset's assignment history. Assignment proves
+// entrustment; return proves recovery. One ledger, filtered between the verbs.
 export const PAGE_CLASSIFICATION: PageClassification = {
   persona: 'MGR',
   archetype: 'registry',
@@ -19,43 +20,42 @@ export const PAGE_CLASSIFICATION: PageClassification = {
   bindu: true,
 }
 
-// BFF contract: HR EmployeeDto (id is a bare Guid, not a wrapper).
-interface EmployeeDto {
+type Wrapped = string | { value: string }
+interface AssignmentDto {
   id: string
-  employeeNumber: string
-  legalName: string
-  workEmail: string | null
-  hiredOn: string
-  status: string
-  timeZoneId: string
+  employeeId: string
+  assignedOn: string
+  returnedOn: string | null
 }
-
-interface DirectoryRow {
-  id: string
-  number: string
+interface AssetFullDto {
+  id: Wrapped
   name: string
-  email: string
-  hired: string
-  status: string
-  tone: 'good' | 'caution' | 'rakta-critical' | 'neutral'
+  assetTag: string | null
+  status: number | string
+  assignments: AssignmentDto[]
 }
 
-function statusTone(status: string): DirectoryRow['tone'] {
-  switch (status) {
-    case 'Active': return 'good'
-    case 'OnLeave':
-    case 'On Leave':
-    case 'NoticePeriod':
-    case 'Notice Period': return 'caution'
-    case 'Terminated': return 'rakta-critical'
-    default: return 'neutral'
-  }
+const unwrap = (w: Wrapped): string => (typeof w === 'string' ? w : w?.value ?? '')
+const shortId = (g: string): string => (g ? g.replace(/-/g, '').slice(0, 8).toUpperCase() : '—')
+
+interface CustodyRow {
+  id: string
+  assetId: string
+  asset: string
+  tag: string
+  holder: string
+  assigned: string
+  returned: string
+  state: 'Entrusted' | 'Recovered'
+  tone: 'good' | 'neutral'
 }
 
-export function EmployeeDirectory() {
+const filters = ['All', 'Entrusted', 'Recovered'] as const
+
+export function AssetAssignment() {
   const [query, setQuery] = useState('')
-  const [slice, setSlice] = useState('All')
-  const [records, setRecords] = useState<DirectoryRow[]>([])
+  const [filter, setFilter] = useState<(typeof filters)[number]>('All')
+  const [records, setRecords] = useState<CustodyRow[]>([])
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
   const [error, setError] = useState('')
   const [loginMs, setLoginMs] = useState<number | null>(null)
@@ -68,22 +68,33 @@ export function EmployeeDirectory() {
         setState('loading')
         await ensureDevSession()
         const t0 = performance.now()
-        const dtos = await api.get<EmployeeDto[]>('/api/v1/hr/employees')
+        const list = await api.get<{ id: Wrapped }[]>('/api/v1/assets')
+        // No bulk custody endpoint — fan out per asset to read assignment history.
+        const details = await Promise.all(
+          list.map((a) => api.get<AssetFullDto>(`/api/v1/assets/${unwrap(a.id)}`)),
+        )
         if (!alive) return
         setFetchMs(Math.round(performance.now() - t0))
         setLoginMs(getLastLoginMs())
 
-        const rows: DirectoryRow[] = dtos
-          .map((e) => ({
-            id: e.id,
-            number: e.employeeNumber,
-            name: e.legalName,
-            email: e.workEmail ?? '—',
-            hired: e.hiredOn,
-            status: e.status,
-            tone: statusTone(e.status),
-          }))
-          .sort((a, b) => a.number.localeCompare(b.number))
+        const rows: CustodyRow[] = []
+        for (const asset of details) {
+          for (const a of asset.assignments ?? []) {
+            const recovered = a.returnedOn != null
+            rows.push({
+              id: `ASG-${shortId(a.id)}`,
+              assetId: unwrap(asset.id),
+              asset: asset.name,
+              tag: asset.assetTag ?? '—',
+              holder: `EMP · ${shortId(a.employeeId)}`,
+              assigned: a.assignedOn,
+              returned: a.returnedOn ?? '—',
+              state: recovered ? 'Recovered' : 'Entrusted',
+              tone: recovered ? 'neutral' : 'good',
+            })
+          }
+        }
+        rows.sort((x, y) => y.assigned.localeCompare(x.assigned))
         setRecords(rows)
         setState('ready')
       } catch (e) {
@@ -97,19 +108,20 @@ export function EmployeeDirectory() {
     }
   }, [])
 
-  const slices = useMemo(
-    () => ['All', ...[...new Set(records.map((r) => r.status))].sort()],
-    [records],
-  )
+  const entrusted = useMemo(() => records.filter((r) => r.state === 'Entrusted').length, [records])
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase()
     return records.filter(
       (r) =>
-        (slice === 'All' || r.status === slice) &&
-        (!q || r.name.toLowerCase().includes(q) || r.number.toLowerCase().includes(q) || r.email.toLowerCase().includes(q)),
+        (filter === 'All' || r.state === filter) &&
+        (!q || r.asset.toLowerCase().includes(q) || r.holder.toLowerCase().includes(q) || r.tag.toLowerCase().includes(q)),
     )
-  }, [query, slice, records])
+  }, [query, filter, records])
+
+  const openDetail = (assetId: string) => {
+    window.location.hash = `/asset-detail?id=${encodeURIComponent(assetId)}`
+  }
 
   return (
     <>
@@ -117,17 +129,17 @@ export function EmployeeDirectory() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-outline-variant mb-8">
         <div>
           <p className="font-mono-label text-mono-label text-on-surface-variant uppercase mb-3">
-            Workforce Register · People the Institution Employs
+            Custody Ledger · Entrusted &amp; Recovered
           </p>
           <h2 className="font-section-title text-section-title !text-4xl text-primary tracking-tight">
-            Employee Directory
+            Asset Custody
           </h2>
           <p className="font-mono text-[12px] text-on-surface-variant mt-3">
-            <span className="text-primary">{state === 'ready' ? records.length : '—'}</span> RECORDS ·{' '}
-            {state === 'ready' ? slices.length - 1 : '—'} STATUSES · <span className="text-tamra-copper">LIVE</span>
+            <span className="text-primary">{state === 'ready' ? entrusted : '—'}</span> ACTIVE CUSTODY RECORDS ·{' '}
+            {state === 'ready' ? records.length : '—'} TOTAL · <span className="text-tamra-copper">LIVE</span>
           </p>
         </div>
-        <BinduButton>Onboard Operator</BinduButton>
+        <BinduButton>Assign Asset</BinduButton>
       </div>
 
       {/* Query bar */}
@@ -136,42 +148,42 @@ export function EmployeeDirectory() {
           <Icon name="search" className="!text-[18px] text-on-surface-variant" />
           <input
             className="flex-1 bg-transparent font-tabular-data text-tabular-data text-primary placeholder:text-on-surface-variant focus:outline-none"
-            placeholder="Name, number, or email..."
+            placeholder="Asset, holder, or tag..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          {slices.map((s) => (
+          {filters.map((f) => (
             <button
-              key={s}
-              onClick={() => setSlice(s)}
+              key={f}
+              onClick={() => setFilter(f)}
               className={`px-3 py-2 font-mono-label text-mono-label uppercase tracking-wider transition-colors ${
-                slice === s
+                filter === f
                   ? 'bg-primary text-on-primary'
                   : 'hairline-all text-on-surface-variant hover:bg-surface-container-low'
               }`}
             >
-              {s}
+              {f}
             </button>
           ))}
         </div>
       </div>
 
-      {/* The register */}
+      {/* The ledger */}
       <div className="bg-surface-container-lowest hairline-all p-6">
         {state === 'loading' && (
           <p className="font-tabular-data text-tabular-data text-on-surface-variant py-8 text-center">
-            Authenticating and loading the live register from the BFF...
+            Authenticating and assembling the live custody ledger from the BFF...
           </p>
         )}
         {state === 'error' && (
           <div className="py-8 text-center">
             <p className="font-tabular-data text-tabular-data text-rakta-critical mb-2">
-              Could not reach the live register: {error}
+              Could not reach the live ledger: {error}
             </p>
             <p className="font-mono text-[12px] text-on-surface-variant">
-              Source: {api.base}/api/v1/hr/employees · is the API running and provisioned?
+              Source: {api.base}/api/v1/assets · is the API running and provisioned?
             </p>
           </div>
         )}
@@ -182,42 +194,45 @@ export function EmployeeDirectory() {
               rows={rows}
               columns={[
                 {
-                  key: 'number',
-                  header: 'Internal ID',
-                  render: (r) => <span className="font-mono text-[12px] text-on-surface-variant">{r.number}</span>,
+                  key: 'id',
+                  header: 'Custody Ref',
+                  render: (r) => <span className="font-mono text-[12px] text-on-surface-variant">{r.id}</span>,
                 },
                 {
-                  key: 'name',
-                  header: 'Operator',
+                  key: 'asset',
+                  header: 'Asset',
                   render: (r) => (
                     <button
-                      onClick={() => {
-                        window.location.hash = `/employee-360?id=${encodeURIComponent(r.id)}`
-                      }}
+                      onClick={() => openDetail(r.assetId)}
                       className="text-primary font-medium hover:text-tamra-copper transition-colors text-left"
                     >
-                      {r.name}
+                      {r.asset}
                     </button>
                   ),
                 },
                 {
-                  key: 'email',
-                  header: 'Work Email',
-                  render: (r) => <span className="font-mono text-[11px] text-on-surface-variant">{r.email}</span>,
+                  key: 'holder',
+                  header: 'Entrusted To',
+                  render: (r) => <span className="text-on-surface-variant">{r.holder}</span>,
                 },
                 {
-                  key: 'hired',
-                  header: 'Hired',
-                  render: (r) => <span className="font-mono text-[11px] text-on-surface-variant">{r.hired}</span>,
+                  key: 'assigned',
+                  header: 'Assigned',
+                  render: (r) => <span className="font-mono text-[11px] text-on-surface-variant">{r.assigned}</span>,
                 },
                 {
-                  key: 'status',
-                  header: 'Status',
+                  key: 'returned',
+                  header: 'Returned',
+                  render: (r) => <span className="font-mono text-[11px] text-on-surface-variant">{r.returned}</span>,
+                },
+                {
+                  key: 'state',
+                  header: 'State',
                   align: 'right',
                   render: (r) => (
                     <>
                       <span className={`bindu ${r.tone} mr-2`} />
-                      {r.status}
+                      {r.state}
                     </>
                   ),
                 },
@@ -225,7 +240,7 @@ export function EmployeeDirectory() {
             />
             {rows.length === 0 && (
               <p className="font-tabular-data text-tabular-data text-on-surface-variant py-8 text-center">
-                No records match the current query. The register is complete; the filter is narrow.
+                No custody records match the current query. Assign an asset on its dossier, or widen the filter.
               </p>
             )}
           </>
@@ -236,7 +251,7 @@ export function EmployeeDirectory() {
         className="mt-8"
         entries={[
           { label: 'Showing', value: state === 'ready' ? `${rows.length} of ${records.length}` : '—' },
-          { label: 'Source', value: 'GET /api/v1/hr/employees (live)' },
+          { label: 'Source', value: 'GET /api/v1/assets + per-asset (live)' },
           { label: 'Login', value: loginMs != null ? `${loginMs}ms` : 'cached' },
           { label: 'Fetch', value: fetchMs != null ? `${fetchMs}ms` : '—' },
         ]}

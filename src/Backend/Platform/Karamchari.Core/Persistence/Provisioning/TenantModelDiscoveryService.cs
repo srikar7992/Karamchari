@@ -38,10 +38,21 @@ public sealed class TenantModelDiscoveryService : ITenantModelDiscoveryService
 
         foreach (var type in contextTypes)
         {
-            // We resolve the context from the provider. 
+            // We resolve the context from the provider.
             // In a provisioning context, these will typically be resolved from a root provider.
             using var scope = _serviceProvider.CreateScope();
-            var context = (DbContext)scope.ServiceProvider.GetRequiredService(type);
+
+            // Reflection over loaded assemblies also surfaces design-time-only contexts
+            // (the DesignTimeDbContext nested classes in each module's
+            // *DbContextDesignTimeFactory), which derive from KaramchariDbContext but are
+            // never registered in the runtime DI container. Resolve permissively and skip
+            // any context that has no runtime registration — their tenant model is identical
+            // to the real context they shadow, so nothing is lost.
+            if (scope.ServiceProvider.GetService(type) is not DbContext context)
+            {
+                continue;
+            }
+
             var model = context.Model;
 
             foreach (var entityType in model.GetEntityTypes())

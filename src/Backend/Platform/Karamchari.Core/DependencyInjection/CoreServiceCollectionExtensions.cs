@@ -126,7 +126,8 @@ public static class CoreServiceCollectionExtensions
                 sp.GetRequiredService<ITenantModelDiscoveryService>(),
                 sp.GetRequiredService<RlsScriptGenerator>(),
                 sp.GetRequiredService<IEnumerable<ITenantPostProvisioningTask>>(),
-                sp.GetRequiredService<ILogger<TenantProvisioningService>>()));
+                sp.GetRequiredService<ILogger<TenantProvisioningService>>(),
+                sp));
 
         // Single TimeProvider instance is fine — TimeProvider.System is thread-safe.
         // Tests can swap in a FakeTimeProvider before calling AddKaramchariCore.

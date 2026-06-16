@@ -27,6 +27,9 @@ import { ComplianceDashboard } from '@/pages/ComplianceDashboard'
 import { WorkflowStudio } from '@/pages/WorkflowStudio'
 import { LeavePolicies } from '@/pages/LeavePolicies'
 import { ApprovalRules } from '@/pages/ApprovalRules'
+import { AssetRegistry } from '@/pages/AssetRegistry'
+import { AssetDetail } from '@/pages/AssetDetail'
+import { AssetAssignment } from '@/pages/AssetAssignment'
 import { LabShell, type LabId } from '@/labs/LabShell'
 import { ConstitutionalLedger } from '@/labs/ConstitutionalLedger'
 import { Observatory } from '@/labs/Observatory'
@@ -41,7 +44,8 @@ function labFromHash(): LabId | null {
 }
 
 function pageFromHash(): PageId {
-  const h = window.location.hash.replace(/^#\/?/, '')
+  // Strip any query string (e.g. #/asset-detail?id=<guid>) before matching.
+  const h = window.location.hash.replace(/^#\/?/, '').split('?')[0]
   const valid: PageId[] = [
     'pulse', 'executive', 'observatory', 'manager', 'my-dashboard', 'attendance', 'team-attendance',
     'shift-definitions', 'approvals', 'notifications',
@@ -49,6 +53,7 @@ function pageFromHash(): PageId {
     'onboarding', 'candidates', 'candidate-detail', 'offer-management',
     'succession', 'compliance', 'workflow-studio',
     'leave-policies', 'approval-rules',
+    'asset-registry', 'asset-detail', 'asset-assignment',
   ]
   return (valid as string[]).includes(h) ? (h as PageId) : 'pulse'
 }
@@ -109,7 +114,7 @@ function App() {
       {page === 'shift-definitions' && <ShiftDefinitions />}
       {page === 'approvals' && <ApprovalsInbox />}
       {page === 'notifications' && <NotificationCenter />}
-      {page === 'directory' && <EmployeeDirectory onNavigate={navigate} />}
+      {page === 'directory' && <EmployeeDirectory />}
       {page === 'roster' && <RosterBuilder />}
       {page === 'payroll' && <PayrollCockpit />}
       {page === 'payroll-run' && <PayrollRunConsole />}
@@ -125,6 +130,9 @@ function App() {
       {page === 'workflow-studio' && <WorkflowStudio />}
       {page === 'leave-policies' && <LeavePolicies />}
       {page === 'approval-rules' && <ApprovalRules />}
+      {page === 'asset-registry' && <AssetRegistry />}
+      {page === 'asset-detail' && <AssetDetail />}
+      {page === 'asset-assignment' && <AssetAssignment />}
     </AppShell>
   )
 }

@@ -76,6 +76,55 @@ internal sealed class EmployeeService(
         );
     }
 
+    public async Task<EmployeeProfileDto?> GetEmployeeProfileAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var tenantId = tenantProvider.GetCurrentTenantId();
+        var employee = await dbContext.Employees
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id && e.TenantId == tenantId, cancellationToken);
+
+        if (employee == null) return null;
+
+        string? departmentName = employee.DepartmentId is Guid deptId
+            ? await dbContext.Departments.AsNoTracking().Where(d => d.Id == deptId).Select(d => d.Name).FirstOrDefaultAsync(cancellationToken)
+            : null;
+
+        string? designationName = null;
+        int? designationLevel = null;
+        if (employee.DesignationId is Guid desigId)
+        {
+            var designation = await dbContext.Designations.AsNoTracking()
+                .Where(d => d.Id == desigId)
+                .Select(d => new { d.Name, d.Level })
+                .FirstOrDefaultAsync(cancellationToken);
+            designationName = designation?.Name;
+            designationLevel = designation?.Level;
+        }
+
+        string? branchName = employee.BranchId is Guid branchId
+            ? await dbContext.Branches.AsNoTracking().Where(b => b.Id == branchId).Select(b => b.Name).FirstOrDefaultAsync(cancellationToken)
+            : null;
+
+        string? managerName = employee.ReportingManagerId is Guid managerId
+            ? await dbContext.Employees.AsNoTracking().Where(m => m.Id == managerId).Select(m => m.LegalName).FirstOrDefaultAsync(cancellationToken)
+            : null;
+
+        return new EmployeeProfileDto(
+            employee.Id,
+            employee.EmployeeNumber,
+            employee.LegalName,
+            employee.WorkEmail,
+            employee.HiredOn,
+            employee.Status.ToString(),
+            employee.TimeZoneId,
+            employee.EmploymentType.ToString(),
+            departmentName,
+            designationName,
+            designationLevel,
+            branchName,
+            managerName);
+    }
+
     public async Task<IReadOnlyList<EmployeeDto>> GetEmployeesAsync(CancellationToken cancellationToken = default)
     {
         var tenantId = tenantProvider.GetCurrentTenantId();
