@@ -40,7 +40,10 @@ public sealed class C8_BalancePerformanceTests(ITestOutputHelper output)
         sw.Stop();
         output.WriteLine($"50k consume+restore with O(1) cache: {sw.ElapsedMilliseconds}ms");
 
-        sw.ElapsedMilliseconds.Should().BeLessThan(2_000,
+        // 5s budget: still a 10× safety margin against the O(n) regression (49s),
+        // but absorbs the ~2s baseline cost on a loaded machine running the
+        // full parallel test suite (all projects fire concurrently pre-push).
+        sw.ElapsedMilliseconds.Should().BeLessThan(5_000,
             "O(1) cache makes 100k entry balance fast — previously took 49s due to O(n) Sum()");
 
         b.AvailableBalance.Should().Be(100_000m, "cache must be correct");
