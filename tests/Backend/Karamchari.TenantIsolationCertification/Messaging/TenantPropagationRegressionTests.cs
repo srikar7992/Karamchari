@@ -225,10 +225,16 @@ public class TenantPropagationRegressionTests
         await Task.WhenAll(tasks);
 
         // Assert
-        // Wait for all messages to be consumed
+        // Wait for all messages to be fully processed.
+        // TotalCount increments at consume-entry (before the artificial delay); IsolatedCount
+        // and LeakCount increment after the delay. We must wait until the post-delay counters
+        // are also saturated, otherwise we race between TotalCount reaching 30 and the last
+        // few consumers completing their Task.Delay before updating IsolatedCount.
         var timeout = TimeSpan.FromSeconds(30);
         var stopwatch = Stopwatch.StartNew();
-        while (StressConsumer.TotalCount < totalCount && stopwatch.Elapsed < timeout)
+        while ((StressConsumer.TotalCount < totalCount
+                || StressConsumer.IsolatedCount + StressConsumer.LeakCount < totalCount)
+               && stopwatch.Elapsed < timeout)
         {
             await Task.Delay(100);
         }
