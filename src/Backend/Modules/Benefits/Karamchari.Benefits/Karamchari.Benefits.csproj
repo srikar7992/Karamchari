@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Karamchari.Benefits — Benefits Administration bounded context.
+    Owns: BenefitPlan (plan catalog), BenefitEnrollment (employee elections),
+          BenefitDependent, LifeEvent, BenefitElection.
+
+    Scope: Open enrollment, new-hire enrollment window, life-event changes,
+           payroll deduction sync, carrier export (Phase 4).
+    Does NOT own: payroll deductions (Payroll module), employee records (HR).
+    Cross-context: fires BenefitEnrollmentActivated → Payroll (deduction setup),
+                   fires LifeEventSubmitted → Workflow (document verification),
+                   consumes EmployeeOnboarded → opens new-hire enrollment window.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Benefits</RootNamespace>
+    <AssemblyName>Karamchari.Benefits</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
+    <ProjectReference Include="..\Karamchari.Benefits.Contracts\Karamchari.Benefits.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
