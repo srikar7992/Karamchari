@@ -215,6 +215,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Benefits.Contrac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Benefits", "Modules\Benefits\Karamchari.Benefits\Karamchari.Benefits.csproj", "{B2000003-0000-0000-0000-000000000003}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Benefits.Tests", "..\..\tests\Backend\Karamchari.Benefits.Tests\Karamchari.Benefits.Tests.csproj", "{B2000004-0000-0000-0000-000000000004}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1009,6 +1011,18 @@ Global
 		{65E2CA4A-51E1-9079-678D-6A7A8D7A7404}.Release|x64.Build.0 = Release|Any CPU
 		{65E2CA4A-51E1-9079-678D-6A7A8D7A7404}.Release|x86.ActiveCfg = Release|Any CPU
 		{65E2CA4A-51E1-9079-678D-6A7A8D7A7404}.Release|x86.Build.0 = Release|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Debug|x64.Build.0 = Debug|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Debug|x86.Build.0 = Debug|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Release|x64.ActiveCfg = Release|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Release|x64.Build.0 = Release|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Release|x86.ActiveCfg = Release|Any CPU
+		{B2000004-0000-0000-0000-000000000004}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1095,5 +1109,6 @@ Global
 		{B2000001-0000-0000-0000-000000000001} = {CA253913-39DE-BFD0-C9A3-4B7EC6FBDF17}
 		{B2000002-0000-0000-0000-000000000002} = {B2000001-0000-0000-0000-000000000001}
 		{B2000003-0000-0000-0000-000000000003} = {B2000001-0000-0000-0000-000000000001}
+		{B2000004-0000-0000-0000-000000000004} = {B0000005-0000-0000-0000-000000000005}
 	EndGlobalSection
 EndGlobal

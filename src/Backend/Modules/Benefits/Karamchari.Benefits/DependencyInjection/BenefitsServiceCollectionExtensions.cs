@@ -40,6 +40,7 @@ public static class BenefitsServiceCollectionExtensions
         // can apply the tenant filter on every query.
         services.RegisterTenantTable("BenefitPlans");
         services.RegisterTenantTable("BenefitPlanTiers");
+        services.RegisterTenantTable("BenefitEnrollmentWindows");
         services.RegisterTenantTable("BenefitEnrollments");
         services.RegisterTenantTable("BenefitElections");
         services.RegisterTenantTable("BenefitDependents");

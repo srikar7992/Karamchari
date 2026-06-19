@@ -54,6 +54,10 @@ public sealed class BenefitPlan : AggregateRoot<BenefitPlanId>, ITenantOwned
 {
     private readonly List<BenefitPlanTier> _tiers = [];
 
+    // Private fields backing WaitingRule; stored in two DB columns via EF configuration.
+    private string _waitingPeriodType = nameof(WaitingPeriodRule.Immediate);
+    private int _waitingPeriodDays;
+
     private BenefitPlan() { TenantId = string.Empty; }
 
     private BenefitPlan(
@@ -66,7 +70,7 @@ public sealed class BenefitPlan : AggregateRoot<BenefitPlanId>, ITenantOwned
         string? externalPlanCode,
         DateOnly planYearStart,
         DateOnly planYearEnd,
-        int waitingPeriodDays) : base(id)
+        WaitingPeriodRule waitingRule) : base(id)
     {
         TenantId = tenantId;
         PlanName = planName;
@@ -76,7 +80,7 @@ public sealed class BenefitPlan : AggregateRoot<BenefitPlanId>, ITenantOwned
         ExternalPlanCode = externalPlanCode;
         PlanYearStart = planYearStart;
         PlanYearEnd = planYearEnd;
-        WaitingPeriodDays = waitingPeriodDays;
+        WaitingRule = waitingRule;
         Status = BenefitPlanStatus.Draft;
         CreatedAtUtc = DateTimeOffset.UtcNow;
     }
@@ -100,10 +104,18 @@ public sealed class BenefitPlan : AggregateRoot<BenefitPlanId>, ITenantOwned
     public DateOnly PlanYearEnd { get; private set; }
 
     /// <summary>
-    /// Days after hire date before the employee becomes eligible.
-    /// Zero means eligible on day one.
+    /// Policy governing when a new hire becomes eligible to use this plan.
+    /// Computed from the two stored columns <c>_waitingPeriodType</c> and <c>_waitingPeriodDays</c>;
+    /// the setter writes back to those fields via <see cref="WaitingPeriodRule.ToColumns"/>.
     /// </summary>
-    public int WaitingPeriodDays { get; private set; }
+    public WaitingPeriodRule WaitingRule
+    {
+        get => BuildWaitingRule(_waitingPeriodType, _waitingPeriodDays);
+        private set
+        {
+            (_waitingPeriodType, _waitingPeriodDays) = value.ToColumns();
+        }
+    }
 
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? PublishedAtUtc { get; private set; }
@@ -111,7 +123,11 @@ public sealed class BenefitPlan : AggregateRoot<BenefitPlanId>, ITenantOwned
     public IReadOnlyList<BenefitPlanTier> Tiers => _tiers.AsReadOnly();
 
     /// <summary>Computes the date an employee becomes eligible based on their hire date.</summary>
-    public DateOnly EligibleFrom(DateOnly hireDate) => hireDate.AddDays(WaitingPeriodDays);
+    public DateOnly EligibleFrom(DateOnly hireDate) => WaitingRule.EligibleFrom(hireDate);
+
+    // Static helper to avoid property/type name shadowing in the WaitingRule getter.
+    private static WaitingPeriodRule BuildWaitingRule(string type, int days) =>
+        WaitingPeriodRule.FromColumns(type, days);
 
     public static BenefitPlan Create(
         string tenantId,
@@ -122,7 +138,7 @@ public sealed class BenefitPlan : AggregateRoot<BenefitPlanId>, ITenantOwned
         string? externalPlanCode,
         DateOnly planYearStart,
         DateOnly planYearEnd,
-        int waitingPeriodDays = 0)
+        WaitingPeriodRule? waitingRule = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(planName);
@@ -130,14 +146,13 @@ public sealed class BenefitPlan : AggregateRoot<BenefitPlanId>, ITenantOwned
 
         if (planYearEnd <= planYearStart)
             throw new ArgumentException("Plan year end must be after plan year start.");
-        if (waitingPeriodDays < 0)
-            throw new ArgumentOutOfRangeException(nameof(waitingPeriodDays), "Waiting period cannot be negative.");
 
         return new BenefitPlan(
             new BenefitPlanId(Guid.NewGuid()),
             tenantId, planName, description, category,
             providerName, externalPlanCode,
-            planYearStart, planYearEnd, waitingPeriodDays);
+            planYearStart, planYearEnd,
+            waitingRule ?? new WaitingPeriodRule.Immediate());
     }
 
     /// <summary>

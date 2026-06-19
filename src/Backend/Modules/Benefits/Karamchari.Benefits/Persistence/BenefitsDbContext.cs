@@ -21,6 +21,7 @@ public sealed class BenefitsDbContext : KaramchariDbContext
     }
 
     public DbSet<BenefitPlan> Plans => Set<BenefitPlan>();
+    public DbSet<EnrollmentWindow> Windows => Set<EnrollmentWindow>();
     public DbSet<BenefitEnrollment> Enrollments => Set<BenefitEnrollment>();
     public DbSet<BenefitElection> Elections => Set<BenefitElection>();
     public DbSet<BenefitDependent> Dependents => Set<BenefitDependent>();

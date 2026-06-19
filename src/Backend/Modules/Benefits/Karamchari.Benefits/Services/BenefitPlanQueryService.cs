@@ -70,20 +70,25 @@ public sealed class BenefitPlanQueryService(BenefitsDbContext db, ITenantProvide
         return plan is null ? null : ToDto(plan);
     }
 
-    private static BenefitPlanDto ToDto(BenefitPlan plan) => new(
-        plan.Id.Value,
-        plan.PlanName,
-        plan.Description,
-        plan.Category.ToString(),
-        plan.Status.ToString(),
-        plan.ProviderName,
-        plan.ExternalPlanCode,
-        plan.PlanYearStart,
-        plan.PlanYearEnd,
-        plan.WaitingPeriodDays,
-        plan.Tiers.Select(t => new BenefitPlanTierDto(
-            t.Tier.ToString(),
-            t.EmployeeMonthlyPremium,
-            t.EmployerMonthlyPremium,
-            t.TotalMonthlyPremium)).ToList());
+    private static BenefitPlanDto ToDto(BenefitPlan plan)
+    {
+        var (ruleType, ruleDays) = plan.WaitingRule.ToColumns();
+        return new BenefitPlanDto(
+            plan.Id.Value,
+            plan.PlanName,
+            plan.Description,
+            plan.Category.ToString(),
+            plan.Status.ToString(),
+            plan.ProviderName,
+            plan.ExternalPlanCode,
+            plan.PlanYearStart,
+            plan.PlanYearEnd,
+            ruleType,
+            ruleDays,
+            plan.Tiers.Select(t => new BenefitPlanTierDto(
+                t.Tier.ToString(),
+                t.EmployeeMonthlyPremium,
+                t.EmployerMonthlyPremium,
+                t.TotalMonthlyPremium)).ToList());
+    }
 }

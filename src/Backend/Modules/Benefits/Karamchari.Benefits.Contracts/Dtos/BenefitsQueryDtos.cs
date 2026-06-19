@@ -27,7 +27,10 @@ public record BenefitPlanDto(
     string? ExternalPlanCode,
     DateOnly PlanYearStart,
     DateOnly PlanYearEnd,
-    int WaitingPeriodDays,
+    /// <summary>Discriminator for the waiting period policy (e.g., "Immediate", "FixedDays", "ProbationComplete").</summary>
+    string WaitingPeriodRuleType,
+    /// <summary>Numeric parameter for the waiting period rule; 0 when not applicable (Immediate).</summary>
+    int WaitingPeriodRuleDays,
     IReadOnlyList<BenefitPlanTierDto> Tiers);
 
 public record BenefitElectionDto(

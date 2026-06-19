@@ -61,3 +61,25 @@ public record BenefitElectionChangedEvent(
     Guid EmployeeId,
     LifeEventId LifeEventId,
     DateOnly ChangeEffectiveDate) : IDomainEvent;
+
+/// <summary>
+/// Raised when an enrollment window opens and elections are accepted.
+/// Notifications should alert eligible employees to complete their elections.
+/// </summary>
+public record EnrollmentWindowOpenedEvent(
+    string TenantId,
+    EnrollmentWindowId WindowId,
+    EnrollmentWindowType WindowType,
+    DateOnly PlanYearStart,
+    DateOnly PlanYearEnd,
+    DateTimeOffset WindowClosesAt) : IDomainEvent;
+
+/// <summary>
+/// Raised when an enrollment window closes. No further elections are accepted.
+/// HR reporting should flag any employees who did not submit elections.
+/// </summary>
+public record EnrollmentWindowClosedEvent(
+    string TenantId,
+    EnrollmentWindowId WindowId,
+    EnrollmentWindowType WindowType,
+    DateOnly PlanYearStart) : IDomainEvent;
