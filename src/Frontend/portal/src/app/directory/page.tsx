@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/shell/app-shell";
 import { Topbar } from "@/components/shell/topbar";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import type { ApiError } from "@/lib/api/errors";
 
 export default function DirectoryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
   const employeesQuery = useEmployees();
 
   return (
@@ -63,7 +65,11 @@ export default function DirectoryPage() {
 
               {employeesQuery.isSuccess && employeesQuery.data.length > 0
                 ? employeesQuery.data.map((e) => (
-                    <TableRow key={e.id}>
+                    <TableRow
+                      key={e.id}
+                      className="cursor-pointer"
+                      onClick={() => router.push(`/directory/${e.id}`)}
+                    >
                       <TableCell className="font-medium text-on-surface">
                         <div>{e.legalName}</div>
                         {e.workEmail && (

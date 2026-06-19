@@ -51,6 +51,8 @@ export default function AnalyticsDashboard() {
   const [projects, setProjects] = useState<ProjectMetrics[]>([]);
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
   // Simulation state
@@ -58,29 +60,21 @@ export default function AnalyticsDashboard() {
   const [costChange, setCostChange] = useState(0);
   const [simResult, setSimResult] = useState<SimulationResult | null>(null);
 
-  // Fetch data
+  // Fetch data — throws on non-OK so failures surface as errors, not empty data
   useEffect(() => {
     Promise.all([
-      fetch('/api/analytics/projects').then(r => r.ok ? r.json() : []),
-      fetch('/api/analytics/anomalies').then(r => r.ok ? r.json() : []),
+      fetch('/api/analytics/projects').then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); }),
+      fetch('/api/analytics/anomalies').then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); }),
     ])
       .then(([projectData, anomalyData]) => {
         setProjects(projectData);
         setAnomalies(anomalyData);
       })
       .catch(() => {
-        // Fallback demo data
-        setProjects([
-          { projectId: 'demo-alpha', revenue: 2400000, cost: 1680000, profit: 720000, margin: 30, billableHours: 480, utilization: 82 },
-          { projectId: 'demo-beta', revenue: 960000, cost: 864000, profit: 96000, margin: 10, billableHours: 192, utilization: 65 },
-          { projectId: 'demo-gamma', revenue: 1800000, cost: 1260000, profit: 540000, margin: 30, billableHours: 360, utilization: 78 },
-        ]);
-        setAnomalies([
-          { projectId: 'demo-beta', type: 'NegativeMargin', message: 'Project Beta margin is dangerously low at 10%.', severity: 'Warning' },
-        ]);
+        setFetchError('Unable to load analytics data. Please retry or check API availability.');
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [retryCount]);
 
   // Totals
   const totals = useMemo(() => {
@@ -136,6 +130,20 @@ export default function AnalyticsDashboard() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f1117', color: '#6366f1', fontSize: '1.2rem' }}>
         Loading analytics...
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f1117', gap: '1rem' }}>
+        <p style={{ color: '#fca5a5', fontSize: '1rem', fontWeight: 600 }}>{fetchError}</p>
+        <button
+          onClick={() => { setFetchError(null); setLoading(true); setRetryCount(c => c + 1); }}
+          style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.5rem 1.25rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
