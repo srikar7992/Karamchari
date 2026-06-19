@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------
 
 using Karamchari.AssetManagement.DependencyInjection;
+using Karamchari.Benefits.DependencyInjection;
 using Karamchari.Billing.DependencyInjection;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Compensation.DependencyInjection;
@@ -66,6 +67,7 @@ public static class CapabilityRegistry
             new SuccessionModule(configuration),
             new IntegrationModule(configuration),
             new OnboardingModule(configuration),
+            new BenefitsModule(configuration),
         };
     }
 }
