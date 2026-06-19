@@ -714,6 +714,47 @@ namespace Karamchari.Intelligence.Migrations
                     b.ToTable("Intel_InterventionTemplates", "__tenant__");
                 });
 
+            modelBuilder.Entity("Karamchari.Intelligence.Domain.Interventions.RecommendationDisposition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActorId")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Disposition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RecommendationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "RecommendationId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId", "EmployeeId");
+
+                    b.ToTable("Intel_RecommendationDispositions", "__tenant__");
+                });
+
             modelBuilder.Entity("Karamchari.Intelligence.Domain.Interventions.InterventionInstance", b =>
                 {
                     b.Property<Guid>("Id")

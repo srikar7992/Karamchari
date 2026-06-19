@@ -139,6 +139,9 @@ public class IntelligenceDbContext : KaramchariDbContext
     /// <summary>Active and historical intervention executions per employee.</summary>
     public DbSet<InterventionInstance> InterventionInstances => Set<InterventionInstance>();
 
+    /// <summary>Disposition records for recommendations (accepted/declined/deferred/expired).</summary>
+    public DbSet<RecommendationDisposition> RecommendationDispositions => Set<RecommendationDisposition>();
+
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -623,6 +626,17 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.Status).HasConversion<string>();
             b.Property(x => x.OwnerId).HasMaxLength(200);
             b.Property(x => x.CancellationReason).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<RecommendationDisposition>(b =>
+        {
+            b.ToTable("Intel_RecommendationDispositions");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.RecommendationId }).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.Property(x => x.Disposition).HasConversion<string>();
+            b.Property(x => x.ActorId).HasMaxLength(200);
+            b.Property(x => x.Reason).HasMaxLength(1000);
         });
     }
 }

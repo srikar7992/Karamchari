@@ -78,6 +78,8 @@ public static class IntelligenceServiceCollectionExtensions
         services.RegisterTenantTable("Intel_InterventionEffectiveness");
         // Phase 8
         services.RegisterTenantTable("Intel_InterventionInstances");
+        // Phase 9
+        services.RegisterTenantTable("Intel_RecommendationDispositions");
 
         services.AddDbContext<IntelligenceDbContext>((sp, options) =>
         {
@@ -124,6 +126,8 @@ public static class IntelligenceServiceCollectionExtensions
         services.AddScoped<WorkforceDashboardQueryService>();
         // Phase 8
         services.AddScoped<TemplateRecommendationService>();
+        // Phase 9
+        services.AddScoped<InterventionWorkflowService>();
 
         return services;
     }
