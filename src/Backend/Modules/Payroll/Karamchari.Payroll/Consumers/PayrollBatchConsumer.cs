@@ -97,6 +97,7 @@ public sealed class PayrollBatchConsumer : IConsumer<ProcessPayrollBatchCommand>
 
         // 1. Fetch data in bulk for the batch
         var profiles = await _dbContext.PayrollProfiles
+            .Include(p => p.India)
             .Where(p => pendingEmployeeIds.Contains(p.EmployeeId))
             .ToListAsync(context.CancellationToken);
 
