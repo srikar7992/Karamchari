@@ -14,6 +14,23 @@ using Microsoft.Extensions.Logging;
 namespace Karamchari.Intelligence.Services;
 
 /// <summary>
+/// Structured explanation of why a recommendation was generated.
+/// Machine-readable companion to <see cref="RecommendationCandidate.Rationale"/> — each factor
+/// is a named, typed value so the frontend can render "Contributing Factors" without string parsing.
+///
+/// <see cref="IsDefaultRate"/> is true when no effectiveness history exists; the caller can
+/// surface this as "Insufficient data — using neutral default".
+/// </summary>
+public sealed record ExplanationFactors(
+    string SignalType,
+    decimal SignalIntensity,
+    decimal HistoricalSuccessRate,
+    int ObservedApplications,
+    int MedianOutcomeDays,
+    decimal Confidence,
+    bool IsDefaultRate);
+
+/// <summary>
 /// Ephemeral projection of ranked intervention recommendations for an employee.
 /// Not persisted — generated on demand from the current signal state and historical effectiveness.
 /// </summary>
@@ -25,7 +42,8 @@ public sealed record RecommendationCandidate(
     decimal SignalIntensity,
     decimal CohortMatchMultiplier,
     decimal Score,
-    string Rationale);
+    string Rationale,
+    ExplanationFactors Explanation);
 
 /// <summary>
 /// Generates ranked intervention recommendations from the template catalog using the V1 scoring formula:
@@ -99,6 +117,15 @@ public sealed class TemplateRecommendationService
             const decimal cohortMatch = 1.0m; // V1: neutral until cohort tracking is introduced
             var score = successRate * signalIntensity * cohortMatch;
 
+            var explanation = new ExplanationFactors(
+                SignalType: signalType.ToString(),
+                SignalIntensity: signalIntensity,
+                HistoricalSuccessRate: successRate,
+                ObservedApplications: eff?.Applications ?? 0,
+                MedianOutcomeDays: eff?.MedianOutcomeDays ?? 30,
+                Confidence: eff?.Confidence ?? 0m,
+                IsDefaultRate: eff is null);
+
             candidates.Add(new RecommendationCandidate(
                 TemplateId: template.Id,
                 TemplateName: template.Name,
@@ -107,7 +134,8 @@ public sealed class TemplateRecommendationService
                 SignalIntensity: signalIntensity,
                 CohortMatchMultiplier: cohortMatch,
                 Score: score,
-                Rationale: BuildRationale(template.Name, successRate, signalIntensity, eff)));
+                Rationale: BuildRationale(template.Name, successRate, signalIntensity, eff),
+                Explanation: explanation));
         }
 
         var ranked = candidates.OrderByDescending(c => c.Score).ToList();
