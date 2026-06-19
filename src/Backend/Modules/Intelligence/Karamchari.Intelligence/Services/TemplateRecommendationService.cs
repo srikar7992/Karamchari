@@ -18,11 +18,14 @@ namespace Karamchari.Intelligence.Services;
 /// Machine-readable companion to <see cref="RecommendationCandidate.Rationale"/> — each factor
 /// is a named, typed value so the frontend can render "Contributing Factors" without string parsing.
 ///
+/// <see cref="SignalCode"/> is the canonical enum name kept stable for programmatic use.
+/// <see cref="SignalDescription"/> is the human-readable translation for display.
 /// <see cref="IsDefaultRate"/> is true when no effectiveness history exists; the caller can
 /// surface this as "Insufficient data — using neutral default".
 /// </summary>
 public sealed record ExplanationFactors(
-    string SignalType,
+    string SignalCode,
+    string SignalDescription,
     decimal SignalIntensity,
     decimal HistoricalSuccessRate,
     int ObservedApplications,
@@ -118,7 +121,8 @@ public sealed class TemplateRecommendationService
             var score = successRate * signalIntensity * cohortMatch;
 
             var explanation = new ExplanationFactors(
-                SignalType: signalType.ToString(),
+                SignalCode: signalType.ToString(),
+                SignalDescription: DescribeSignal(signalType),
                 SignalIntensity: signalIntensity,
                 HistoricalSuccessRate: successRate,
                 ObservedApplications: eff?.Applications ?? 0,
@@ -161,4 +165,41 @@ public sealed class TemplateRecommendationService
                $"for this signal type ({confidence}). " +
                $"Signal intensity {signalIntensity:P0}.";
     }
+
+    private static string DescribeSignal(WorkforceSignalType signalType) => signalType switch
+    {
+        // Burnout signals
+        WorkforceSignalType.ConsecutiveWorkDays        => "Sustained multi-day run without a rest day",
+        WorkforceSignalType.OvertimeHours28d           => "Elevated overtime over the last 28 days",
+        WorkforceSignalType.DaysWithoutLeave           => "Extended period without approved leave",
+        WorkforceSignalType.LateArrivalsMonthly        => "Increased late arrivals this month",
+        WorkforceSignalType.ShiftSwaps30d              => "Frequent shift changes in the last 30 days",
+        WorkforceSignalType.HighIntensityShiftRatio    => "High proportion of night, weekend, or holiday shifts",
+        WorkforceSignalType.EmergencyFillIns90d        => "Repeated use as emergency coverage in the last 90 days",
+
+        // Attrition signals
+        WorkforceSignalType.LateArrivalSlope           => "Worsening late-arrival trend over 3 months",
+        WorkforceSignalType.LeaveFrequencyRatio        => "Leave request frequency above personal baseline",
+        WorkforceSignalType.SickLeaveDays30d           => "Above-average sick leave in the last 30 days",
+        WorkforceSignalType.ShiftSwapAttritionScore    => "Shift-swap pattern suggests schedule dissatisfaction",
+        WorkforceSignalType.OvertimeRejections30d      => "Increased overtime offer declines in the last 30 days",
+        WorkforceSignalType.PeerAttendanceGap          => "Attendance rate below team average",
+        WorkforceSignalType.ManagerFrictionScore       => "Elevated transfer requests, shift appeals, or escalations",
+
+        // Phase 6.1
+        WorkforceSignalType.CriticalShiftCoverageRatio => "High single-point dependency for critical shift coverage",
+
+        // Phase 6.3 — Dependency Risk
+        WorkforceSignalType.CrossTrainingDepth         => "Limited cross-role coverage capability",
+        WorkforceSignalType.UniqueRoleFlag             => "Sole practitioner in this role with no trained backup",
+        WorkforceSignalType.ApprovalAuthorityIndex     => "Holds significant approval authority with no backup",
+
+        // Phase 6.3 — Schedule Quality
+        WorkforceSignalType.NightToMorningTransitions7d => "Night-to-morning shift transitions without adequate rest",
+        WorkforceSignalType.ShortRestViolations7d       => "Shifts preceded by fewer than 11 hours of rest",
+        WorkforceSignalType.WeekendShiftClustering      => "Recurring concentration of weekend shifts",
+        WorkforceSignalType.SplitShiftCount30d          => "Frequent split shifts in the last 30 days",
+
+        _ => signalType.ToString()
+    };
 }
