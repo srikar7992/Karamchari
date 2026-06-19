@@ -73,6 +73,9 @@ public static class IntelligenceServiceCollectionExtensions
         services.RegisterTenantTable("Intel_EmployeeScopes");
         services.RegisterTenantTable("Intel_CoverageFragility");
         services.RegisterTenantTable("Intel_CausalChains");
+        // Phase 7
+        services.RegisterTenantTable("Intel_InterventionTemplates");
+        services.RegisterTenantTable("Intel_InterventionEffectiveness");
 
         services.AddDbContext<IntelligenceDbContext>((sp, options) =>
         {
@@ -128,5 +131,6 @@ public static class IntelligenceServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(busConfigurator);
         busConfigurator.AddConsumer<WorkforceIntelligenceConsumer>();
+        busConfigurator.AddConsumer<RiskSignalConsumer>();
     }
 }

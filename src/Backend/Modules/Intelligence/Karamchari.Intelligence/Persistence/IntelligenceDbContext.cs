@@ -7,6 +7,7 @@
 
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
+using Karamchari.Intelligence.Domain.Interventions;
 using Karamchari.Intelligence.Domain.Metrics;
 using Karamchari.Intelligence.Domain.Primitives;
 using Karamchari.Intelligence.Domain.Signals;
@@ -126,6 +127,14 @@ public class IntelligenceDbContext : KaramchariDbContext
 
     /// <summary>Per-employee active causal chain detection snapshots.</summary>
     public DbSet<EmployeeCausalChain> EmployeeCausalChains => Set<EmployeeCausalChain>();
+
+    // ── Phase 7: Intervention Library ───────────────────────────────────────
+
+    /// <summary>HR-managed catalog of intervention types.</summary>
+    public DbSet<InterventionTemplate> InterventionTemplates => Set<InterventionTemplate>();
+
+    /// <summary>Per-(template × signal) historical effectiveness rates.</summary>
+    public DbSet<InterventionEffectiveness> InterventionEffectiveness => Set<InterventionEffectiveness>();
 
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
@@ -340,6 +349,9 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.Priority).HasConversion<string>();
             b.Property(x => x.TriggerScore).HasPrecision(5, 1);
             b.Property(x => x.Rationale).HasMaxLength(1000);
+            // Phase 7
+            b.Property(x => x.OwnerType).HasConversion<string>();
+            b.Property(x => x.OwnerId).HasMaxLength(200);
         });
 
         // ── Phase 6.1: Intelligence Maturity ────────────────────────────────
@@ -472,6 +484,8 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.ScoreAtEvaluation).HasPrecision(5, 1);
             b.Property(x => x.ScoreDelta).HasPrecision(6, 1);
             b.Property(x => x.Status).HasConversion<string>();
+            // Phase 7
+            b.Property(x => x.ObservedOutcomeSource).HasConversion<string>();
         });
 
         modelBuilder.Entity<WorkforceHotspot>(b =>
@@ -565,6 +579,35 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.ActiveLinksJson).HasColumnType("nvarchar(max)");
             b.Property(x => x.ChainSeverity).HasConversion<string>();
             b.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        // ── Phase 7: Intervention Library ───────────────────────────────────
+
+        modelBuilder.Entity<InterventionTemplate>(b =>
+        {
+            b.ToTable("Intel_InterventionTemplates");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.Name }).IsUnique();
+            b.Property(x => x.Name).HasMaxLength(200);
+            b.Property(x => x.Category).HasConversion<string>();
+            b.Property(x => x.CreatedBy).HasMaxLength(200);
+            b.Property(x => x.WorkflowTemplateJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.PreconditionsJson).HasColumnType("nvarchar(max)");
+        });
+
+        modelBuilder.Entity<InterventionEffectiveness>(b =>
+        {
+            b.ToTable("Intel_InterventionEffectiveness");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.TemplateId, x.SignalType }).IsUnique();
+            b.Property(x => x.SignalType).HasConversion<string>().HasMaxLength(100);
+            b.Property(x => x.SuccessRate).HasPrecision(5, 3);
+            b.Property(x => x.Confidence).HasPrecision(5, 3);
+
+            b.HasOne<InterventionTemplate>()
+                .WithMany()
+                .HasForeignKey(x => x.TemplateId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

@@ -17,3 +17,17 @@ public sealed record StaleIntelligenceAlertEvent(
     string SubjectId,
     DateTimeOffset LastGeneratedAtUtc,
     string WarningMessage);
+
+/// <summary>
+/// Published when any source — burnout engine, attrition engine, external AI, performance engine —
+/// detects a workforce risk signal for an employee.
+/// Intelligence module consumes this event regardless of source, keeping risk detection decoupled.
+/// </summary>
+public sealed record RiskSignalRaisedIntegrationEvent(
+    string TenantId,
+    Guid EmployeeId,
+    string SignalType,
+    decimal SignalValue,
+    DateOnly SignalDate,
+    string SourceModule,
+    Guid CorrelationId);
