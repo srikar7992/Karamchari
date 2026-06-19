@@ -113,6 +113,18 @@ public class PayrollProfile : ITenantOwned
     public string EsicNumber { get; private set; } = string.Empty;
 
     /// <summary>
+    /// Assigns the compensation configuration for this profile.
+    /// Called when HR configures payroll for an employee (salary template assignment or revision approval).
+    /// </summary>
+    public void AssignCompensation(decimal annualCtc, Guid salaryTemplateId)
+    {
+        if (annualCtc <= 0) throw new ArgumentOutOfRangeException(nameof(annualCtc), "Annual CTC must be positive.");
+        if (salaryTemplateId == Guid.Empty) throw new ArgumentException("Salary template ID cannot be empty.", nameof(salaryTemplateId));
+        AnnualCTC = annualCtc;
+        SalaryTemplateId = salaryTemplateId;
+    }
+
+    /// <summary>
     /// Updates the statutory identifiers for the profile.
     /// </summary>
     public void UpdateStatutoryInfo(string pan, string uan, string esicNumber)

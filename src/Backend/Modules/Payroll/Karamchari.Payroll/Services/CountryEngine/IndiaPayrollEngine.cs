@@ -29,12 +29,8 @@ using Karamchari.Payroll.Services.Statutory;
 /// </summary>
 public sealed class IndiaPayrollEngine : IPayrollCountryEngine
 {
+    private readonly IStatutoryRuleSetFactory _ruleSetFactory;
     private readonly ITaxCalculatorService _taxCalculator;
-    private readonly IProfessionalTaxProvider _ptProvider;
-    private readonly IIncomeProjectionService _projectionService;
-    private readonly IExemptionCalculator _exemptionCalculator;
-    private readonly ITaxSlabProvider _taxSlabProvider;
-    private readonly IITDeclarationRepository _declarationRepository;
     private readonly ITdsGenerator _tdsGenerator;
     private readonly IEcrGenerator _ecrGenerator;
     private readonly IEsicGenerator _esicGenerator;
@@ -42,22 +38,14 @@ public sealed class IndiaPayrollEngine : IPayrollCountryEngine
     public string CountryCode => "IN";
 
     public IndiaPayrollEngine(
+        IStatutoryRuleSetFactory ruleSetFactory,
         ITaxCalculatorService taxCalculator,
-        IProfessionalTaxProvider ptProvider,
-        IIncomeProjectionService projectionService,
-        IExemptionCalculator exemptionCalculator,
-        ITaxSlabProvider taxSlabProvider,
-        IITDeclarationRepository declarationRepository,
         ITdsGenerator tdsGenerator,
         IEcrGenerator ecrGenerator,
         IEsicGenerator esicGenerator)
     {
+        _ruleSetFactory = ruleSetFactory;
         _taxCalculator = taxCalculator;
-        _ptProvider = ptProvider;
-        _projectionService = projectionService;
-        _exemptionCalculator = exemptionCalculator;
-        _taxSlabProvider = taxSlabProvider;
-        _declarationRepository = declarationRepository;
         _tdsGenerator = tdsGenerator;
         _ecrGenerator = ecrGenerator;
         _esicGenerator = esicGenerator;
@@ -143,15 +131,13 @@ public sealed class IndiaPayrollEngine : IPayrollCountryEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var ruleSet = new FY20262027RuleSet(
-            tenantEpfComponentIds: context.EpfWageComponentIds.ToList(),
-            ptProvider: _ptProvider,
-            projectionService: _projectionService,
-            exemptionCalculator: _exemptionCalculator,
-            taxSlabProvider: _taxSlabProvider,
-            declarationRepository: _declarationRepository,
-            tenantBasicComponentIds: context.BasicComponentIds.ToList(),
-            tenantHraComponentIds: context.HraComponentIds.ToList());
+        // Rule set is selected by EffectiveDate, not system date, so retro-pay and
+        // historical audits always reproduce the rules active during the original period.
+        var ruleSet = _ruleSetFactory.Create(
+            context.FinancialYear,
+            context.EpfWageComponentIds,
+            context.BasicComponentIds,
+            context.HraComponentIds);
 
         var statutoryContext = new StatutoryContext(
             context.Breakdown,
@@ -220,14 +206,15 @@ public sealed class IndiaPayrollEngine : IPayrollCountryEngine
             RemainingTax = 0m
         });
 
-        var tdsNextMonth = period.EndDate.AddMonths(1);
+        var obligation = IndiaCountryConstants.ReportingCalendar.Obligations
+            .First(o => o.Code == "TDS_MONTHLY");
         return new ComplianceReport(
             ReportCode: "TDS_MONTHLY",
             DisplayName: "Monthly TDS Deduction Statement",
             Format: ComplianceReportFormat.FixedWidth,
             TextContent: _tdsGenerator.Generate(records),
             BinaryContent: null,
-            DueDate: new DateOnly(tdsNextMonth.Year, tdsNextMonth.Month, 7));
+            DueDate: obligation.CalculateDueDate(period.EndDate));
     }
 
     private ComplianceReport GenerateEcrReport(
@@ -255,14 +242,15 @@ public sealed class IndiaPayrollEngine : IPayrollCountryEngine
             };
         });
 
-        var ecrNextMonth = period.EndDate.AddMonths(1);
+        var obligation = IndiaCountryConstants.ReportingCalendar.Obligations
+            .First(o => o.Code == "EPF_ECR");
         return new ComplianceReport(
             ReportCode: "EPF_ECR",
             DisplayName: "EPF Electronic Challan cum Return",
             Format: ComplianceReportFormat.Csv,
             TextContent: _ecrGenerator.Generate(records),
             BinaryContent: null,
-            DueDate: new DateOnly(ecrNextMonth.Year, ecrNextMonth.Month, 15));
+            DueDate: obligation.CalculateDueDate(period.EndDate));
     }
 
     private ComplianceReport GenerateEsicReport(
@@ -282,13 +270,14 @@ public sealed class IndiaPayrollEngine : IPayrollCountryEngine
                 DaysWorked = (int)s.ExtendedData.GetValueOrDefault("DAYS_WORKED", 26)
             });
 
-        var esicNextMonth = period.EndDate.AddMonths(1);
+        var obligation = IndiaCountryConstants.ReportingCalendar.Obligations
+            .First(o => o.Code == "ESIC_RETURN");
         return new ComplianceReport(
             ReportCode: "ESIC_RETURN",
             DisplayName: "ESIC Monthly Contribution Return",
             Format: ComplianceReportFormat.Excel,
             TextContent: null,
             BinaryContent: _esicGenerator.Generate(eligible),
-            DueDate: new DateOnly(esicNextMonth.Year, esicNextMonth.Month, 15));
+            DueDate: obligation.CalculateDueDate(period.EndDate));
     }
 }

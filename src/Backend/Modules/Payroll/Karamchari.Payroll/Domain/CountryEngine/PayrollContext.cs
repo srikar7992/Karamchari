@@ -23,6 +23,14 @@ public sealed record PayrollContext(
     /// <summary>The calendar month being processed (1 = January, 12 = December).</summary>
     int PayrollMonth,
 
+    /// <summary>
+    /// The last day of the payroll period being processed.
+    /// The rule set factory uses this to select the correct statutory rule version
+    /// (e.g., FY2026-27 vs FY2027-28) so retro-pay and historical audits reproduce
+    /// the rules that were active at processing time rather than today's rules.
+    /// </summary>
+    DateOnly EffectiveDate,
+
     /// <summary>Cumulative gross paid to this employee in the current financial year before this period.</summary>
     decimal YearToDateGross,
 
