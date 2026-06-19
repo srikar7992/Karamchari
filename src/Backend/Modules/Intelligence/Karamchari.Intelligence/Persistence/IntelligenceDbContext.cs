@@ -136,6 +136,9 @@ public class IntelligenceDbContext : KaramchariDbContext
     /// <summary>Per-(template × signal) historical effectiveness rates.</summary>
     public DbSet<InterventionEffectiveness> InterventionEffectiveness => Set<InterventionEffectiveness>();
 
+    /// <summary>Active and historical intervention executions per employee.</summary>
+    public DbSet<InterventionInstance> InterventionInstances => Set<InterventionInstance>();
+
     /// <inheritdoc/>
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
@@ -608,6 +611,18 @@ public class IntelligenceDbContext : KaramchariDbContext
                 .WithMany()
                 .HasForeignKey(x => x.TemplateId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InterventionInstance>(b =>
+        {
+            b.ToTable("Intel_InterventionInstances");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.EmployeeId });
+            b.HasIndex(x => new { x.TenantId, x.RecommendationId }).IsUnique();
+            b.Property(x => x.OwnerType).HasConversion<string>();
+            b.Property(x => x.Status).HasConversion<string>();
+            b.Property(x => x.OwnerId).HasMaxLength(200);
+            b.Property(x => x.CancellationReason).HasMaxLength(500);
         });
     }
 }

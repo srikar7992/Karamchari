@@ -76,6 +76,8 @@ public static class IntelligenceServiceCollectionExtensions
         // Phase 7
         services.RegisterTenantTable("Intel_InterventionTemplates");
         services.RegisterTenantTable("Intel_InterventionEffectiveness");
+        // Phase 8
+        services.RegisterTenantTable("Intel_InterventionInstances");
 
         services.AddDbContext<IntelligenceDbContext>((sp, options) =>
         {
@@ -120,6 +122,8 @@ public static class IntelligenceServiceCollectionExtensions
         services.AddScoped<CoverageFragilityService>();
         services.AddScoped<CausalChainService>();
         services.AddScoped<WorkforceDashboardQueryService>();
+        // Phase 8
+        services.AddScoped<TemplateRecommendationService>();
 
         return services;
     }
