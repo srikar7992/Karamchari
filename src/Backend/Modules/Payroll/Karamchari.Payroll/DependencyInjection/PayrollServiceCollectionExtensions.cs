@@ -23,6 +23,9 @@ using Karamchari.Payroll.Services.FnF;
 using Karamchari.Payroll.Services.Loans;
 using Karamchari.Payroll.Services.Payslip;
 using Karamchari.Payroll.Services.Reconciliation;
+using Karamchari.Payroll.Domain.CountryEngine;
+using Karamchari.Payroll.Services.Compliance;
+using Karamchari.Payroll.Services.CountryEngine;
 using Karamchari.Payroll.Services.Reimbursements;
 using Karamchari.Payroll.Services.Simulation;
 using Karamchari.Payroll.Services.Statutory;
@@ -64,6 +67,16 @@ public static class PayrollServiceCollectionExtensions
         services.AddSingleton<CTCTemplateCompiler>();
         services.AddSingleton<CTCBreakdownService>();
         services.AddSingleton<StatutoryPipelineEngine>();
+
+        // Country engine — India is the first and currently only implementation.
+        // Additional countries add a new IStatutoryRuleSetFactory + IPayrollCountryEngine pair.
+        // IndiaPayrollEngine selects the rule set by EffectiveDate via IndiaRuleSetFactory,
+        // ensuring retro-pay and historical audits reproduce the rules from the original period.
+        services.AddScoped<ITdsGenerator, TdsGenerator>();
+        services.AddScoped<IEcrGenerator, EcrGenerator>();
+        services.AddScoped<IEsicGenerator, EsicGenerator>();
+        services.AddScoped<IStatutoryRuleSetFactory, IndiaRuleSetFactory>();
+        services.AddScoped<IPayrollCountryEngine, IndiaPayrollEngine>();
 
         // Phase 4: Calculation engine + tax + deductions + retro + snapshot + bank recon
         services.AddScoped<IPayrollCalculationEngine, PayrollCalculationEngine>();

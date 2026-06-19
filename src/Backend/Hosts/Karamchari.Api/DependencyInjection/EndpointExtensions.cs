@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------
 
 using Karamchari.Api.BFF.AssetManagement;
+using Karamchari.Api.BFF.Benefits;
 using Karamchari.Api.BFF.Attendance;
 using Karamchari.Api.BFF.Audit;
 using Karamchari.Api.BFF.Billing;
@@ -107,6 +108,7 @@ public static class EndpointExtensions
         app.MapIntegrationEndpoints();
         app.MapOnboardingEndpoints();
         app.MapCompensationEndpoints();
+        app.MapBenefitsEndpoints();
         app.MapAuditEndpoints();
         app.MapComplianceGateEndpoints();
         app.MapWorkflowRuleEndpoints();

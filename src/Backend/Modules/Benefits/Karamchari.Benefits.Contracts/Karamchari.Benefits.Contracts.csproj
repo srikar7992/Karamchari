@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Karamchari.Benefits.Contracts — integration event contracts for the
+    Benefits Administration bounded context.
+
+    Scope: Benefit plan catalog, employee elections, dependents, life events,
+           payroll deduction sync.
+    Consumers: Payroll (deduction amounts when enrollment activates or changes),
+               Notifications (enrollment confirmation, life-event verification requests),
+               Workflow (life-event document verification workflow trigger).
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Karamchari.Benefits.Contracts</RootNamespace>
+    <AssemblyName>Karamchari.Benefits.Contracts</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
+  </ItemGroup>
+
+</Project>

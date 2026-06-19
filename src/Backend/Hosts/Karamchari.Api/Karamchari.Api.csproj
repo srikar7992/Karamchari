@@ -82,6 +82,8 @@
     <ProjectReference Include="..\..\Modules\Integration\Karamchari.Integration\Karamchari.Integration.csproj" />
     <ProjectReference Include="..\..\Modules\Onboarding\Karamchari.Onboarding\Karamchari.Onboarding.csproj" />
     <ProjectReference Include="..\..\Modules\Onboarding\Karamchari.Onboarding.Contracts\Karamchari.Onboarding.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Benefits\Karamchari.Benefits\Karamchari.Benefits.csproj" />
+    <ProjectReference Include="..\..\Modules\Benefits\Karamchari.Benefits.Contracts\Karamchari.Benefits.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

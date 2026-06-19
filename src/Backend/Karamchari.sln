@@ -209,6 +209,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Integration", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Benchmarks", "..\..\tests\Backend\Karamchari.Benchmarks\Karamchari.Benchmarks.csproj", "{FECDB745-ADE0-4AAB-9B85-C05A5C48EFC4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benefits", "Benefits", "{B2000001-0000-0000-0000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Benefits.Contracts", "Modules\Benefits\Karamchari.Benefits.Contracts\Karamchari.Benefits.Contracts.csproj", "{B2000002-0000-0000-0000-000000000002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.Benefits", "Modules\Benefits\Karamchari.Benefits\Karamchari.Benefits.csproj", "{B2000003-0000-0000-0000-000000000003}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1086,5 +1092,8 @@ Global
 		{55E67275-3AF0-4308-A8AB-0B6315E5687F} = {B1948FD5-C17F-B35B-50C6-0BF5A556C5BC}
 		{D8CED9F5-4F85-2931-3CB0-8B5130FC326C} = {CA253913-39DE-BFD0-C9A3-4B7EC6FBDF17}
 		{70B2524A-D5C2-43CC-87A8-5E839ACCAD21} = {D8CED9F5-4F85-2931-3CB0-8B5130FC326C}
+		{B2000001-0000-0000-0000-000000000001} = {CA253913-39DE-BFD0-C9A3-4B7EC6FBDF17}
+		{B2000002-0000-0000-0000-000000000002} = {B2000001-0000-0000-0000-000000000001}
+		{B2000003-0000-0000-0000-000000000003} = {B2000001-0000-0000-0000-000000000001}
 	EndGlobalSection
 EndGlobal
