@@ -68,7 +68,14 @@ public sealed class IndiaPayrollEngine : IPayrollCountryEngine
         var errors = new List<string>();
         var warnings = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(context.Profile.Pan))
+        var india = context.Profile.India;
+        if (india is null)
+        {
+            errors.Add("India payroll profile is not configured for this employee.");
+            return new EmployeeEligibilityResult(false, errors, warnings);
+        }
+
+        if (string.IsNullOrWhiteSpace(india.Pan))
             errors.Add("PAN is mandatory for payroll processing in India (Income Tax Act).");
 
         if (context.Profile.AnnualCTC <= 0)
@@ -77,10 +84,10 @@ public sealed class IndiaPayrollEngine : IPayrollCountryEngine
         if (context.Profile.SalaryTemplateId == Guid.Empty)
             errors.Add("A salary template must be assigned before running payroll.");
 
-        if (string.IsNullOrWhiteSpace(context.Profile.Uan))
+        if (string.IsNullOrWhiteSpace(india.Uan))
             warnings.Add("UAN is missing — EPF contributions cannot be deposited to the employee's PF account.");
 
-        if (string.IsNullOrWhiteSpace(context.Profile.EsicNumber)
+        if (string.IsNullOrWhiteSpace(india.EsicNumber)
             && context.Breakdown.MonthlyGross <= 21_000m)
             warnings.Add("ESIC Insurance Number is missing for an employee eligible for ESIC (Gross ≤ ₹21,000).");
 
@@ -99,9 +106,11 @@ public sealed class IndiaPayrollEngine : IPayrollCountryEngine
     {
         ArgumentNullException.ThrowIfNull(context);
 
+        var taxRegime = context.Profile.India?.TaxRegime.ToString() ?? "New";
+
         var input = new TaxCalculationInput(
             EmployeeId: context.Profile.EmployeeId,
-            TaxRegime: context.Profile.TaxRegime.ToString(),
+            TaxRegime: taxRegime,
             Month: context.PayrollMonth,
             FinancialYear: context.FinancialYear.StartYear,
             YearToDateGross: context.YearToDateGross,
@@ -119,7 +128,7 @@ public sealed class IndiaPayrollEngine : IPayrollCountryEngine
             AnnualTaxLiability: output.TaxLiability,
             TdsThisMonth: output.TdsThisMonth,
             YearToDateTdsDeducted: context.YearToDateTds,
-            TaxRegime: context.Profile.TaxRegime.ToString(),
+            TaxRegime: taxRegime,
             RuleVersionId: output.RuleVersionId);
     }
 

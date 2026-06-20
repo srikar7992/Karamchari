@@ -56,6 +56,11 @@ public class PayrollDbContext : KaramchariDbContext
     /// Gets the payroll profiles set.
     /// </summary>
     public DbSet<PayrollProfile> PayrollProfiles => Set<PayrollProfile>();
+
+    /// <summary>
+    /// Gets the India statutory profiles set.
+    /// </summary>
+    public DbSet<IndiaPayrollProfile> IndiaPayrollProfiles => Set<IndiaPayrollProfile>();
     /// <summary>
     /// Gets the payroll run states set (Saga state).
     /// </summary>
@@ -217,7 +222,22 @@ public class PayrollDbContext : KaramchariDbContext
         {
             b.ToTable("PayrollProfiles");
             b.HasKey(x => x.Id);
-            // In a real app, you'd apply the RLS function here via EF Core mapping
+            b.HasOne(x => x.India)
+             .WithOne()
+             .HasForeignKey<IndiaPayrollProfile>(x => x.PayrollProfileId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<IndiaPayrollProfile>(b =>
+        {
+            b.ToTable("IndiaPayrollProfiles");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.PayrollProfileId).IsUnique();
+            b.Property(x => x.StateCode).HasMaxLength(10);
+            b.Property(x => x.Pan).HasMaxLength(10);
+            b.Property(x => x.Uan).HasMaxLength(20);
+            b.Property(x => x.EsicNumber).HasMaxLength(20);
+            b.Property(x => x.TaxRegime).HasConversion<string>();
         });
 
         modelBuilder.Entity<PayrollRunState>(b =>

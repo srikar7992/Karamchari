@@ -39,7 +39,8 @@ public sealed class BenefitEnrollment : AggregateRoot<BenefitEnrollmentId>, ITen
         string employeeName,
         DateOnly planYearStart,
         DateOnly planYearEnd,
-        DateOnly hireDate) : base(id)
+        DateOnly hireDate,
+        EnrollmentWindowId windowId) : base(id)
     {
         TenantId = tenantId;
         EmployeeId = employeeId;
@@ -47,6 +48,7 @@ public sealed class BenefitEnrollment : AggregateRoot<BenefitEnrollmentId>, ITen
         PlanYearStart = planYearStart;
         PlanYearEnd = planYearEnd;
         HireDate = hireDate;
+        WindowId = windowId;
         Status = EnrollmentStatus.PendingSubmission;
         CreatedAtUtc = DateTimeOffset.UtcNow;
     }
@@ -57,6 +59,14 @@ public sealed class BenefitEnrollment : AggregateRoot<BenefitEnrollmentId>, ITen
     public DateOnly PlanYearStart { get; private set; }
     public DateOnly PlanYearEnd { get; private set; }
     public DateOnly HireDate { get; private set; }
+
+    /// <summary>
+    /// The enrollment window under which this enrollment was opened.
+    /// Every enrollment must be traceable to the window that authorised its creation —
+    /// this is the provenance anchor for audit ("why was this election allowed?").
+    /// </summary>
+    public EnrollmentWindowId WindowId { get; private set; }
+
     public EnrollmentStatus Status { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? SubmittedAtUtc { get; private set; }
@@ -74,8 +84,9 @@ public sealed class BenefitEnrollment : AggregateRoot<BenefitEnrollmentId>, ITen
     public IEnumerable<BenefitDependent> ActiveDependents => _dependents.Where(d => !d.IsRemoved);
 
     /// <summary>
-    /// Opens a new pending enrollment for an employee.
-    /// Called when a new hire enrollment window is created or when open enrollment starts.
+    /// Opens a new pending enrollment for an employee under a specific enrollment window.
+    /// The <paramref name="windowId"/> records which window authorised this enrollment,
+    /// making the election provenance auditable for the lifetime of the enrollment record.
     /// </summary>
     public static BenefitEnrollment Open(
         string tenantId,
@@ -83,7 +94,8 @@ public sealed class BenefitEnrollment : AggregateRoot<BenefitEnrollmentId>, ITen
         string employeeName,
         DateOnly planYearStart,
         DateOnly planYearEnd,
-        DateOnly hireDate)
+        DateOnly hireDate,
+        EnrollmentWindowId windowId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(employeeName);
@@ -94,7 +106,7 @@ public sealed class BenefitEnrollment : AggregateRoot<BenefitEnrollmentId>, ITen
         return new BenefitEnrollment(
             new BenefitEnrollmentId(Guid.NewGuid()),
             tenantId, employeeId, employeeName,
-            planYearStart, planYearEnd, hireDate);
+            planYearStart, planYearEnd, hireDate, windowId);
     }
 
     // ── Elections ─────────────────────────────────────────────────────────────

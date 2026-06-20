@@ -15,9 +15,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Opens a new-hire enrollment window when an employee is onboarded.
-/// The enrollment is created in PendingSubmission status; the employee has 30 days
-/// (the standard new-hire window) to log in and make their elections.
+/// Opens a new-hire enrollment window and an enrollment record when an employee is onboarded.
+///
+/// The enrollment window (30 days) establishes the provenance for all elections the employee
+/// makes during that period. The enrollment itself starts in PendingSubmission; the employee
+/// must log in and make their elections within the window.
 ///
 /// Idempotent: if an enrollment already exists for this employee + plan year, the event is skipped.
 /// </summary>
@@ -60,19 +62,31 @@ public sealed class EmployeeOnboardedBenefitsConsumer : IConsumer<EmployeeOnboar
             return;
         }
 
+        // Create the 30-day new-hire window (opens immediately).
+        var now = DateTimeOffset.UtcNow;
+        var window = EnrollmentWindow.CreateForNewHire(
+            tenantId: msg.TenantId,
+            planYearStart: planYearStart,
+            planYearEnd: planYearEnd,
+            now: now);
+
+        _db.Windows.Add(window);
+
+        // Open the enrollment anchored to that window.
         var enrollment = BenefitEnrollment.Open(
             tenantId: msg.TenantId,
             employeeId: msg.EmployeeId,
             employeeName: msg.LegalName,
             planYearStart: planYearStart,
             planYearEnd: planYearEnd,
-            hireDate: hireDate);
+            hireDate: hireDate,
+            windowId: window.Id);
 
         _db.Enrollments.Add(enrollment);
         await _db.SaveChangesAsync(context.CancellationToken);
 
         _logger.LogInformation(
-            "Opened new-hire benefits enrollment {EnrollmentId} for Employee {EmployeeId} (plan year {Year}).",
-            enrollment.Id.Value, msg.EmployeeId, hireDate.Year);
+            "Opened new-hire enrollment window {WindowId} and enrollment {EnrollmentId} for Employee {EmployeeId} (plan year {Year}).",
+            window.Id.Value, enrollment.Id.Value, msg.EmployeeId, hireDate.Year);
     }
 }

@@ -15,9 +15,11 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// HR administrator operations for plan catalog management and enrollment lifecycle.
+/// HR administrator operations for plan catalog management, enrollment window scheduling,
+/// and enrollment lifecycle.
 ///
 /// Plan lifecycle: Draft → (SetTierCost) → Published (Active) → Inactive → Discontinued
+/// Window lifecycle: (CreateOpenEnrollmentWindowAsync) → Scheduled → (OpenEnrollmentWindowAsync) → Open → (CloseEnrollmentWindowAsync) → Closed
 /// Enrollment lifecycle: PendingSubmission → Submitted → (ActivateEnrollmentAsync) → Active
 /// Life event lifecycle: PendingVerification → (VerifyLifeEventAsync) → Verified
 ///                      (employee applies change) → Completed
@@ -38,13 +40,13 @@ public sealed class BenefitAdminService(
         string? externalPlanCode,
         DateOnly planYearStart,
         DateOnly planYearEnd,
-        int waitingPeriodDays = 0,
+        WaitingPeriodRule? waitingRule = null,
         CancellationToken ct = default)
     {
         var tenantId = tenantProvider.GetCurrentTenantId();
         var plan = BenefitPlan.Create(
             tenantId, planName, description, category,
-            providerName, externalPlanCode, planYearStart, planYearEnd, waitingPeriodDays);
+            providerName, externalPlanCode, planYearStart, planYearEnd, waitingRule);
         db.Plans.Add(plan);
         await db.SaveChangesAsync(ct);
         return plan.Id.Value;
@@ -79,6 +81,44 @@ public sealed class BenefitAdminService(
     {
         var plan = await LoadPlanAsync(planId, ct);
         plan.Deactivate();
+        await db.SaveChangesAsync(ct);
+    }
+
+    // ── Enrollment window management ───────────────────────────────────────────
+
+    /// <summary>
+    /// Creates an open-enrollment window in Scheduled status for the specified plan year.
+    /// Call <see cref="OpenEnrollmentWindowAsync"/> when the window period begins.
+    /// Returns the new window ID.
+    /// </summary>
+    public async Task<Guid> CreateOpenEnrollmentWindowAsync(
+        DateOnly planYearStart,
+        DateOnly planYearEnd,
+        DateTimeOffset windowOpensAt,
+        DateTimeOffset windowClosesAt,
+        CancellationToken ct = default)
+    {
+        var tenantId = tenantProvider.GetCurrentTenantId();
+        var window = EnrollmentWindow.CreateOpenEnrollment(
+            tenantId, planYearStart, planYearEnd, windowOpensAt, windowClosesAt);
+        db.Windows.Add(window);
+        await db.SaveChangesAsync(ct);
+        return window.Id.Value;
+    }
+
+    /// <summary>Transitions a Scheduled window to Open, allowing elections.</summary>
+    public async Task OpenEnrollmentWindowAsync(Guid windowId, CancellationToken ct = default)
+    {
+        var window = await LoadWindowAsync(windowId, ct);
+        window.Open();
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>Closes an Open window, preventing any further elections.</summary>
+    public async Task CloseEnrollmentWindowAsync(Guid windowId, CancellationToken ct = default)
+    {
+        var window = await LoadWindowAsync(windowId, ct);
+        window.Close();
         await db.SaveChangesAsync(ct);
     }
 
@@ -147,6 +187,15 @@ public sealed class BenefitAdminService(
         return await db.Plans
             .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId, ct)
             ?? throw new InvalidOperationException($"Benefit plan {planId} not found.");
+    }
+
+    private async Task<EnrollmentWindow> LoadWindowAsync(Guid windowId, CancellationToken ct)
+    {
+        var tenantId = tenantProvider.GetCurrentTenantId();
+        var id = new EnrollmentWindowId(windowId);
+        return await db.Windows
+            .FirstOrDefaultAsync(w => w.Id == id && w.TenantId == tenantId, ct)
+            ?? throw new InvalidOperationException($"Enrollment window {windowId} not found.");
     }
 
     private async Task<BenefitEnrollment> LoadEnrollmentAsync(Guid enrollmentId, CancellationToken ct)

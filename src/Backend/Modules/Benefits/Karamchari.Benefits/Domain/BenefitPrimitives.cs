@@ -16,6 +16,7 @@ public record struct BenefitEnrollmentId(Guid Value);
 public record struct BenefitElectionId(Guid Value);
 public record struct BenefitDependentId(Guid Value);
 public record struct LifeEventId(Guid Value);
+public record struct EnrollmentWindowId(Guid Value);
 
 // ── Plan-level enumerations ────────────────────────────────────────────────
 
@@ -119,6 +120,31 @@ public enum LifeEventStatus
 
     /// <summary>The qualifying event was verified and the employee completed their election changes.</summary>
     Completed = 3
+}
+
+// ── Enrollment window enumerations ────────────────────────────────────────
+
+/// <summary>The trigger that created the enrollment window.</summary>
+public enum EnrollmentWindowType
+{
+    /// <summary>Opened automatically when a new employee is onboarded; covers only that employee.</summary>
+    NewHire = 1,
+
+    /// <summary>Scheduled by HR for an upcoming plan year; all eligible employees participate.</summary>
+    OpenEnrollment = 2
+}
+
+/// <summary>Lifecycle state of an enrollment window.</summary>
+public enum EnrollmentWindowStatus
+{
+    /// <summary>Created but not yet open for elections.</summary>
+    Scheduled = 0,
+
+    /// <summary>Employees may submit elections.</summary>
+    Open = 1,
+
+    /// <summary>Window has ended; no further elections are accepted.</summary>
+    Closed = 2
 }
 
 // ── Dependent enumerations ─────────────────────────────────────────────────

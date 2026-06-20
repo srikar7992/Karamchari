@@ -26,6 +26,21 @@ internal sealed class BenefitPlanConfiguration : IEntityTypeConfiguration<Benefi
         b.Property(x => x.ProviderName).IsRequired().HasMaxLength(200);
         b.Property(x => x.ExternalPlanCode).HasMaxLength(100);
 
+        // WaitingPeriodRule — stored as two columns accessed via private backing fields.
+        // WaitingRule (the public computed property) is excluded from the model.
+        b.Property<string>("WaitingPeriodType")
+            .HasField("_waitingPeriodType")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName("WaitingPeriodType")
+            .HasMaxLength(30)
+            .IsRequired();
+        b.Property<int>("WaitingPeriodDays")
+            .HasField("_waitingPeriodDays")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnName("WaitingPeriodDays")
+            .HasDefaultValue(0);
+        b.Ignore(x => x.WaitingRule);
+
         // BenefitPlanTier — owned collection; EF Core creates a composite PK
         // (BenefitPlanId shadow FK + Tier enum) stored as a separate table.
         b.OwnsMany(x => x.Tiers, tier =>
@@ -46,6 +61,24 @@ internal sealed class BenefitPlanConfiguration : IEntityTypeConfiguration<Benefi
     }
 }
 
+internal sealed class EnrollmentWindowConfiguration : IEntityTypeConfiguration<EnrollmentWindow>
+{
+    public void Configure(EntityTypeBuilder<EnrollmentWindow> b)
+    {
+        b.ToTable("BenefitEnrollmentWindows");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Id).HasConversion(v => v.Value, v => new EnrollmentWindowId(v));
+        b.Property(x => x.TenantId).IsRequired().HasMaxLength(50);
+        b.Property(x => x.WindowType).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+
+        b.HasIndex(x => new { x.TenantId, x.WindowType, x.Status })
+            .HasDatabaseName("IX_BenefitEnrollmentWindows_Tenant_Type_Status");
+        b.HasIndex(x => new { x.TenantId, x.PlanYearStart })
+            .HasDatabaseName("IX_BenefitEnrollmentWindows_Tenant_PlanYear");
+    }
+}
+
 internal sealed class BenefitEnrollmentConfiguration : IEntityTypeConfiguration<BenefitEnrollment>
 {
     public void Configure(EntityTypeBuilder<BenefitEnrollment> b)
@@ -56,6 +89,12 @@ internal sealed class BenefitEnrollmentConfiguration : IEntityTypeConfiguration<
         b.Property(x => x.TenantId).IsRequired().HasMaxLength(50);
         b.Property(x => x.EmployeeName).IsRequired().HasMaxLength(200);
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(30);
+
+        // Provenance FK — every enrollment must be traceable to its authorising window.
+        b.Property(x => x.WindowId).HasConversion(v => v.Value, v => new EnrollmentWindowId(v));
+        b.HasOne<EnrollmentWindow>().WithMany()
+            .HasForeignKey(e => e.WindowId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         b.HasMany(x => x.Elections).WithOne()
             .HasForeignKey(e => e.EnrollmentId)

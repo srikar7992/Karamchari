@@ -24,78 +24,37 @@ public enum PayType
 
 /// <summary>
 /// Domain model for an employee's payroll configuration and compensation rules.
+/// Country-specific statutory fields live in separate profiles (e.g., <see cref="IndiaPayrollProfile"/>)
+/// so that a UAE employee can have a <see cref="PayrollProfile"/> with no India fields at all.
 /// </summary>
 public class PayrollProfile : ITenantOwned
 {
-    /// <summary>
-    /// Gets the tenant identifier.
-    /// </summary>
+    /// <summary>Gets the tenant identifier.</summary>
     public string TenantId { get; private set; } = string.Empty;
 
-    /// <summary>
-    /// Gets the unique identifier for the profile.
-    /// </summary>
+    /// <summary>Gets the unique identifier for the profile.</summary>
     public Guid Id { get; private set; }
 
-    /// <summary>
-    /// Gets the employee identifier (Soft reference to HR Domain).
-    /// </summary>
+    /// <summary>Gets the employee identifier (soft reference to HR Domain).</summary>
     public Guid EmployeeId { get; private set; }
 
-    /// <summary>
-    /// Gets the cached employee name for reporting and payslips.
-    /// </summary>
+    /// <summary>Gets the cached employee name for reporting and payslips.</summary>
     public string EmployeeName { get; private set; } = string.Empty;
 
-    /// <summary>
-    /// Gets the compensation type.
-    /// </summary>
+    /// <summary>Gets the compensation type.</summary>
     public PayType PayType { get; private set; }
 
-    /// <summary>
-    /// Gets the fixed monthly base salary. Only used if PayType is Salaried.
-    /// </summary>
+    /// <summary>Gets the fixed monthly base salary. Only used if PayType is Salaried.</summary>
     public decimal BaseSalary { get; private set; }
 
-    /// <summary>
-    /// Gets the hourly rate. Only used if PayType is Hourly.
-    /// </summary>
+    /// <summary>Gets the hourly rate. Only used if PayType is Hourly.</summary>
     public decimal HourlyRate { get; private set; }
 
-    /// <summary>
-    /// Gets the currency code (e.g., USD).
-    /// </summary>
+    /// <summary>Gets the currency code (e.g., "INR", "USD").</summary>
     public string Currency { get; private set; }
 
-    /// <summary>
-    /// Gets a value indicating whether the profile is active.
-    /// </summary>
+    /// <summary>Gets a value indicating whether the profile is active.</summary>
     public bool IsActive { get; private set; }
-
-    /// <summary>
-    /// Gets a value indicating whether the employee has opted for Voluntary PF (overriding the â‚¹15,000 cap).
-    /// </summary>
-    public bool OptedForVoluntaryPF { get; private set; }
-
-    /// <summary>
-    /// Gets a value indicating whether ESIC is locked for the current contribution period.
-    /// </summary>
-    public bool IsEsicLocked { get; private set; }
-
-    /// <summary>
-    /// Gets the state code for Professional Tax jurisdiction (e.g., "TS").
-    /// </summary>
-    public string StateCode { get; private set; } = "TS";
-
-    /// <summary>
-    /// Gets the income tax regime selected by the employee.
-    /// </summary>
-    public TaxRegime TaxRegime { get; private set; } = TaxRegime.New;
-
-    /// <summary>
-    /// Gets a value indicating whether the employee's work location is in a Metro city (for HRA).
-    /// </summary>
-    public bool IsMetro { get; private set; }
 
     /// <summary>Gets the Total Annual CTC.</summary>
     public decimal AnnualCTC { get; private set; }
@@ -103,14 +62,11 @@ public class PayrollProfile : ITenantOwned
     /// <summary>Gets the assigned Salary Template ID.</summary>
     public Guid SalaryTemplateId { get; private set; }
 
-    /// <summary>Gets the Permanent Account Number (Income Tax).</summary>
-    public string Pan { get; private set; } = string.Empty;
-
-    /// <summary>Gets the Universal Account Number (PF).</summary>
-    public string Uan { get; private set; } = string.Empty;
-
-    /// <summary>Gets the ESIC Insurance Number.</summary>
-    public string EsicNumber { get; private set; } = string.Empty;
+    /// <summary>
+    /// Gets India-specific statutory configuration.
+    /// Null for employees not subject to Indian labour law.
+    /// </summary>
+    public IndiaPayrollProfile? India { get; private set; }
 
     /// <summary>
     /// Assigns the compensation configuration for this profile.
@@ -125,21 +81,32 @@ public class PayrollProfile : ITenantOwned
     }
 
     /// <summary>
-    /// Updates the statutory identifiers for the profile.
+    /// Attaches an India statutory profile to this payroll profile.
+    /// Called once when the employee is confirmed to be processed under Indian labour law.
+    /// </summary>
+    public void AttachIndiaProfile(IndiaPayrollProfile india)
+    {
+        ArgumentNullException.ThrowIfNull(india);
+        India = india;
+    }
+
+    /// <summary>
+    /// Updates the India statutory identifiers (PAN, UAN, ESIC Number).
     /// </summary>
     public void UpdateStatutoryInfo(string pan, string uan, string esicNumber)
     {
-        Pan = pan;
-        Uan = uan;
-        EsicNumber = esicNumber;
+        if (India is null)
+            throw new InvalidOperationException("Cannot update statutory identifiers: no India payroll profile is attached.");
+        India.UpdateIdentifiers(pan, uan, esicNumber);
     }
 
     /// <summary>
     /// Creates a shallow clone with an overridden tax regime (for simulations).
+    /// The India profile (if present) is cloned with the new regime via <see cref="IndiaPayrollProfile.CloneWithRegime"/>.
     /// </summary>
     public PayrollProfile CloneWithRegime(TaxRegime regime)
     {
-        return new PayrollProfile
+        var clone = new PayrollProfile
         {
             Id = this.Id,
             EmployeeId = this.EmployeeId,
@@ -150,14 +117,11 @@ public class PayrollProfile : ITenantOwned
             HourlyRate = this.HourlyRate,
             Currency = this.Currency,
             IsActive = this.IsActive,
-            OptedForVoluntaryPF = this.OptedForVoluntaryPF,
-            IsEsicLocked = this.IsEsicLocked,
-            StateCode = this.StateCode,
-            IsMetro = this.IsMetro,
             AnnualCTC = this.AnnualCTC,
             SalaryTemplateId = this.SalaryTemplateId,
-            TaxRegime = regime
+            India = this.India?.CloneWithRegime(regime)
         };
+        return clone;
     }
 
     private PayrollProfile()
@@ -169,9 +133,6 @@ public class PayrollProfile : ITenantOwned
     /// Creates a new draft payroll profile with a cached employee name.
     /// Used by <c>EmployeeOnboardedConsumer</c> when creating the profile from an integration event.
     /// </summary>
-    /// <param name="employeeId">The employee identifier.</param>
-    /// <param name="legalName">The employee's legal name cached for reporting and payslips.</param>
-    /// <returns>A new <see cref="PayrollProfile"/> instance.</returns>
     public static PayrollProfile CreateDraft(Guid employeeId, string legalName)
     {
         return new PayrollProfile
@@ -190,8 +151,6 @@ public class PayrollProfile : ITenantOwned
     /// <summary>
     /// Creates a new draft payroll profile (for testing and simulation use).
     /// </summary>
-    /// <param name="employeeId">The employee identifier.</param>
-    /// <returns>A new <see cref="PayrollProfile"/> instance.</returns>
     public static PayrollProfile CreateDraft(Guid employeeId)
     {
         return new PayrollProfile
@@ -206,10 +165,7 @@ public class PayrollProfile : ITenantOwned
         };
     }
 
-    /// <summary>
-    /// Sets the compensation as salaried.
-    /// </summary>
-    /// <param name="baseSalary">The base salary.</param>
+    /// <summary>Sets the compensation as salaried.</summary>
     public void SetSalaried(decimal baseSalary)
     {
         PayType = PayType.Salaried;
@@ -217,10 +173,7 @@ public class PayrollProfile : ITenantOwned
         HourlyRate = 0;
     }
 
-    /// <summary>
-    /// Sets the compensation as hourly.
-    /// </summary>
-    /// <param name="hourlyRate">The hourly rate.</param>
+    /// <summary>Sets the compensation as hourly.</summary>
     public void SetHourly(decimal hourlyRate)
     {
         PayType = PayType.Hourly;
@@ -228,8 +181,6 @@ public class PayrollProfile : ITenantOwned
         BaseSalary = 0;
     }
 
-    /// <summary>
-    /// Activates the profile.
-    /// </summary>
+    /// <summary>Activates the profile.</summary>
     public void Activate() => IsActive = true;
 }

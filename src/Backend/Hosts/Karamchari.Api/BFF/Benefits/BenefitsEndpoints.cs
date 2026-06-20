@@ -51,6 +51,10 @@ public static class BenefitsEndpoints
         admin.MapPost("/plans/{planId:guid}/publish", AdminPublishPlan);
         admin.MapPost("/plans/{planId:guid}/deactivate", AdminDeactivatePlan);
 
+        admin.MapPost("/enrollment-windows", AdminCreateEnrollmentWindow);
+        admin.MapPost("/enrollment-windows/{windowId:guid}/open", AdminOpenEnrollmentWindow);
+        admin.MapPost("/enrollment-windows/{windowId:guid}/close", AdminCloseEnrollmentWindow);
+
         admin.MapGet("/enrollments", AdminGetEnrollments);
         admin.MapPost("/enrollments/{enrollmentId:guid}/activate", AdminActivateEnrollment);
         admin.MapPost("/enrollments/{enrollmentId:guid}/life-events/{lifeEventId:guid}/verify",
@@ -188,12 +192,47 @@ public static class BenefitsEndpoints
     {
         if (!Enum.TryParse<BenefitCategory>(request.Category, out var cat))
             return Results.BadRequest("Invalid benefit category.");
+
+        WaitingPeriodRule waitingRule;
+        try
+        {
+            waitingRule = WaitingPeriodRule.FromColumns(
+                request.WaitingPeriodRuleType, request.WaitingPeriodRuleDays);
+        }
+        catch (ArgumentException)
+        {
+            return Results.BadRequest($"Invalid WaitingPeriodRuleType: '{request.WaitingPeriodRuleType}'.");
+        }
+
         var id = await svc.CreatePlanAsync(
             request.PlanName, request.Description, cat,
             request.ProviderName, request.ExternalPlanCode,
             request.PlanYearStart, request.PlanYearEnd,
-            request.WaitingPeriodDays, ct);
+            waitingRule, ct);
         return Results.Created($"/api/admin/benefits/plans/{id}", new { PlanId = id });
+    }
+
+    private static async Task<IResult> AdminCreateEnrollmentWindow(
+        CreateEnrollmentWindowRequest request, BenefitAdminService svc, CancellationToken ct)
+    {
+        var id = await svc.CreateOpenEnrollmentWindowAsync(
+            request.PlanYearStart, request.PlanYearEnd,
+            request.WindowOpensAt, request.WindowClosesAt, ct);
+        return Results.Created($"/api/admin/benefits/enrollment-windows/{id}", new { WindowId = id });
+    }
+
+    private static async Task<IResult> AdminOpenEnrollmentWindow(
+        Guid windowId, BenefitAdminService svc, CancellationToken ct)
+    {
+        await svc.OpenEnrollmentWindowAsync(windowId, ct);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> AdminCloseEnrollmentWindow(
+        Guid windowId, BenefitAdminService svc, CancellationToken ct)
+    {
+        await svc.CloseEnrollmentWindowAsync(windowId, ct);
+        return Results.NoContent();
     }
 
     private static async Task<IResult> AdminSetTierCost(
@@ -263,7 +302,11 @@ public static class BenefitsEndpoints
     private record CreatePlanRequest(
         string PlanName, string? Description, string Category,
         string ProviderName, string? ExternalPlanCode,
-        DateOnly PlanYearStart, DateOnly PlanYearEnd, int WaitingPeriodDays = 0);
+        DateOnly PlanYearStart, DateOnly PlanYearEnd,
+        string WaitingPeriodRuleType = "Immediate", int WaitingPeriodRuleDays = 0);
     private record SetTierCostRequest(decimal EmployeePremium, decimal EmployerPremium);
     private record AdminRejectRequest(string Reason);
+    private record CreateEnrollmentWindowRequest(
+        DateOnly PlanYearStart, DateOnly PlanYearEnd,
+        DateTimeOffset WindowOpensAt, DateTimeOffset WindowClosesAt);
 }

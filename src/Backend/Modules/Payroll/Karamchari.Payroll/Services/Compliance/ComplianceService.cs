@@ -78,14 +78,14 @@ public sealed class ComplianceService : IComplianceService
         {
             var p = profiles[e.EmployeeId];
             var basic = e.Earnings.GetValueOrDefault("Basic", 0);
-            var epfWage = p.OptedForVoluntaryPF ? basic : Math.Min(basic, 15000);
+            var epfWage = (p.India?.OptedForVoluntaryPF ?? false) ? basic : Math.Min(basic, 15000);
 
             var epfTotal = e.Deductions.GetValueOrDefault("EPF", 0);
             var epsContribution = Math.Round(Math.Min(epfWage * 0.0833m, 1250), 0, MidpointRounding.AwayFromZero);
 
             return new EcrRecord
             {
-                Uan = p.Uan,
+                Uan = p.India?.Uan ?? string.Empty,
                 MemberName = p.EmployeeName,
                 GrossWages = e.MonthlyGross,
                 EpfWages = epfWage,
@@ -126,7 +126,7 @@ public sealed class ComplianceService : IComplianceService
                 var p = profiles[e.EmployeeId];
                 return new EsicRecord
                 {
-                    InsuranceNumber = p.EsicNumber,
+                    InsuranceNumber = p.India?.EsicNumber ?? string.Empty,
                     EmployeeName = p.EmployeeName,
                     GrossWages = e.MonthlyGross,
                     EmployeeContribution = e.Deductions.GetValueOrDefault("ESIC", 0),
@@ -160,7 +160,7 @@ public sealed class ComplianceService : IComplianceService
             var p = profiles[e.EmployeeId];
             return new TdsRecord
             {
-                Pan = p.Pan,
+                Pan = p.India?.Pan ?? string.Empty,
                 EmployeeName = p.EmployeeName,
                 AnnualIncome = p.AnnualCTC,
                 TotalTax = e.TdsDeducted * 12, // Simplified projection
@@ -242,6 +242,7 @@ public sealed class ComplianceService : IComplianceService
         var entries = await _dbContext.PayrollLedger.Where(e => e.RunId == runId).ToListAsync();
         var employeeIds = entries.Select(e => e.EmployeeId).ToList();
         var profiles = await _dbContext.PayrollProfiles
+            .Include(p => p.India)
             .Where(p => employeeIds.Contains(p.EmployeeId))
             .ToDictionaryAsync(p => p.EmployeeId);
 

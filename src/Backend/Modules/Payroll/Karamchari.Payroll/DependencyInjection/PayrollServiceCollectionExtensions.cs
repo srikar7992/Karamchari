@@ -148,6 +148,7 @@ public static class PayrollServiceCollectionExtensions
 
         // RLS Configuration
         services.RegisterTenantTable("PayrollProfiles");
+        services.RegisterTenantTable("IndiaPayrollProfiles");
         services.RegisterTenantTable("PayrollRunStates");
         services.RegisterTenantTable("PayrollDeductions");
         services.RegisterTenantTable("PayrollSchedules");

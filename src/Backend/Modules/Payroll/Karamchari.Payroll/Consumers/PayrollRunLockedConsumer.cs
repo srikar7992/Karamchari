@@ -47,6 +47,7 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
         //    issued one SELECT per ledger entry inside the loop.
         var employeeIds = entries.Select(e => e.EmployeeId).ToHashSet();
         var profilesById = await _dbContext.PayrollProfiles
+            .Include(p => p.India)
             .Where(p => employeeIds.Contains(p.EmployeeId))
             .ToDictionaryAsync(p => p.EmployeeId, context.CancellationToken);
 
@@ -68,7 +69,7 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
                 entry.NetPay,
                 entry.Earnings.ToDictionary(k => k.Key, v => v.Value),
                 entry.Deductions.ToDictionary(k => k.Key, v => v.Value),
-                profile?.TaxRegime.ToString() ?? "New",
+                profile?.India?.TaxRegime.ToString() ?? "New",
                 entry.FinancialYearStart
             ), context.CancellationToken);
         }

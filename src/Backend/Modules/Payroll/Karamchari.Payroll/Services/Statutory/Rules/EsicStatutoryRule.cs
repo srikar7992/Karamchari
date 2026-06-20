@@ -30,7 +30,8 @@ public sealed class EsicStatutoryRule : IStatutoryRule
         decimal esicGross = context.Breakdown.MonthlyGross;
 
         // Applicability: Under 21k threshold OR locked into the contribution period
-        bool isApplicable = esicGross <= EsicWageThreshold || context.Profile.IsEsicLocked;
+        bool isEsicLocked = context.Profile.India?.IsEsicLocked ?? false;
+        bool isApplicable = esicGross <= EsicWageThreshold || isEsicLocked;
 
         if (!isApplicable)
         {
@@ -39,7 +40,7 @@ public sealed class EsicStatutoryRule : IStatutoryRule
 
         // ESIC rounding rule: Round UP to the next higher rupee (Ceil)
         decimal esicDeduction = Math.Ceiling(esicGross * EsicRate);
-        string lockNote = context.Profile.IsEsicLocked ? " (Period Locked)" : string.Empty;
+        string lockNote = isEsicLocked ? " (Period Locked)" : string.Empty;
 
         return new StatutoryResult(Name, esicDeduction, true, $"0.75% of Gross (â‚¹{esicGross:N2}){lockNote}");
     }

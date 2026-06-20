@@ -40,7 +40,8 @@ public sealed class EpfStatutoryRule : IStatutoryRule
 
         // If not opting for Voluntary PF (VPF), cap the base at â‚¹15,000 for statutory deduction
         string explanation = $"12% of wage base (â‚¹{epfBaseWage:N2})";
-        if (!context.Profile.OptedForVoluntaryPF && epfBaseWage > StatutoryWageCap)
+        bool optedVpf = context.Profile.India?.OptedForVoluntaryPF ?? false;
+        if (!optedVpf && epfBaseWage > StatutoryWageCap)
         {
             epfBaseWage = StatutoryWageCap;
             explanation = $"12% of capped wage base (â‚¹{StatutoryWageCap:N2})";

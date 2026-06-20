@@ -25,6 +25,22 @@ public enum InterventionOutcomeStatus
 }
 
 /// <summary>
+/// How the outcome was observed. Determines the reliability and interpretation of
+/// <see cref="InterventionOutcome.Status"/>.
+/// </summary>
+public enum ObservedOutcomeSource
+{
+    /// <summary>Outcome derived from the risk score model delta (primary automated path).</summary>
+    ScoreModel,
+    /// <summary>Outcome confirmed by an employment status change (e.g. resignation = Ineffective).</summary>
+    EmploymentStatus,
+    /// <summary>Outcome confirmed or updated from an engagement survey response.</summary>
+    EngagementSurvey,
+    /// <summary>Outcome confirmed or updated from a performance review record.</summary>
+    PerformanceReview
+}
+
+/// <summary>
 /// Closes the loop on a <see cref="WorkforceRecommendation"/>.
 /// Created by <c>InterventionTrackerService</c> 30 days after a recommendation is resolved.
 /// Maps to Intel_InterventionOutcomes.
@@ -60,6 +76,9 @@ public sealed class InterventionOutcome : ITenantOwned
 
     public DateTime EvaluatedAt { get; private set; }
 
+    /// <summary>Which data source produced this outcome evaluation.</summary>
+    public ObservedOutcomeSource ObservedOutcomeSource { get; private set; }
+
     private InterventionOutcome() { }
 
     public static InterventionOutcome Evaluate(
@@ -69,7 +88,8 @@ public sealed class InterventionOutcome : ITenantOwned
         string scoreType,
         decimal scoreAtRecommendation,
         decimal scoreAtEvaluation,
-        int daysAfterRecommendation)
+        int daysAfterRecommendation,
+        ObservedOutcomeSource observedOutcomeSource = ObservedOutcomeSource.ScoreModel)
     {
         var delta = scoreAtEvaluation - scoreAtRecommendation;
         var status = ClassifyDelta(delta);
@@ -86,7 +106,8 @@ public sealed class InterventionOutcome : ITenantOwned
             ScoreDelta = delta,
             Status = status,
             DaysAfterRecommendation = daysAfterRecommendation,
-            EvaluatedAt = DateTime.UtcNow
+            EvaluatedAt = DateTime.UtcNow,
+            ObservedOutcomeSource = observedOutcomeSource
         };
     }
 
