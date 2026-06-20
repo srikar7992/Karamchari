@@ -51,6 +51,23 @@ public sealed class InterventionEffectiveness : ITenantOwned
 
     public DateTime LastComputedAt { get; private set; }
 
+    // ── Recommendation Acceptance ────────────────────────────────────────────
+    // Separate dimension from SuccessRate: an intervention can be highly effective
+    // when applied but rarely accepted. Both dimensions are needed to assess value.
+
+    /// <summary>
+    /// Fraction of Accepted / (Accepted + Declined) dispositions for this template.
+    /// Null until at least one Accepted or Declined disposition is recorded.
+    /// Deferred and Expired dispositions are excluded from the denominator.
+    /// </summary>
+    public decimal? RecommendationAcceptanceRate { get; private set; }
+
+    /// <summary>Total Accepted dispositions observed for this template across all signal types.</summary>
+    public int RecommendationAcceptanceCount { get; private set; }
+
+    /// <summary>Total Accepted + Declined dispositions (the effective denominator for acceptance rate).</summary>
+    public int RecommendationDispositionCount { get; private set; }
+
     private InterventionEffectiveness() { }
 
     /// <summary>
@@ -86,6 +103,20 @@ public sealed class InterventionEffectiveness : ITenantOwned
         SuccessRate = Math.Clamp(successRate, 0m, 1m);
         MedianOutcomeDays = Math.Max(0, medianOutcomeDays);
         Confidence = Math.Clamp(confidence, 0m, 1m);
+        LastComputedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Updates acceptance-rate fields from the nightly disposition aggregation.
+    /// Acceptance rate = acceptanceCount / dispositionCount (Accepted + Declined only).
+    /// </summary>
+    public void UpdateAcceptance(int acceptanceCount, int dispositionCount)
+    {
+        RecommendationAcceptanceCount = Math.Max(0, acceptanceCount);
+        RecommendationDispositionCount = Math.Max(0, dispositionCount);
+        RecommendationAcceptanceRate = dispositionCount > 0
+            ? Math.Round((decimal)acceptanceCount / dispositionCount, 3)
+            : null;
         LastComputedAt = DateTime.UtcNow;
     }
 }

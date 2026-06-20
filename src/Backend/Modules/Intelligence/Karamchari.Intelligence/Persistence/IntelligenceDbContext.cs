@@ -609,6 +609,7 @@ public class IntelligenceDbContext : KaramchariDbContext
             b.Property(x => x.SignalType).HasConversion<string>().HasMaxLength(100);
             b.Property(x => x.SuccessRate).HasPrecision(5, 3);
             b.Property(x => x.Confidence).HasPrecision(5, 3);
+            b.Property(x => x.RecommendationAcceptanceRate).HasPrecision(5, 3);
 
             b.HasOne<InterventionTemplate>()
                 .WithMany()

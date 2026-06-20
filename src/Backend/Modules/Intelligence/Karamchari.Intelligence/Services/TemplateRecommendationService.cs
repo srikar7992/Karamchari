@@ -31,7 +31,9 @@ public sealed record ExplanationFactors(
     int ObservedApplications,
     int MedianOutcomeDays,
     decimal Confidence,
-    bool IsDefaultRate);
+    bool IsDefaultRate,
+    decimal? AcceptanceRate,
+    int DispositionCount);
 
 /// <summary>
 /// Ephemeral projection of ranked intervention recommendations for an employee.
@@ -128,7 +130,9 @@ public sealed class TemplateRecommendationService
                 ObservedApplications: eff?.Applications ?? 0,
                 MedianOutcomeDays: eff?.MedianOutcomeDays ?? 30,
                 Confidence: eff?.Confidence ?? 0m,
-                IsDefaultRate: eff is null);
+                IsDefaultRate: eff is null,
+                AcceptanceRate: eff?.RecommendationAcceptanceRate,
+                DispositionCount: eff?.RecommendationDispositionCount ?? 0);
 
             candidates.Add(new RecommendationCandidate(
                 TemplateId: template.Id,

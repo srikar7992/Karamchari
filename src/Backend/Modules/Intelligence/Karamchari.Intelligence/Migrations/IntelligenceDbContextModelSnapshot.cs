@@ -845,6 +845,16 @@ namespace Karamchari.Intelligence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("RecommendationAcceptanceCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("RecommendationAcceptanceRate")
+                        .HasPrecision(5, 3)
+                        .HasColumnType("decimal(5,3)");
+
+                    b.Property<int>("RecommendationDispositionCount")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("SuccessRate")
                         .HasPrecision(5, 3)
                         .HasColumnType("decimal(5,3)");

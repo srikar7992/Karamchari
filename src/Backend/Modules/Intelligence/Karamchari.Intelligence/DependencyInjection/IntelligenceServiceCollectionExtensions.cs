@@ -128,6 +128,8 @@ public static class IntelligenceServiceCollectionExtensions
         services.AddScoped<TemplateRecommendationService>();
         // Phase 9
         services.AddScoped<InterventionWorkflowService>();
+        // Phase 10
+        services.AddScoped<InterventionEffectivenessRefreshService>();
 
         return services;
     }
