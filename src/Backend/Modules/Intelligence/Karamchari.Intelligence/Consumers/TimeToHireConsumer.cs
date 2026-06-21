@@ -15,11 +15,11 @@ namespace Karamchari.Intelligence.Consumers;
 /// with Value = 0 so the record still lands and can be corrected during a replay.
 /// </summary>
 public sealed class TimeToHireConsumer(IntelligenceDbContext dbContext) :
-    IConsumer<EnterpriseEventEnvelope<CandidateHiredIntegrationEvent>>
+    IConsumer<EnterpriseEventEnvelope<CandidateHiredIntegrationEventV1>>
 {
     private const string MetricType = "TimeToHire";
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateHiredIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateHiredIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         var payload = envelope.Payload;

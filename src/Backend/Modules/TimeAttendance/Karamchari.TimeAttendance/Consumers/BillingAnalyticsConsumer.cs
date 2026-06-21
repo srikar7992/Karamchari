@@ -21,8 +21,8 @@ namespace Karamchari.TimeAttendance.Consumers;
 /// Logic: Attaches revenue/cash to the current day's grain.
 /// </summary>
 public sealed class BillingAnalyticsConsumer(TimeAttendanceDbContext db) :
-    IConsumer<InvoiceIssuedIntegrationEvent>,
-    IConsumer<PaymentReceivedIntegrationEvent>
+    IConsumer<InvoiceIssuedIntegrationEventV1>,
+    IConsumer<PaymentReceivedIntegrationEventV1>
 {
     private const string ConsumerName = nameof(BillingAnalyticsConsumer);
     private readonly TimeAttendanceDbContext _db = db;
@@ -30,9 +30,9 @@ public sealed class BillingAnalyticsConsumer(TimeAttendanceDbContext db) :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<InvoiceIssuedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<InvoiceIssuedIntegrationEventV1> context)
     {
-        InvoiceIssuedIntegrationEvent ev = context.Message;
+        InvoiceIssuedIntegrationEventV1 ev = context.Message;
         var date = DateOnly.FromDateTime(ev.OccurredAt.Date);
 
         // 1. Idempotency Gate
@@ -50,9 +50,9 @@ public sealed class BillingAnalyticsConsumer(TimeAttendanceDbContext db) :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<PaymentReceivedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<PaymentReceivedIntegrationEventV1> context)
     {
-        PaymentReceivedIntegrationEvent ev = context.Message;
+        PaymentReceivedIntegrationEventV1 ev = context.Message;
         var date = DateOnly.FromDateTime(ev.OccurredAt.Date);
 
         if (await IsAlreadyProcessed(ev.EventId, context.CancellationToken)) return;

@@ -20,7 +20,7 @@ namespace Karamchari.Payroll.Consumers;
 /// Implements "Domain Owns Business Truth, Workflow Owns Coordination".
 /// </summary>
 public sealed class WorkflowCompletedPayrollConsumer :
-    IConsumer<WorkflowCompletedIntegrationEvent>
+    IConsumer<WorkflowCompletedIntegrationEventV1>
 {
     private readonly PayrollDbContext _db;
     private readonly ILogger<WorkflowCompletedPayrollConsumer> _logger;
@@ -31,7 +31,7 @@ public sealed class WorkflowCompletedPayrollConsumer :
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<WorkflowCompletedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<WorkflowCompletedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
@@ -46,7 +46,7 @@ public sealed class WorkflowCompletedPayrollConsumer :
         }
     }
 
-    private async Task HandleReimbursementCompletion(WorkflowCompletedIntegrationEvent msg, CancellationToken ct)
+    private async Task HandleReimbursementCompletion(WorkflowCompletedIntegrationEventV1 msg, CancellationToken ct)
     {
         var claim = await _db.Set<ReimbursementClaim>().FindAsync([msg.EntityId], ct);
         if (claim == null)
@@ -71,7 +71,7 @@ public sealed class WorkflowCompletedPayrollConsumer :
         await _db.SaveChangesAsync(ct);
     }
 
-    private async Task HandleSalaryRevisionCompletion(WorkflowCompletedIntegrationEvent msg, CancellationToken ct)
+    private async Task HandleSalaryRevisionCompletion(WorkflowCompletedIntegrationEventV1 msg, CancellationToken ct)
     {
         var revision = await _db.Set<Karamchari.Payroll.Domain.SalaryRevisions.SalaryRevision>().FindAsync([msg.EntityId], ct);
         if (revision == null)

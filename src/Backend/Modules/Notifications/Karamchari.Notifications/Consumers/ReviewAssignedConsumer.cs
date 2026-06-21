@@ -16,7 +16,7 @@ namespace Karamchari.Notifications.Consumers;
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed class ReviewAssignedConsumer : IConsumer<ReviewAssignedIntegrationEvent>
+public sealed class ReviewAssignedConsumer : IConsumer<ReviewAssignedIntegrationEventV1>
 {
     private readonly INotificationOrchestrator _orchestrator;
 
@@ -26,7 +26,7 @@ public sealed class ReviewAssignedConsumer : IConsumer<ReviewAssignedIntegration
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Task Consume(ConsumeContext<ReviewAssignedIntegrationEvent> context)
+    public Task Consume(ConsumeContext<ReviewAssignedIntegrationEventV1> context)
     {
         var e = context.Message;
 

@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Analytics.Consumers;
 
-public sealed class EmployeeHiredAnalyticsConsumer(AnalyticsDbContext db) : IConsumer<EmployeeOnboardedIntegrationEvent>
+public sealed class EmployeeHiredAnalyticsConsumer(AnalyticsDbContext db) : IConsumer<EmployeeOnboardedIntegrationEventV1>
 {
-    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
     {
         var msg = context.Message;
         var today = DateOnly.FromDateTime(DateTime.UtcNow);

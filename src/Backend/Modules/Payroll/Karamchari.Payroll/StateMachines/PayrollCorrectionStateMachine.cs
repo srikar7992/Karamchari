@@ -41,7 +41,7 @@ public sealed class PayrollCorrectionStateMachine : MassTransitStateMachine<Payr
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Event<CorrectionApprovedIntegrationEvent> CorrectionApproved { get; private set; } = null!;
+    public Event<CorrectionApprovedIntegrationEventV1> CorrectionApproved { get; private set; } = null!;
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -49,7 +49,7 @@ public sealed class PayrollCorrectionStateMachine : MassTransitStateMachine<Payr
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Event<CorrectionProcessedIntegrationEvent> CorrectionProcessed { get; private set; } = null!;
+    public Event<CorrectionProcessedIntegrationEventV1> CorrectionProcessed { get; private set; } = null!;
 
     public PayrollCorrectionStateMachine()
     {

@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore;
 /// <summary>
 /// Consumes the payroll lock event to trigger mass payslip generation.
 /// </summary>
-public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegrationEvent>
+public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegrationEventV1>
 {
     private readonly PayrollDbContext _dbContext;
     private readonly IPublishEndpoint _publishEndpoint;
@@ -31,7 +31,7 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
     }
 
     /// <inheritdoc/>
-    public async Task Consume(ConsumeContext<PayrollRunLockedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<PayrollRunLockedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;
@@ -60,7 +60,7 @@ public sealed class PayrollRunLockedConsumer : IConsumer<PayrollRunLockedIntegra
         {
             profilesById.TryGetValue(entry.EmployeeId, out var profile);
 
-            await _publishEndpoint.Publish(new PayrollRunCompletedIntegrationEvent(
+            await _publishEndpoint.Publish(new PayrollRunCompletedIntegrationEventV1(
                 entry.EmployeeId,
                 profile?.EmployeeName ?? "Unknown Employee",
                 message.TenantId,

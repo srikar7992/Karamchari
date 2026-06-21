@@ -122,7 +122,7 @@ public static class CorrectionEndpoints
 
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new CorrectionApprovedIntegrationEvent
+        await bus.Publish(new CorrectionApprovedIntegrationEventV1
         {
             CorrectionId = correction.Id,
             TenantId = correction.TenantId,

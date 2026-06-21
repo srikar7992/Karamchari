@@ -560,7 +560,7 @@ public static class AttendanceEndpoints
             request.Approve(approverId.Value);
             await db.SaveChangesAsync(ct);
 
-            await bus.Publish(new RegularizationApprovedIntegrationEvent(
+            await bus.Publish(new RegularizationApprovedIntegrationEventV1(
                 Guid.NewGuid(),
                 tenantId,
                 request.EmployeeId,
@@ -601,7 +601,7 @@ public static class AttendanceEndpoints
             regularization.Reject(request.Reason);
             await db.SaveChangesAsync(ct);
 
-            await bus.Publish(new RegularizationRejectedIntegrationEvent(
+            await bus.Publish(new RegularizationRejectedIntegrationEventV1(
                 Guid.NewGuid(),
                 tenantId,
                 regularization.EmployeeId,

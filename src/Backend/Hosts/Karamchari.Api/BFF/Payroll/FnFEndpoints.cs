@@ -58,7 +58,7 @@ public static class FnFEndpoints
         db.Set<FnFSettlement>().Add(settlement);
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new FnFSettlementInitiatedIntegrationEvent
+        await bus.Publish(new FnFSettlementInitiatedIntegrationEventV1
         {
             SettlementId = settlement.Id,
             TenantId = tenantId,
@@ -125,7 +125,7 @@ public static class FnFEndpoints
 
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new FnFSettlementApprovedIntegrationEvent
+        await bus.Publish(new FnFSettlementApprovedIntegrationEventV1
         {
             SettlementId = settlement.Id,
             TenantId = settlement.TenantId,

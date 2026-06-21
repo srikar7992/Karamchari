@@ -8,10 +8,11 @@
 // Integration event contracts for the Benefits bounded context.
 // Pure data records — no domain logic, no EF entities, no framework dependencies.
 
+using Karamchari.Core.Contracts;
 namespace Karamchari.Benefits.Contracts.IntegrationEvents;
 
 /// <summary>
-/// A single active benefit election carried within <see cref="BenefitEnrollmentActivatedIntegrationEvent"/>.
+/// A single active benefit election carried within <see cref="BenefitEnrollmentActivatedIntegrationEventV1"/>.
 /// Each record represents one coverage category (Medical, Dental, etc.) the employee has elected.
 /// </summary>
 /// <param name="BenefitPlanId">Plan the employee elected.</param>
@@ -41,14 +42,14 @@ public record ActiveElectionDto(
 /// <param name="PlanYearEndDate">End of the benefit plan year.</param>
 /// <param name="ActiveElections">All elected plans with cost breakdown. Empty = employee waived all coverage.</param>
 /// <param name="OccurredAtUtc">Wall-clock time the enrollment was activated.</param>
-public record BenefitEnrollmentActivatedIntegrationEvent(
+public record BenefitEnrollmentActivatedIntegrationEventV1(
     Guid EnrollmentId,
     Guid EmployeeId,
     string TenantId,
     DateOnly PlanYearStartDate,
     DateOnly PlanYearEndDate,
     IReadOnlyList<ActiveElectionDto> ActiveElections,
-    DateTimeOffset OccurredAtUtc);
+    DateTimeOffset OccurredAtUtc) : IIntegrationEvent;
 
 /// <summary>
 /// Published when an employee's benefit election changes mid-year due to a qualifying life event
@@ -62,14 +63,14 @@ public record BenefitEnrollmentActivatedIntegrationEvent(
 /// <param name="ChangeEffectiveDate">Date from which new deduction amounts apply.</param>
 /// <param name="UpdatedElections">The full post-change set of active elections (replaces prior deductions).</param>
 /// <param name="OccurredAtUtc">Wall-clock time the election change was processed.</param>
-public record BenefitElectionChangedIntegrationEvent(
+public record BenefitElectionChangedIntegrationEventV1(
     Guid EnrollmentId,
     Guid EmployeeId,
     string TenantId,
     string LifeEventType,
     DateOnly ChangeEffectiveDate,
     IReadOnlyList<ActiveElectionDto> UpdatedElections,
-    DateTimeOffset OccurredAtUtc);
+    DateTimeOffset OccurredAtUtc) : IIntegrationEvent;
 
 /// <summary>
 /// Published when an employee submits a life event and attaches supporting documentation.
@@ -85,7 +86,7 @@ public record BenefitElectionChangedIntegrationEvent(
 /// <param name="WindowClosesAt">Deadline by which the employee must complete their election changes.</param>
 /// <param name="DocumentStorageReference">Storage key for the uploaded proof document.</param>
 /// <param name="OccurredAtUtc">Submission timestamp.</param>
-public record LifeEventSubmittedIntegrationEvent(
+public record LifeEventSubmittedIntegrationEventV1(
     Guid EnrollmentId,
     Guid LifeEventId,
     Guid EmployeeId,
@@ -94,4 +95,4 @@ public record LifeEventSubmittedIntegrationEvent(
     DateOnly EventDate,
     DateTimeOffset WindowClosesAt,
     string? DocumentStorageReference,
-    DateTimeOffset OccurredAtUtc);
+    DateTimeOffset OccurredAtUtc) : IIntegrationEvent;

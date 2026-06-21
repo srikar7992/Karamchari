@@ -39,7 +39,7 @@ public static class TenantEndpoints
 
         await provisioningService.ProvisionTenantAsync(tenantId, schemaName);
 
-        await publishEndpoint.Publish(new TenantProvisionedIntegrationEvent(
+        await publishEndpoint.Publish(new TenantProvisionedIntegrationEventV1(
             tenantId,
             request.CompanyName,
             request.AdminEmail));

@@ -53,7 +53,7 @@ public class ITDeclarationService
 
         // Trigger Notification to Employee
         // This event would be handled by a NotificationConsumer to send email/SMS/Push
-        await _publishEndpoint.Publish(new ITDeclarationRejectedIntegrationEvent(
+        await _publishEndpoint.Publish(new ITDeclarationRejectedIntegrationEventV1(
             declaration.Id,
             declaration.EmployeeId,
             declaration.Category,

@@ -40,7 +40,7 @@ public sealed class EmployeeSkillGapProjectionHandler
     /// Handles a skill validation event by recomputing per-skill gaps for all active role
     /// requirements that reference the validated skill.
     /// </summary>
-    public async Task HandleAsync(SkillValidatedIntegrationEvent @event, CancellationToken cancellationToken)
+    public async Task HandleAsync(SkillValidatedIntegrationEventV1 @event, CancellationToken cancellationToken)
     {
         var level = (SkillLevel)Math.Clamp(@event.Level, 0, (int)SkillLevel.Expert);
 
@@ -59,9 +59,9 @@ public sealed class EmployeeSkillGapProjectionHandler
 
         var existingSkill = profile.Skills.FirstOrDefault(s => s.SkillId == @event.SkillId);
         if (existingSkill is null)
-            profile.AddVerifiedSkill(@event.SkillId, level, $"event:{nameof(SkillValidatedIntegrationEvent)}", "system");
+            profile.AddVerifiedSkill(@event.SkillId, level, $"event:{nameof(SkillValidatedIntegrationEventV1)}", "system");
         else if (existingSkill.Level != level)
-            profile.UpdateSkillLevel(@event.SkillId, level, $"event:{nameof(SkillValidatedIntegrationEvent)}", "system");
+            profile.UpdateSkillLevel(@event.SkillId, level, $"event:{nameof(SkillValidatedIntegrationEventV1)}", "system");
 
         // 2. Find active requirements containing this skill (bounded fanout)
         var matchingRequirements = await _dbContext.RoleSkillRequirements

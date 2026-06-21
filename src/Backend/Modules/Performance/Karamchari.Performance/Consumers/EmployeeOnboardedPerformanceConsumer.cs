@@ -18,7 +18,7 @@ namespace Karamchari.Performance.Consumers;
 /// Seeds an EmployeeSkillProfile when a new employee is onboarded.
 /// Idempotent: if a profile already exists for (TenantId, EmployeeId), the message is acknowledged and skipped.
 /// </summary>
-public sealed partial class EmployeeOnboardedPerformanceConsumer : IConsumer<EmployeeOnboardedIntegrationEvent>
+public sealed partial class EmployeeOnboardedPerformanceConsumer : IConsumer<EmployeeOnboardedIntegrationEventV1>
 {
     private readonly PerformanceDbContext _dbContext;
     private readonly ILogger<EmployeeOnboardedPerformanceConsumer> _logger;
@@ -36,7 +36,7 @@ public sealed partial class EmployeeOnboardedPerformanceConsumer : IConsumer<Emp
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;

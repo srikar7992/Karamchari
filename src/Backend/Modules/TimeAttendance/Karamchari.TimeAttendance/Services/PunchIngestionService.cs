@@ -159,7 +159,7 @@ public sealed class PunchIngestionService(
                 .FirstOrDefault();
             if (topSignal is not null && topSignal.Severity >= FraudAlertSeverity.High)
             {
-                await _bus.Publish(new GeoFraudDetectedIntegrationEvent(
+                await _bus.Publish(new GeoFraudDetectedIntegrationEventV1(
                     Guid.NewGuid(),
                     request.TenantId,
                     request.EmployeeId,

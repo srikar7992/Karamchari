@@ -21,13 +21,13 @@ namespace Karamchari.Notifications.Consumers;
 /// Routes payroll events to the notification orchestrator.
 /// </summary>
 public sealed class PayrollNotificationConsumer :
-    IConsumer<FnFSettlementApprovedIntegrationEvent>,
-    IConsumer<FnFSettlementDisbursedIntegrationEvent>,
-    IConsumer<DisbursementBatchCompletedIntegrationEvent>,
-    IConsumer<DisbursementBatchFailedIntegrationEvent>,
-    IConsumer<ArrearCalculationApprovedIntegrationEvent>,
-    IConsumer<ReimbursementApprovedIntegrationEvent>,
-    IConsumer<SalaryRevisionApprovedIntegrationEvent>
+    IConsumer<FnFSettlementApprovedIntegrationEventV1>,
+    IConsumer<FnFSettlementDisbursedIntegrationEventV1>,
+    IConsumer<DisbursementBatchCompletedIntegrationEventV1>,
+    IConsumer<DisbursementBatchFailedIntegrationEventV1>,
+    IConsumer<ArrearCalculationApprovedIntegrationEventV1>,
+    IConsumer<ReimbursementApprovedIntegrationEventV1>,
+    IConsumer<SalaryRevisionApprovedIntegrationEventV1>
 {
     private readonly INotificationOrchestrator _notifications;
     private readonly ILogger<PayrollNotificationConsumer> _logger;
@@ -43,7 +43,7 @@ public sealed class PayrollNotificationConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<FnFSettlementApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<FnFSettlementApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         await _notifications.OrchestrateAsync(new NotificationIntent(
@@ -64,7 +64,7 @@ public sealed class PayrollNotificationConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<FnFSettlementDisbursedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<FnFSettlementDisbursedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         await _notifications.OrchestrateAsync(new NotificationIntent(
@@ -84,7 +84,7 @@ public sealed class PayrollNotificationConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Task Consume(ConsumeContext<DisbursementBatchCompletedIntegrationEvent> context)
+    public Task Consume(ConsumeContext<DisbursementBatchCompletedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         if (_logger.IsEnabled(LogLevel.Information))
@@ -99,7 +99,7 @@ public sealed class PayrollNotificationConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Task Consume(ConsumeContext<DisbursementBatchFailedIntegrationEvent> context)
+    public Task Consume(ConsumeContext<DisbursementBatchFailedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         if (_logger.IsEnabled(LogLevel.Error))
@@ -114,7 +114,7 @@ public sealed class PayrollNotificationConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<ArrearCalculationApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<ArrearCalculationApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         await _notifications.OrchestrateAsync(new NotificationIntent(
@@ -134,7 +134,7 @@ public sealed class PayrollNotificationConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<ReimbursementApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<ReimbursementApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         await _notifications.OrchestrateAsync(new NotificationIntent(
@@ -155,7 +155,7 @@ public sealed class PayrollNotificationConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<SalaryRevisionApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<SalaryRevisionApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         await _notifications.OrchestrateAsync(new NotificationIntent(

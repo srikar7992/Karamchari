@@ -45,7 +45,7 @@ public sealed class InternalMobilityProjectionHandler
     /// Seeds mobility rows from existing <see cref="CareerReadinessProjection"/> data when a vacancy opens.
     /// Skips vacancies with no linked role skill requirement.
     /// </summary>
-    public async Task HandleVacancyOpenedAsync(VacancyOpenedIntegrationEvent @event, CancellationToken cancellationToken)
+    public async Task HandleVacancyOpenedAsync(VacancyOpenedIntegrationEventV1 @event, CancellationToken cancellationToken)
     {
         if (@event.RoleSkillRequirementId is null)
             return;
@@ -117,7 +117,7 @@ public sealed class InternalMobilityProjectionHandler
     /// <summary>
     /// Deletes all mobility rows and the vacancy index when a vacancy closes.
     /// </summary>
-    public async Task HandleVacancyClosedAsync(VacancyClosedIntegrationEvent @event, CancellationToken cancellationToken)
+    public async Task HandleVacancyClosedAsync(VacancyClosedIntegrationEventV1 @event, CancellationToken cancellationToken)
     {
         var mobilityRows = await _dbContext.InternalMobilityProjections
             .Where(m => m.TenantId == @event.TenantId && m.VacancyId == @event.VacancyId)
@@ -142,7 +142,7 @@ public sealed class InternalMobilityProjectionHandler
     /// Computes from <see cref="CapabilityProfile"/> + <see cref="RoleSkillRequirement"/> directly —
     /// does not read from <see cref="CareerReadinessProjection"/> to avoid consumer ordering races.
     /// </summary>
-    public async Task HandleSkillValidatedAsync(SkillValidatedIntegrationEvent @event, CancellationToken cancellationToken)
+    public async Task HandleSkillValidatedAsync(SkillValidatedIntegrationEventV1 @event, CancellationToken cancellationToken)
     {
         var level = (SkillLevel)Math.Clamp(@event.Level, 0, (int)SkillLevel.Expert);
 
@@ -161,9 +161,9 @@ public sealed class InternalMobilityProjectionHandler
 
         var existingSkill = profile.Skills.FirstOrDefault(s => s.SkillId == @event.SkillId);
         if (existingSkill is null)
-            profile.AddVerifiedSkill(@event.SkillId, level, $"event:{nameof(SkillValidatedIntegrationEvent)}", "system");
+            profile.AddVerifiedSkill(@event.SkillId, level, $"event:{nameof(SkillValidatedIntegrationEventV1)}", "system");
         else if (existingSkill.Level != level)
-            profile.UpdateSkillLevel(@event.SkillId, level, $"event:{nameof(SkillValidatedIntegrationEvent)}", "system");
+            profile.UpdateSkillLevel(@event.SkillId, level, $"event:{nameof(SkillValidatedIntegrationEventV1)}", "system");
 
         // 2. Find requirements containing the validated skill
         var matchingRequirements = await _dbContext.RoleSkillRequirements

@@ -23,7 +23,7 @@ using Microsoft.Extensions.Logging;
 ///
 /// Idempotent: if an enrollment already exists for this employee + plan year, the event is skipped.
 /// </summary>
-public sealed class EmployeeOnboardedBenefitsConsumer : IConsumer<EmployeeOnboardedIntegrationEvent>
+public sealed class EmployeeOnboardedBenefitsConsumer : IConsumer<EmployeeOnboardedIntegrationEventV1>
 {
     private readonly BenefitsDbContext _db;
     private readonly ILogger<EmployeeOnboardedBenefitsConsumer> _logger;
@@ -34,7 +34,7 @@ public sealed class EmployeeOnboardedBenefitsConsumer : IConsumer<EmployeeOnboar
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;

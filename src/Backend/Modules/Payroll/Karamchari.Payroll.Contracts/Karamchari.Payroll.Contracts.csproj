@@ -8,4 +8,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
+  </ItemGroup>
 </Project>

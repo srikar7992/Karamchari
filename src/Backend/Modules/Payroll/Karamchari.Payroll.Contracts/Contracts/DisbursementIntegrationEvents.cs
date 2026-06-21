@@ -5,6 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Core.Contracts;
 namespace Karamchari.Payroll.Contracts;
 
 /// <summary>
@@ -37,8 +38,7 @@ public sealed record InitiateDisbursementCommand
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record DisbursementBatchSubmittedIntegrationEvent
-{
+public sealed record DisbursementBatchSubmittedIntegrationEventV1 : IIntegrationEvent {
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -68,8 +68,7 @@ public sealed record DisbursementBatchSubmittedIntegrationEvent
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record DisbursementBatchCompletedIntegrationEvent
-{
+public sealed record DisbursementBatchCompletedIntegrationEventV1 : IIntegrationEvent {
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -99,8 +98,7 @@ public sealed record DisbursementBatchCompletedIntegrationEvent
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record DisbursementBatchFailedIntegrationEvent
-{
+public sealed record DisbursementBatchFailedIntegrationEventV1 : IIntegrationEvent {
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>

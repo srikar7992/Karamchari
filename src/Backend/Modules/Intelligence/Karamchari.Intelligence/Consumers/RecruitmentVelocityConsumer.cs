@@ -12,15 +12,15 @@ namespace Karamchari.Intelligence.Consumers;
 /// queries can derive inter-stage elapsed times by comparing OccurredAt across stages.
 /// </summary>
 public sealed class RecruitmentVelocityConsumer(IntelligenceDbContext dbContext) :
-    IConsumer<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEvent>>,
-    IConsumer<EnterpriseEventEnvelope<CandidateAppliedIntegrationEvent>>,
-    IConsumer<EnterpriseEventEnvelope<InterviewCompletedIntegrationEvent>>,
-    IConsumer<EnterpriseEventEnvelope<OfferAcceptedIntegrationEvent>>,
-    IConsumer<EnterpriseEventEnvelope<CandidateHiredIntegrationEvent>>
+    IConsumer<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEventV1>>,
+    IConsumer<EnterpriseEventEnvelope<CandidateAppliedIntegrationEventV1>>,
+    IConsumer<EnterpriseEventEnvelope<InterviewCompletedIntegrationEventV1>>,
+    IConsumer<EnterpriseEventEnvelope<OfferAcceptedIntegrationEventV1>>,
+    IConsumer<EnterpriseEventEnvelope<CandidateHiredIntegrationEventV1>>
 {
     private const string MetricType = "RecruitmentVelocity";
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         dbContext.AnalyticsReadModels.Add(new AnalyticsReadModel
@@ -37,7 +37,7 @@ public sealed class RecruitmentVelocityConsumer(IntelligenceDbContext dbContext)
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateAppliedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateAppliedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         dbContext.AnalyticsReadModels.Add(new AnalyticsReadModel
@@ -54,7 +54,7 @@ public sealed class RecruitmentVelocityConsumer(IntelligenceDbContext dbContext)
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<InterviewCompletedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<InterviewCompletedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         dbContext.AnalyticsReadModels.Add(new AnalyticsReadModel
@@ -71,7 +71,7 @@ public sealed class RecruitmentVelocityConsumer(IntelligenceDbContext dbContext)
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<OfferAcceptedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<OfferAcceptedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         dbContext.AnalyticsReadModels.Add(new AnalyticsReadModel
@@ -88,7 +88,7 @@ public sealed class RecruitmentVelocityConsumer(IntelligenceDbContext dbContext)
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateHiredIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateHiredIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         dbContext.AnalyticsReadModels.Add(new AnalyticsReadModel

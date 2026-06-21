@@ -18,7 +18,7 @@ namespace Karamchari.Notifications.Consumers;
 /// Phase 1: HR system-alert only (HR employee ID sourced from a future
 /// TenantConfiguration BC; stub uses Guid.Empty which a real template will skip).
 /// </summary>
-public sealed class ReviewSubmittedConsumer : IConsumer<ReviewSubmittedIntegrationEvent>
+public sealed class ReviewSubmittedConsumer : IConsumer<ReviewSubmittedIntegrationEventV1>
 {
     private readonly INotificationOrchestrator _orchestrator;
 
@@ -28,7 +28,7 @@ public sealed class ReviewSubmittedConsumer : IConsumer<ReviewSubmittedIntegrati
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Task Consume(ConsumeContext<ReviewSubmittedIntegrationEvent> context)
+    public Task Consume(ConsumeContext<ReviewSubmittedIntegrationEventV1> context)
     {
         var e = context.Message;
 

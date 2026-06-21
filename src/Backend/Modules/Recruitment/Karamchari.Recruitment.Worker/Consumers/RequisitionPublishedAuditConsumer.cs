@@ -13,9 +13,9 @@ using MassTransit;
 namespace Karamchari.Recruitment.Worker.Consumers;
 
 public sealed class RequisitionPublishedAuditConsumer(IRecruitmentDbContext dbContext)
-    : IConsumer<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEvent>>
+    : IConsumer<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEventV1>>
 {
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         var payload = envelope.Payload;

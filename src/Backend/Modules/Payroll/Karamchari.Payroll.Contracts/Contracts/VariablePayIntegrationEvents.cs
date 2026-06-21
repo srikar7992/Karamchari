@@ -5,13 +5,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Core.Contracts;
 namespace Karamchari.Payroll.Contracts;
 
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record VariablePayApprovedIntegrationEvent
-{
+public sealed record VariablePayApprovedIntegrationEventV1 : IIntegrationEvent {
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -45,8 +45,7 @@ public sealed record VariablePayApprovedIntegrationEvent
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record VariablePayPaidOutIntegrationEvent
-{
+public sealed record VariablePayPaidOutIntegrationEventV1 : IIntegrationEvent {
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -72,8 +71,7 @@ public sealed record VariablePayPaidOutIntegrationEvent
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record SalaryRevisionApprovedIntegrationEvent
-{
+public sealed record SalaryRevisionApprovedIntegrationEventV1 : IIntegrationEvent {
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>

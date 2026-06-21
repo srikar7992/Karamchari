@@ -70,14 +70,14 @@ public class IncidentSimulationTests
         var tenantId = "bypass-tenant";
 
         // 2. Act - Publish message with INVALID signature (simulating compromised/stale key)
-        await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), tenantId, "Bypass Test"), context =>
+        await harness.Bus.Publish(new SyntheticPingIntegrationEventV1(Guid.NewGuid(), tenantId, "Bypass Test"), context =>
         {
             context.Headers.Set(ExecutionContextHeaders.TenantId, tenantId);
             context.Headers.Set(ExecutionContextHeaders.ExecutionContextSignature, "COMPROMISED-KEY-SIGNATURE");
         });
 
         // 3. Assert
-        (await harness.Consumed.Any<SyntheticPingIntegrationEvent>()).Should().BeTrue();
+        (await harness.Consumed.Any<SyntheticPingIntegrationEventV1>()).Should().BeTrue();
 
         // Consumer SHOULD run because we are in AuditOnly mode
         SyntheticConsumer.ConsumeCount.Should().Be(1, "Emergency Bypass must allow processing even with invalid signatures.");
@@ -105,7 +105,7 @@ public class IncidentSimulationTests
         await harness.Start();
 
         // 2. Act - Tamper with message
-        await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), "acme", "DLQ Test"), context =>
+        await harness.Bus.Publish(new SyntheticPingIntegrationEventV1(Guid.NewGuid(), "acme", "DLQ Test"), context =>
         {
             context.Headers.Set(ExecutionContextHeaders.TenantId, "evil-tenant");
             context.Headers.Set(ExecutionContextHeaders.ExecutionContextSignature, "invalid");
@@ -119,10 +119,10 @@ public class IncidentSimulationTests
         SyntheticConsumer.ConsumeCount.Should().Be(0, "Enforce mode must block tampered messages.");
 
         // Verification: The harness should show a failed consumption
-        (await harness.Consumed.Any<SyntheticPingIntegrationEvent>(x => x.Exception != null)).Should().BeTrue("Tampered message must result in a failed consumption entry.");
+        (await harness.Consumed.Any<SyntheticPingIntegrationEventV1>(x => x.Exception != null)).Should().BeTrue("Tampered message must result in a failed consumption entry.");
     }
 
-    private class SyntheticConsumer : IConsumer<SyntheticPingIntegrationEvent>
+    private class SyntheticConsumer : IConsumer<SyntheticPingIntegrationEventV1>
     {
         public static string? LastObservedTenantId;
         public static int ConsumeCount;
@@ -133,7 +133,7 @@ public class IncidentSimulationTests
             ConsumeCount = 0;
         }
 
-        public Task Consume(ConsumeContext<SyntheticPingIntegrationEvent> context)
+        public Task Consume(ConsumeContext<SyntheticPingIntegrationEventV1> context)
         {
             var executionContext = TenantExecutionContext.Current;
             LastObservedTenantId = executionContext?.TenantId;

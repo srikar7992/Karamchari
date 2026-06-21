@@ -646,6 +646,7 @@
       "karamchari.core": {
         "type": "Project",
         "dependencies": {
+          "Karamchari.Core.Contracts": "[1.0.0, )",
           "MassTransit": "[8.3.0, )",
           "MassTransit.Abstractions": "[8.3.0, )",
           "MassTransit.Azure.ServiceBus.Core": "[8.3.0, )",
@@ -665,6 +666,9 @@
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Enrichers.Process": "[3.0.0, )"
         }
+      },
+      "karamchari.core.contracts": {
+        "type": "Project"
       },
       "MassTransit.Abstractions": {
         "type": "CentralTransitive",

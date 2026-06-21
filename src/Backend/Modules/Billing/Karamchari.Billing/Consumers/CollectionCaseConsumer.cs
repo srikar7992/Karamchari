@@ -19,8 +19,8 @@ namespace Karamchari.Billing.Consumers;
 /// Creates cases for new invoices and closes them when payments are settled.
 /// </summary>
 public sealed class CollectionCaseConsumer :
-    IConsumer<InvoiceIssuedIntegrationEvent>,
-    IConsumer<PaymentReceivedIntegrationEvent>
+    IConsumer<InvoiceIssuedIntegrationEventV1>,
+    IConsumer<PaymentReceivedIntegrationEventV1>
 {
     private const string ConsumerName = nameof(CollectionCaseConsumer);
     private readonly ILogger<CollectionCaseConsumer> _logger;
@@ -35,7 +35,7 @@ public sealed class CollectionCaseConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<InvoiceIssuedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<InvoiceIssuedIntegrationEventV1> context)
     {
         var ev = context.Message;
         _logger.LogInformation("Processing InvoiceIssued for {InvoiceId} [Tenant:{TenantId}]", ev.InvoiceId, ev.TenantId);
@@ -73,7 +73,7 @@ public sealed class CollectionCaseConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<PaymentReceivedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<PaymentReceivedIntegrationEventV1> context)
     {
         var ev = context.Message;
         _logger.LogInformation("Processing PaymentReceived for {InvoiceId} [Tenant:{TenantId}]", ev.InvoiceId, ev.TenantId);

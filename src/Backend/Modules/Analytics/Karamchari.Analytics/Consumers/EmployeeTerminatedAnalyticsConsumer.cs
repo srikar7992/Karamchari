@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Analytics.Consumers;
 
-// Consumes EmployeeOnboardedIntegrationEvent to mark historical record; 
+// Consumes EmployeeOnboardedIntegrationEventV1 to mark historical record; 
 // no EmployeeTerminated integration event exists yet — stubbed for future wire-up.
 public sealed class EmployeeTerminatedAnalyticsConsumer(AnalyticsDbContext db)
-    : IConsumer<EmployeeOnboardedIntegrationEvent>
+    : IConsumer<EmployeeOnboardedIntegrationEventV1>
 {
     // This consumer registers as a secondary subscriber to EmployeeOnboarded
     // to ensure DimEmployee is populated even if EmployeeHired domain event was missed.
-    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
     {
         var msg = context.Message;
         var existing = await db.DimEmployees.FindAsync([msg.EmployeeId], context.CancellationToken);

@@ -18,9 +18,9 @@ namespace Karamchari.Helpdesk.Consumers;
 /// Prevents orphaned tickets in the helpdesk queue.
 /// </summary>
 public sealed class EmployeeTerminatedHelpdeskConsumer(HelpdeskDbContext db)
-    : IConsumer<EmployeeTerminatedIntegrationEvent>
+    : IConsumer<EmployeeTerminatedIntegrationEventV1>
 {
-    public async Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;

@@ -972,7 +972,7 @@ public sealed class WfpScenarioResult
 /// Inflates supply forecasts for dates on or after ExpectedStartDate, weighted by JoiningProbability.
 /// JoiningProbability reflects offer drop-off risk (e.g. 0.75 for graduate hires, 0.98 for internal transfers).
 /// Supply contribution = SUM(JoiningProbability) rounded to nearest integer, not a raw count.
-/// Marked IsOnboarded when EmployeeOnboardedIntegrationEvent arrives for the same tenant+location+skill window.
+/// Marked IsOnboarded when EmployeeOnboardedIntegrationEventV1 arrives for the same tenant+location+skill window.
 /// </summary>
 public sealed class WfpFutureHire
 {

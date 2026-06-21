@@ -20,14 +20,14 @@ namespace Karamchari.TimeAttendance.Consumers;
 /// Implements "Domain Owns Business Truth, Workflow Owns Coordination".
 /// </summary>
 public sealed class WorkflowCompletedConsumer(TimeAttendanceDbContext db, ILogger<WorkflowCompletedConsumer> logger) :
-    IConsumer<WorkflowCompletedIntegrationEvent>
+    IConsumer<WorkflowCompletedIntegrationEventV1>
 {
     private readonly TimeAttendanceDbContext _db = db;
     private readonly ILogger<WorkflowCompletedConsumer> _logger = logger;
 
-    public async Task Consume(ConsumeContext<WorkflowCompletedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<WorkflowCompletedIntegrationEventV1> context)
     {
-        WorkflowCompletedIntegrationEvent msg = context.Message;
+        WorkflowCompletedIntegrationEventV1 msg = context.Message;
 
         if (msg.EntityType == "LeaveRequest")
         {
@@ -36,7 +36,7 @@ public sealed class WorkflowCompletedConsumer(TimeAttendanceDbContext db, ILogge
         // Add other entities as they are migrated to the new flow
     }
 
-    private async Task HandleLeaveRequestCompletion(WorkflowCompletedIntegrationEvent msg, CancellationToken ct)
+    private async Task HandleLeaveRequestCompletion(WorkflowCompletedIntegrationEventV1 msg, CancellationToken ct)
     {
         LeaveRequest? leave = await _db.Set<LeaveRequest>().FindAsync([msg.EntityId], ct);
         if (leave == null)

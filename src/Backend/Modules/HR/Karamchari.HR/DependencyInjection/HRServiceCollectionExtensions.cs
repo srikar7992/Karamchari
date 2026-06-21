@@ -119,8 +119,8 @@ public static class HRServiceCollectionExtensions
 
         // Register intelligence handlers and calculators
         services.AddScoped<EmployeeIntelligenceProjectionHandler>();
-        services.AddScoped<IProjectionHandler<EmployeeCompensationRevisedIntegrationEvent>, EmployeeCompensationProjectionHandler>();
-        services.AddScoped<IProjectionHandler<EmployeePerformanceSnapshotMaterializedIntegrationEvent>, EmployeePerformanceProjectionHandler>();
+        services.AddScoped<IProjectionHandler<EmployeeCompensationRevisedIntegrationEventV1>, EmployeeCompensationProjectionHandler>();
+        services.AddScoped<IProjectionHandler<EmployeePerformanceSnapshotMaterializedIntegrationEventV1>, EmployeePerformanceProjectionHandler>();
 
         services.AddDbContext<HRDbContext>((serviceProvider, options) =>
         {

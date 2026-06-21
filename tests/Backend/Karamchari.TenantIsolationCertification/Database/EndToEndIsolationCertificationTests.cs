@@ -94,7 +94,7 @@ public sealed class EndToEndIsolationCertificationTests(SqlServerEndToEndFixture
 
                 using (context.Establish())
                 {
-                    await harness.Bus.Publish(new EmployeeOnboardedIntegrationEvent(
+                    await harness.Bus.Publish(new EmployeeOnboardedIntegrationEventV1(
                         Guid.NewGuid(),
                         tenantId,
                         $"EMP-{tenantId}-{i}",
@@ -111,7 +111,7 @@ public sealed class EndToEndIsolationCertificationTests(SqlServerEndToEndFixture
         var stopwatch = Stopwatch.StartNew();
         while (stopwatch.Elapsed < timeout)
         {
-            var count = harness.Consumed.Select<EmployeeOnboardedIntegrationEvent>().Count();
+            var count = harness.Consumed.Select<EmployeeOnboardedIntegrationEventV1>().Count();
             if (count >= totalMessages) break;
             await Task.Delay(500);
         }
@@ -128,9 +128,9 @@ public sealed class EndToEndIsolationCertificationTests(SqlServerEndToEndFixture
         dboCount.Should().Be(0, "The dbo schema MUST remain empty. Any rows here prove an isolation failure (D1 root cause).");
     }
 
-    private class PayrollProfileConsumer(PayrollDbContext dbContext) : IConsumer<EmployeeOnboardedIntegrationEvent>
+    private class PayrollProfileConsumer(PayrollDbContext dbContext) : IConsumer<EmployeeOnboardedIntegrationEventV1>
     {
-        public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
         {
             var message = context.Message;
             var profile = PayrollProfile.CreateDraft(message.EmployeeId, message.LegalName);

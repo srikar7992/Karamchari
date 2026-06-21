@@ -53,7 +53,7 @@ public sealed class InitiateDisbursementConsumer : IConsumer<InitiateDisbursemen
 
         var batch = await _orchestrator.InitiateAsync(request, context.CancellationToken);
 
-        await context.Publish(new DisbursementBatchSubmittedIntegrationEvent
+        await context.Publish(new DisbursementBatchSubmittedIntegrationEventV1
         {
             BatchId = batch.Id,
             TenantId = msg.TenantId,

@@ -126,7 +126,7 @@ public sealed class BenefitAdminService(
 
     /// <summary>
     /// Activates a Submitted enrollment after HR review.
-    /// Publishes BenefitEnrollmentActivatedIntegrationEvent so Payroll can set up deductions
+    /// Publishes BenefitEnrollmentActivatedIntegrationEventV1 so Payroll can set up deductions
     /// and Notifications can send the employee a coverage confirmation.
     /// </summary>
     public async Task ActivateEnrollmentAsync(Guid enrollmentId, CancellationToken ct = default)
@@ -135,7 +135,7 @@ public sealed class BenefitAdminService(
         enrollment.Activate();
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new BenefitEnrollmentActivatedIntegrationEvent(
+        await bus.Publish(new BenefitEnrollmentActivatedIntegrationEventV1(
             enrollment.Id.Value,
             enrollment.EmployeeId,
             enrollment.TenantId,

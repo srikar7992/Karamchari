@@ -17,13 +17,13 @@ namespace Karamchari.Compliance.Consumers;
 /// Compliance never modifies source systems — observe, evaluate, detect only.
 ///
 /// Currently handled:
-///   TimesheetApprovedIntegrationEvent -> ExcessiveOvertime check (> 60h/week)
+///   TimesheetApprovedIntegrationEventV1 -> ExcessiveOvertime check (> 60h/week)
 ///
 /// Future: PayrollCalculated -> Underpayment check (requires minimum wage lookup per tenant/site).
 /// PayrollCalculatedIntegrationEvent is not defined in contracts; skipped until published.
 /// </summary>
 public sealed class ComplianceEventConsumer :
-    IConsumer<TimesheetApprovedIntegrationEvent>
+    IConsumer<TimesheetApprovedIntegrationEventV1>
 {
     private readonly PolicyViolationDetectionService _detectionService;
     private readonly ILogger<ComplianceEventConsumer> _logger;
@@ -36,7 +36,7 @@ public sealed class ComplianceEventConsumer :
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;

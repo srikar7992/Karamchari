@@ -38,7 +38,7 @@ public sealed class CandidateHiredHandler(
             .OrderByDescending(o => o.IssuedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
-        await publishEndpoint.Publish(new CandidateHiredIntegrationEvent(
+        await publishEndpoint.Publish(new CandidateHiredIntegrationEventV1(
             notification.CandidateId.Value,
             notification.ApplicationId.Value,
             application.RequisitionId.Value,

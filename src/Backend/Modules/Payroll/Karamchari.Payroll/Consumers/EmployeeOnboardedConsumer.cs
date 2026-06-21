@@ -15,10 +15,10 @@ using Microsoft.Extensions.Logging;
 namespace Karamchari.Payroll.Consumers;
 
 /// <summary>
-/// Consumer for the <see cref="EmployeeOnboardedIntegrationEvent"/>.
+/// Consumer for the <see cref="EmployeeOnboardedIntegrationEventV1"/>.
 /// Creates a draft payroll profile when a new employee is onboarded.
 /// </summary>
-public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationEvent>
+public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationEventV1>
 {
     private readonly PayrollDbContext _dbContext;
     private readonly ILogger<EmployeeOnboardedConsumer> _logger;
@@ -35,10 +35,10 @@ public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationE
     }
 
     /// <summary>
-    /// Consumes the <see cref="EmployeeOnboardedIntegrationEvent"/>.
+    /// Consumes the <see cref="EmployeeOnboardedIntegrationEventV1"/>.
     /// </summary>
     /// <param name="context">The consume context.</param>
-    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;

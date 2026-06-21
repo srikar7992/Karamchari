@@ -136,7 +136,7 @@ public sealed class DisburseFnFConsumer : IConsumer<DisburseFnFCommand>
 
         await _db.SaveChangesAsync(context.CancellationToken);
 
-        await context.Publish(new FnFSettlementDisbursedIntegrationEvent
+        await context.Publish(new FnFSettlementDisbursedIntegrationEventV1
         {
             SettlementId = settlement.Id,
             TenantId = settlement.TenantId,

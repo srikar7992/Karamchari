@@ -14,9 +14,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Karamchari.HR.Consumers;
 
 public sealed class CreateEmployeeOnCandidateHiredConsumer(HRDbContext dbContext)
-    : IConsumer<CandidateHiredIntegrationEvent>
+    : IConsumer<CandidateHiredIntegrationEventV1>
 {
-    public async Task Consume(ConsumeContext<CandidateHiredIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<CandidateHiredIntegrationEventV1> context)
     {
         var message = context.Message;
         var employeeNumber = $"EMP-{message.CandidateId.ToString()[..8].ToUpperInvariant()}";

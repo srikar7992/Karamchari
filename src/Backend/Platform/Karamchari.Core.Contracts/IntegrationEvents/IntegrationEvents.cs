@@ -10,12 +10,14 @@
 // Versioned using nested namespaces so consumers can pin to a stable version
 // while producers gradually migrate to V2+.
 
+using Karamchari.Core.Contracts;
+
 namespace Karamchari.Core.Contracts.IntegrationEvents
 {
     // â”€â”€ Common events that have not evolved yet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
-    /// A single time-entry detail carried inside <see cref="TimesheetApprovedIntegrationEvent"/>.
+    /// A single time-entry detail carried inside <see cref="TimesheetApprovedIntegrationEventV1"/>.
     /// Both the Payroll consumer (total hours) and the PSA consumer (billable entries only)
     /// work from this same event â€” no cross-context DB reads needed.
     /// </summary>
@@ -57,7 +59,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// <param name="BillableHours">Sum of billable entry hours only. Pre-computed for Payroll convenience.</param>
     /// <param name="IsRetroactive">True when this approval corrects a previously approved timesheet. Downstream systems must reverse prior postings before applying new figures.</param>
     /// <param name="Entries">Full per-day, per-project breakdown.</param>
-    public record TimesheetApprovedIntegrationEvent(
+    public record TimesheetApprovedIntegrationEventV1(
         Guid TimesheetId,
         Guid EmployeeId,
         string TenantId,
@@ -65,7 +67,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
         decimal TotalHours,
         decimal BillableHours,
         bool IsRetroactive,
-        IReadOnlyList<ApprovedTimeEntryDto> Entries);
+        IReadOnlyList<ApprovedTimeEntryDto> Entries) : IIntegrationEvent;
 
     /// <summary>
     /// Published when a leave request is approved by HR.
@@ -76,13 +78,13 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// <param name="EndDate">Inclusive end date of the leave.</param>
     /// <param name="TotalDays">Total calendar days of leave.</param>
     /// <param name="IsPaid">Whether the leave is paid.</param>
-    public record LeaveRequestApprovedIntegrationEvent(
+    public record LeaveRequestApprovedIntegrationEventV1(
         Guid RequestId,
         Guid EmployeeId,
         DateOnly StartDate,
         DateOnly EndDate,
         double TotalDays,
-        bool IsPaid);
+        bool IsPaid) : IIntegrationEvent;
 
     /// <summary>
     /// Published when a payroll run is locked and no further adjustments are accepted.
@@ -90,10 +92,10 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// <param name="RunId">The payroll run identifier.</param>
     /// <param name="TenantId">The tenant owning this payroll run.</param>
     /// <param name="PeriodName">Human-readable period name (e.g. "April 2026").</param>
-    public record PayrollRunLockedIntegrationEvent(
+    public record PayrollRunLockedIntegrationEventV1(
         Guid RunId,
         string TenantId,
-        string PeriodName);
+        string PeriodName) : IIntegrationEvent;
 
     /// <summary>
     /// Published when a new tenant is provisioned and its schema is ready.
@@ -101,10 +103,10 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// <param name="TenantId">The tenant identifier.</param>
     /// <param name="CompanyName">The company display name.</param>
     /// <param name="AdminEmail">Email address of the primary administrator.</param>
-    public record TenantProvisionedIntegrationEvent(
+    public record TenantProvisionedIntegrationEventV1(
         string TenantId,
         string CompanyName,
-        string AdminEmail);
+        string AdminEmail) : IIntegrationEvent;
 
     /// <summary>
     /// Command to start a new payroll run.
@@ -129,74 +131,74 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// <param name="EmployeeId">The employee whose declaration was rejected.</param>
     /// <param name="Category">The IT declaration category (e.g. "80C", "HRA").</param>
     /// <param name="Reason">Mandatory rejection reason shown to the employee.</param>
-    public record ITDeclarationRejectedIntegrationEvent(
+    public record ITDeclarationRejectedIntegrationEventV1(
         Guid DeclarationId,
         Guid EmployeeId,
         string Category,
-        string Reason);
+        string Reason) : IIntegrationEvent;
 
     /// <summary>Published when a new leave request is created and awaiting coordination.</summary>
-    public record LeaveRequestCreatedIntegrationEvent(
+    public record LeaveRequestCreatedIntegrationEventV1(
         Guid RequestId,
         string TenantId,
         Guid EmployeeId,
         DateOnly StartDate,
         DateOnly EndDate,
-        double TotalDays);
+        double TotalDays) : IIntegrationEvent;
 
     /// <summary>Published when a new reimbursement claim is submitted and awaiting coordination.</summary>
-    public record ReimbursementSubmittedIntegrationEvent(
+    public record ReimbursementSubmittedIntegrationEventV1(
         Guid ClaimId,
         string TenantId,
         Guid EmployeeId,
         string Category,
-        decimal Amount);
+        decimal Amount) : IIntegrationEvent;
 
     // â”€â”€ Standardized Workflow Events (Phase 1B.3 Convergence) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Published when any platform workflow instance is started.</summary>
-    public record WorkflowStartedIntegrationEvent(
+    public record WorkflowStartedIntegrationEventV1(
         Guid WorkflowId,
         string TenantId,
         string EntityType,
         Guid EntityId,
         DateTimeOffset StartedAt,
-        string InitiatedBy);
+        string InitiatedBy) : IIntegrationEvent;
 
     /// <summary>Published when a workflow state transition occurs.</summary>
-    public record WorkflowTransitionedIntegrationEvent(
+    public record WorkflowTransitionedIntegrationEventV1(
         Guid WorkflowId,
         string TenantId,
         string FromStatus,
         string ToStatus,
         Guid ActorId,
         DateTimeOffset TransitionedAt,
-        string? Reason = null);
+        string? Reason = null) : IIntegrationEvent;
 
     /// <summary>Published when an approval decision is recorded.</summary>
-    public record WorkflowApprovalDecisionIntegrationEvent(
+    public record WorkflowApprovalDecisionIntegrationEventV1(
         Guid WorkflowId,
         string TenantId,
         Guid StepId,
         Guid ApproverId,
         bool Approved,
         string? Note = null,
-        DateTimeOffset DecidedAt = default);
+        DateTimeOffset DecidedAt = default) : IIntegrationEvent;
 
     /// <summary>Published when a workflow is completed (Approved/Rejected/Cancelled).</summary>
-    public record WorkflowCompletedIntegrationEvent(
+    public record WorkflowCompletedIntegrationEventV1(
         Guid WorkflowId,
         string TenantId,
         string EntityType,
         Guid EntityId,
         string FinalStatus,
-        DateTimeOffset CompletedAt);
+        DateTimeOffset CompletedAt) : IIntegrationEvent;
 
     /// <summary>Synthetic event used for platform-wide execution context propagation testing.</summary>
-    public record SyntheticPingIntegrationEvent(
+    public record SyntheticPingIntegrationEventV1(
         Guid PingId,
         string TenantId,
-        string Payload);
+        string Payload) : IIntegrationEvent;
 
     // ── Phase 5: Workforce Planning Events ──────────────────────────────────
 
@@ -214,46 +216,46 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// Set lower for graduate/external hires with higher drop-off rates (e.g. 0.75).
     /// WFP supply contribution = SUM(JoiningProbability) rounded to nearest integer.
     /// </param>
-    public record HireOfferAcceptedIntegrationEvent(
+    public record HireOfferAcceptedIntegrationEventV1(
         Guid OfferId,
         string TenantId,
         string LocationCode,
         string SkillCode,
         DateOnly ExpectedStartDate,
-        decimal JoiningProbability = 1.0m);
+        decimal JoiningProbability = 1.0m) : IIntegrationEvent;
 
     /// <summary>Published when an approved leave request is cancelled before it starts.</summary>
-    public record LeaveCancelledIntegrationEvent(
+    public record LeaveCancelledIntegrationEventV1(
         Guid RequestId,
         string TenantId,
         Guid EmployeeId,
         DateOnly StartDate,
-        DateOnly EndDate);
+        DateOnly EndDate) : IIntegrationEvent;
 
     /// <summary>Published when an employee is terminated or their contract ends.</summary>
-    public record EmployeeTerminatedIntegrationEvent(
+    public record EmployeeTerminatedIntegrationEventV1(
         Guid EmployeeId,
         string TenantId,
         string EmployeeNumber,
         DateOnly TerminatedOn,
-        string TerminationReason);
+        string TerminationReason) : IIntegrationEvent;
 
     /// <summary>Published when a skill is assigned or renewed for an employee.</summary>
-    public record SkillAssignedIntegrationEvent(
+    public record SkillAssignedIntegrationEventV1(
         Guid EmployeeId,
         string TenantId,
         Guid SkillId,
         string SkillCode,
         string SkillName,
         int Level,
-        DateOnly? ExpiryDate);
+        DateOnly? ExpiryDate) : IIntegrationEvent;
 
     /// <summary>Published when a skill certification expires for an employee.</summary>
-    public record SkillExpiredIntegrationEvent(
+    public record SkillExpiredIntegrationEventV1(
         Guid EmployeeId,
         string TenantId,
         Guid SkillId,
-        string SkillCode);
+        string SkillCode) : IIntegrationEvent;
 
     /// <summary>Published when an employee's skill is validated.</summary>
     /// <param name="EmployeeId">The unique identifier of the employee whose skill was validated.</param>
@@ -263,14 +265,14 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// <param name="SkillName">The display name of the skill.</param>
     /// <param name="Level">The validated proficiency level score achieved.</param>
     /// <param name="ValidatedAt">The timestamp when this validation was recorded.</param>
-    public record SkillValidatedIntegrationEvent(
+    public record SkillValidatedIntegrationEventV1(
         Guid EmployeeId,
         string TenantId,
         Guid SkillId,
         string SkillCode,
         string SkillName,
         int Level,
-        DateTimeOffset ValidatedAt);
+        DateTimeOffset ValidatedAt) : IIntegrationEvent;
 
     // ── Phase 25: Internal Mobility Marketplace ──────────────────────────────
 
@@ -286,12 +288,12 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// Null when the position has no linked requirement — consumers skip mobility generation.
     /// </param>
     /// <param name="OpenedUtc">Timestamp when the vacancy was opened.</param>
-    public record VacancyOpenedIntegrationEvent(
+    public record VacancyOpenedIntegrationEventV1(
         Guid VacancyId,
         string TenantId,
         Guid PositionId,
         Guid? RoleSkillRequirementId,
-        DateTimeOffset OpenedUtc);
+        DateTimeOffset OpenedUtc) : IIntegrationEvent;
 
     /// <summary>
     /// Published when a position vacancy is closed (filled or cancelled).
@@ -301,11 +303,11 @@ namespace Karamchari.Core.Contracts.IntegrationEvents
     /// <param name="TenantId">Tenant owning this vacancy.</param>
     /// <param name="PositionId">The position whose vacancy was closed.</param>
     /// <param name="CloseReason">How it was closed: "Filled" or "Cancelled".</param>
-    public record VacancyClosedIntegrationEvent(
+    public record VacancyClosedIntegrationEventV1(
         Guid VacancyId,
         string TenantId,
         Guid PositionId,
-        string CloseReason);
+        string CloseReason) : IIntegrationEvent;
 }
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.V1
@@ -322,7 +324,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
     /// <param name="HiredOn">The date the employee was hired.</param>
     /// <param name="DateOfBirth">Optional date of birth. Used by WFP to derive retirement forecast dates.</param>
     /// <param name="ContractEndDate">Optional fixed-term contract end date. Used by WFP to forecast contract expiry deductions.</param>
-    public record EmployeeOnboardedIntegrationEvent(
+    public record EmployeeOnboardedIntegrationEventV1(
         Guid EmployeeId,
         string TenantId,
         string EmployeeNumber,
@@ -330,11 +332,11 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
         string? WorkEmail,
         DateOnly HiredOn,
         DateOnly? DateOfBirth = null,
-        DateOnly? ContractEndDate = null);
+        DateOnly? ContractEndDate = null) : IIntegrationEvent;
 
     /// <summary>
     /// V1: does NOT include EmployeeName â€” consumers must look it up separately.
-    /// Prefer <see cref="V2.PayrollRunCompletedIntegrationEvent"/> for new consumers.
+    /// Prefer <see cref="V2.PayrollRunCompletedIntegrationEventV1"/> for new consumers.
     /// </summary>
     /// <param name="EmployeeId">The employee identifier.</param>
     /// <param name="TenantId">The tenant owning this payroll run.</param>
@@ -344,7 +346,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
     /// <param name="Earnings">Itemised earnings by component name.</param>
     /// <param name="Deductions">Itemised deductions by component name.</param>
     /// <param name="TaxRegime">Tax regime applied (e.g. "OldRegime", "NewRegime").</param>
-    public record PayrollRunCompletedIntegrationEvent(
+    public record PayrollRunCompletedIntegrationEventV1(
         Guid EmployeeId,
         string TenantId,
         string PeriodName,
@@ -352,7 +354,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V1
         decimal NetPay,
         Dictionary<string, decimal> Earnings,
         Dictionary<string, decimal> Deductions,
-        string TaxRegime);
+        string TaxRegime) : IIntegrationEvent;
 }
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.V2
@@ -376,7 +378,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V2
     /// belongs to (e.g. 2026 for FY 2026-2027). Lets the payslip consumer scope YTD totals to
     /// the financial year rather than the calendar year. Defaults to 0 for messages produced
     /// before this field existed; consumers treat 0 as "fall back to calendar year".</param>
-    public record PayrollRunCompletedIntegrationEvent(
+    public record PayrollRunCompletedIntegrationEventV1(
         Guid EmployeeId,
         string EmployeeName,
         string TenantId,
@@ -386,7 +388,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.V2
         Dictionary<string, decimal> Earnings,
         Dictionary<string, decimal> Deductions,
         string TaxRegime,
-        int FinancialYearStart = 0);
+        int FinancialYearStart = 0) : IIntegrationEvent;
 }
 
 namespace Karamchari.Core.Contracts.IntegrationEvents.Workforce
@@ -396,7 +398,7 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.Workforce
     // TenantId is required on all events to support multi-tenant RLS.
 
     /// <summary>Published when a requested shift swap is approved by a manager.</summary>
-    public record ShiftSwapApprovedIntegrationEvent(
+    public record ShiftSwapApprovedIntegrationEventV1(
         Guid SwapId,
         Guid RequestingEmployeeId,
         Guid TargetEmployeeId,
@@ -404,36 +406,36 @@ namespace Karamchari.Core.Contracts.IntegrationEvents.Workforce
         DateOnly SwapDate,
         Guid RequestingShiftId,
         Guid TargetShiftId,
-        DateTime ApprovedAt);
+        DateTime ApprovedAt) : IIntegrationEvent;
 
     /// <summary>Published when a requested shift swap is rejected by a manager.</summary>
-    public record ShiftSwapRejectedIntegrationEvent(
+    public record ShiftSwapRejectedIntegrationEventV1(
         Guid SwapId,
         Guid RequestingEmployeeId,
         string TenantId,
         DateOnly SwapDate,
         string RejectionReason,
-        DateTime RejectedAt);
+        DateTime RejectedAt) : IIntegrationEvent;
 
     /// <summary>Published when an employee accepts an overtime offer.</summary>
-    public record OvertimeAcceptedIntegrationEvent(
+    public record OvertimeAcceptedIntegrationEventV1(
         Guid OvertimeOfferId,
         Guid EmployeeId,
         string TenantId,
         DateOnly WorkDate,
         decimal OfferedHours,
-        DateTime AcceptedAt);
+        DateTime AcceptedAt) : IIntegrationEvent;
 
     /// <summary>
     /// Published when an employee declines an overtime offer.
     /// Consumed by Intelligence module to update OvertimeRejections30d signal.
     /// </summary>
-    public record OvertimeRejectedIntegrationEvent(
+    public record OvertimeRejectedIntegrationEventV1(
         Guid OvertimeOfferId,
         Guid EmployeeId,
         string TenantId,
         DateOnly WorkDate,
         decimal OfferedHours,
         string? RejectionReason,
-        DateTime RejectedAt);
+        DateTime RejectedAt) : IIntegrationEvent;
 }

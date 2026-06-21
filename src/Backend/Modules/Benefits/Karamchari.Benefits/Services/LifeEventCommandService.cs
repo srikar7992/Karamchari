@@ -19,10 +19,10 @@ using Microsoft.EntityFrameworkCore;
 ///
 /// Flow:
 ///   1. Employee calls SubmitLifeEventAsync → life event created in PendingVerification.
-///      LifeEventSubmittedIntegrationEvent published → Workflow module starts verification.
+///      LifeEventSubmittedIntegrationEventV1 published → Workflow module starts verification.
 ///   2. Admin verifies the event (BenefitAdminService.VerifyLifeEventAsync) → window opens.
 ///   3. Employee calls ApplyElectionChangeAsync within the 30-day window.
-///      BenefitElectionChangedIntegrationEvent published → Payroll updates deductions.
+///      BenefitElectionChangedIntegrationEventV1 published → Payroll updates deductions.
 /// </summary>
 public sealed class LifeEventCommandService(
     BenefitsDbContext db,
@@ -42,7 +42,7 @@ public sealed class LifeEventCommandService(
         var lifeEvent = enrollment.SubmitLifeEvent(eventType, eventDate, documentStorageReference);
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new LifeEventSubmittedIntegrationEvent(
+        await bus.Publish(new LifeEventSubmittedIntegrationEventV1(
             enrollment.Id.Value,
             lifeEvent.Id.Value,
             employeeId,
@@ -59,7 +59,7 @@ public sealed class LifeEventCommandService(
     /// <summary>
     /// Applies an election change enabled by a verified life event.
     /// Supersedes the prior active election for the category; costs snapshotted from plan now.
-    /// Publishes BenefitElectionChangedIntegrationEvent so Payroll can update deductions.
+    /// Publishes BenefitElectionChangedIntegrationEventV1 so Payroll can update deductions.
     /// </summary>
     public async Task<Guid> ApplyElectionChangeAsync(
         Guid employeeId,
@@ -93,7 +93,7 @@ public sealed class LifeEventCommandService(
 
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new BenefitElectionChangedIntegrationEvent(
+        await bus.Publish(new BenefitElectionChangedIntegrationEventV1(
             enrollment.Id.Value,
             employeeId,
             tenantId,

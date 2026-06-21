@@ -5,6 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Core.Contracts;
 namespace Karamchari.Payroll.Contracts;
 
 // Integration events published to Azure Service Bus for cross-module consumption
@@ -12,8 +13,7 @@ namespace Karamchari.Payroll.Contracts;
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record FnFSettlementInitiatedIntegrationEvent
-{
+public sealed record FnFSettlementInitiatedIntegrationEventV1 : IIntegrationEvent {
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -43,8 +43,7 @@ public sealed record FnFSettlementInitiatedIntegrationEvent
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record FnFSettlementApprovedIntegrationEvent
-{
+public sealed record FnFSettlementApprovedIntegrationEventV1 : IIntegrationEvent {
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -74,8 +73,7 @@ public sealed record FnFSettlementApprovedIntegrationEvent
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record FnFSettlementDisbursedIntegrationEvent
-{
+public sealed record FnFSettlementDisbursedIntegrationEventV1 : IIntegrationEvent {
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>

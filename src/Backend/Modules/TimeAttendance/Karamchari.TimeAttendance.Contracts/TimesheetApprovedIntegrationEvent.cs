@@ -1,10 +1,11 @@
 // -----------------------------------------------------------------------
-// <copyright file="TimesheetApprovedIntegrationEvent.cs" company="Karamchari">
+// <copyright file="TimesheetApprovedIntegrationEventV1.cs" company="Karamchari">
 // Copyright (c) Karamchari.
 // All rights reserved.
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Core.Contracts;
 namespace Karamchari.TimeAttendance.Contracts;
 
 /// <summary>
@@ -12,8 +13,7 @@ namespace Karamchari.TimeAttendance.Contracts;
 /// Consumers must dead-letter any event where ActorId == Guid.Empty.
 /// EventId is the idempotency key â€” consumers dedup on this value.
 /// </summary>
-public abstract record KaramchariIntegrationEvent
-{
+public abstract record KaramchariIntegrationEvent : IIntegrationEvent {
     /// <summary>Unique identity of this event emission. Used as consumer idempotency key.</summary>
     public Guid EventId { get; init; } = Guid.NewGuid();
 
@@ -39,7 +39,7 @@ public enum EventSource { Api = 1, Batch = 2, System = 3 }
 /// Integration event published when a timesheet is approved.
 /// Carries the full entry set so consumers can operate without re-querying.
 /// </summary>
-public sealed record TimesheetApprovedIntegrationEvent(
+public sealed record TimesheetApprovedIntegrationEventV1(
     Guid TimesheetId,
     Guid EmployeeId,
     string TenantId,

@@ -98,7 +98,7 @@ public sealed class TimesheetService(TimeAttendanceDbContext dbContext, ICapacit
     /// <summary>
     /// Full approval â€” approves all entries and the timesheet in one operation.
     /// Triggers <c>TimesheetApproved</c> domain event â†’ outbox â†’ <c>TimesheetApprovedConsumer</c>
-    /// â†’ <c>TimesheetApprovedIntegrationEvent</c> published to Payroll, Revenue, Utilization.
+    /// â†’ <c>TimesheetApprovedIntegrationEventV1</c> published to Payroll, Revenue, Utilization.
     /// </summary>
     public async Task ApproveAsync(Guid timesheetId, Guid approverId, CancellationToken cancellationToken = default)
     {

@@ -21,7 +21,7 @@ namespace Karamchari.HR.Projections;
 /// in response to performance review snapshot events.
 /// </summary>
 public sealed class EmployeePerformanceProjectionHandler
-    : IProjectionHandler<EmployeePerformanceSnapshotMaterializedIntegrationEvent>
+    : IProjectionHandler<EmployeePerformanceSnapshotMaterializedIntegrationEventV1>
 {
     private readonly HRDbContext _dbContext;
 
@@ -33,7 +33,7 @@ public sealed class EmployeePerformanceProjectionHandler
     /// <summary>
     /// Handles the performance snapshot materialized event by updating the corresponding read model projection in-place.
     /// </summary>
-    public async Task HandleAsync(EmployeePerformanceSnapshotMaterializedIntegrationEvent domainEvent, CancellationToken cancellationToken)
+    public async Task HandleAsync(EmployeePerformanceSnapshotMaterializedIntegrationEventV1 domainEvent, CancellationToken cancellationToken)
     {
         var existing = await _dbContext.EmployeePerfProjections
             .FirstOrDefaultAsync(p => p.TenantId == domainEvent.TenantId && p.EmployeeId == domainEvent.EmployeeId, cancellationToken);

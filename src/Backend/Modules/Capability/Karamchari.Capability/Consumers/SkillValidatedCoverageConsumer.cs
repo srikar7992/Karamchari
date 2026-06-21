@@ -17,10 +17,10 @@ namespace Karamchari.Capability.Consumers;
 /// rows whenever a skill is validated for an employee.
 /// </summary>
 public sealed class SkillValidatedCoverageConsumer(EmployeeSkillCoverageProjectionHandler handler)
-    : IConsumer<SkillValidatedIntegrationEvent>
+    : IConsumer<SkillValidatedIntegrationEventV1>
 {
     /// <inheritdoc />
-    public async Task Consume(ConsumeContext<SkillValidatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<SkillValidatedIntegrationEventV1> context)
     {
         await handler.HandleAsync(context.Message, context.CancellationToken);
     }

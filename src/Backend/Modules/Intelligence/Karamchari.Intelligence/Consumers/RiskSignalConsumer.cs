@@ -14,14 +14,14 @@ using Microsoft.Extensions.Logging;
 namespace Karamchari.Intelligence.Consumers;
 
 /// <summary>
-/// Consumes <see cref="RiskSignalRaisedIntegrationEvent"/> from any upstream source
+/// Consumes <see cref="RiskSignalRaisedIntegrationEventV1"/> from any upstream source
 /// (burnout engine, attrition engine, external AI, performance engine, etc.).
 ///
 /// By consuming a canonical cross-source event the Intelligence module stays decoupled
 /// from signal producers — it does not need to know whether a signal came from the
 /// internal burnout calculator or an external ML service.
 /// </summary>
-public sealed class RiskSignalConsumer : IConsumer<RiskSignalRaisedIntegrationEvent>
+public sealed class RiskSignalConsumer : IConsumer<RiskSignalRaisedIntegrationEventV1>
 {
     private readonly WorkforceSignalService _signalService;
     private readonly ILogger<RiskSignalConsumer> _logger;
@@ -34,7 +34,7 @@ public sealed class RiskSignalConsumer : IConsumer<RiskSignalRaisedIntegrationEv
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<RiskSignalRaisedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<RiskSignalRaisedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -42,7 +42,7 @@ public sealed class RiskSignalConsumer : IConsumer<RiskSignalRaisedIntegrationEv
         if (!Enum.TryParse<WorkforceSignalType>(ev.SignalType, ignoreCase: true, out var signalType))
         {
             _logger.LogWarning(
-                "RiskSignalRaisedIntegrationEvent from {Source} contained unknown SignalType '{Type}' for employee {EmployeeId} — skipped",
+                "RiskSignalRaisedIntegrationEventV1 from {Source} contained unknown SignalType '{Type}' for employee {EmployeeId} — skipped",
                 ev.SourceModule, ev.SignalType, ev.EmployeeId);
             return;
         }

@@ -56,7 +56,7 @@ public sealed class MessagingChaosTests(MessagingChaosFixture fixture)
 
             using (context.Establish())
             {
-                await bus1.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), tenantId, "Chaos Payload"));
+                await bus1.Publish(new SyntheticPingIntegrationEventV1(Guid.NewGuid(), tenantId, "Chaos Payload"));
             }
 
             // Wait for first attempt (which will crash/fail)
@@ -121,7 +121,7 @@ public sealed class MessagingChaosTests(MessagingChaosFixture fixture)
         return services;
     }
 
-    private class ChaosConsumer : IConsumer<SyntheticPingIntegrationEvent>
+    private class ChaosConsumer : IConsumer<SyntheticPingIntegrationEventV1>
     {
         public static bool ShouldCrash;
         public static int AttemptCount;
@@ -137,7 +137,7 @@ public sealed class MessagingChaosTests(MessagingChaosFixture fixture)
             LastObservedCorrelationId = null;
         }
 
-        public Task Consume(ConsumeContext<SyntheticPingIntegrationEvent> context)
+        public Task Consume(ConsumeContext<SyntheticPingIntegrationEventV1> context)
         {
             Interlocked.Increment(ref AttemptCount);
 

@@ -14,14 +14,14 @@ namespace Karamchari.Intelligence.Consumers;
 /// downstream queries join via separate velocity rows if needed.
 /// </summary>
 public sealed class HiringFunnelConsumer(IntelligenceDbContext dbContext) :
-    IConsumer<EnterpriseEventEnvelope<CandidateAppliedIntegrationEvent>>,
-    IConsumer<EnterpriseEventEnvelope<InterviewCompletedIntegrationEvent>>,
-    IConsumer<EnterpriseEventEnvelope<OfferAcceptedIntegrationEvent>>,
-    IConsumer<EnterpriseEventEnvelope<CandidateHiredIntegrationEvent>>
+    IConsumer<EnterpriseEventEnvelope<CandidateAppliedIntegrationEventV1>>,
+    IConsumer<EnterpriseEventEnvelope<InterviewCompletedIntegrationEventV1>>,
+    IConsumer<EnterpriseEventEnvelope<OfferAcceptedIntegrationEventV1>>,
+    IConsumer<EnterpriseEventEnvelope<CandidateHiredIntegrationEventV1>>
 {
     private const string MetricType = "HiringFunnel";
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateAppliedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateAppliedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         dbContext.AnalyticsReadModels.Add(new AnalyticsReadModel
@@ -38,7 +38,7 @@ public sealed class HiringFunnelConsumer(IntelligenceDbContext dbContext) :
         await dbContext.SaveChangesAsync(context.CancellationToken);
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<InterviewCompletedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<InterviewCompletedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         dbContext.AnalyticsReadModels.Add(new AnalyticsReadModel
@@ -55,7 +55,7 @@ public sealed class HiringFunnelConsumer(IntelligenceDbContext dbContext) :
         await dbContext.SaveChangesAsync(context.CancellationToken);
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<OfferAcceptedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<OfferAcceptedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         dbContext.AnalyticsReadModels.Add(new AnalyticsReadModel
@@ -72,7 +72,7 @@ public sealed class HiringFunnelConsumer(IntelligenceDbContext dbContext) :
         await dbContext.SaveChangesAsync(context.CancellationToken);
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateHiredIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateHiredIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         dbContext.AnalyticsReadModels.Add(new AnalyticsReadModel

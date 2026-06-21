@@ -19,9 +19,9 @@ namespace Karamchari.Forecasting.Consumers;
 /// Implements behavioral learning by updating client payment profiles on each collection.
 /// </summary>
 public sealed class ForecastUpdateConsumer :
-    IConsumer<TimesheetApprovedIntegrationEvent>,
-    IConsumer<InvoiceIssuedIntegrationEvent>,
-    IConsumer<PaymentReceivedIntegrationEvent>
+    IConsumer<TimesheetApprovedIntegrationEventV1>,
+    IConsumer<InvoiceIssuedIntegrationEventV1>,
+    IConsumer<PaymentReceivedIntegrationEventV1>
 {
     private readonly ForecastingDbContext _db;
     private readonly IBillingReadService _billingReadService;
@@ -37,7 +37,7 @@ public sealed class ForecastUpdateConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var date = DateOnly.FromDateTime(ev.OccurredAt.Date);
@@ -72,7 +72,7 @@ public sealed class ForecastUpdateConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<InvoiceIssuedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<InvoiceIssuedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var date = DateOnly.FromDateTime(ev.OccurredAt.Date);
@@ -94,7 +94,7 @@ public sealed class ForecastUpdateConsumer :
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<PaymentReceivedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<PaymentReceivedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var date = DateOnly.FromDateTime(ev.OccurredAt.Date);

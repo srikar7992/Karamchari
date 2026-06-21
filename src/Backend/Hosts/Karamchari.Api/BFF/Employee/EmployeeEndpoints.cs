@@ -196,7 +196,7 @@ public static class EmployeeEndpoints
         employee.Terminate(terminatedOn, actorId);
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new EmployeeTerminatedIntegrationEvent(
+        await bus.Publish(new EmployeeTerminatedIntegrationEventV1(
             employee.Id,
             employee.TenantId,
             employee.EmployeeNumber,

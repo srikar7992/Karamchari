@@ -42,7 +42,7 @@ public sealed class ConsumerReplayTests(ForecastingSqlServerFixture fixture)
         return ctx;
     }
 
-    private static EmployeeOnboardedIntegrationEvent OnboardedEvent(
+    private static EmployeeOnboardedIntegrationEventV1 OnboardedEvent(
         Guid employeeId, string tenantId) =>
         new(employeeId, tenantId,
             EmployeeNumber: "EMP-001",
@@ -52,14 +52,14 @@ public sealed class ConsumerReplayTests(ForecastingSqlServerFixture fixture)
             DateOfBirth: new DateOnly(1985, 1, 1),
             ContractEndDate: null);
 
-    private static EmployeeTerminatedIntegrationEvent TerminatedEvent(
+    private static EmployeeTerminatedIntegrationEventV1 TerminatedEvent(
         Guid employeeId, string tenantId) =>
         new(employeeId, tenantId,
             EmployeeNumber: "EMP-001",
             TerminatedOn: DateOnly.FromDateTime(DateTime.UtcNow),
             TerminationReason: "Resignation");
 
-    private static SkillAssignedIntegrationEvent SkillAssignedEvent(
+    private static SkillAssignedIntegrationEventV1 SkillAssignedEvent(
         Guid employeeId, string tenantId, string skillCode, DateOnly? expiryDate = null) =>
         new(employeeId, tenantId,
             SkillId: Guid.NewGuid(),
@@ -68,13 +68,13 @@ public sealed class ConsumerReplayTests(ForecastingSqlServerFixture fixture)
             Level: 1,
             ExpiryDate: expiryDate);
 
-    private static SkillExpiredIntegrationEvent SkillExpiredEvent(
+    private static SkillExpiredIntegrationEventV1 SkillExpiredEvent(
         Guid employeeId, string tenantId, string skillCode) =>
         new(employeeId, tenantId,
             SkillId: Guid.NewGuid(),
             SkillCode: skillCode);
 
-    private static HireOfferAcceptedIntegrationEvent OfferAcceptedEvent(
+    private static HireOfferAcceptedIntegrationEventV1 OfferAcceptedEvent(
         Guid offerId, string tenantId, string skillCode,
         DateOnly startDate, decimal joiningProbability = 1.0m) =>
         new(offerId, tenantId, "DEFAULT", skillCode, startDate, joiningProbability);

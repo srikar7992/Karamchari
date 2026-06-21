@@ -18,11 +18,11 @@ namespace Karamchari.Recruitment.Application.EventHandlers.Analytics;
 public sealed class HiringFunnelConsumer(
     IRecruitmentDbContext dbContext,
     ILogger<HiringFunnelConsumer> logger)
-    : IConsumer<EnterpriseEventEnvelope<CandidateAppliedIntegrationEvent>>,
-      IConsumer<EnterpriseEventEnvelope<InterviewCompletedIntegrationEvent>>,
-      IConsumer<EnterpriseEventEnvelope<OfferAcceptedIntegrationEvent>>
+    : IConsumer<EnterpriseEventEnvelope<CandidateAppliedIntegrationEventV1>>,
+      IConsumer<EnterpriseEventEnvelope<InterviewCompletedIntegrationEventV1>>,
+      IConsumer<EnterpriseEventEnvelope<OfferAcceptedIntegrationEventV1>>
 {
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateAppliedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateAppliedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         var payload = envelope.Payload;
@@ -74,7 +74,7 @@ public sealed class HiringFunnelConsumer(
             model.Id, payload.ApplicationId);
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<InterviewCompletedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<InterviewCompletedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         var payload = envelope.Payload;
@@ -125,7 +125,7 @@ public sealed class HiringFunnelConsumer(
             model.Id, payload.ApplicationId);
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<OfferAcceptedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<OfferAcceptedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         var payload = envelope.Payload;

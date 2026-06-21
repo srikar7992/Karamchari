@@ -20,7 +20,7 @@ using MassTransit;
 /// Initializes a new instance of the <see cref="TenantProvisionedConsumer"/> class.
 /// </remarks>
 /// <param name="dbContext">The time attendance database context.</param>
-public sealed class TenantProvisionedConsumer(TimeAttendanceDbContext dbContext) : IConsumer<TenantProvisionedIntegrationEvent>
+public sealed class TenantProvisionedConsumer(TimeAttendanceDbContext dbContext) : IConsumer<TenantProvisionedIntegrationEventV1>
 {
     private readonly TimeAttendanceDbContext _dbContext = dbContext;
 
@@ -28,7 +28,7 @@ public sealed class TenantProvisionedConsumer(TimeAttendanceDbContext dbContext)
     /// Consumes the tenant provisioned event and seeds defaults.
     /// </summary>
     /// <param name="context">The consumer context.</param>
-    public async Task Consume(ConsumeContext<TenantProvisionedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TenantProvisionedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 

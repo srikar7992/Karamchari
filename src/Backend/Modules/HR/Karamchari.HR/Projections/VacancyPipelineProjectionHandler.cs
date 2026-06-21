@@ -66,7 +66,7 @@ public sealed class VacancyPipelineProjectionHandler
 
         // Publish integration event so Capability module can generate InternalMobilityProjection rows.
         // position already fetched above — reuse it. Published before SaveChanges so outbox commits atomically.
-        await _publishEndpoint.Publish(new VacancyOpenedIntegrationEvent(
+        await _publishEndpoint.Publish(new VacancyOpenedIntegrationEventV1(
             domainEvent.VacancyId,
             domainEvent.TenantId,
             domainEvent.PositionId,
@@ -91,7 +91,7 @@ public sealed class VacancyPipelineProjectionHandler
             projection.FilledPositionAssignmentId = domainEvent.FilledPositionAssignmentId;
             projection.LastUpdatedAtUtc = domainEvent.OccurredOnUtc;
 
-            await _publishEndpoint.Publish(new VacancyClosedIntegrationEvent(
+            await _publishEndpoint.Publish(new VacancyClosedIntegrationEventV1(
                 domainEvent.VacancyId,
                 domainEvent.TenantId,
                 domainEvent.PositionId,
