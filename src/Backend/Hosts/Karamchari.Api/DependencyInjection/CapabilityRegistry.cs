@@ -72,10 +72,8 @@ public static class CapabilityRegistry
             new HelpdeskModule(configuration),
             new AssetManagementModule(configuration),
             new EngagementModule(configuration),
-            new SuccessionModule(configuration),
             new IntegrationModule(configuration),
             new OnboardingModule(configuration),
-            new BenefitsModule(configuration),
         };
     }
 }

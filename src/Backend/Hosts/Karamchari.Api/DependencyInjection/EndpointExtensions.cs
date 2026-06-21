@@ -110,16 +110,15 @@ public static class EndpointExtensions
         app.MapESSEndpoints();
         app.MapEmployeeEndpoints();
 
-        // New modules: Helpdesk, Asset Management, Engagement, Succession
+        // New modules: Helpdesk, Asset Management, Engagement
+        // (Succession, Compensation, Audit are mapped above — do not re-map: endpoint
+        // names must be globally unique or the host 500s on every request, finding H-4.)
         app.MapHelpdeskEndpoints();
         app.MapAssetManagementEndpoints();
         app.MapEngagementEndpoints();
-        app.MapSuccessionEndpoints();
         app.MapIntegrationEndpoints();
         app.MapOnboardingEndpoints();
-        app.MapCompensationEndpoints();
         app.MapBenefitsEndpoints();
-        app.MapAuditEndpoints();
         app.MapComplianceGateEndpoints();
         app.MapWorkflowRuleEndpoints();
         app.MapWorkflowApprovalEndpoints();
