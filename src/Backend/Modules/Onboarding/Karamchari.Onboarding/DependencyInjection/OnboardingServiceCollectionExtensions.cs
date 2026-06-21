@@ -7,6 +7,7 @@
 
 using Karamchari.Core.DependencyInjection;
 using Karamchari.Onboarding.Persistence;
+using Karamchari.Onboarding.Sagas;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -53,5 +54,14 @@ public static class OnboardingServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configurator);
         configurator.AddConsumer<Karamchari.Onboarding.Consumers.EmployeeHiredConsumer>();
+
+        // H-2 priority 1: EmployeeOnboarding saga. Waits for BOTH payroll provisioning
+        // and benefits enrollment before declaring an employee fully onboarded; escalates
+        // (Incomplete) on timeout. In-memory repository for this increment; durable EF
+        // persistence (EmployeeOnboardingSagaMap) + host-side UseDelayedMessageScheduler
+        // are tracked follow-ups for production restart-survival.
+        configurator.AddDelayedMessageScheduler();
+        configurator.AddSagaStateMachine<EmployeeOnboardingSaga, EmployeeOnboardingSagaState>()
+            .InMemoryRepository();
     }
 }

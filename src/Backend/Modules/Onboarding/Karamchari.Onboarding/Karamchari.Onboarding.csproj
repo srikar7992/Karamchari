@@ -29,6 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Payroll\Karamchari.Payroll.Contracts\Karamchari.Payroll.Contracts.csproj" />
+    <ProjectReference Include="..\..\Benefits\Karamchari.Benefits.Contracts\Karamchari.Benefits.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
     <ProjectReference Include="..\Karamchari.Onboarding.Contracts\Karamchari.Onboarding.Contracts.csproj" />

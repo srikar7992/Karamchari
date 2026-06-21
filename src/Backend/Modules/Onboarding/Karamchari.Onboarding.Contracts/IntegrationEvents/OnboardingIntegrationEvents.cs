@@ -57,3 +57,23 @@ public sealed record EmployeeOffboardedIntegrationEventV1(
     Guid EmployeeId,
     DateTimeOffset ExitDate,
     string? ExitReason) : IIntegrationEvent;
+
+/// <summary>
+/// Published by the EmployeeOnboarding saga when payroll provisioning AND benefits
+/// enrollment have both completed for a newly onboarded employee.
+/// </summary>
+public sealed record EmployeeOnboardingCompletedIntegrationEventV1(
+    Guid EmployeeId,
+    string TenantId) : IIntegrationEvent;
+
+/// <summary>
+/// Published by the EmployeeOnboarding saga when provisioning did NOT complete within
+/// the deadline. Signals a half-provisioned employee that needs operator attention —
+/// the employee must NOT be treated as fully onboarded.
+/// </summary>
+public sealed record EmployeeOnboardingIncompleteIntegrationEventV1(
+    Guid EmployeeId,
+    string TenantId,
+    string Reason,
+    bool PayrollProvisioned,
+    bool BenefitsEnrolled) : IIntegrationEvent;
