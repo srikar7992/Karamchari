@@ -50,3 +50,14 @@ A workflow becomes a saga only if **1 AND 2 AND (3 OR 4)**. Notification-only fa
 
 ## Next step
 Approve this assessment, then implement priority-1 **EmployeeOnboardingSaga** first (highest business damage on partial completion), with an end-to-end test that kills a mid-step and asserts no half-provisioned employee remains.
+
+## Implementation readiness (discovered while building P1)
+
+| Saga | Status | Blocking reality |
+|---|---|---|
+| **P1 EmployeeOnboarding** | ✅ **Implemented + tested** | Both completion signals already existed (payroll profile, benefits enrollment). Shipped. |
+| **P2 EmployeeOffboarding** | ⛔ Blocked — needs a new capability | `EmployeeTerminated` is consumed by AssetManagement/Helpdesk/Intelligence/Forecasting, but **Identity has NO access-revocation feature**. The saga's highest-value step (revoke access on termination) is unbuilt. Build the Identity access-revocation capability first, then orchestrate. Do not stub it. |
+| **P3 Disbursement** | 🟡 Largely already a saga | Payroll already has `DisbursementBatchStateMachine` (Submitted→Completed/Failed). Remaining work is a **compensation audit** (explicit reverse/hold + terminal reconciliation), not a new saga. |
+| **P4 BenefitsEnrollment↔deduction** | 🟡 Needs path verification | Confirm/implement the payroll-deduction-from-`BenefitEnrollmentActivated` path before wrapping it in a consistency saga. |
+
+**Conclusion:** P1 was the only saga implementable as pure orchestration. P2 and P4 require new domain capabilities (a security feature and a deduction path); P3 is a hardening pass on existing saga code. These are feature-design tasks, not mechanical saga wiring, and should be scoped individually.
