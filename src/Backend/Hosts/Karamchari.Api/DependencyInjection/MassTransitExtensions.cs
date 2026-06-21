@@ -8,6 +8,7 @@
 using Karamchari.Billing.Persistence;
 using Karamchari.Capability.Persistence;
 using Karamchari.Compensation.Persistence;
+using Karamchari.Core.Messaging;
 using Karamchari.Core.Messaging.Tenant;
 using Karamchari.Core.Multitenancy.Execution;
 using Karamchari.Core.Observability;
@@ -70,6 +71,13 @@ public static class MassTransitExtensions
             x.AddConsumeObserver<KaramchariConsumeObserver>();
 
             var isDev = environment.IsDevelopment();
+
+            // Fail fast: a non-Development host with no durable transport must not silently
+            // fall through to the in-memory transport (certification finding C-4).
+            TransportConfigurationGuard.EnsureConfigured(
+                isDev,
+                configuration.GetConnectionString("RabbitMQ"),
+                configuration.GetConnectionString("AzureServiceBus"));
 
             // Register outboxes for all modules so API can publish with transaction support
             x.AddEntityFrameworkOutbox<HRDbContext>(o =>
@@ -194,14 +202,12 @@ public static class MassTransitExtensions
                     }
                     else
                     {
-                        x.UsingInMemory((context, cfg) =>
-                        {
-                            cfg.UseConsumeFilter(typeof(TenantConsumeFilter<>), context);
-                            cfg.UsePublishFilter(typeof(TenantPublishFilter<>), context);
-                            cfg.UsePublishFilter<TenantPublishFilter>(context);
-                            cfg.UseSendFilter(typeof(TenantSendFilter<>), context);
-                            cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
-                        });
+                        // Unreachable: TransportConfigurationGuard.EnsureConfigured already threw
+                        // for a non-Development host with no broker. Kept as a defensive invariant
+                        // so the in-memory transport can never be selected outside Development (C-4).
+                        throw new InvalidOperationException(
+                            "No production message transport configured. A non-Development host requires a "
+                            + "'RabbitMQ' or 'AzureServiceBus' connection string (certification finding C-4).");
                     }
                 }
             }

@@ -57,6 +57,9 @@ module sql 'modules/sql.bicep' = {
     location: location
     administratorLogin: 'karamchariadmin'
     administratorLoginPassword: sqlAdministratorLoginPassword
+    // Entra-only auth: the deployment principal becomes the SQL AAD admin (H-3).
+    aadAdminLogin: 'karamchari-deploy-principal'
+    aadAdminObjectId: principalId
   }
 }
 

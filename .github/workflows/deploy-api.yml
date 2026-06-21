@@ -1,86 +1,230 @@
 name: Deploy Karamchari API
 
+# Real CI/CD deployment pipeline (certification finding C-2).
+#
+# ACTIVATION: deploy jobs are gated on the repository variable AZURE_DEPLOY_ENABLED.
+# Until it is set to 'true', only the image build/validation runs, so this pipeline
+# never red-fails a repo that has no Azure target wired yet. To activate:
+#   1. Set repo variable AZURE_DEPLOY_ENABLED = true
+#   2. Configure OIDC federation + the secrets/vars referenced below
+#   3. Create GitHub Environments: dev, staging, prod (add required reviewers to prod)
+#
+# Flow per environment: build+push image -> infra deploy (bicep) -> deploy to the
+# app's staging slot -> health verification -> slot swap (go live) -> post-swap
+# health -> automatic rollback (swap back) on failure.
+#
+# DB migrations apply idempotently at container startup (EF __EFMigrationsHistory
+# guards re-application). Moving to a controlled pre-deploy migration step is a
+# tracked P2 follow-up; see CERTIFICATION.md.
+
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write   # OIDC federated login to Azure (no stored password)
+
 env:
-  ACR_NAME: 'karamchari'
+  ACR_NAME: ${{ vars.ACR_NAME || 'karamchari' }}
   IMAGE_NAME: 'karamchari-api'
 
 jobs:
+  # ── 1. Build, validate, and (when enabled) push the image ─────────────────
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Docker Setup Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Example Azure Login and ACR Login would go here
-      # - name: Azure Login
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Build image (always — validates the Dockerfile)
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} -f src/Backend/Hosts/Karamchari.Api/Dockerfile .
 
-      # - name: Build and Push Docker Image
-      #   run: |
-      #     docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} -f src/Backend/Hosts/Karamchari.Api/Dockerfile .
-      #     docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: Azure login (OIDC)
+        if: vars.AZURE_DEPLOY_ENABLED == 'true'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build Docker Image (Validation)
+      - name: Push image to ACR
+        if: vars.AZURE_DEPLOY_ENABLED == 'true'
         run: |
-          docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} -f src/Backend/Hosts/Karamchari.Api/Dockerfile .
+          az acr login --name "${{ env.ACR_NAME }}"
+          docker tag ${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
   deploy-dev:
     needs: build-and-push
+    if: vars.AZURE_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: dev
+    concurrency: deploy-dev
+    env:
+      RG: ${{ vars.AZURE_RG_DEV || 'rg-karamchari-dev' }}
+      APP_NAME: ${{ vars.AZURE_APP_DEV || 'app-karamchari-dev' }}
     steps:
       - uses: actions/checkout@v4
-
-      # - name: Azure Login
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      # - name: Deploy Infrastructure (Bicep)
-      #   uses: azure/arm-deploy@v1
-      #   with:
-      #     subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      #     resourceGroupName: rg-karamchari-dev
-      #     template: ./infrastructure/bicep/main.bicep
-      #     parameters: environmentName=dev tenantId=${{ secrets.AZURE_TENANT_ID }} principalId=${{ secrets.AZURE_PRINCIPAL_ID }} sqlAdministratorLoginPassword=${{ secrets.SQL_PASSWORD }}
-
-      # - name: Deploy to Azure App Service
-      #   uses: azure/webapps-deploy@v2
-      #   with:
-      #     app-name: app-karamchari-dev
-      #     images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-
-      - name: Validate Deployment
-        run: echo "Validation successful for Dev"
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy infrastructure (bicep)
+        uses: azure/arm-deploy@v2
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ env.RG }}
+          template: ./infrastructure/bicep/main.bicep
+          parameters: environmentName=dev
+      - name: Deploy to staging slot
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.APP_NAME }}
+          slot-name: staging
+          images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
+      - name: Health verification (staging slot)
+        run: |
+          url="https://${{ env.APP_NAME }}-staging.azurewebsites.net/health"
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo 000)
+            echo "attempt $i: $url -> $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "::error::health check failed for $url"; exit 1
+      - name: Swap slot to production (go live)
+        run: az webapp deployment slot swap -g ${{ env.RG }} -n ${{ env.APP_NAME }} --slot staging --target-slot production
+      - name: Post-swap health verification
+        run: |
+          url="https://${{ env.APP_NAME }}.azurewebsites.net/health"
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo 000)
+            echo "attempt $i: $url -> $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "::error::post-swap health check failed for $url"; exit 1
+      - name: Rollback on failure (swap back)
+        if: failure()
+        run: az webapp deployment slot swap -g ${{ env.RG }} -n ${{ env.APP_NAME }} --slot production --target-slot staging
 
   deploy-staging:
     needs: deploy-dev
+    if: vars.AZURE_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: staging
+    concurrency: deploy-staging
+    env:
+      RG: ${{ vars.AZURE_RG_STAGING || 'rg-karamchari-staging' }}
+      APP_NAME: ${{ vars.AZURE_APP_STAGING || 'app-karamchari-staging' }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Validate Deployment
-        run: echo "Validation successful for Staging"
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy infrastructure (bicep)
+        uses: azure/arm-deploy@v2
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ env.RG }}
+          template: ./infrastructure/bicep/main.bicep
+          parameters: environmentName=staging
+      - name: Deploy to staging slot
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.APP_NAME }}
+          slot-name: staging
+          images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
+      - name: Health verification (staging slot)
+        run: |
+          url="https://${{ env.APP_NAME }}-staging.azurewebsites.net/health"
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo 000)
+            echo "attempt $i: $url -> $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "::error::health check failed for $url"; exit 1
+      - name: Swap slot to production (go live)
+        run: az webapp deployment slot swap -g ${{ env.RG }} -n ${{ env.APP_NAME }} --slot staging --target-slot production
+      - name: Post-swap health verification
+        run: |
+          url="https://${{ env.APP_NAME }}.azurewebsites.net/health"
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo 000)
+            echo "attempt $i: $url -> $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "::error::post-swap health check failed for $url"; exit 1
+      - name: Rollback on failure (swap back)
+        if: failure()
+        run: az webapp deployment slot swap -g ${{ env.RG }} -n ${{ env.APP_NAME }} --slot production --target-slot staging
 
   deploy-prod:
     needs: deploy-staging
+    if: vars.AZURE_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
-    environment: 
-      name: prod
-      # requires manual approval in GitHub Environments
+    environment:
+      name: prod   # add required reviewers in GitHub → Environments → prod
+    concurrency: deploy-prod
+    env:
+      RG: ${{ vars.AZURE_RG_PROD || 'rg-karamchari-prod' }}
+      APP_NAME: ${{ vars.AZURE_APP_PROD || 'app-karamchari-prod' }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Validate Deployment
-        run: echo "Validation successful for Prod"
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy infrastructure (bicep)
+        uses: azure/arm-deploy@v2
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ env.RG }}
+          template: ./infrastructure/bicep/main.bicep
+          parameters: environmentName=prod
+      - name: Deploy to staging slot
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.APP_NAME }}
+          slot-name: staging
+          images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
+      - name: Health verification (staging slot)
+        run: |
+          url="https://${{ env.APP_NAME }}-staging.azurewebsites.net/health"
+          for i in $(seq 1 18); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo 000)
+            echo "attempt $i: $url -> $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "::error::health check failed for $url"; exit 1
+      - name: Swap slot to production (go live)
+        run: az webapp deployment slot swap -g ${{ env.RG }} -n ${{ env.APP_NAME }} --slot staging --target-slot production
+      - name: Post-swap health verification
+        run: |
+          url="https://${{ env.APP_NAME }}.azurewebsites.net/health"
+          for i in $(seq 1 18); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo 000)
+            echo "attempt $i: $url -> $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "::error::post-swap health check failed for $url"; exit 1
+      - name: Rollback on failure (swap back)
+        if: failure()
+        run: az webapp deployment slot swap -g ${{ env.RG }} -n ${{ env.APP_NAME }} --slot production --target-slot staging
