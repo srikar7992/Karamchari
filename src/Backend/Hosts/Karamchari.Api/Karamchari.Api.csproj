@@ -12,7 +12,7 @@
     <UserSecretsId>karamchari-api-dev</UserSecretsId>
     <InvariantGlobalization>false</InvariantGlobalization>
     <!-- CS1591: Program.cs types are composition-root helpers, not a public library surface. -->
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;CA1852</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -50,6 +50,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\..\Platform\Karamchari.Approvals\Karamchari.Approvals.csproj" />
     <ProjectReference Include="..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\HR\Karamchari.HR\Karamchari.HR.csproj" />
     <ProjectReference Include="..\..\Modules\Payroll\Karamchari.Payroll\Karamchari.Payroll.csproj" />
@@ -84,6 +85,8 @@
     <ProjectReference Include="..\..\Modules\Onboarding\Karamchari.Onboarding.Contracts\Karamchari.Onboarding.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Benefits\Karamchari.Benefits\Karamchari.Benefits.csproj" />
     <ProjectReference Include="..\..\Modules\Benefits\Karamchari.Benefits.Contracts\Karamchari.Benefits.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Analytics\Karamchari.Analytics\Karamchari.Analytics.csproj" />
+    <ProjectReference Include="..\..\Modules\Extensibility\Karamchari.Extensibility\Karamchari.Extensibility.csproj" />
   </ItemGroup>
 
 </Project>

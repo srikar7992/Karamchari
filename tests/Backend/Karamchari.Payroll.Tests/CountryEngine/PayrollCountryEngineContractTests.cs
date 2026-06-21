@@ -7,6 +7,7 @@
 
 namespace Karamchari.Payroll.Tests.CountryEngine;
 
+using Karamchari.Payroll.Domain;
 using Karamchari.Payroll.Domain.CountryEngine;
 using Karamchari.Payroll.Domain.CountryEngine.Results;
 using Karamchari.Payroll.Services;

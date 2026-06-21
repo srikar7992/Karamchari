@@ -23,6 +23,62 @@ namespace Karamchari.Governance.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Karamchari.Governance.Domain.AuditTrail.FinancialAuditEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActorName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("AfterJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BeforeJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("EntityId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("TimestampUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "ActorId", "TimestampUtc");
+
+                    b.HasIndex("TenantId", "EntityType", "EntityId");
+
+                    b.ToTable("financial_audit_entries", "audit");
+                });
+
             modelBuilder.Entity("Karamchari.Governance.Domain.Contracts.SchemaDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -78,6 +134,59 @@ namespace Karamchari.Governance.Migrations
                         .IsUnique();
 
                     b.ToTable("Governance_SchemaDefinitions", "__tenant__");
+                });
+
+            modelBuilder.Entity("Karamchari.Governance.Domain.Controls.SodMatrix", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId")
+                        .IsUnique();
+
+                    b.ToTable("Governance_SodMatrix", "__tenant__");
+                });
+
+            modelBuilder.Entity("Karamchari.Governance.Domain.Controls.SodViolation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("DetectedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Role1")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Role2")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "EmployeeId", "DetectedAt");
+
+                    b.ToTable("Governance_SodViolations", "__tenant__");
                 });
 
             modelBuilder.Entity("Karamchari.Governance.Domain.Incidents.OperationalIncident", b =>
@@ -358,6 +467,37 @@ namespace Karamchari.Governance.Migrations
                         {
                             t.ExcludeFromMigrations();
                         });
+                });
+
+            modelBuilder.Entity("Karamchari.Governance.Domain.Controls.SodMatrix", b =>
+                {
+                    b.OwnsMany("Karamchari.Governance.Domain.Controls.SodRule", "Rules", b1 =>
+                        {
+                            b1.Property<Guid>("SodMatrixId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Role1")
+                                .HasMaxLength(128)
+                                .HasColumnType("nvarchar(128)");
+
+                            b1.Property<string>("Role2")
+                                .HasMaxLength(128)
+                                .HasColumnType("nvarchar(128)");
+
+                            b1.Property<string>("Reason")
+                                .IsRequired()
+                                .HasMaxLength(512)
+                                .HasColumnType("nvarchar(512)");
+
+                            b1.HasKey("SodMatrixId", "Role1", "Role2");
+
+                            b1.ToTable("Governance_SodRules", "__tenant__");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SodMatrixId");
+                        });
+
+                    b.Navigation("Rules");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>

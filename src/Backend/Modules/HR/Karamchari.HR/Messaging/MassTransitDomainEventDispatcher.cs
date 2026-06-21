@@ -45,6 +45,14 @@ public sealed class MassTransitDomainEventDispatcher : IDomainEventDispatcher
         var publishEndpoint = (IPublishEndpoint)_serviceProvider.GetService(typeof(IPublishEndpoint))!;
         var tenantId = _tenantProvider.TryGetCurrentTenantId(out var tId) ? tId : "system";
 
+        string? correlationId = null;
+        string? causationId = null;
+        if (_tenantProvider.TryGetTenant(out var executionEnv) && executionEnv is not null)
+        {
+            correlationId = executionEnv.CorrelationId;
+            causationId = executionEnv.RequestId.ToString();
+        }
+
         foreach (var @event in events)
         {
             var eventType = @event.GetType();
@@ -66,8 +74,8 @@ public sealed class MassTransitDomainEventDispatcher : IDomainEventDispatcher
                     tenantId,
                     eventType.Name,
                     "1.0",
-                    null, // correlationId will be populated by MassTransit context
-                    null, // causationId 
+                    correlationId,
+                    causationId,
                     "karamchari.hr"
                 });
 

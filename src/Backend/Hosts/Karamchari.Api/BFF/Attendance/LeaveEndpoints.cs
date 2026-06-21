@@ -228,6 +228,7 @@ public static class LeaveEndpoints
 
     private static async Task<IResult> GetLeaveRequest(
         Guid id,
+        ClaimsPrincipal user,
         TimeAttendanceDbContext db,
         CancellationToken ct)
     {

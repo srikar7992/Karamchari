@@ -16,7 +16,11 @@ public record BenefitPlanPublishedEvent(
     string TenantId,
     BenefitPlanId PlanId,
     BenefitCategory Category,
-    string PlanName) : IDomainEvent;
+    string PlanName) : IDomainEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public DateTimeOffset OccurredOnUtc { get; init; } = DateTimeOffset.UtcNow;
+}
 
 /// <summary>
 /// Raised when an employee submits their benefit elections for a plan year.
@@ -26,7 +30,11 @@ public record BenefitElectionsSubmittedEvent(
     string TenantId,
     BenefitEnrollmentId EnrollmentId,
     Guid EmployeeId,
-    int ElectionCount) : IDomainEvent;
+    int ElectionCount) : IDomainEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public DateTimeOffset OccurredOnUtc { get; init; } = DateTimeOffset.UtcNow;
+}
 
 /// <summary>
 /// Raised when an enrollment is confirmed active.
@@ -35,7 +43,11 @@ public record BenefitElectionsSubmittedEvent(
 public record BenefitEnrollmentActivatedEvent(
     string TenantId,
     BenefitEnrollmentId EnrollmentId,
-    Guid EmployeeId) : IDomainEvent;
+    Guid EmployeeId) : IDomainEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public DateTimeOffset OccurredOnUtc { get; init; } = DateTimeOffset.UtcNow;
+}
 
 /// <summary>
 /// Raised when an employee submits a qualifying life event with supporting documentation.
@@ -49,7 +61,11 @@ public record LifeEventSubmittedEvent(
     LifeEventType EventType,
     DateOnly EventDate,
     DateTimeOffset WindowClosesAt,
-    string? DocumentStorageReference) : IDomainEvent;
+    string? DocumentStorageReference) : IDomainEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public DateTimeOffset OccurredOnUtc { get; init; } = DateTimeOffset.UtcNow;
+}
 
 /// <summary>
 /// Raised when an election change (triggered by a verified life event) is applied and activated.
@@ -60,7 +76,11 @@ public record BenefitElectionChangedEvent(
     BenefitEnrollmentId EnrollmentId,
     Guid EmployeeId,
     LifeEventId LifeEventId,
-    DateOnly ChangeEffectiveDate) : IDomainEvent;
+    DateOnly ChangeEffectiveDate) : IDomainEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public DateTimeOffset OccurredOnUtc { get; init; } = DateTimeOffset.UtcNow;
+}
 
 /// <summary>
 /// Raised when an enrollment window opens and elections are accepted.
@@ -72,7 +92,11 @@ public record EnrollmentWindowOpenedEvent(
     EnrollmentWindowType WindowType,
     DateOnly PlanYearStart,
     DateOnly PlanYearEnd,
-    DateTimeOffset WindowClosesAt) : IDomainEvent;
+    DateTimeOffset WindowClosesAt) : IDomainEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public DateTimeOffset OccurredOnUtc { get; init; } = DateTimeOffset.UtcNow;
+}
 
 /// <summary>
 /// Raised when an enrollment window closes. No further elections are accepted.
@@ -82,4 +106,8 @@ public record EnrollmentWindowClosedEvent(
     string TenantId,
     EnrollmentWindowId WindowId,
     EnrollmentWindowType WindowType,
-    DateOnly PlanYearStart) : IDomainEvent;
+    DateOnly PlanYearStart) : IDomainEvent
+{
+    public Guid EventId { get; init; } = Guid.NewGuid();
+    public DateTimeOffset OccurredOnUtc { get; init; } = DateTimeOffset.UtcNow;
+}

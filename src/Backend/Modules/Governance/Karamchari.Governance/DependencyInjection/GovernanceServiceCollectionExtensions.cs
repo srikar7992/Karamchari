@@ -6,6 +6,8 @@
 // -----------------------------------------------------------------------
 
 using Karamchari.Core.DependencyInjection;
+using Karamchari.Core.Persistence;
+using Karamchari.Governance.Infrastructure;
 using Karamchari.Governance.Persistence;
 using Karamchari.Governance.Services;
 using Microsoft.EntityFrameworkCore;
@@ -14,16 +16,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Karamchari.Governance.DependencyInjection;
 
-/// <summary>
-/// Provides required documentation for this member.
-/// </summary>
 public static class GovernanceServiceCollectionExtensions
 {
     private const string ConnectionStringName = "KaramchariDb";
 
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public static IServiceCollection AddKaramchariGovernance(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -33,38 +29,32 @@ public static class GovernanceServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         if (busConfigurator != null)
-        {
             AddKaramchariGovernanceConsumers(busConfigurator);
-        }
 
-        // RLS setup
         services.RegisterTenantTable("Governance_ServiceLevelObjectives");
         services.RegisterTenantTable("Governance_OperationalIncidents");
         services.RegisterTenantTable("Governance_SchemaDefinitions");
+        services.RegisterTenantTable("Governance_SodMatrix");
+        services.RegisterTenantTable("Governance_SodViolations");
+
+        services.AddScoped<AuditInterceptor>();
+        services.AddScoped<IFinancialAuditInterceptor>(sp => sp.GetRequiredService<AuditInterceptor>());
 
         services.AddDbContext<GovernanceDbContext>((sp, options) =>
         {
-            var connectionString = configuration.GetConnectionString(ConnectionStringName)
+            var cs = configuration.GetConnectionString(ConnectionStringName)
                 ?? throw new InvalidOperationException($"Missing connection string: {ConnectionStringName}");
-
-            options.UseSqlServer(connectionString, sqlOptions =>
-            {
-                sqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(30),
-                    errorNumbersToAdd: null);
-            });
+            options.UseSqlServer(cs, sql => sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null));
             options.AddKaramchariInterceptors(sp);
         });
 
         services.AddScoped<ISchemaValidator, SchemaValidator>();
+        services.AddScoped<SodEnforcementService>();
+        services.AddScoped<AuditQueryService>();
 
         return services;
     }
 
-    /// <summary>
-    /// Registers Governance module consumers for MassTransit.
-    /// </summary>
     public static void AddKaramchariGovernanceConsumers(this MassTransit.IBusRegistrationConfigurator busConfigurator)
     {
         ArgumentNullException.ThrowIfNull(busConfigurator);

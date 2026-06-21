@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------
 
 using Karamchari.Core.DependencyInjection;
+using Karamchari.Core.Persistence;
 using Karamchari.Core.Persistence.Provisioning;
 using Karamchari.Payroll.Consumers;
 using Karamchari.Payroll.Data;
@@ -191,6 +192,7 @@ public static class PayrollServiceCollectionExtensions
                     errorNumbersToAdd: null);
             });
             options.AddKaramchariInterceptors(serviceProvider);
+            options.AddInterceptors(serviceProvider.GetRequiredService<IFinancialAuditInterceptor>());
         });
 
         return services;

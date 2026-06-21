@@ -7,6 +7,7 @@
 
 using Karamchari.Core.Multitenancy;
 using Karamchari.Core.Persistence;
+using Karamchari.Intelligence.Domain.Analytics;
 using Karamchari.Intelligence.Domain.Interventions;
 using Karamchari.Intelligence.Domain.Metrics;
 using Karamchari.Intelligence.Domain.Primitives;
@@ -26,6 +27,11 @@ public class IntelligenceDbContext : KaramchariDbContext
         : base(options, tenantProvider)
     {
     }
+
+    /// <summary>
+    /// Analytics read models materialized by event consumers.
+    /// </summary>
+    public DbSet<AnalyticsReadModel> AnalyticsReadModels => Set<AnalyticsReadModel>();
 
     /// <summary>
     /// Provides required documentation for this member.
@@ -147,6 +153,17 @@ public class IntelligenceDbContext : KaramchariDbContext
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnDomainModelCreating(modelBuilder);
+
+        modelBuilder.Entity<AnalyticsReadModel>(b =>
+        {
+            b.ToTable("Intelligence_AnalyticsReadModels");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => new { x.TenantId, x.MetricType, x.EntityId, x.Stage });
+            b.Property(x => x.TenantId).HasMaxLength(256).IsRequired();
+            b.Property(x => x.MetricType).HasMaxLength(128).IsRequired();
+            b.Property(x => x.Stage).HasMaxLength(128).IsRequired();
+            b.Property(x => x.Value).HasPrecision(18, 6);
+        });
 
         modelBuilder.Entity<IntelligenceSignal>(b =>
         {

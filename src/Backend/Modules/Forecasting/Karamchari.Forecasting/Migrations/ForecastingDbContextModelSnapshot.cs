@@ -39,6 +39,7 @@ namespace Karamchari.Forecasting.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<decimal>("OnTimeRate")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("TenantId")
@@ -93,6 +94,84 @@ namespace Karamchari.Forecasting.Migrations
                     b.HasIndex("TenantId", "Date");
 
                     b.ToTable("Forecast_Metrics", "__tenant__");
+                });
+
+            modelBuilder.Entity("Karamchari.Forecasting.Domain.ForecastScenario", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("LastProjectedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Type", "Status");
+
+                    b.ToTable("Forecasting_Scenarios", "__tenant__");
+                });
+
+            modelBuilder.Entity("Karamchari.Forecasting.Domain.HeadcountVariance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ActualHeadcount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("ComputedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("FiscalYear")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PlannedHeadcount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ScenarioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "ScenarioId", "FiscalYear", "Month");
+
+                    b.ToTable("Forecasting_HeadcountVariances", "__tenant__");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
@@ -272,6 +351,105 @@ namespace Karamchari.Forecasting.Migrations
                         {
                             t.ExcludeFromMigrations();
                         });
+                });
+
+            modelBuilder.Entity("Karamchari.Forecasting.Domain.ForecastScenario", b =>
+                {
+                    b.OwnsMany("Karamchari.Forecasting.Domain.HeadcountPlan", "HeadcountPlans", b1 =>
+                        {
+                            b1.Property<Guid>("ForecastScenarioId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("DepartmentId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("FiscalYear")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("ApprovedHeadcount")
+                                .HasColumnType("int");
+
+                            b1.Property<decimal>("AvgSalary")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("decimal(18,2)");
+
+                            b1.Property<int>("PlannedHeadcount")
+                                .HasColumnType("int");
+
+                            b1.Property<decimal>("TotalBudget")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("decimal(18,2)");
+
+                            b1.HasKey("ForecastScenarioId", "DepartmentId", "FiscalYear");
+
+                            b1.ToTable("Forecasting_HeadcountPlans", "__tenant__");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ForecastScenarioId");
+                        });
+
+                    b.OwnsMany("Karamchari.Forecasting.Domain.MonthlyWorkforceProjection", "Projections", b1 =>
+                        {
+                            b1.Property<Guid>("ForecastScenarioId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Month")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Month"));
+
+                            b1.Property<int>("ProjectedAttrition")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("ProjectedHeadcount")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("ProjectedHires")
+                                .HasColumnType("int");
+
+                            b1.Property<decimal>("ProjectedPayroll")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("decimal(18,2)");
+
+                            b1.HasKey("ForecastScenarioId", "Month");
+
+                            b1.ToTable("Forecasting_ScenarioProjections", "__tenant__");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ForecastScenarioId");
+                        });
+
+                    b.OwnsMany("Karamchari.Forecasting.Domain.ScenarioAssumption", "Assumptions", b1 =>
+                        {
+                            b1.Property<Guid>("ForecastScenarioId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Type")
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)");
+
+                            b1.Property<string>("Notes")
+                                .HasMaxLength(512)
+                                .HasColumnType("nvarchar(512)");
+
+                            b1.Property<decimal>("Value")
+                                .HasPrecision(18, 6)
+                                .HasColumnType("decimal(18,6)");
+
+                            b1.HasKey("ForecastScenarioId", "Type");
+
+                            b1.ToTable("Forecasting_ScenarioAssumptions", "__tenant__");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ForecastScenarioId");
+                        });
+
+                    b.Navigation("Assumptions");
+
+                    b.Navigation("HeadcountPlans");
+
+                    b.Navigation("Projections");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>

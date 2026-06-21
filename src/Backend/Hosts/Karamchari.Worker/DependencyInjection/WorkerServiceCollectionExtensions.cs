@@ -5,7 +5,12 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Analytics.DependencyInjection;
+using Karamchari.Approvals.DependencyInjection;
+using Karamchari.Benefits.DependencyInjection;
 using Karamchari.Billing.DependencyInjection;
+using Karamchari.Extensibility.DependencyInjection;
+using Karamchari.Succession.DependencyInjection;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Compensation.DependencyInjection;
 using Karamchari.Core.DependencyInjection;
@@ -39,9 +44,37 @@ public static class WorkerServiceCollectionExtensions
         IConfiguration configuration,
         IHostEnvironment environment)
     {
+        // Register module DbContexts and domain services required by consumers.
+        // Mirrors the API's CapabilityRegistry loop — consumers cannot activate without
+        // their module's DbContext registered in the Worker's DI container.
+        new ApprovalsModule(configuration).RegisterServices(services);
+        new BenefitsModule(configuration).RegisterServices(services);
+        new AnalyticsModule(configuration).RegisterServices(services);
+        new HRModule(configuration).RegisterServices(services);
+        new PayrollModule(configuration).RegisterServices(services);
+        new RecruitmentModule(configuration).RegisterServices(services);
+        new TimeAttendanceModule(configuration).RegisterServices(services);
+        new BillingModule(configuration).RegisterServices(services);
+        new PSAModule(configuration).RegisterServices(services);
+        new PerformanceModule(configuration).RegisterServices(services);
+        new IntelligenceModule(configuration).RegisterServices(services);
+        new DataMigrationModule(configuration).RegisterServices(services);
+        new FinancialOpsModule(configuration).RegisterServices(services);
+        new GovernanceModule(configuration).RegisterServices(services);
+        new ForecastingModule(configuration).RegisterServices(services);
+        new CompensationModule(configuration).RegisterServices(services);
+        new SuccessionModule(configuration).RegisterServices(services);
+        new ExtensibilityModule(configuration).RegisterServices(services);
+        new CapabilityModule(configuration).RegisterServices(services);
+        new WorkflowModule(configuration).RegisterServices(services);
+        new NotificationsModule(configuration).RegisterServices(services);
+
         // 4. Scoped Consumers for every module
         services.AddKaramchariMessaging(configuration, environment, x =>
         {
+            new ApprovalsModule(configuration).RegisterConsumers(x);
+            new BenefitsModule(configuration).RegisterConsumers(x);
+            new AnalyticsModule(configuration).RegisterConsumers(x);
             new HRModule(configuration).RegisterConsumers(x);
             new PayrollModule(configuration).RegisterConsumers(x);
 
@@ -59,6 +92,8 @@ public static class WorkerServiceCollectionExtensions
             new GovernanceModule(configuration).RegisterConsumers(x);
             new ForecastingModule(configuration).RegisterConsumers(x);
             new CompensationModule(configuration).RegisterConsumers(x);
+            new SuccessionModule(configuration).RegisterConsumers(x);
+            new ExtensibilityModule(configuration).RegisterConsumers(x);
             new CapabilityModule(configuration).RegisterConsumers(x);
             new WorkflowModule(configuration).RegisterConsumers(x);
             new NotificationsModule(configuration).RegisterConsumers(x);

@@ -17,7 +17,7 @@
     <RootNamespace>Karamchari.Benefits</RootNamespace>
     <AssemblyName>Karamchari.Benefits</AssemblyName>
     <IsPackable>false</IsPackable>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;CA1512;CA1827</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +35,7 @@
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
     <ProjectReference Include="..\Karamchari.Benefits.Contracts\Karamchari.Benefits.Contracts.csproj" />
+    <ProjectReference Include="..\..\Payroll\Karamchari.Payroll.Contracts\Karamchari.Payroll.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

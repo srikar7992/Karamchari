@@ -39,6 +39,7 @@ public static class IntelligenceServiceCollectionExtensions
         }
 
         // RLS setup
+        services.RegisterTenantTable("Intelligence_AnalyticsReadModels");
         services.RegisterTenantTable("Intelligence_Signals");
         services.RegisterTenantTable("Intelligence_MetricDefinitions");
         services.RegisterTenantTable("Strategy_OrgHealthSignals");

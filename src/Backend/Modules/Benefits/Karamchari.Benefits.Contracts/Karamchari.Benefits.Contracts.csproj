@@ -15,7 +15,7 @@
     <RootNamespace>Karamchari.Benefits.Contracts</RootNamespace>
     <AssemblyName>Karamchari.Benefits.Contracts</AssemblyName>
     <IsPackable>false</IsPackable>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;CS1587</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

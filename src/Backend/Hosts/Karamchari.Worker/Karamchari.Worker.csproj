@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
+    <ProjectReference Include="..\..\Platform\Karamchari.Approvals\Karamchari.Approvals.csproj" />
     <ProjectReference Include="..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\HR\Karamchari.HR\Karamchari.HR.csproj" />
     <ProjectReference Include="..\..\Modules\Payroll\Karamchari.Payroll\Karamchari.Payroll.csproj" />
@@ -46,6 +47,10 @@
     <ProjectReference Include="..\..\Modules\FinancialOps\Karamchari.FinancialOps\Karamchari.FinancialOps.csproj" />
     <ProjectReference Include="..\..\Modules\Recruitment\Karamchari.Recruitment.Api\Karamchari.Recruitment.Api.csproj" />
     <ProjectReference Include="..\..\Modules\Onboarding\Karamchari.Onboarding\Karamchari.Onboarding.csproj" />
+    <ProjectReference Include="..\..\Modules\Benefits\Karamchari.Benefits\Karamchari.Benefits.csproj" />
+    <ProjectReference Include="..\..\Modules\Analytics\Karamchari.Analytics\Karamchari.Analytics.csproj" />
+    <ProjectReference Include="..\..\Modules\Succession\Karamchari.Succession\Karamchari.Succession.csproj" />
+    <ProjectReference Include="..\..\Modules\Extensibility\Karamchari.Extensibility\Karamchari.Extensibility.csproj" />
   </ItemGroup>
 
 </Project>

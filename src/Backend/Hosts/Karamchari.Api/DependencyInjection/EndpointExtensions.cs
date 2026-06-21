@@ -5,7 +5,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Api.BFF.Analytics;
 using Karamchari.Api.BFF.AssetManagement;
+using Karamchari.Api.BFF.Extensibility;
+using Karamchari.Api.BFF.Forecasting;
 using Karamchari.Api.BFF.Benefits;
 using Karamchari.Api.BFF.Attendance;
 using Karamchari.Api.BFF.Audit;
@@ -89,6 +92,12 @@ public static class EndpointExtensions
         app.MapLeaveEndpoints();
         app.MapRosterEndpoints();
         app.MapCapabilityEndpoints();
+        app.MapAuditEndpoints();
+        app.MapAnalyticsEndpoints();
+        app.MapWorkforcePlanningEndpoints();
+        app.MapCompensationEndpoints();
+        app.MapSuccessionEndpoints();
+        app.MapExtensibilityEndpoints();
         app.MapStrategyEndpoints();
         app.MapWorkforceIntelligenceEndpoints();
         app.MapInterventionEndpoints();

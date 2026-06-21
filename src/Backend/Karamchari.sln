@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Core.Integration
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Core.Contracts", "Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj", "{A1000007-0000-0000-0000-000000000007}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.Approvals", "Platform\Karamchari.Approvals\Karamchari.Approvals.csproj", "{C2000001-0000-0000-0000-000000000001}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Karamchari.TimeAttendance", "Modules\TimeAttendance\Karamchari.TimeAttendance\Karamchari.TimeAttendance.csproj", "{10B1710C-4E46-44AE-AF5B-38590F8B2E59}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Karamchari.PSA", "Modules\PSA\Karamchari.PSA\Karamchari.PSA.csproj", "{A1000008-0000-0000-0000-000000000008}"

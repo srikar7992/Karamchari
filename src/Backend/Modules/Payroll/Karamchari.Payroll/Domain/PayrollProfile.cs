@@ -8,6 +8,7 @@
 namespace Karamchari.Payroll.Domain;
 
 using Karamchari.Core.Multitenancy;
+using Karamchari.Core.Persistence;
 using Karamchari.Payroll.Domain.Statutory;
 
 /// <summary>
@@ -27,7 +28,7 @@ public enum PayType
 /// Country-specific statutory fields live in separate profiles (e.g., <see cref="IndiaPayrollProfile"/>)
 /// so that a UAE employee can have a <see cref="PayrollProfile"/> with no India fields at all.
 /// </summary>
-public class PayrollProfile : ITenantOwned
+public class PayrollProfile : ITenantOwned, IAuditableFinancial
 {
     /// <summary>Gets the tenant identifier.</summary>
     public string TenantId { get; private set; } = string.Empty;
@@ -67,6 +68,9 @@ public class PayrollProfile : ITenantOwned
     /// Null for employees not subject to Indian labour law.
     /// </summary>
     public IndiaPayrollProfile? India { get; private set; }
+
+    /// <summary>Gets the active tax regime from the India profile; defaults to New if no India profile is attached.</summary>
+    public TaxRegime TaxRegime => India?.TaxRegime ?? TaxRegime.New;
 
     /// <summary>
     /// Assigns the compensation configuration for this profile.
@@ -119,7 +123,7 @@ public class PayrollProfile : ITenantOwned
             IsActive = this.IsActive,
             AnnualCTC = this.AnnualCTC,
             SalaryTemplateId = this.SalaryTemplateId,
-            India = this.India?.CloneWithRegime(regime)
+            India = this.India?.CloneWithRegime(regime) ?? IndiaPayrollProfile.Create(this.Id, taxRegime: regime)
         };
         return clone;
     }

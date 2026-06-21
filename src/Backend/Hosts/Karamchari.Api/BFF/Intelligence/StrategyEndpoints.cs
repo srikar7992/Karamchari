@@ -58,9 +58,12 @@ public static class StrategyEndpoints
         return Results.Ok(health);
     }
 
-    private static async Task<IResult> ListHealthSignals(IntelligenceDbContext db, CancellationToken ct)
+    private static async Task<IResult> ListHealthSignals(ClaimsPrincipal user, IntelligenceDbContext db, CancellationToken ct)
     {
-        var signals = await db.OrganizationalHealthSignals.AsNoTracking().ToListAsync(ct);
+        var tenantId = user.GetTenantId();
+        if (string.IsNullOrEmpty(tenantId)) return Results.Unauthorized();
+        var signals = await db.OrganizationalHealthSignals.AsNoTracking()
+            .Where(s => s.TenantId == tenantId).ToListAsync(ct);
         return Results.Ok(signals);
     }
 
@@ -76,21 +79,30 @@ public static class StrategyEndpoints
         return Results.Ok(risk);
     }
 
-    private static async Task<IResult> ListRiskSignals(IntelligenceDbContext db, CancellationToken ct)
+    private static async Task<IResult> ListRiskSignals(ClaimsPrincipal user, IntelligenceDbContext db, CancellationToken ct)
     {
-        var signals = await db.WorkforceRiskSignals.AsNoTracking().ToListAsync(ct);
+        var tenantId = user.GetTenantId();
+        if (string.IsNullOrEmpty(tenantId)) return Results.Unauthorized();
+        var signals = await db.WorkforceRiskSignals.AsNoTracking()
+            .Where(s => s.TenantId == tenantId).ToListAsync(ct);
         return Results.Ok(signals);
     }
 
-    private static async Task<IResult> ListInsights(IntelligenceDbContext db, CancellationToken ct)
+    private static async Task<IResult> ListInsights(ClaimsPrincipal user, IntelligenceDbContext db, CancellationToken ct)
     {
-        var insights = await db.ExecutiveInsights.AsNoTracking().ToListAsync(ct);
+        var tenantId = user.GetTenantId();
+        if (string.IsNullOrEmpty(tenantId)) return Results.Unauthorized();
+        var insights = await db.ExecutiveInsights.AsNoTracking()
+            .Where(i => i.TenantId == tenantId).ToListAsync(ct);
         return Results.Ok(insights);
     }
 
     private static async Task<IResult> AcknowledgeInsight(Guid id, ClaimsPrincipal user, IntelligenceDbContext db)
     {
-        var insight = await db.ExecutiveInsights.FindAsync(id);
+        var tenantId = user.GetTenantId();
+        if (string.IsNullOrEmpty(tenantId)) return Results.Unauthorized();
+        var insight = await db.ExecutiveInsights
+            .FirstOrDefaultAsync(i => i.Id == id && i.TenantId == tenantId);
         if (insight == null) return Results.NotFound();
 
         insight.Acknowledge(user.Identity?.Name ?? "Admin");
@@ -112,9 +124,12 @@ public static class StrategyEndpoints
         return Results.Created($"/api/v1/strategy/scenarios/{scenario.Id}", scenario);
     }
 
-    private static async Task<IResult> ListScenarios(IntelligenceDbContext db, CancellationToken ct)
+    private static async Task<IResult> ListScenarios(ClaimsPrincipal user, IntelligenceDbContext db, CancellationToken ct)
     {
-        var scenarios = await db.StrategicWorkforceScenarios.AsNoTracking().ToListAsync(ct);
+        var tenantId = user.GetTenantId();
+        if (string.IsNullOrEmpty(tenantId)) return Results.Unauthorized();
+        var scenarios = await db.StrategicWorkforceScenarios.AsNoTracking()
+            .Where(s => s.TenantId == tenantId).ToListAsync(ct);
         return Results.Ok(scenarios);
     }
 }
