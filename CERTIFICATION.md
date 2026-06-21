@@ -22,6 +22,8 @@ The platform's *domain logic, tenant isolation model, and message-delivery corre
 
 Domain correctness does not compensate for an architecture that cannot be deployed redundantly or scaled horizontally at the data tier.
 
+**Maturity trajectory (as of 2026-06-21, after remediation passes 1–2):** *Provisionally Certified Architecture — Pending Operational Validation.* C-4 and H-1 are permanently closed. The remaining critical blockers have shifted from **architectural uncertainty** to **evidence problems**: prove deployment works (C-2), prove recovery works (C-3), prove hardening works (H-3) — all gated on a first Azure access window. C-1 is an accepted-direction program pending ADR-0018 review.
+
 ---
 
 ## Scorecard
@@ -391,14 +393,14 @@ Certification gates and their status:
 ## Open finding register
 | ID | Sev | Title | Phase | Owner | Status |
 |---|---|---|---|---|---|
-| C-1 | Critical | Single-DB schema-per-tenant scaling ceiling & SPOF | 6,12 | Platform/DB | **IN PROGRESS** — [ADR 0018](docs/architecture/adrs/0018-tenant-storage-strategy.md) proposed (Option C hybrid, phased migration); awaiting architecture review |
-| C-2 | Critical | CD pipeline mocked | 11,13 | DevOps | **IN PROGRESS** — real `deploy-api.yml` (OIDC, bicep, slot-swap, health, rollback); CI already complete; live deploy proof pending Azure |
-| C-3 | Critical | No HA/DR DB topology; restore untested | 8,11 | DBA/SRE | **IN PROGRESS** — [RTO/RPO targets](docs/operations/recovery/rto-rpo-targets.md) + zone-redundant/PITR/LTR/failover-group bicep; restore drill pending Azure |
+| C-1 | Critical | Single-DB schema-per-tenant scaling ceiling & SPOF | 6,12 | Platform/DB | **IN REVIEW** — [ADR 0018](docs/architecture/adrs/0018-tenant-storage-strategy.md) (Option C hybrid) proposed; next milestone = architecture-review approval → becomes accepted technical program |
+| C-2 | Critical | CD pipeline mocked | 11,13 | DevOps | **IMPLEMENTED — AWAITING PROOF** — real `deploy-api.yml` written; CI already complete. Closes only after one successful real Azure deploy + rollback with evidence |
+| C-3 | Critical | No HA/DR DB topology; restore untested | 8,11 | DBA/SRE | **IMPLEMENTED — AWAITING PROOF** — [RTO/RPO targets](docs/operations/recovery/rto-rpo-targets.md) + DR bicep done. A DR plan without a restore exercise is a hypothesis: closes only after backup→restore→validate→timing evidence |
 | C-4 | Critical | Silent InMemory transport fallback in non-dev | 4,8 | Platform | **RESOLVED 2026-06-21** — `TransportConfigurationGuard` fails fast in non-dev w/o broker; 6 tests green |
 | H-1 | High | No event schema versioning/compatibility gate | 4 | Platform | **RESOLVED 2026-06-21** — 80 events → `…V1` + `IIntegrationEvent`; marker relocated to `Core.Contracts`; `EventVersioningTests` arch gate (3 tests) enforces version suffix + marker + immutability in CI |
-| H-2 | High | No saga/compensation for cross-module flows | 5 | Platform | OPEN |
-| H-4 | High | Duplicate HTTP endpoint name `Succession.CriticalRoles.Register` → API host 500s on any full-host request | 8 | Succession | OPEN (pre-existing; found during pass 3 verification) |
-| H-3 | High | SQL-auth + open Azure firewall + no private endpoint | 10 | Security | **IN PROGRESS** — `sql.bicep` public access disabled, AAD-only auth, private endpoint, 0.0.0.0 removed; pending deploy |
+| H-2 | High | No saga/compensation for cross-module flows | 5 | Platform | **OPEN (largest engineering finding)** — do workflow discovery first (`docs/architecture/SagaCandidateAssessment.md`); only flows that span modules AND have damaging partial completion AND need compensation become sagas |
+| H-4 | Med | Duplicate HTTP endpoint name `Succession.CriticalRoles.Register` → API host 500s on full-host requests | 8 | Succession | **BACKLOG (architecture debt)** — pre-existing; reclassified out of reliability-certification scope unless it causes inconsistent behaviour / security / data issues. Chip flagged |
+| H-3 | High | SQL-auth + open Azure firewall + no private endpoint | 10 | Security | **IMPLEMENTED — AWAITING INFRA VALIDATION** — `sql.bicep` AAD-only, private endpoint, public access disabled, 0.0.0.0 removed. Code complete; closes after deploy validates managed identity + private endpoints |
 | M-1 | Med | Global outbox poll table contention | 6,13 | Platform | OPEN |
 | M-2 | Med | `dbo` template tables hold data / orphan rows | 6 | DBA | OPEN |
 | M-3 | Med | No bulkheads (shared DB/thread pool) | 8,13 | Platform | OPEN |
