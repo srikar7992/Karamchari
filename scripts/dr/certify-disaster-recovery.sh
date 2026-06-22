@@ -51,14 +51,14 @@ assert_pass() {
 
 SQL() {
   docker exec "$SQL_CONTAINER" "$SQLCMD_PATH" \
-    -S localhost -U sa -P "$SA_PASS" -d "$DB_NAME" \
+    -S 127.0.0.1,1433 -U sa -P "$SA_PASS" -d "$DB_NAME" \
     -C -h -1 -W -Q "$1" 2>&1
 }
 
 SQL_PLAIN() {
   # Run against master (for BACKUP/RESTORE which can't run in user db)
   docker exec "$SQL_CONTAINER" "$SQLCMD_PATH" \
-    -S localhost -U sa -P "$SA_PASS" -d master \
+    -S 127.0.0.1,1433 -U sa -P "$SA_PASS" -d master \
     -C -h -1 -W -Q "$1" 2>&1
 }
 
@@ -117,8 +117,8 @@ echo "$BASELINE" | sed 's/^/    /'
 
 echo ""
 echo "  Step 2: Create backup inside container"
-# Create backup directory if needed
-docker exec "$SQL_CONTAINER" mkdir -p /var/backups 2>/dev/null || true
+# Create backup directory as root then chown to mssql so SQL Server can write.
+docker exec --user root "$SQL_CONTAINER" /bin/bash -c "mkdir -p /var/backups && chown mssql:mssql /var/backups" 2>/dev/null || true
 
 BACKUP_RESULT=$(SQL_PLAIN "BACKUP DATABASE [$DB_NAME] TO DISK = N'$BACKUP_PATH'
 WITH NOFORMAT, NOINIT, NAME = N'Karamchari DR Cert', STATS = 10;" 2>&1)
@@ -180,7 +180,7 @@ ORDER BY s.name, t.name;"
 
 ORIG_COUNTS=$(SQL "$COUNT_SQL" 2>/dev/null)
 RESTORE_COUNTS=$(docker exec "$SQL_CONTAINER" "$SQLCMD_PATH" \
-  -S localhost -U sa -P "$SA_PASS" -d "$RESTORE_DB" \
+  -S 127.0.0.1,1433 -U sa -P "$SA_PASS" -d "$RESTORE_DB" \
   -C -h -1 -W -Q "$COUNT_SQL" 2>/dev/null)
 
 echo "  Original DB row counts (non-empty tables):"
