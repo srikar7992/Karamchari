@@ -39,11 +39,12 @@ public sealed partial class TenantSchemaCommandInterceptor : DbCommandIntercepto
     /// </summary>
     [GeneratedRegex(
         @"(?<lb>\[)__tenant__(?<rb>\])|(?<![\w])__tenant__(?![\w])",
-        RegexOptions.CultureInvariant | RegexOptions.Compiled)]
+        RegexOptions.CultureInvariant | RegexOptions.Compiled,
+        -1)]
     private static partial Regex PlaceholderRegex();
 
     /// <summary>Validates that the substituted schema is itself safe to embed in SQL Ã¢â‚¬â€ defence-in-depth, since the value already came from a validated <see cref="TenantExecutionEnvelope"/>.</summary>
-    [GeneratedRegex(@"^tenant_[a-z0-9_]{1,64}$", RegexOptions.CultureInvariant | RegexOptions.Compiled)]
+    [GeneratedRegex(@"^tenant_[a-z0-9_]{1,64}$", RegexOptions.CultureInvariant | RegexOptions.Compiled, -1)]
     private static partial Regex SchemaNameRegex();
 
     private readonly ITenantProvider _tenantProvider;

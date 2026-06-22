@@ -66,13 +66,13 @@ public sealed class RlsSqlServerIntegrationTests(SqlServerRlsFixture fixture)
     {
         await using var db = fixture.CreateDbContext(TenantA);
         var sql =
-            $"INSERT INTO [{TenantB.SchemaName}].[Employees] ([Id], [TenantId], [Name]) VALUES (@id, @tid, @name);";
+            $"INSERT INTO [{TenantB.SchemaName}].[Employees] ([Id], [TenantId], [Name]) VALUES ({{0}}, {{1}}, {{2}});";
 
         var act = () => db.Database.ExecuteSqlRawAsync(
             sql,
-            new SqlParameter("@id", Guid.NewGuid()),
-            new SqlParameter("@tid", TenantB.TenantId),
-            new SqlParameter("@name", "Raw Bypass Insert"));
+            Guid.NewGuid(),
+            TenantB.TenantId,
+            "Raw Bypass Insert");
 
         await act.Should().ThrowAsync<Exception>()
             .Where(ex => IsRlsBlockPredicateFailure(ex));
