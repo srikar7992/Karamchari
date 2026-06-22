@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="NBomber" />
     <PackageReference Include="NBomber.Http" />
+    <PackageReference Include="MessagePack" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
