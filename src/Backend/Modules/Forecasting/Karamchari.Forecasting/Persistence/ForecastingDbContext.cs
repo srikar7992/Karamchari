@@ -322,5 +322,45 @@ public sealed class ForecastingDbContext : KaramchariDbContext
             b.Property(x => x.RoleCode).HasMaxLength(64);
         });
 
+        // ── ForecastScenario aggregate with owned collections ──────────────────
+
+        modelBuilder.Entity<ForecastScenario>(b =>
+        {
+            b.ToTable("Forecasting_Scenarios");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(256);
+            b.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
+            b.Property(x => x.Type).HasConversion<string>().HasMaxLength(32);
+            b.Property(x => x.TenantId).HasMaxLength(64);
+            b.HasIndex(x => new { x.TenantId, x.Type, x.Status });
+
+            b.OwnsMany(x => x.HeadcountPlans, b1 =>
+            {
+                b1.ToTable("Forecasting_HeadcountPlans");
+                b1.HasKey("ForecastScenarioId", nameof(HeadcountPlan.DepartmentId), nameof(HeadcountPlan.FiscalYear));
+                b1.Property(x => x.TotalBudget).HasPrecision(18, 2);
+                b1.Property(x => x.AvgSalary).HasPrecision(18, 2);
+                b1.WithOwner().HasForeignKey("ForecastScenarioId");
+            });
+
+            b.OwnsMany(x => x.Projections, b1 =>
+            {
+                b1.ToTable("Forecasting_ScenarioProjections");
+                b1.HasKey("ForecastScenarioId", nameof(MonthlyWorkforceProjection.Month));
+                b1.Property(x => x.ProjectedPayroll).HasPrecision(18, 2);
+                b1.WithOwner().HasForeignKey("ForecastScenarioId");
+            });
+
+            b.OwnsMany(x => x.Assumptions, b1 =>
+            {
+                b1.ToTable("Forecasting_ScenarioAssumptions");
+                b1.HasKey("ForecastScenarioId", nameof(ScenarioAssumption.Type));
+                b1.Property(x => x.Type).HasConversion<string>().HasMaxLength(64);
+                b1.Property(x => x.Notes).HasMaxLength(512);
+                b1.Property(x => x.Value).HasPrecision(18, 6);
+                b1.WithOwner().HasForeignKey("ForecastScenarioId");
+            });
+        });
+
     }
 }
