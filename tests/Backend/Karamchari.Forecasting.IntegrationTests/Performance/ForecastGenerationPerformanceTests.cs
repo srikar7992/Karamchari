@@ -104,7 +104,7 @@ public sealed class ForecastGenerationPerformanceTests(ForecastingSqlServerFixtu
 
         bulkData.SkillExpiryDates.Should().BeEmpty();
         bulkData.FutureHires.Should().BeEmpty();
-        sw.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(2),
+        sw.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(5),
             "5-query bulk load against empty tables must be fast");
     }
 

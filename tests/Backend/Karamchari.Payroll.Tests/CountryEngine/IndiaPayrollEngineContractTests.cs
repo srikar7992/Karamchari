@@ -63,6 +63,7 @@ public sealed class IndiaPayrollEngineContractTests : PayrollCountryEngineContra
     {
         var profile = PayrollProfile.CreateDraft(EmployeeId, "Arjun Sharma");
         profile.AssignCompensation(600_000m, TemplateId);
+        profile.AttachIndiaProfile(IndiaPayrollProfile.Create(profile.Id));
         profile.UpdateStatutoryInfo("ABCDE1234F", "123456789012", string.Empty);
 
         var breakdown = new CTCBreakdownResult(

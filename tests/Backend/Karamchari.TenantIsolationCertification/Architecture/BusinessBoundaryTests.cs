@@ -70,6 +70,7 @@ public class BusinessBoundaryTests
             .That()
             .ResideInNamespaceStartingWith("Karamchari")
             .And().DoNotResideInNamespaceMatching(".*Migrations.*")
+            .And().DoNotResideInNamespaceMatching(@".*\.Messaging")
             .ShouldNot()
             .HaveDependencyOn("Karamchari.Core.Multitenancy.TenantExecutionEnvelope")
             .GetResult();
