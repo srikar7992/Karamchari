@@ -292,7 +292,7 @@ public sealed class AttendanceProcessingEngine(
 
         foreach (AttendanceViolation violation in exceptions)
         {
-            await _bus.Publish(new AttendanceExceptionRaisedIntegrationEvent(
+            await _bus.Publish(new AttendanceExceptionRaisedIntegrationEventV1(
                 Guid.NewGuid(),
                 tenantId,
                 employeeId,
@@ -439,7 +439,7 @@ public sealed class AttendanceProcessingEngine(
 
             foreach (AttendanceViolation violation in finalizationViolations)
             {
-                await _bus.Publish(new AttendanceExceptionRaisedIntegrationEvent(
+                await _bus.Publish(new AttendanceExceptionRaisedIntegrationEventV1(
                     Guid.NewGuid(),
                     tenantId,
                     violation.EmployeeId,

@@ -95,7 +95,7 @@ public class MessagingPerformanceTests(ITestOutputHelper output)
         {
             for (int i = 0; i < count; i++)
             {
-                await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), tenantId, "Perf Payload"));
+                await harness.Bus.Publish(new SyntheticPingIntegrationEventV1(Guid.NewGuid(), tenantId, "Perf Payload"));
             }
         }
 

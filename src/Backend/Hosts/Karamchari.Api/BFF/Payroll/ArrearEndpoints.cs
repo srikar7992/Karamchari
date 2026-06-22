@@ -125,7 +125,7 @@ public static class ArrearEndpoints
 
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new ArrearCalculationApprovedIntegrationEvent
+        await bus.Publish(new ArrearCalculationApprovedIntegrationEventV1
         {
             ArrearId = arrear.Id,
             TenantId = arrear.TenantId,

@@ -76,7 +76,7 @@ public class KeyRotationCertificationTests
 
         var signatureOld = signerOld.Sign(tenantId, correlationId, conversationId, sourceService, timestamp);
 
-        await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), tenantId, "Old Key Message"), context =>
+        await harness.Bus.Publish(new SyntheticPingIntegrationEventV1(Guid.NewGuid(), tenantId, "Old Key Message"), context =>
         {
             context.Headers.Set(ExecutionContextHeaders.TenantId, tenantId);
             context.Headers.Set(ExecutionContextHeaders.CorrelationId, correlationId);
@@ -87,12 +87,12 @@ public class KeyRotationCertificationTests
         });
 
         // 3. Assert - Should be SUCCESS because OldSecret is in the validation list
-        (await harness.Consumed.Any<SyntheticPingIntegrationEvent>()).Should().BeTrue();
+        (await harness.Consumed.Any<SyntheticPingIntegrationEventV1>()).Should().BeTrue();
         SyntheticConsumer.ConsumeCount.Should().Be(1);
 
         // 4. Act - Publish message signed with NEW key
         var signatureNew = signerNew.Sign(tenantId, correlationId, conversationId, sourceService, timestamp);
-        await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), tenantId, "New Key Message"), context =>
+        await harness.Bus.Publish(new SyntheticPingIntegrationEventV1(Guid.NewGuid(), tenantId, "New Key Message"), context =>
         {
             context.Headers.Set(ExecutionContextHeaders.TenantId, tenantId);
             context.Headers.Set(ExecutionContextHeaders.CorrelationId, correlationId);
@@ -103,7 +103,7 @@ public class KeyRotationCertificationTests
         });
 
         // 5. Assert - Should be SUCCESS
-        (await harness.Consumed.Any<SyntheticPingIntegrationEvent>(x => x.Context.Message.Payload == "New Key Message")).Should().BeTrue();
+        (await harness.Consumed.Any<SyntheticPingIntegrationEventV1>(x => x.Context.Message.Payload == "New Key Message")).Should().BeTrue();
         SyntheticConsumer.ConsumeCount.Should().Be(2);
     }
 
@@ -133,7 +133,7 @@ public class KeyRotationCertificationTests
         var tenantId = "cleanup-test";
         var signatureOld = signerOld.Sign(tenantId, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "OldService", DateTime.UtcNow.ToString("O"));
 
-        await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), tenantId, "Rejected Message"), context =>
+        await harness.Bus.Publish(new SyntheticPingIntegrationEventV1(Guid.NewGuid(), tenantId, "Rejected Message"), context =>
         {
             context.Headers.Set(ExecutionContextHeaders.TenantId, tenantId);
             context.Headers.Set(ExecutionContextHeaders.ExecutionContextSignature, signatureOld);
@@ -143,10 +143,10 @@ public class KeyRotationCertificationTests
         // 3. Assert - Should FAIL because OldSecret is no longer valid
         await Task.Delay(1000);
         SyntheticConsumer.ConsumeCount.Should().Be(0);
-        (await harness.Consumed.Any<SyntheticPingIntegrationEvent>(x => x.Exception != null)).Should().BeTrue();
+        (await harness.Consumed.Any<SyntheticPingIntegrationEventV1>(x => x.Exception != null)).Should().BeTrue();
     }
 
-    private class SyntheticConsumer : IConsumer<SyntheticPingIntegrationEvent>
+    private class SyntheticConsumer : IConsumer<SyntheticPingIntegrationEventV1>
     {
         public static int ConsumeCount;
 
@@ -155,7 +155,7 @@ public class KeyRotationCertificationTests
             ConsumeCount = 0;
         }
 
-        public Task Consume(ConsumeContext<SyntheticPingIntegrationEvent> context)
+        public Task Consume(ConsumeContext<SyntheticPingIntegrationEventV1> context)
         {
             Interlocked.Increment(ref ConsumeCount);
             return Task.CompletedTask;

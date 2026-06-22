@@ -5,6 +5,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Core.Messaging;
 using Karamchari.Core.Messaging.Tenant;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +38,10 @@ public static class MessagingServiceCollectionExtensions
             // Transport configuration
             var rabbitMqConnection = configuration.GetConnectionString("RabbitMQ");
             var serviceBusConnection = configuration.GetConnectionString("AzureServiceBus");
+
+            // Fail fast: a non-Development host with no durable transport must not silently
+            // fall through to (or omit) the in-memory transport (certification finding C-4).
+            TransportConfigurationGuard.EnsureConfigured(isDev, rabbitMqConnection, serviceBusConnection);
 
             if (isDev && string.IsNullOrEmpty(rabbitMqConnection) && string.IsNullOrEmpty(serviceBusConnection))
             {

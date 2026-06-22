@@ -7,6 +7,7 @@
 
 using Karamchari.Core.Contracts.IntegrationEvents;
 using Karamchari.Core.Contracts.IntegrationEvents.V1;
+using Karamchari.Payroll.Contracts;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
 using MassTransit;
@@ -15,10 +16,10 @@ using Microsoft.Extensions.Logging;
 namespace Karamchari.Payroll.Consumers;
 
 /// <summary>
-/// Consumer for the <see cref="EmployeeOnboardedIntegrationEvent"/>.
+/// Consumer for the <see cref="EmployeeOnboardedIntegrationEventV1"/>.
 /// Creates a draft payroll profile when a new employee is onboarded.
 /// </summary>
-public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationEvent>
+public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationEventV1>
 {
     private readonly PayrollDbContext _dbContext;
     private readonly ILogger<EmployeeOnboardedConsumer> _logger;
@@ -35,10 +36,10 @@ public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationE
     }
 
     /// <summary>
-    /// Consumes the <see cref="EmployeeOnboardedIntegrationEvent"/>.
+    /// Consumes the <see cref="EmployeeOnboardedIntegrationEventV1"/>.
     /// </summary>
     /// <param name="context">The consume context.</param>
-    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;
@@ -53,6 +54,7 @@ public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationE
         if (exists)
         {
             _logger.LogWarning("Payroll profile for Employee {EmployeeId} already exists. Skipping.", message.EmployeeId);
+            await context.Publish(new PayrollProfileProvisionedIntegrationEventV1(message.EmployeeId, message.TenantId));
             return;
         }
 
@@ -60,6 +62,8 @@ public class EmployeeOnboardedConsumer : IConsumer<EmployeeOnboardedIntegrationE
         _dbContext.PayrollProfiles.Add(profile);
 
         await _dbContext.SaveChangesAsync(context.CancellationToken);
+
+        await context.Publish(new PayrollProfileProvisionedIntegrationEventV1(message.EmployeeId, message.TenantId));
 
         if (_logger.IsEnabled(LogLevel.Information))
         {

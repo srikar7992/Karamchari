@@ -16,7 +16,7 @@ namespace Karamchari.Notifications.Consumers;
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed class PromotionApprovedConsumer : IConsumer<PromotionApprovedIntegrationEvent>
+public sealed class PromotionApprovedConsumer : IConsumer<PromotionApprovedIntegrationEventV1>
 {
     private readonly INotificationOrchestrator _orchestrator;
 
@@ -26,7 +26,7 @@ public sealed class PromotionApprovedConsumer : IConsumer<PromotionApprovedInteg
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Task Consume(ConsumeContext<PromotionApprovedIntegrationEvent> context)
+    public Task Consume(ConsumeContext<PromotionApprovedIntegrationEventV1> context)
     {
         var e = context.Message;
 

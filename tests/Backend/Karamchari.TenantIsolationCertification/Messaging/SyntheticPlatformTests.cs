@@ -77,14 +77,14 @@ public class SyntheticPlatformTests
         // Act
         using (context.Establish())
         {
-            await harness.Bus.Publish(new SyntheticPingIntegrationEvent(
+            await harness.Bus.Publish(new SyntheticPingIntegrationEventV1(
                 Guid.NewGuid(),
                 tenantId,
                 "Ping Payload"));
         }
 
         // Assert
-        (await harness.Consumed.Any<SyntheticPingIntegrationEvent>()).Should().BeTrue();
+        (await harness.Consumed.Any<SyntheticPingIntegrationEventV1>()).Should().BeTrue();
 
         SyntheticConsumer.LastObservedTenantId.Should().Be(tenantId);
         SyntheticConsumer.LastObservedCorrelationId.Should().Be(correlationId);
@@ -114,16 +114,16 @@ public class SyntheticPlatformTests
         await harness.Start();
 
         // Act - Tamper with TenantId but provide an invalid signature
-        await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), "evil-tenant", "Tamper"), context =>
+        await harness.Bus.Publish(new SyntheticPingIntegrationEventV1(Guid.NewGuid(), "evil-tenant", "Tamper"), context =>
         {
             context.Headers.Set(ExecutionContextHeaders.TenantId, "evil-tenant");
             context.Headers.Set(ExecutionContextHeaders.ExecutionContextSignature, "totally-wrong-signature");
         });
 
         // Assert
-        (await harness.Consumed.Any<SyntheticPingIntegrationEvent>()).Should().BeTrue();
+        (await harness.Consumed.Any<SyntheticPingIntegrationEventV1>()).Should().BeTrue();
 
-        var consumed = harness.Consumed.Select<SyntheticPingIntegrationEvent>().First();
+        var consumed = harness.Consumed.Select<SyntheticPingIntegrationEventV1>().First();
         consumed.Exception.Should().NotBeNull("Tampered message must be rejected by the filter.");
         consumed.Exception.Should().BeOfType<MalformedTenantMessageException>();
 
@@ -174,7 +174,7 @@ public class SyntheticPlatformTests
         var oldSignature = oldSigner.Sign(tenantId, correlationId, conversationId, sourceService, timestamp);
 
         // Act - Publish message with OLD signature to consumer that knows BOTH keys
-        await harness.Bus.Publish(new SyntheticPingIntegrationEvent(Guid.NewGuid(), tenantId, "Old Key Payload"), context =>
+        await harness.Bus.Publish(new SyntheticPingIntegrationEventV1(Guid.NewGuid(), tenantId, "Old Key Payload"), context =>
         {
             context.Headers.Set(ExecutionContextHeaders.TenantId, tenantId);
             context.Headers.Set(ExecutionContextHeaders.CorrelationId, correlationId);
@@ -185,13 +185,13 @@ public class SyntheticPlatformTests
         });
 
         // Assert
-        (await harness.Consumed.Any<SyntheticPingIntegrationEvent>()).Should().BeTrue();
-        var consumed = harness.Consumed.Select<SyntheticPingIntegrationEvent>().First();
+        (await harness.Consumed.Any<SyntheticPingIntegrationEventV1>()).Should().BeTrue();
+        var consumed = harness.Consumed.Select<SyntheticPingIntegrationEventV1>().First();
         consumed.Exception.Should().BeNull("Message signed with retained old key must be accepted.");
         SyntheticConsumer.WasContextEstablished.Should().BeTrue();
     }
 
-    private class SyntheticConsumer : IConsumer<SyntheticPingIntegrationEvent>
+    private class SyntheticConsumer : IConsumer<SyntheticPingIntegrationEventV1>
     {
         public static string? LastObservedTenantId;
         public static string? LastObservedCorrelationId;
@@ -204,7 +204,7 @@ public class SyntheticPlatformTests
             WasContextEstablished = false;
         }
 
-        public Task Consume(ConsumeContext<SyntheticPingIntegrationEvent> context)
+        public Task Consume(ConsumeContext<SyntheticPingIntegrationEventV1> context)
         {
             var executionContext = TenantExecutionContext.Current;
             if (executionContext != null)

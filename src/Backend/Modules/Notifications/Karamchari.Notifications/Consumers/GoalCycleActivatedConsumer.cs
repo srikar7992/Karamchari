@@ -20,7 +20,7 @@ namespace Karamchari.Notifications.Consumers;
 /// Phase 2: fetch active employee IDs from IOrganizationService and emit
 /// one intent per employee (in batches to avoid notification storms).
 /// </summary>
-public sealed class GoalCycleActivatedConsumer : IConsumer<GoalCycleActivatedIntegrationEvent>
+public sealed class GoalCycleActivatedConsumer : IConsumer<GoalCycleActivatedIntegrationEventV1>
 {
     private readonly INotificationOrchestrator _orchestrator;
     private readonly ILogger<GoalCycleActivatedConsumer> _logger;
@@ -36,7 +36,7 @@ public sealed class GoalCycleActivatedConsumer : IConsumer<GoalCycleActivatedInt
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Task Consume(ConsumeContext<GoalCycleActivatedIntegrationEvent> context)
+    public Task Consume(ConsumeContext<GoalCycleActivatedIntegrationEventV1> context)
     {
         var e = context.Message;
 

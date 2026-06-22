@@ -5,7 +5,10 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Analytics.DependencyInjection;
+using Karamchari.Approvals.DependencyInjection;
 using Karamchari.AssetManagement.DependencyInjection;
+using Karamchari.Benefits.DependencyInjection;
 using Karamchari.Billing.DependencyInjection;
 using Karamchari.Capability.DependencyInjection;
 using Karamchari.Compensation.DependencyInjection;
@@ -13,6 +16,7 @@ using Karamchari.Compliance.DependencyInjection;
 using Karamchari.Core.DependencyInjection;
 using Karamchari.DataMigration.DependencyInjection;
 using Karamchari.Engagement.DependencyInjection;
+using Karamchari.Extensibility.DependencyInjection;
 using Karamchari.FinancialOps.DependencyInjection;
 using Karamchari.Forecasting.DependencyInjection;
 using Karamchari.Governance.DependencyInjection;
@@ -41,6 +45,9 @@ public static class CapabilityRegistry
     {
         return new ICapabilityModule[]
         {
+            new ApprovalsModule(configuration),
+                new BenefitsModule(configuration),
+                new AnalyticsModule(configuration),
             new HRModule(configuration),
             new PayrollModule(configuration),
             new RecruitmentModule(configuration),
@@ -56,6 +63,8 @@ public static class CapabilityRegistry
             new GovernanceModule(configuration),
             new ForecastingModule(configuration),
             new CompensationModule(configuration),
+            new SuccessionModule(configuration),
+            new ExtensibilityModule(configuration),
             new BillingModule(configuration),
             new CapabilityModule(configuration),
             new ComplianceModule(configuration),
@@ -63,7 +72,6 @@ public static class CapabilityRegistry
             new HelpdeskModule(configuration),
             new AssetManagementModule(configuration),
             new EngagementModule(configuration),
-            new SuccessionModule(configuration),
             new IntegrationModule(configuration),
             new OnboardingModule(configuration),
         };

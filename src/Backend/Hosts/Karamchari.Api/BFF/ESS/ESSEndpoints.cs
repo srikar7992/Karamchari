@@ -8,6 +8,11 @@
 using System.Security.Claims;
 using Karamchari.Api.BFF;
 using Karamchari.Api.BFF.Common;
+using Karamchari.Approvals.Domain;
+using Karamchari.Approvals.Persistence;
+using Karamchari.Benefits.Domain;
+using Karamchari.Benefits.Persistence;
+using Karamchari.Core.Security;
 using Karamchari.HR.Services;
 using Karamchari.Payroll.Data;
 using Karamchari.Payroll.Domain;
@@ -18,6 +23,8 @@ using Karamchari.Payroll.Services.Declarations;
 using Karamchari.Payroll.Services.Payslip;
 using Karamchari.Payroll.Services.Statutory;
 using Karamchari.Payroll.Services.Statutory.Rules;
+using Karamchari.TimeAttendance.Domain.Leaves;
+using Karamchari.TimeAttendance.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,6 +48,29 @@ public static class ESSEndpoints
         ess.MapGet("/payslips/ytd", GetYtdSummary);
         ess.MapPost("/tax-simulator/dry-run", SimulateTax).RequireRateLimiting("ess");
         ess.MapPost("/declarations/analyze", AnalyzeDeclaration).RequireRateLimiting("ai");
+
+        // Leave — self-service (Sprint 1 ESS Foundation)
+        var me = ess.MapGroup("/me").AddEndpointFilter<EmployeeScopeGuard>();
+        me.MapGet("/leave-balances", GetMyLeaveBalances).RequireAuthorization(Permissions.EssSelfRead);
+        me.MapGet("/leave-requests", GetMyLeaveRequests).RequireAuthorization(Permissions.EssSelfRead);
+        me.MapPost("/leave-requests", SubmitLeaveRequest).RequireAuthorization(Permissions.EssSelfWrite);
+
+        // Employee profile — self-service (Sprint 2)
+        me.MapGet("", GetMyProfile).RequireAuthorization(Permissions.EssSelfRead);
+        me.MapPatch("", PatchMyProfile).RequireAuthorization(Permissions.EssSelfWrite);
+
+        // Delegation — self-service (Sprint 2)
+        me.MapGet("/delegation", GetMyActiveDelegation).RequireAuthorization(Permissions.EssSelfRead);
+        me.MapPost("/delegation", CreateMyDelegation).RequireAuthorization(Permissions.EssDelegationWrite);
+        me.MapDelete("/delegation/{id:guid}", RevokeMyDelegation).RequireAuthorization(Permissions.EssDelegationWrite);
+        me.MapGet("/learning", GetMyLearning).RequireAuthorization(Permissions.EssSelfRead);
+        me.MapGet("/benefits", GetMyBenefits).RequireAuthorization(Permissions.EssSelfRead);
+
+        // Manager inbox (Sprint 1 ESS Foundation)
+        var manager = app.MapGroup("/api/ess/manager").RequireAuthorization();
+        manager.MapGet("/inbox", GetManagerInbox).RequireAuthorization(Permissions.EssManagerInbox);
+        manager.MapPost("/inbox/{requestId:guid}/approve", ActOnApproval).RequireAuthorization(Permissions.EssManagerApprove);
+        manager.MapPost("/inbox/{requestId:guid}/reject", ActOnApproval).RequireAuthorization(Permissions.EssManagerApprove);
 
         return app;
     }
@@ -216,4 +246,291 @@ public static class ESSEndpoints
 
         return Results.Ok(result with { StorageUri = storageUri });
     }
+
+    private static async Task<IResult> GetMyProfile(
+        HttpContext httpContext,
+        [FromServices] EmployeeSummaryService summaryService,
+        CancellationToken ct)
+    {
+        var employeeId = httpContext.GetScopedEmployeeId();
+        var summary = await summaryService.GetSummaryAsync(employeeId, ct);
+        return summary == null ? Results.NotFound() : Results.Ok(summary);
+    }
+
+    private static Task<IResult> PatchMyProfile(
+        HttpContext httpContext,
+        [FromBody] EssPatchProfileBody body)
+    {
+        // Wire to HR Employee aggregate once self-service field set confirmed.
+        _ = httpContext.GetScopedEmployeeId();
+        return Task.FromResult(Results.StatusCode(501));
+    }
+
+    private static async Task<IResult> GetMyActiveDelegation(
+        HttpContext httpContext,
+        [FromServices] ApprovalsDbContext db,
+        CancellationToken ct)
+    {
+        var managerId = httpContext.GetScopedEmployeeId();
+        var tenantId = httpContext.User.FindFirst("tenant_id")?.Value ?? string.Empty;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var delegations = await db.ManagerDelegations
+            .AsNoTracking()
+            .Where(d => d.TenantId == tenantId && d.DelegatingManagerId == managerId && d.IsActive && d.EffectiveTo >= today)
+            .Select(d => new EssDelegationDto(d.Id, d.DelegateManagerId, d.EffectiveFrom, d.EffectiveTo, d.CreatedAtUtc))
+            .ToListAsync(ct);
+
+        return Results.Ok(delegations);
+    }
+
+    private static async Task<IResult> CreateMyDelegation(
+        HttpContext httpContext,
+        [FromBody] EssCreateDelegationBody body,
+        [FromServices] ApprovalsDbContext db,
+        CancellationToken ct)
+    {
+        var managerId = httpContext.GetScopedEmployeeId();
+        var tenantId = httpContext.User.FindFirst("tenant_id")?.Value ?? string.Empty;
+
+        try
+        {
+            var delegation = ManagerDelegation.Create(tenantId, managerId, body.DelegateManagerId, body.EffectiveFrom, body.EffectiveTo);
+            db.ManagerDelegations.Add(delegation);
+            await db.SaveChangesAsync(ct);
+            return Results.Created($"/api/ess/me/delegation/{delegation.Id}", new { delegationId = delegation.Id });
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+    }
+
+    private static async Task<IResult> RevokeMyDelegation(
+        Guid id,
+        HttpContext httpContext,
+        [FromServices] ApprovalsDbContext db,
+        CancellationToken ct)
+    {
+        var managerId = httpContext.GetScopedEmployeeId();
+        var tenantId = httpContext.User.FindFirst("tenant_id")?.Value ?? string.Empty;
+
+        var delegation = await db.ManagerDelegations
+            .FirstOrDefaultAsync(d => d.Id == id && d.TenantId == tenantId && d.DelegatingManagerId == managerId, ct);
+
+        if (delegation == null) return Results.NotFound();
+
+        delegation.Revoke();
+        await db.SaveChangesAsync(ct);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetMyLearning(
+    HttpContext httpContext,
+    [FromServices] Karamchari.Capability.Persistence.CapabilityDbContext capDb,
+    CancellationToken ct)
+    {
+        var employeeId = httpContext.GetScopedEmployeeId();
+        var enrollments = await capDb.LearningEnrollments
+            .AsNoTracking()
+            .Where(e => e.EmployeeId == employeeId)
+            .OrderBy(e => e.Status)
+            .Select(e => new { e.Id, e.ModuleId, Status = e.Status.ToString(), e.CompletedAtUtc })
+            .ToListAsync(ct);
+        return Results.Ok(enrollments);
+    }
+
+    private static async Task<IResult> GetMyBenefits(
+        HttpContext httpContext,
+        [FromServices] BenefitsDbContext benefitsDb,
+        CancellationToken ct)
+    {
+        var employeeId = httpContext.GetScopedEmployeeId();
+        var enrollments = await benefitsDb.Enrollments
+            .AsNoTracking()
+            .Where(e => e.EmployeeId == employeeId && e.Status != EnrollmentStatus.WaivedAllCoverage)
+            .Select(e => new { e.Id, e.Status, e.PlanYearStart, e.PlanYearEnd, e.SubmittedAtUtc, e.ActivatedAtUtc })
+            .ToListAsync(ct);
+        return Results.Ok(enrollments);
+    }
+
+    // ── Leave self-service handlers ─────────────────────────────────────────
+
+    private static async Task<IResult> GetMyLeaveBalances(
+        HttpContext httpContext,
+        [FromServices] TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        var employeeId = httpContext.GetScopedEmployeeId();
+        var balances = await db.LeaveBalanceReadModels
+            .AsNoTracking()
+            .Where(b => b.EmployeeId == employeeId)
+            .Select(b => new EssLeaveBalanceDto(b.PolicyId, b.PolicyName, b.AvailableBalance, b.ConsumedBalance, b.LastUpdatedAtUtc))
+            .ToListAsync(ct);
+        return Results.Ok(balances);
+    }
+
+    private static async Task<IResult> GetMyLeaveRequests(
+        HttpContext httpContext,
+        [FromServices] TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        var employeeId = httpContext.GetScopedEmployeeId();
+        var requests = await db.LeaveRequests
+            .AsNoTracking()
+            .Where(r => r.EmployeeId == employeeId)
+            .OrderByDescending(r => r.RequestedOnUtc)
+            .Take(50)
+            .Select(r => new EssLeaveRequestDto(r.Id, r.PolicyId, r.StartDate, r.EndDate, r.ActualDays, r.Status.ToString(), r.Reason, r.RequestedOnUtc))
+            .ToListAsync(ct);
+        return Results.Ok(requests);
+    }
+
+    private static async Task<IResult> SubmitLeaveRequest(
+        HttpContext httpContext,
+        [FromBody] EssSubmitLeaveBody body,
+        [FromServices] TimeAttendanceDbContext db,
+        [FromServices] ApprovalsDbContext approvalsDb,
+        CancellationToken ct)
+    {
+        var employeeId = httpContext.GetScopedEmployeeId();
+        var tenantId = httpContext.User.FindFirst("tenant_id")?.Value ?? string.Empty;
+
+        var holidays = await db.HolidayCalendars
+            .AsNoTracking()
+            .SelectMany(c => c.Holidays)
+            .Select(h => h.Date)
+            .ToListAsync(ct);
+
+        var actualDays = LeaveRequestService.CalculateActualLeaveDays(
+            body.StartDate, body.EndDate, holidays, allowHalfDays: false);
+
+        if (actualDays <= 0)
+            return Results.BadRequest("Selected date range contains no working days.");
+
+        var leaveRequest = LeaveRequest.Create(employeeId, body.PolicyId, body.StartDate, body.EndDate, actualDays, body.Reason);
+        db.LeaveRequests.Add(leaveRequest);
+
+        var approvalRequest = ApprovalRequest.Create(
+            tenantId,
+            submittedBy: employeeId,
+            approverId: body.ApproverId ?? Guid.Empty,
+            requestType: ApprovalRequestType.LeaveRequest,
+            subjectEntityId: leaveRequest.Id,
+            subjectDescription: $"Leave {body.StartDate:d} – {body.EndDate:d} ({actualDays} days)");
+        approvalsDb.ApprovalRequests.Add(approvalRequest);
+
+        await db.SaveChangesAsync(ct);
+        await approvalsDb.SaveChangesAsync(ct);
+
+        return Results.Created($"/api/ess/me/leave-requests/{leaveRequest.Id}",
+            new { leaveRequestId = leaveRequest.Id, approvalRequestId = approvalRequest.Id });
+    }
+
+    // ── Manager inbox handlers ──────────────────────────────────────────────
+
+    private static async Task<IResult> GetManagerInbox(
+        ClaimsPrincipal user,
+        [FromServices] ApprovalsDbContext approvalsDb,
+        CancellationToken ct)
+    {
+        var (_, managerId) = user.GetTenantAndEmployee();
+        if (managerId is null) return Results.Forbid();
+
+        var pending = await approvalsDb.ApprovalRequests
+            .AsNoTracking()
+            .Where(r => r.ApproverId == managerId && r.Status == ApprovalRequestStatus.Pending)
+            .OrderBy(r => r.SubmittedAtUtc)
+            .Select(r => new EssApprovalInboxItemDto(r.Id, r.RequestType.ToString(), r.SubjectEntityId, r.SubjectDescription, r.SubmittedBy, r.SubmittedAtUtc))
+            .ToListAsync(ct);
+
+        return Results.Ok(pending);
+    }
+
+    private static async Task<IResult> ActOnApproval(
+        Guid requestId,
+        ClaimsPrincipal user,
+        [FromBody] EssApprovalActionBody body,
+        [FromServices] ApprovalsDbContext approvalsDb,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        var (_, actorId) = user.GetTenantAndEmployee();
+        if (actorId is null) return Results.Forbid();
+
+        var actorName = user.FindFirst(ClaimTypes.Name)?.Value ?? actorId.ToString()!;
+
+        var request = await approvalsDb.ApprovalRequests.FindAsync([requestId], ct);
+        if (request == null) return Results.NotFound();
+
+        var path = httpContext.Request.Path.Value ?? string.Empty;
+        try
+        {
+            if (path.EndsWith("/approve", StringComparison.OrdinalIgnoreCase))
+                request.Approve(actorId.Value, actorName, body.Comment);
+            else
+                request.Reject(actorId.Value, actorName, body.Comment);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        await approvalsDb.SaveChangesAsync(ct);
+        return Results.NoContent();
+    }
 }
+
+// ── ESS Leave / Approval DTOs ────────────────────────────────────────────────
+
+public record EssSubmitLeaveBody(
+    Guid PolicyId,
+    DateOnly StartDate,
+    DateOnly EndDate,
+    string? Reason,
+    Guid? ApproverId);
+
+public record EssApprovalActionBody(string? Comment);
+
+public record EssLeaveBalanceDto(
+    Guid PolicyId,
+    string PolicyName,
+    decimal AvailableBalance,
+    decimal ConsumedBalance,
+    DateTimeOffset LastUpdatedAt);
+
+public record EssLeaveRequestDto(
+    Guid Id,
+    Guid PolicyId,
+    DateOnly StartDate,
+    DateOnly EndDate,
+    double ActualDays,
+    string Status,
+    string? Reason,
+    DateTime RequestedOnUtc);
+
+public record EssApprovalInboxItemDto(
+    Guid RequestId,
+    string RequestType,
+    Guid SubjectEntityId,
+    string? SubjectDescription,
+    Guid SubmittedBy,
+    DateTimeOffset SubmittedAtUtc);
+
+public record EssPatchProfileBody(
+    string? PreferredName,
+    string? PersonalEmail,
+    string? EmergencyContactName,
+    string? EmergencyContactPhone);
+
+public record EssCreateDelegationBody(
+    Guid DelegateManagerId,
+    DateOnly EffectiveFrom,
+    DateOnly EffectiveTo);
+
+public record EssDelegationDto(
+    Guid Id,
+    Guid DelegateManagerId,
+    DateOnly EffectiveFrom,
+    DateOnly EffectiveTo,
+    DateTimeOffset CreatedAtUtc);

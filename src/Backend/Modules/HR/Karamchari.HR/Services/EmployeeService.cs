@@ -43,7 +43,7 @@ internal sealed class EmployeeService(
 
         dbContext.Employees.Add(employee);
 
-        await publishEndpoint.Publish(new EmployeeOnboardedIntegrationEvent(
+        await publishEndpoint.Publish(new EmployeeOnboardedIntegrationEventV1(
             employee.Id,
             tenantId,
             employee.EmployeeNumber,

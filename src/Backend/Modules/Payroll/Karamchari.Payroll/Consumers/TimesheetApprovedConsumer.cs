@@ -15,11 +15,11 @@ using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 /// Records approved timesheet hours in the localised payroll ledger.
-/// Handles retroactive corrections: when <see cref="TimesheetApprovedIntegrationEvent.IsRetroactive"/>
+/// Handles retroactive corrections: when <see cref="TimesheetApprovedIntegrationEventV1.IsRetroactive"/>
 /// is true the existing ledger entry is deleted before the corrected one is inserted,
 /// ensuring the ledger always reflects the latest approved figures.
 /// </summary>
-public sealed class TimesheetApprovedConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
+public sealed class TimesheetApprovedConsumer : IConsumer<TimesheetApprovedIntegrationEventV1>
 {
     private readonly PayrollDbContext _dbContext;
 
@@ -36,7 +36,7 @@ public sealed class TimesheetApprovedConsumer : IConsumer<TimesheetApprovedInteg
     /// Consumes the timesheet approved event and records it in the ledger.
     /// </summary>
     /// <param name="context">The consumer context.</param>
-    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;

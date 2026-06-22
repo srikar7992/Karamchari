@@ -82,12 +82,14 @@ public sealed class TdsStatutoryRule : IAsyncStatutoryRule
         decimal annualHra = context.GetBaseWage(_hraComponentIds) * 12;
         decimal annualRent = monthlyRent * 12;
 
-        decimal hraExemption = _exemptionCalculator.CalculateHraExemption(annualBasic, annualHra, annualRent, context.Profile.IsMetro);
+        bool isMetro = context.Profile.India?.IsMetro ?? false;
+        decimal hraExemption = _exemptionCalculator.CalculateHraExemption(annualBasic, annualHra, annualRent, isMetro);
 
         // 4. Calculate Net Taxable Income
         decimal netTaxableIncome = projection.TotalAnnualGross - hraExemption;
 
-        if (context.Profile.TaxRegime == TaxRegime.Old)
+        var taxRegime = context.Profile.India?.TaxRegime ?? TaxRegime.New;
+        if (taxRegime == TaxRegime.Old)
         {
             netTaxableIncome -= Math.Min(section80C, 150000);
             netTaxableIncome -= section80D;
@@ -100,7 +102,7 @@ public sealed class TdsStatutoryRule : IAsyncStatutoryRule
         if (netTaxableIncome < 0) netTaxableIncome = 0;
 
         // 5. Calculate Annual Tax
-        decimal annualTaxLiability = _taxSlabProvider.CalculateAnnualTax(netTaxableIncome, context.Profile.TaxRegime);
+        decimal annualTaxLiability = _taxSlabProvider.CalculateAnnualTax(netTaxableIncome, taxRegime);
 
         // 6. Calculate Monthly TDS
         decimal remainingTax = annualTaxLiability - projection.YtdTds;

@@ -13,7 +13,7 @@ namespace Karamchari.Compensation.Domain;
 
 /// <summary>
 /// Current and historical compensation for an employee.
-/// Owned by the Compensation BC. Updated by consuming EmployeeCompensationRevisedIntegrationEvent.
+/// Owned by the Compensation BC. Updated by consuming EmployeeCompensationRevisedIntegrationEventV1.
 /// HR-visibility only: this aggregate must be behind the compensation:read RBAC claim.
 /// </summary>
 public sealed class EmployeeCompensationRecord : AggregateRoot<Guid>, ITenantOwned
@@ -85,7 +85,7 @@ public sealed class EmployeeCompensationRecord : AggregateRoot<Guid>, ITenantOwn
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public void ApplyRevision(EmployeeCompensationRevisedIntegrationEvent @event)
+    public void ApplyRevision(EmployeeCompensationRevisedIntegrationEventV1 @event)
     {
         ArgumentNullException.ThrowIfNull(@event);
 

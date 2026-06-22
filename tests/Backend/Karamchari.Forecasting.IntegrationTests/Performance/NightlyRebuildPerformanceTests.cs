@@ -172,9 +172,9 @@ public sealed class NightlyRebuildPerformanceTests(ForecastingSqlServerFixture f
         return ctx;
     }
 
-    private static MassTransit.ConsumeContext<Karamchari.Core.Contracts.IntegrationEvents.V1.EmployeeOnboardedIntegrationEvent>
+    private static MassTransit.ConsumeContext<Karamchari.Core.Contracts.IntegrationEvents.V1.EmployeeOnboardedIntegrationEventV1>
         FakeOnboarded(Guid employeeId, string tenantId) =>
-        FakeCtx(new Karamchari.Core.Contracts.IntegrationEvents.V1.EmployeeOnboardedIntegrationEvent(
+        FakeCtx(new Karamchari.Core.Contracts.IntegrationEvents.V1.EmployeeOnboardedIntegrationEventV1(
             employeeId, tenantId,
             EmployeeNumber: "EMP-PERF",
             LegalName: "Perf Test Employee",
@@ -183,9 +183,9 @@ public sealed class NightlyRebuildPerformanceTests(ForecastingSqlServerFixture f
             DateOfBirth: new DateOnly(1985, 1, 1),
             ContractEndDate: null));
 
-    private static MassTransit.ConsumeContext<Karamchari.Core.Contracts.IntegrationEvents.SkillAssignedIntegrationEvent>
+    private static MassTransit.ConsumeContext<Karamchari.Core.Contracts.IntegrationEvents.SkillAssignedIntegrationEventV1>
         FakeSkillAssigned(Guid employeeId, string tenantId, string skillCode) =>
-        FakeCtx(new Karamchari.Core.Contracts.IntegrationEvents.SkillAssignedIntegrationEvent(
+        FakeCtx(new Karamchari.Core.Contracts.IntegrationEvents.SkillAssignedIntegrationEventV1(
             employeeId, tenantId,
             SkillId: Guid.NewGuid(),
             SkillCode: skillCode,

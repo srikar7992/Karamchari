@@ -23,7 +23,7 @@ public sealed class EmployeeCompensationRecordTests
             annualCTC: annualCTC,
             currencyCode: currency);
 
-    private static EmployeeCompensationRevisedIntegrationEvent MakeRevisionEvent(
+    private static EmployeeCompensationRevisedIntegrationEventV1 MakeRevisionEvent(
         Guid? revisionId = null,
         Guid? employeeId = null,
         decimal previousCTC = 800_000m,
@@ -31,7 +31,7 @@ public sealed class EmployeeCompensationRecordTests
         decimal incrementPercent = 10m,
         CompensationRevisionReason reason = CompensationRevisionReason.MeritIncrease,
         string? referenceId = null)
-        => new EmployeeCompensationRevisedIntegrationEvent(
+        => new EmployeeCompensationRevisedIntegrationEventV1(
             RevisionId: revisionId ?? Guid.NewGuid(),
             TenantId: "tenant-001",
             EmployeeId: employeeId ?? Guid.NewGuid(),

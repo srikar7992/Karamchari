@@ -32,9 +32,9 @@ public sealed class EmployeeIntelligenceProjectionHandler
       IProjectionHandler<PositionAssignmentEnded>,
       IProjectionHandler<ReportingRelationshipCreated>,
       IProjectionHandler<ReportingRelationshipEnded>,
-      IProjectionHandler<EmployeeCompensationRevisedIntegrationEvent>,
-      IProjectionHandler<EmployeePerformanceSnapshotMaterializedIntegrationEvent>,
-      IProjectionHandler<SkillValidatedIntegrationEvent>,
+      IProjectionHandler<EmployeeCompensationRevisedIntegrationEventV1>,
+      IProjectionHandler<EmployeePerformanceSnapshotMaterializedIntegrationEventV1>,
+      IProjectionHandler<SkillValidatedIntegrationEventV1>,
       IProjectionHandler<ReportingRelationshipChanged>
 {
     private readonly HRDbContext _dbContext;
@@ -88,13 +88,13 @@ public sealed class EmployeeIntelligenceProjectionHandler
     }
 
     /// <inheritdoc/>
-    public async Task HandleAsync(EmployeeCompensationRevisedIntegrationEvent domainEvent, CancellationToken cancellationToken)
+    public async Task HandleAsync(EmployeeCompensationRevisedIntegrationEventV1 domainEvent, CancellationToken cancellationToken)
     {
         await RecalculateAllPredictionsAsync(domainEvent.TenantId, domainEvent.EmployeeId, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task HandleAsync(EmployeePerformanceSnapshotMaterializedIntegrationEvent domainEvent, CancellationToken cancellationToken)
+    public async Task HandleAsync(EmployeePerformanceSnapshotMaterializedIntegrationEventV1 domainEvent, CancellationToken cancellationToken)
     {
         await RecalculateAllPredictionsAsync(domainEvent.TenantId, domainEvent.EmployeeId, cancellationToken);
     }
@@ -117,7 +117,7 @@ public sealed class EmployeeIntelligenceProjectionHandler
     /// Handles the skill validation event by ensuring the corresponding skill and employee nodes exist in the graph, 
     /// upserting a 'HasSkill' graph edge, and triggering prediction score recalculation.
     /// </summary>
-    public async Task HandleAsync(SkillValidatedIntegrationEvent domainEvent, CancellationToken cancellationToken)
+    public async Task HandleAsync(SkillValidatedIntegrationEventV1 domainEvent, CancellationToken cancellationToken)
     {
         // 1. Ensure the Skill node exists in GraphNodes to avoid FK issues
         var skillNodeExists = await _dbContext.GraphNodes.AnyAsync(

@@ -18,11 +18,11 @@ namespace Karamchari.Recruitment.Application.EventHandlers.Analytics;
 public sealed class RecruitmentVelocityConsumer(
     IRecruitmentDbContext dbContext,
     ILogger<RecruitmentVelocityConsumer> logger)
-    : IConsumer<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEvent>>
+    : IConsumer<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEventV1>>
 {
     private const string EventType = "RequisitionCreated";
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<RequisitionPublishedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         var payload = envelope.Payload;

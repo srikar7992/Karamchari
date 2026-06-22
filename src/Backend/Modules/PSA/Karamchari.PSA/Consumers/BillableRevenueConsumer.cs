@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Catches <see cref="TimesheetApprovedIntegrationEvent"/> and writes billable entries
+/// Catches <see cref="TimesheetApprovedIntegrationEventV1"/> and writes billable entries
 /// into the <see cref="UnbilledRevenue"/> ledger.
 ///
 /// This is the "Gather" side of the dual-ledger pattern:
@@ -25,11 +25,11 @@ using Microsoft.Extensions.Logging;
 ///
 /// Both consumers are fed from the exact same event â€” no cross-context reads.
 ///
-/// Retroactive corrections: when <see cref="TimesheetApprovedIntegrationEvent.IsRetroactive"/>
+/// Retroactive corrections: when <see cref="TimesheetApprovedIntegrationEventV1.IsRetroactive"/>
 /// is true, existing revenue rows for the timesheet are deleted before new rows are inserted,
 /// ensuring the revenue ledger reflects the latest approved figures.
 /// </summary>
-public sealed partial class BillableRevenueConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
+public sealed partial class BillableRevenueConsumer : IConsumer<TimesheetApprovedIntegrationEventV1>
 {
     private readonly PSADbContext _db;
     private readonly ProjectResourceRepository _resourceRepo;
@@ -46,7 +46,7 @@ public sealed partial class BillableRevenueConsumer : IConsumer<TimesheetApprove
     }
 
     /// <inheritdoc/>
-    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;

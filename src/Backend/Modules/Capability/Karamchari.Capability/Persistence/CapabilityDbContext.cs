@@ -5,9 +5,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Capability.Domain.Compliance;
 using Karamchari.Capability.Domain.Entitlements;
 using Karamchari.Capability.Domain.Growth;
 using Karamchari.Capability.Domain.Learning;
+using Karamchari.Capability.Domain.LearningPaths;
 using Karamchari.Capability.Domain.Marketplace;
 using Karamchari.Capability.Domain.Mobility;
 using Karamchari.Capability.Domain.Pathing;
@@ -19,46 +21,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karamchari.Capability.Persistence;
 
-/// <summary>
-/// Provides required documentation for this member.
-/// </summary>
 public class CapabilityDbContext : KaramchariDbContext
 {
-    /// <inheritdoc/>
     public CapabilityDbContext(DbContextOptions<CapabilityDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider)
     {
     }
 
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<SkillDefinition> SkillDefinitions => Set<SkillDefinition>();
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<CapabilityProfile> CapabilityProfiles => Set<CapabilityProfile>();
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<LearningModule> LearningModules => Set<LearningModule>();
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<LearningEnrollment> LearningEnrollments => Set<LearningEnrollment>();
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<CertificationAchievement> CertificationAchievements => Set<CertificationAchievement>();
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<GrowthPlan> GrowthPlans => Set<GrowthPlan>();
 
     public DbSet<CapabilityDefinition> CapabilityDefinitions => Set<CapabilityDefinition>();
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<TenantCapability> TenantCapabilities => Set<TenantCapability>();
     public DbSet<RoleSkillRequirement> RoleSkillRequirements => Set<RoleSkillRequirement>();
     public DbSet<SkillCategory> SkillCategories => Set<SkillCategory>();
@@ -94,7 +71,12 @@ public class CapabilityDbContext : KaramchariDbContext
     /// <summary>Pre-computed successor readiness per employee per critical position.</summary>
     public DbSet<SuccessorCandidateProjection> SuccessorCandidateProjections => Set<SuccessorCandidateProjection>();
 
-    /// <inheritdoc/>
+    // Sprint 3 — LMS
+    public DbSet<ComplianceAssignment> ComplianceAssignments => Set<ComplianceAssignment>();
+    public DbSet<ComplianceCompletion> ComplianceCompletions => Set<ComplianceCompletion>();
+    public DbSet<LearningPath> LearningPaths => Set<LearningPath>();
+    public DbSet<LearningPathEnrollment> LearningPathEnrollments => Set<LearningPathEnrollment>();
+
     protected override void OnDomainModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);

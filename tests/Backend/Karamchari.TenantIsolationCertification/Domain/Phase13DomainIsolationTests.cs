@@ -253,7 +253,7 @@ public sealed class Phase13DomainIsolationTests
     {
         // Verify the catalog answers the CTO's 30-second question:
         // "What publishes EmployeeTerminated? Who consumes it? Which version is active?"
-        var entry = KaramchariEventCatalog.Find("EmployeeTerminatedIntegrationEvent");
+        var entry = KaramchariEventCatalog.Find("EmployeeTerminatedIntegrationEventV1");
 
         entry.Should().NotBeNull("EmployeeTerminated must be registered in the event catalog");
         entry!.Publisher.Should().Be("HR");
@@ -267,8 +267,8 @@ public sealed class Phase13DomainIsolationTests
     [Fact]
     public void EventCatalog_V1PayrollRunCompleted_MarkedDeprecated()
     {
-        var v1 = KaramchariEventCatalog.Find("PayrollRunCompletedIntegrationEvent", version: 1);
-        var v2 = KaramchariEventCatalog.Find("PayrollRunCompletedIntegrationEvent", version: 2);
+        var v1 = KaramchariEventCatalog.Find("PayrollRunCompletedIntegrationEventV1", version: 1);
+        var v2 = KaramchariEventCatalog.Find("PayrollRunCompletedIntegrationEventV1", version: 2);
 
         v1.Should().NotBeNull();
         v2.Should().NotBeNull();
@@ -284,7 +284,7 @@ public sealed class Phase13DomainIsolationTests
     {
         // PayrollRunCompleted exists in V1 (deprecated) and V2 (active).
         // Find() with no version should return V2.
-        var latest = KaramchariEventCatalog.Find("PayrollRunCompletedIntegrationEvent");
+        var latest = KaramchariEventCatalog.Find("PayrollRunCompletedIntegrationEventV1");
 
         latest.Should().NotBeNull();
         latest!.Version.Should().Be(2, "Find() defaults to highest active version");

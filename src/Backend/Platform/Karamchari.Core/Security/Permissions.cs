@@ -36,6 +36,10 @@ public static class Permissions
     public const string TenantSettingsRead = "tenant.settings.read";
     public const string TenantSettingsWrite = "tenant.settings.write";
     public const string AuditRead = "audit.read";
+    public const string AnalyticsRead = "analytics.read";
+    public const string AnalyticsAdmin = "analytics.admin";
+    public const string WorkforcePlanningRead = "workforce.planning.read";
+    public const string WorkforcePlanningWrite = "workforce.planning.write";
 
     // Capability Domain
     public const string CapabilityRead = "capability.read";
@@ -59,6 +63,37 @@ public static class Permissions
     public const string RecruitmentOffer = "recruitment.offer";
     public const string RecruitmentHire = "recruitment.hire";
 
+    // ESS Domain (Employee Self-Service)
+    public const string EssSelfRead = "ess.self.read";
+    public const string EssSelfWrite = "ess.self.write";
+    public const string EssManagerInbox = "ess.manager.inbox";
+    public const string EssManagerApprove = "ess.manager.approve";
+
+    // Approvals Domain
+    public const string ApprovalsRead = "approvals.read";
+    public const string ApprovalsAct = "approvals.act";
+
+
+    // Delegation
+    public const string EssDelegationWrite = "ess.delegation.write";
+
+    // Approval policy admin
+    public const string ApprovalsPolicyAdmin = "approvals.policy.admin";
+    // Compensation Domain
+    public const string CompensationRead = "compensation.read";
+    public const string CompensationWrite = "compensation.write";
+    public const string CompensationCycleAdmin = "compensation.cycle.admin";
+
+    // Succession Domain
+    public const string SuccessionRead = "succession.read";
+    public const string SuccessionWrite = "succession.write";
+
+    // Platform Extensibility
+    public const string ExtensibilityAdmin = "extensibility.admin";
+    public const string ExtensibilityRead = "extensibility.read";
+
+
+
     public static readonly IReadOnlySet<string> All = new HashSet<string>
     {
         EmployeeRead, EmployeeWrite, EmployeeDelete,
@@ -67,9 +102,19 @@ public static class Permissions
         ReimbursementRead, ReimbursementSubmit, ReimbursementApprove,
         TenantSettingsRead, TenantSettingsWrite,
         AuditRead,
+        AnalyticsRead,
+        AnalyticsAdmin,
+        WorkforcePlanningRead,
+        WorkforcePlanningWrite,
         CapabilityRead, CapabilityWrite,
         BillingRead, BillingWrite,
         BulkImportRead, BulkImportCreate, BulkImportExecute, BulkImportCancel,
-        RecruitmentRead, RecruitmentCreate, RecruitmentUpdate, RecruitmentInterview, RecruitmentOffer, RecruitmentHire
+        RecruitmentRead, RecruitmentCreate, RecruitmentUpdate, RecruitmentInterview, RecruitmentOffer, RecruitmentHire,
+        EssSelfRead, EssSelfWrite, EssManagerInbox, EssManagerApprove,
+        ApprovalsRead, ApprovalsAct,
+        EssDelegationWrite, ApprovalsPolicyAdmin,
+        CompensationRead, CompensationWrite, CompensationCycleAdmin,
+        SuccessionRead, SuccessionWrite,
+        ExtensibilityAdmin, ExtensibilityRead
     };
 }

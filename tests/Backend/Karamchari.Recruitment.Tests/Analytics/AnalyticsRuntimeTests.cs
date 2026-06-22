@@ -65,22 +65,22 @@ public sealed class AnalyticsRuntimeTests : RecruitmentIntegrationTestBase
         var timeToHireConsumer = CreateTimeToHireConsumer();
         var funnelConsumer = CreateFunnelConsumer();
 
-        // 1. RequisitionCreated (RequisitionPublishedIntegrationEvent)
+        // 1. RequisitionCreated (RequisitionPublishedIntegrationEventV1)
         await velocityConsumer.Consume(MakeContext(MakeEnvelope(
-            new RequisitionPublishedIntegrationEvent(
+            new RequisitionPublishedIntegrationEventV1(
                 requisitionId, TestTenantId, "Software Engineer", "dept-1", now),
             TestTenantId)));
 
-        // 2. ApplicationSubmitted (CandidateAppliedIntegrationEvent)
+        // 2. ApplicationSubmitted (CandidateAppliedIntegrationEventV1)
         await funnelConsumer.Consume(MakeContext(MakeEnvelope(
-            new CandidateAppliedIntegrationEvent(
+            new CandidateAppliedIntegrationEventV1(
                 applicationId, candidateId, requisitionId,
                 TestTenantId, "Jane Doe", "Software Engineer", now.AddMinutes(10)),
             TestTenantId)));
 
-        // 3. InterviewCompleted (InterviewCompletedIntegrationEvent)
+        // 3. InterviewCompleted (InterviewCompletedIntegrationEventV1)
         await funnelConsumer.Consume(MakeContext(MakeEnvelope(
-            new InterviewCompletedIntegrationEvent(
+            new InterviewCompletedIntegrationEventV1(
                 interviewId, applicationId, TestTenantId, now.AddDays(7)),
             TestTenantId)));
 
@@ -91,18 +91,18 @@ public sealed class AnalyticsRuntimeTests : RecruitmentIntegrationTestBase
         //    Both share the same eventType string "OfferAccepted", so only 1 row is written
         //    total (the second consumer finds it already present).
         await timeToHireConsumer.Consume(MakeContext(MakeEnvelope(
-            new OfferAcceptedIntegrationEvent(
+            new OfferAcceptedIntegrationEventV1(
                 offerId, applicationId, TestTenantId, now.AddDays(14)),
             TestTenantId)));
 
         await funnelConsumer.Consume(MakeContext(MakeEnvelope(
-            new OfferAcceptedIntegrationEvent(
+            new OfferAcceptedIntegrationEventV1(
                 offerId, applicationId, TestTenantId, now.AddDays(14)),
             TestTenantId)));
 
-        // 5. CandidateHired (CandidateHiredIntegrationEvent)
+        // 5. CandidateHired (CandidateHiredIntegrationEventV1)
         await timeToHireConsumer.Consume(MakeContext(MakeEnvelope(
-            new CandidateHiredIntegrationEvent(
+            new CandidateHiredIntegrationEventV1(
                 candidateId, applicationId, requisitionId, TestTenantId,
                 "Jane", "Doe", "jane@example.com", null,
                 now.AddDays(15), "recruiter-1", 120000m, "USD"),
@@ -124,7 +124,7 @@ public sealed class AnalyticsRuntimeTests : RecruitmentIntegrationTestBase
 
         // Idempotency guard: dispatch the same OfferAccepted again — row count must not grow
         await timeToHireConsumer.Consume(MakeContext(MakeEnvelope(
-            new OfferAcceptedIntegrationEvent(
+            new OfferAcceptedIntegrationEventV1(
                 offerId, applicationId, TestTenantId, now.AddDays(14)),
             TestTenantId)));
 
@@ -147,7 +147,7 @@ public sealed class AnalyticsRuntimeTests : RecruitmentIntegrationTestBase
         var consumer = CreateTimeToHireConsumer();
 
         var envelope = MakeEnvelope(
-            new CandidateHiredIntegrationEvent(
+            new CandidateHiredIntegrationEventV1(
                 candidateId, applicationId, requisitionId, TestTenantId,
                 "John", "Smith", "john@example.com", null,
                 now, "recruiter-2", 90000m, "USD"),
@@ -179,18 +179,18 @@ public sealed class AnalyticsRuntimeTests : RecruitmentIntegrationTestBase
         var funnelConsumer = CreateFunnelConsumer();
 
         var reqEnvelope = MakeEnvelope(
-            new RequisitionPublishedIntegrationEvent(
+            new RequisitionPublishedIntegrationEventV1(
                 requisitionId, TestTenantId, "QA Engineer", "dept-2", now),
             TestTenantId);
 
         var appliedEnvelope = MakeEnvelope(
-            new CandidateAppliedIntegrationEvent(
+            new CandidateAppliedIntegrationEventV1(
                 applicationId, candidateId, requisitionId,
                 TestTenantId, "Bob Builder", "QA Engineer", now.AddMinutes(5)),
             TestTenantId);
 
         var interviewEnvelope = MakeEnvelope(
-            new InterviewCompletedIntegrationEvent(
+            new InterviewCompletedIntegrationEventV1(
                 Guid.NewGuid(), applicationId, TestTenantId, now.AddDays(3)),
             TestTenantId);
 

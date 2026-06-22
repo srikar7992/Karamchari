@@ -52,7 +52,7 @@ public sealed class FnFSettlementStateMachine : MassTransitStateMachine<FnFSettl
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Event<FnFSettlementInitiatedIntegrationEvent> Initiated { get; private set; } = null!;
+    public Event<FnFSettlementInitiatedIntegrationEventV1> Initiated { get; private set; } = null!;
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -60,7 +60,7 @@ public sealed class FnFSettlementStateMachine : MassTransitStateMachine<FnFSettl
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Event<FnFSettlementApprovedIntegrationEvent> ApprovedEvent { get; private set; } = null!;
+    public Event<FnFSettlementApprovedIntegrationEventV1> ApprovedEvent { get; private set; } = null!;
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
@@ -68,11 +68,11 @@ public sealed class FnFSettlementStateMachine : MassTransitStateMachine<FnFSettl
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Event<FnFSettlementDisbursedIntegrationEvent> Disbursed { get; private set; } = null!;
+    public Event<FnFSettlementDisbursedIntegrationEventV1> Disbursed { get; private set; } = null!;
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Event<DisbursementBatchFailedIntegrationEvent> DisbursementFailed { get; private set; } = null!;
+    public Event<DisbursementBatchFailedIntegrationEventV1> DisbursementFailed { get; private set; } = null!;
 
     public FnFSettlementStateMachine()
     {

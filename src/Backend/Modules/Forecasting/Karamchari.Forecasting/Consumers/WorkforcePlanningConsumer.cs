@@ -33,14 +33,14 @@ namespace Karamchari.Forecasting.Consumers;
 /// - WfpAttritionSnapshot — monthly termination counts for rolling attrition rate
 /// </summary>
 public sealed class WorkforcePlanningConsumer :
-    IConsumer<EmployeeOnboardedIntegrationEvent>,
-    IConsumer<EmployeeTerminatedIntegrationEvent>,
-    IConsumer<SkillAssignedIntegrationEvent>,
-    IConsumer<SkillExpiredIntegrationEvent>,
-    IConsumer<LeaveRequestApprovedIntegrationEvent>,
-    IConsumer<LeaveCancelledIntegrationEvent>,
-    IConsumer<TimesheetApprovedIntegrationEvent>,
-    IConsumer<HireOfferAcceptedIntegrationEvent>
+    IConsumer<EmployeeOnboardedIntegrationEventV1>,
+    IConsumer<EmployeeTerminatedIntegrationEventV1>,
+    IConsumer<SkillAssignedIntegrationEventV1>,
+    IConsumer<SkillExpiredIntegrationEventV1>,
+    IConsumer<LeaveRequestApprovedIntegrationEventV1>,
+    IConsumer<LeaveCancelledIntegrationEventV1>,
+    IConsumer<TimesheetApprovedIntegrationEventV1>,
+    IConsumer<HireOfferAcceptedIntegrationEventV1>
 {
     private const string DefaultSkillCode = "GENERAL";
 
@@ -58,7 +58,7 @@ public sealed class WorkforcePlanningConsumer :
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -112,7 +112,7 @@ public sealed class WorkforcePlanningConsumer :
         _logger.LogDebug("WFP: indexed new employee {EmployeeId} for tenant {TenantId}", ev.EmployeeId, ev.TenantId);
     }
 
-    public async Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -178,7 +178,7 @@ public sealed class WorkforcePlanningConsumer :
         _logger.LogDebug("WFP: terminated employee {EmployeeId} for tenant {TenantId}", ev.EmployeeId, ev.TenantId);
     }
 
-    public async Task Consume(ConsumeContext<SkillAssignedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<SkillAssignedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -245,7 +245,7 @@ public sealed class WorkforcePlanningConsumer :
         await _wfpService.EnqueueRecomputeAsync(ev.TenantId, index.LocationCode, ev.SkillCode, ct);
     }
 
-    public async Task Consume(ConsumeContext<SkillExpiredIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<SkillExpiredIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -267,7 +267,7 @@ public sealed class WorkforcePlanningConsumer :
         await _wfpService.EnqueueRecomputeAsync(ev.TenantId, index.LocationCode, ev.SkillCode, ct);
     }
 
-    public async Task Consume(ConsumeContext<LeaveRequestApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<LeaveRequestApprovedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -294,7 +294,7 @@ public sealed class WorkforcePlanningConsumer :
             await _wfpService.EnqueueRecomputeAsync(index.TenantId, index.LocationCode, skillCode, ct);
     }
 
-    public async Task Consume(ConsumeContext<LeaveCancelledIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<LeaveCancelledIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -318,7 +318,7 @@ public sealed class WorkforcePlanningConsumer :
             await _wfpService.EnqueueRecomputeAsync(tenantId, locationCode, skill, ct);
     }
 
-    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -380,7 +380,7 @@ public sealed class WorkforcePlanningConsumer :
         // Absence rate refresh in the line above already saves updated rates; nightly job picks them up.
     }
 
-    public async Task Consume(ConsumeContext<HireOfferAcceptedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<HireOfferAcceptedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;

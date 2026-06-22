@@ -5,12 +5,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Core.Contracts;
 namespace Karamchari.Payroll.Contracts;
 
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record ReimbursementApprovedIntegrationEvent
+public sealed record ReimbursementApprovedIntegrationEventV1 : IIntegrationEvent
 {
     /// <summary>
     /// Provides required documentation for this member.
@@ -41,7 +42,7 @@ public sealed record ReimbursementApprovedIntegrationEvent
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed record ReimbursementPaidOutIntegrationEvent
+public sealed record ReimbursementPaidOutIntegrationEventV1 : IIntegrationEvent
 {
     /// <summary>
     /// Provides required documentation for this member.

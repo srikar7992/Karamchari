@@ -9,6 +9,7 @@
 // PLACEHOLDER: BC not yet implemented. Contracts defined here to allow
 // Performance BC to publish toward this namespace and avoid coupling.
 
+using Karamchari.Core.Contracts;
 namespace Karamchari.Compensation.Contracts.IntegrationEvents;
 
 /// <summary>
@@ -16,7 +17,7 @@ namespace Karamchari.Compensation.Contracts.IntegrationEvents;
 /// (promotion approval, merit cycle, off-cycle adjustment).
 /// Consumed by: Payroll BC (schedules salary change), HR BC (records comp history).
 /// </summary>
-public record EmployeeCompensationRevisedIntegrationEvent(
+public record EmployeeCompensationRevisedIntegrationEventV1(
     Guid RevisionId,
     string TenantId,
     Guid EmployeeId,
@@ -26,7 +27,7 @@ public record EmployeeCompensationRevisedIntegrationEvent(
     CompensationRevisionReason Reason,
     string? ReferenceId,
     DateOnly EffectiveDate,
-    DateTimeOffset OccurredOnUtc);
+    DateTimeOffset OccurredOnUtc) : IIntegrationEvent;
 
 /// <summary>Reason for a compensation revision.</summary>
 public enum CompensationRevisionReason

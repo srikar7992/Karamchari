@@ -20,7 +20,7 @@ namespace Karamchari.Payroll.Consumers;
 /// Triggers arrear calculation when a salary revision is approved.
 /// Only fires if revision requires arrears (effective date in past processed period).
 /// </summary>
-public sealed class SalaryRevisionApprovedArrearConsumer : IConsumer<SalaryRevisionApprovedIntegrationEvent>
+public sealed class SalaryRevisionApprovedArrearConsumer : IConsumer<SalaryRevisionApprovedIntegrationEventV1>
 {
     private readonly ArrearCalculationEngine _engine;
     private readonly PayrollDbContext _db;
@@ -39,7 +39,7 @@ public sealed class SalaryRevisionApprovedArrearConsumer : IConsumer<SalaryRevis
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<SalaryRevisionApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<SalaryRevisionApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
@@ -101,7 +101,7 @@ public sealed class SalaryRevisionApprovedArrearConsumer : IConsumer<SalaryRevis
 /// <summary>
 /// Executes arrear processing when approved: injects arrear into next payroll run.
 /// </summary>
-public sealed class ArrearApprovedConsumer : IConsumer<ArrearCalculationApprovedIntegrationEvent>
+public sealed class ArrearApprovedConsumer : IConsumer<ArrearCalculationApprovedIntegrationEventV1>
 {
     private readonly PayrollDbContext _db;
     private readonly ILogger<ArrearApprovedConsumer> _logger;
@@ -115,7 +115,7 @@ public sealed class ArrearApprovedConsumer : IConsumer<ArrearCalculationApproved
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<ArrearCalculationApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<ArrearCalculationApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;

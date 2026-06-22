@@ -5,6 +5,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Analytics.Services;
+using Karamchari.Core.Messaging.Outbox;
 using Karamchari.Core.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -19,6 +21,7 @@ public static class HealthCheckExtensions
     private static readonly string[] DbTags = new[] { "ready", "db" };
     private static readonly string[] MessagingTags = new[] { "ready", "messaging" };
     private static readonly string[] CacheTags = new[] { "ready", "cache" };
+    private static readonly string[] AnalyticsTags = new[] { "ready", "analytics" };
 
     /// <summary>
     /// Registers all platform health checks including databases, messaging, and caching.
@@ -57,6 +60,12 @@ public static class HealthCheckExtensions
         {
             healthBuilder.AddRedis(redisConnectionString: redisConnection, name: "Caching:Redis", tags: CacheTags);
         }
+
+        // 4. Outbox DLQ — degraded on first message, unhealthy at 10+
+        healthBuilder.AddCheck<OutboxDlqHealthCheck>("Messaging:DLQ", tags: MessagingTags);
+
+        // 5. Analytics projection lag — degraded after 26h (missed cycle), unhealthy after 48h
+        healthBuilder.AddCheck<ProjectionLagHealthCheck>("Analytics:ProjectionLag", tags: AnalyticsTags);
 
         // Single-flight, short-TTL cache so frequent/concurrent probes (k8s, load balancers,
         // monitoring) do not each re-open live dependency connections. Prevents the readiness

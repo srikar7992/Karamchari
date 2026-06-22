@@ -6,15 +6,19 @@
 // -----------------------------------------------------------------------
 
 using Karamchari.Core.DependencyInjection;
+using Karamchari.Core.Persistence;
 using Karamchari.Core.Persistence.Provisioning;
 using Karamchari.Payroll.Consumers;
 using Karamchari.Payroll.Data;
+using Karamchari.Payroll.Domain.CountryEngine;
 using Karamchari.Payroll.Domain.DeductionRules;
 using Karamchari.Payroll.Domain.Disbursement;
 using Karamchari.Payroll.Persistence;
 using Karamchari.Payroll.Services;
 using Karamchari.Payroll.Services.Arrears;
 using Karamchari.Payroll.Services.Calculation;
+using Karamchari.Payroll.Services.Compliance;
+using Karamchari.Payroll.Services.CountryEngine;
 using Karamchari.Payroll.Services.Declarations;
 using Karamchari.Payroll.Services.Deductions;
 using Karamchari.Payroll.Services.Disbursement;
@@ -64,6 +68,16 @@ public static class PayrollServiceCollectionExtensions
         services.AddSingleton<CTCTemplateCompiler>();
         services.AddSingleton<CTCBreakdownService>();
         services.AddSingleton<StatutoryPipelineEngine>();
+
+        // Country engine — India is the first and currently only implementation.
+        // Additional countries add a new IStatutoryRuleSetFactory + IPayrollCountryEngine pair.
+        // IndiaPayrollEngine selects the rule set by EffectiveDate via IndiaRuleSetFactory,
+        // ensuring retro-pay and historical audits reproduce the rules from the original period.
+        services.AddScoped<ITdsGenerator, TdsGenerator>();
+        services.AddScoped<IEcrGenerator, EcrGenerator>();
+        services.AddScoped<IEsicGenerator, EsicGenerator>();
+        services.AddScoped<IStatutoryRuleSetFactory, IndiaRuleSetFactory>();
+        services.AddScoped<IPayrollCountryEngine, IndiaPayrollEngine>();
 
         // Phase 4: Calculation engine + tax + deductions + retro + snapshot + bank recon
         services.AddScoped<IPayrollCalculationEngine, PayrollCalculationEngine>();
@@ -135,6 +149,7 @@ public static class PayrollServiceCollectionExtensions
 
         // RLS Configuration
         services.RegisterTenantTable("PayrollProfiles");
+        services.RegisterTenantTable("IndiaPayrollProfiles");
         services.RegisterTenantTable("PayrollRunStates");
         services.RegisterTenantTable("PayrollDeductions");
         services.RegisterTenantTable("PayrollSchedules");
@@ -177,6 +192,7 @@ public static class PayrollServiceCollectionExtensions
                     errorNumbersToAdd: null);
             });
             options.AddKaramchariInterceptors(serviceProvider);
+            options.AddInterceptors(serviceProvider.GetRequiredService<IFinancialAuditInterceptor>());
         });
 
         return services;

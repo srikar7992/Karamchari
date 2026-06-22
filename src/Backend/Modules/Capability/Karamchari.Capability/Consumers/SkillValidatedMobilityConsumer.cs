@@ -18,10 +18,10 @@ namespace Karamchari.Capability.Consumers;
 /// <see cref="SkillValidatedReadinessConsumer"/>.
 /// </summary>
 public sealed class SkillValidatedMobilityConsumer(InternalMobilityProjectionHandler handler)
-    : IConsumer<SkillValidatedIntegrationEvent>
+    : IConsumer<SkillValidatedIntegrationEventV1>
 {
     /// <inheritdoc />
-    public async Task Consume(ConsumeContext<SkillValidatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<SkillValidatedIntegrationEventV1> context)
     {
         await handler.HandleSkillValidatedAsync(context.Message, context.CancellationToken);
     }

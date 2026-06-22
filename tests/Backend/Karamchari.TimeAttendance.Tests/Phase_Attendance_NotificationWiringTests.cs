@@ -64,7 +64,7 @@ public sealed class AttendanceNotificationWiringTests
         await sut.IngestAsync(request);
 
         await bus.Received(1).Publish(
-            Arg.Is<GeoFraudDetectedIntegrationEvent>(e =>
+            Arg.Is<GeoFraudDetectedIntegrationEventV1>(e =>
                 e.TenantId == "tenant-geo" &&
                 e.EmployeeId == request.EmployeeId),
             Arg.Any<CancellationToken>());
@@ -107,7 +107,7 @@ public sealed class AttendanceNotificationWiringTests
         await sut.IngestAsync(request);
 
         await bus.DidNotReceive().Publish(
-            Arg.Any<GeoFraudDetectedIntegrationEvent>(),
+            Arg.Any<GeoFraudDetectedIntegrationEventV1>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -147,7 +147,7 @@ public sealed class AttendanceNotificationWiringTests
         await sut.DetectAsync(tenantId, today);
 
         await bus.Received(1).Publish(
-            Arg.Is<ConsecutiveAbsenceEscalatedIntegrationEvent>(e =>
+            Arg.Is<ConsecutiveAbsenceEscalatedIntegrationEventV1>(e =>
                 e.TenantId == tenantId &&
                 e.EmployeeId == employeeId),
             Arg.Any<CancellationToken>());
@@ -177,7 +177,7 @@ public sealed class AttendanceNotificationWiringTests
         await sut.DetectAsync(tenantId, today);
 
         await bus.DidNotReceive().Publish(
-            Arg.Any<ConsecutiveAbsenceEscalatedIntegrationEvent>(),
+            Arg.Any<ConsecutiveAbsenceEscalatedIntegrationEventV1>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -187,7 +187,7 @@ public sealed class AttendanceNotificationWiringTests
     public void AttendanceExceptionRaisedIntegrationEvent_is_defined_in_contracts()
     {
         // Confirms the contract type is in the correct assembly and namespace.
-        var eventType = typeof(AttendanceExceptionRaisedIntegrationEvent);
+        var eventType = typeof(AttendanceExceptionRaisedIntegrationEventV1);
         eventType.Assembly.GetName().Name.Should().Be("Karamchari.TimeAttendance.Contracts");
         eventType.Namespace.Should().Be("Karamchari.TimeAttendance.Contracts");
     }
@@ -195,21 +195,21 @@ public sealed class AttendanceNotificationWiringTests
     [Fact]
     public void RegularizationApprovedIntegrationEvent_is_defined_in_contracts()
     {
-        var eventType = typeof(RegularizationApprovedIntegrationEvent);
+        var eventType = typeof(RegularizationApprovedIntegrationEventV1);
         eventType.Assembly.GetName().Name.Should().Be("Karamchari.TimeAttendance.Contracts");
     }
 
     [Fact]
     public void RegularizationRejectedIntegrationEvent_is_defined_in_contracts()
     {
-        var eventType = typeof(RegularizationRejectedIntegrationEvent);
+        var eventType = typeof(RegularizationRejectedIntegrationEventV1);
         eventType.Assembly.GetName().Name.Should().Be("Karamchari.TimeAttendance.Contracts");
     }
 
     [Fact]
     public void AttendanceExceptionRaisedIntegrationEvent_has_expected_properties()
     {
-        var evt = new AttendanceExceptionRaisedIntegrationEvent(
+        var evt = new AttendanceExceptionRaisedIntegrationEventV1(
             CorrelationId: Guid.NewGuid(),
             TenantId: "t1",
             EmployeeId: Guid.NewGuid(),
@@ -230,7 +230,7 @@ public sealed class AttendanceNotificationWiringTests
         var approver = Guid.NewGuid();
         var requestId = Guid.NewGuid();
 
-        var evt = new RegularizationApprovedIntegrationEvent(
+        var evt = new RegularizationApprovedIntegrationEventV1(
             CorrelationId: Guid.NewGuid(),
             TenantId: "t2",
             EmployeeId: Guid.NewGuid(),
@@ -245,7 +245,7 @@ public sealed class AttendanceNotificationWiringTests
     [Fact]
     public void RegularizationRejectedIntegrationEvent_has_expected_properties()
     {
-        var evt = new RegularizationRejectedIntegrationEvent(
+        var evt = new RegularizationRejectedIntegrationEventV1(
             CorrelationId: Guid.NewGuid(),
             TenantId: "t3",
             EmployeeId: Guid.NewGuid(),

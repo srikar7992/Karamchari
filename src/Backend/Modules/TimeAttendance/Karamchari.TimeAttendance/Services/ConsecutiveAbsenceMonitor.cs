@@ -119,7 +119,7 @@ public sealed class ConsecutiveAbsenceMonitor(
 
             foreach (ConsecutiveAbsenceAlert alert in alerts)
             {
-                await _bus.Publish(new ConsecutiveAbsenceEscalatedIntegrationEvent(
+                await _bus.Publish(new ConsecutiveAbsenceEscalatedIntegrationEventV1(
                     Guid.NewGuid(),
                     tenantId,
                     alert.EmployeeId,

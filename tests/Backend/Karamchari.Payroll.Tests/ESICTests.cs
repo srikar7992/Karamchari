@@ -70,7 +70,8 @@ public class ESICTests
     {
         // Arrange
         var profile = PayrollProfile.CreateDraft(Guid.Empty);
-        SetPrivateProperty(profile, nameof(PayrollProfile.IsEsicLocked), true);
+        var india = IndiaPayrollProfile.Create(profile.Id, isEsicLocked: true);
+        profile.AttachIndiaProfile(india);
 
         var grossMonthly = 25000m; // Over 21k
         var breakdown = CreateBreakdown(grossMonthly);

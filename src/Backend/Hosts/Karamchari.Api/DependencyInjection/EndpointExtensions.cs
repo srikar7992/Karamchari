@@ -5,9 +5,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using Karamchari.Api.BFF.Analytics;
 using Karamchari.Api.BFF.AssetManagement;
 using Karamchari.Api.BFF.Attendance;
 using Karamchari.Api.BFF.Audit;
+using Karamchari.Api.BFF.Benefits;
 using Karamchari.Api.BFF.Billing;
 using Karamchari.Api.BFF.Capability;
 using Karamchari.Api.BFF.Common;
@@ -17,6 +19,8 @@ using Karamchari.Api.BFF.Employee;
 using Karamchari.Api.BFF.Engagement;
 using Karamchari.Api.BFF.ESS;
 using Karamchari.Api.BFF.Executive;
+using Karamchari.Api.BFF.Extensibility;
+using Karamchari.Api.BFF.Forecasting;
 using Karamchari.Api.BFF.Helpdesk;
 using Karamchari.Api.BFF.HR;
 using Karamchari.Api.BFF.Integration;
@@ -88,8 +92,15 @@ public static class EndpointExtensions
         app.MapLeaveEndpoints();
         app.MapRosterEndpoints();
         app.MapCapabilityEndpoints();
+        app.MapAuditEndpoints();
+        app.MapAnalyticsEndpoints();
+        app.MapWorkforcePlanningEndpoints();
+        app.MapCompensationEndpoints();
+        app.MapSuccessionEndpoints();
+        app.MapExtensibilityEndpoints();
         app.MapStrategyEndpoints();
         app.MapWorkforceIntelligenceEndpoints();
+        app.MapInterventionEndpoints();
         app.MapPayrollEndpoints();
         app.MapComplianceEndpoints();
         app.MapGovernanceEndpoints();
@@ -99,15 +110,15 @@ public static class EndpointExtensions
         app.MapESSEndpoints();
         app.MapEmployeeEndpoints();
 
-        // New modules: Helpdesk, Asset Management, Engagement, Succession
+        // New modules: Helpdesk, Asset Management, Engagement
+        // (Succession, Compensation, Audit are mapped above — do not re-map: endpoint
+        // names must be globally unique or the host 500s on every request, finding H-4.)
         app.MapHelpdeskEndpoints();
         app.MapAssetManagementEndpoints();
         app.MapEngagementEndpoints();
-        app.MapSuccessionEndpoints();
         app.MapIntegrationEndpoints();
         app.MapOnboardingEndpoints();
-        app.MapCompensationEndpoints();
-        app.MapAuditEndpoints();
+        app.MapBenefitsEndpoints();
         app.MapComplianceGateEndpoints();
         app.MapWorkflowRuleEndpoints();
         app.MapWorkflowApprovalEndpoints();

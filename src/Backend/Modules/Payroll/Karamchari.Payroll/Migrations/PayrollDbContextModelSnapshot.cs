@@ -1045,6 +1045,56 @@ namespace Karamchari.Payroll.Migrations
                     b.ToTable("PayrollLedger", "__tenant__");
                 });
 
+            modelBuilder.Entity("Karamchari.Payroll.Domain.IndiaPayrollProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EsicNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsEsicLocked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMetro")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OptedForVoluntaryPF")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Pan")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<Guid>("PayrollProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StateCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("TaxRegime")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Uan")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PayrollProfileId")
+                        .IsUnique();
+
+                    b.ToTable("IndiaPayrollProfiles", "__tenant__");
+                });
+
             modelBuilder.Entity("Karamchari.Payroll.Domain.PayrollProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1070,10 +1120,6 @@ namespace Karamchari.Payroll.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EsicNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("HourlyRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -1081,37 +1127,13 @@ namespace Karamchari.Payroll.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsEsicLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsMetro")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("OptedForVoluntaryPF")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Pan")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("PayType")
                         .HasColumnType("int");
 
                     b.Property<Guid>("SalaryTemplateId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("StateCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TaxRegime")
-                        .HasColumnType("int");
-
                     b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Uan")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2870,6 +2892,20 @@ namespace Karamchari.Payroll.Migrations
                         });
 
                     b.Navigation("Rules");
+                });
+
+            modelBuilder.Entity("Karamchari.Payroll.Domain.IndiaPayrollProfile", b =>
+                {
+                    b.HasOne("Karamchari.Payroll.Domain.PayrollProfile", null)
+                        .WithOne("India")
+                        .HasForeignKey("Karamchari.Payroll.Domain.IndiaPayrollProfile", "PayrollProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Karamchari.Payroll.Domain.PayrollProfile", b =>
+                {
+                    b.Navigation("India");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>

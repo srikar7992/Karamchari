@@ -67,7 +67,7 @@ public static class LoanEndpoints
         db.Set<EmployeeLoan>().Add(loan);
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new LoanCreatedIntegrationEvent
+        await bus.Publish(new LoanCreatedIntegrationEventV1
         {
             LoanId = loan.Id,
             TenantId = tenantId,
@@ -154,7 +154,7 @@ public static class LoanEndpoints
         loan.PreClose(paymentAmount);
         await db.SaveChangesAsync(ct);
 
-        await bus.Publish(new LoanClosedIntegrationEvent
+        await bus.Publish(new LoanClosedIntegrationEventV1
         {
             LoanId = loan.Id,
             TenantId = loan.TenantId,

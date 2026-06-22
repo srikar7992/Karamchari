@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 /// <summary>
 /// Consumes the payroll completion event to generate and store a PDF payslip.
 /// </summary>
-public sealed class GeneratePayslipConsumer : IConsumer<PayrollRunCompletedIntegrationEvent>
+public sealed class GeneratePayslipConsumer : IConsumer<PayrollRunCompletedIntegrationEventV1>
 {
     private readonly IPayslipGenerator _generator;
     private readonly IPayslipStorage _storage;
@@ -37,7 +37,7 @@ public sealed class GeneratePayslipConsumer : IConsumer<PayrollRunCompletedInteg
     }
 
     /// <inheritdoc/>
-    public async Task Consume(ConsumeContext<PayrollRunCompletedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<PayrollRunCompletedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var message = context.Message;

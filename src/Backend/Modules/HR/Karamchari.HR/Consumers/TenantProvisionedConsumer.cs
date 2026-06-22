@@ -16,7 +16,7 @@ using MassTransit;
 /// <summary>
 /// Provisions default HR structure (HQ department, Super Admin employee) for a new tenant.
 /// </summary>
-public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedIntegrationEvent>
+public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedIntegrationEventV1>
 {
     private readonly HRDbContext _dbContext;
 
@@ -33,7 +33,7 @@ public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedInteg
     /// Consumes the tenant provisioned event and seeds HR defaults.
     /// </summary>
     /// <param name="context">The consumer context.</param>
-    public async Task Consume(ConsumeContext<TenantProvisionedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TenantProvisionedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 

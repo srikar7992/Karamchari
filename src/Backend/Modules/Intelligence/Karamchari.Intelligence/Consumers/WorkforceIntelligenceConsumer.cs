@@ -20,10 +20,10 @@ namespace Karamchari.Intelligence.Consumers;
 /// and triggers incremental score recalculation.
 ///
 /// Signal coverage:
-///   TimesheetApprovedIntegrationEvent   â†’ OvertimeHours28d proxy (hours above 40h/week)
-///   LeaveCancelledIntegrationEvent      â†’ LeaveFrequencyRatio bookkeeping
-///   EmployeeOnboardedIntegrationEvent   â†’ Baseline seed (ConsecutiveWorkDays = 0)
-///   EmployeeTerminatedIntegrationEvent  â†’ Preserve scores, no new recalculation
+///   TimesheetApprovedIntegrationEventV1   â†’ OvertimeHours28d proxy (hours above 40h/week)
+///   LeaveCancelledIntegrationEventV1      â†’ LeaveFrequencyRatio bookkeeping
+///   EmployeeOnboardedIntegrationEventV1   â†’ Baseline seed (ConsecutiveWorkDays = 0)
+///   EmployeeTerminatedIntegrationEventV1  â†’ Preserve scores, no new recalculation
 ///
 /// Signals NOT covered by real-time events (nightly job only):
 ///   ConsecutiveWorkDays      â€” requires ordered shift history
@@ -34,20 +34,20 @@ namespace Karamchari.Intelligence.Consumers;
 ///   PeerAttendanceGap        â€” requires team-level aggregation
 ///
 /// Phase 6.1 additions:
-///   ShiftSwapApprovedIntegrationEvent â†’ ShiftSwaps30d signal (real-time)
-///   OvertimeRejectedIntegrationEvent  â†’ OvertimeRejections30d signal (real-time)
+///   ShiftSwapApprovedIntegrationEventV1 â†’ ShiftSwaps30d signal (real-time)
+///   OvertimeRejectedIntegrationEventV1  â†’ OvertimeRejections30d signal (real-time)
 ///
-/// NOTE: LeaveRequestApprovedIntegrationEvent is NOT consumed here because
+/// NOTE: LeaveRequestApprovedIntegrationEventV1 is NOT consumed here because
 /// the V1 contract does not include TenantId. The DaysWithoutLeave signal is
 /// populated by the nightly recompute job instead.
 /// </summary>
 public sealed class WorkforceIntelligenceConsumer :
-    IConsumer<TimesheetApprovedIntegrationEvent>,
-    IConsumer<LeaveCancelledIntegrationEvent>,
-    IConsumer<EmployeeOnboardedIntegrationEvent>,
-    IConsumer<EmployeeTerminatedIntegrationEvent>,
-    IConsumer<ShiftSwapApprovedIntegrationEvent>,
-    IConsumer<OvertimeRejectedIntegrationEvent>
+    IConsumer<TimesheetApprovedIntegrationEventV1>,
+    IConsumer<LeaveCancelledIntegrationEventV1>,
+    IConsumer<EmployeeOnboardedIntegrationEventV1>,
+    IConsumer<EmployeeTerminatedIntegrationEventV1>,
+    IConsumer<ShiftSwapApprovedIntegrationEventV1>,
+    IConsumer<OvertimeRejectedIntegrationEventV1>
 {
     private readonly WorkforceSignalService _signalService;
     private readonly OutcomeLabelService _outcomeLabelService;
@@ -68,7 +68,7 @@ public sealed class WorkforceIntelligenceConsumer :
     /// Standard workweek = 40h. Hours above that = weekly OT proxy.
     /// Nightly job aggregates per-week records into the rolling 28-day window value.
     /// </summary>
-    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -92,7 +92,7 @@ public sealed class WorkforceIntelligenceConsumer :
     /// Cancelled leave may indicate leave avoidance â€” no signal change needed;
     /// the DaysWithoutLeave counter continues accumulating. Logged for audit.
     /// </summary>
-    public Task Consume(ConsumeContext<LeaveCancelledIntegrationEvent> context)
+    public Task Consume(ConsumeContext<LeaveCancelledIntegrationEventV1> context)
     {
         _logger.LogDebug("Leave cancelled for employee {EmployeeId} (tenant {TenantId}) â€” DaysWithoutLeave unchanged",
             context.Message.EmployeeId, context.Message.TenantId);
@@ -100,7 +100,7 @@ public sealed class WorkforceIntelligenceConsumer :
     }
 
     /// <summary>Seeds baseline ConsecutiveWorkDays = 0 for new employees.</summary>
-    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -118,7 +118,7 @@ public sealed class WorkforceIntelligenceConsumer :
     /// Terminated employees: final scores preserved for historical reporting.
     /// Records outcome label for ML training data.
     /// </summary>
-    public async Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -127,7 +127,7 @@ public sealed class WorkforceIntelligenceConsumer :
             ev.TenantId, ev.EmployeeId,
             Domain.Workforce.WorkforceOutcome.Termination,
             ev.TerminatedOn,
-            notes: "Recorded from EmployeeTerminatedIntegrationEvent",
+            notes: "Recorded from EmployeeTerminatedIntegrationEventV1",
             ct: ct);
 
         _logger.LogDebug("Employee {EmployeeId} terminated on {Date} â€” workforce scores frozen, outcome label recorded",
@@ -138,7 +138,7 @@ public sealed class WorkforceIntelligenceConsumer :
     /// Approved shift swap: increments ShiftSwaps30d proxy for the requesting employee.
     /// The daily rolling count is aggregated by the nightly job; this upserts today's record.
     /// </summary>
-    public async Task Consume(ConsumeContext<ShiftSwapApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<ShiftSwapApprovedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;
@@ -163,7 +163,7 @@ public sealed class WorkforceIntelligenceConsumer :
     /// <summary>
     /// Declined overtime offer: increments OvertimeRejections30d signal for the employee.
     /// </summary>
-    public async Task Consume(ConsumeContext<OvertimeRejectedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<OvertimeRejectedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;

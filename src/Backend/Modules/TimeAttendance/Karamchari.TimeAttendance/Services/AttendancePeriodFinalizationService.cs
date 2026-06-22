@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 namespace Karamchari.TimeAttendance.Services;
 
 /// <summary>
-/// Closes an attendance period and emits <see cref="AttendancePeriodFinalizedIntegrationEvent"/>
+/// Closes an attendance period and emits <see cref="AttendancePeriodFinalizedIntegrationEventV1"/>
 /// for the Payroll module. Idempotent — safe to re-run for same period (skips already-finalized records).
 ///
 /// Call from a scheduled job at period-end (e.g., last calendar day of month + 1).
@@ -122,7 +122,7 @@ public sealed class AttendancePeriodFinalizationService(
 
         await _db.SaveChangesAsync(ct);
 
-        var evt = new AttendancePeriodFinalizedIntegrationEvent(
+        var evt = new AttendancePeriodFinalizedIntegrationEventV1(
             Guid.NewGuid(),
             tenantId,
             year,

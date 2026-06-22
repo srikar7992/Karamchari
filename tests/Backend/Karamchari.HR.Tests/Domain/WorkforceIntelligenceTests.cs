@@ -140,7 +140,7 @@ public sealed class WorkforceIntelligenceTests
         for (int i = 0; i < 3; i++)
         {
             var sId = i == 0 ? skillId : Guid.NewGuid();
-            var skillEvent = new SkillValidatedIntegrationEvent(
+            var skillEvent = new SkillValidatedIntegrationEventV1(
                 employeeId,
                 TenantA,
                 sId,

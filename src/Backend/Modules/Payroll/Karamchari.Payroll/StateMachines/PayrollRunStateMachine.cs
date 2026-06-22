@@ -108,7 +108,7 @@ public class PayrollRunStateMachine : MassTransitStateMachine<PayrollRunState>
                 })
                 .TransitionTo(Finalized)
                 // Publish an internal integration event that the PublishPayslipsConsumer will handle
-                .PublishAsync(context => context.Init<PayrollRunLockedIntegrationEvent>(new
+                .PublishAsync(context => context.Init<PayrollRunLockedIntegrationEventV1>(new
                 {
                     RunId = context.Saga.CorrelationId,
                     TenantId = context.Saga.TenantId,

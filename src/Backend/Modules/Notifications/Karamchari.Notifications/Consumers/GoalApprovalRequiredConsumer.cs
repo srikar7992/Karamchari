@@ -15,7 +15,7 @@ namespace Karamchari.Notifications.Consumers;
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed class GoalApprovalRequiredConsumer : IConsumer<GoalApprovalRequiredIntegrationEvent>
+public sealed class GoalApprovalRequiredConsumer : IConsumer<GoalApprovalRequiredIntegrationEventV1>
 {
     private readonly INotificationOrchestrator _orchestrator;
 
@@ -25,7 +25,7 @@ public sealed class GoalApprovalRequiredConsumer : IConsumer<GoalApprovalRequire
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Task Consume(ConsumeContext<GoalApprovalRequiredIntegrationEvent> context)
+    public Task Consume(ConsumeContext<GoalApprovalRequiredIntegrationEventV1> context)
     {
         var e = context.Message;
 

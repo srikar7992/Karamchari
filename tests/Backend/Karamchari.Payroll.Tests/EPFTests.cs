@@ -56,7 +56,8 @@ public class EPFTests
     {
         // Arrange
         var profile = PayrollProfile.CreateDraft(Guid.Empty);
-        SetPrivateProperty(profile, nameof(PayrollProfile.OptedForVoluntaryPF), true);
+        var india = IndiaPayrollProfile.Create(profile.Id, optedForVoluntaryPF: true);
+        profile.AttachIndiaProfile(india);
 
         var basicMonthly = 50000m;
         var breakdown = CreateBreakdown(basicMonthly);

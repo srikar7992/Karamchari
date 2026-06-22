@@ -17,7 +17,7 @@ namespace Karamchari.Notifications.Consumers;
 /// Notifies the calibrated employee that their calibration result is finalized.
 /// Phase 1: notification to employee. Phase 2 will also notify their manager.
 /// </summary>
-public sealed class CalibrationFinalizedConsumer : IConsumer<EmployeeCalibrationFinalizedIntegrationEvent>
+public sealed class CalibrationFinalizedConsumer : IConsumer<EmployeeCalibrationFinalizedIntegrationEventV1>
 {
     private readonly INotificationOrchestrator _orchestrator;
 
@@ -27,7 +27,7 @@ public sealed class CalibrationFinalizedConsumer : IConsumer<EmployeeCalibration
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Task Consume(ConsumeContext<EmployeeCalibrationFinalizedIntegrationEvent> context)
+    public Task Consume(ConsumeContext<EmployeeCalibrationFinalizedIntegrationEventV1> context)
     {
         var e = context.Message;
 

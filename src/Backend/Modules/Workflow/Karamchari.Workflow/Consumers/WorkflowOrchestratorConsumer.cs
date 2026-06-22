@@ -20,8 +20,8 @@ namespace Karamchari.Workflow.Consumers;
 /// This is the coordination entry point for business domains.
 /// </summary>
 public sealed class WorkflowOrchestratorConsumer :
-    IConsumer<LeaveRequestCreatedIntegrationEvent>,
-    IConsumer<ReimbursementSubmittedIntegrationEvent>
+    IConsumer<LeaveRequestCreatedIntegrationEventV1>,
+    IConsumer<ReimbursementSubmittedIntegrationEventV1>
 {
     private readonly WorkflowDbContext _db;
     private readonly ILogger<WorkflowOrchestratorConsumer> _logger;
@@ -32,7 +32,7 @@ public sealed class WorkflowOrchestratorConsumer :
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<LeaveRequestCreatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<LeaveRequestCreatedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
@@ -62,7 +62,7 @@ public sealed class WorkflowOrchestratorConsumer :
         _logger.LogInformation("Workflow Instance {WorkflowId} started for Leave {RequestId}.", instance.Id, msg.RequestId);
     }
 
-    public async Task Consume(ConsumeContext<ReimbursementSubmittedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<ReimbursementSubmittedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;

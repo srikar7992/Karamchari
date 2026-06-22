@@ -63,6 +63,7 @@ public sealed class WorkforceIntelligenceRecomputeJob : BackgroundService
         var effectivenessService = scope.ServiceProvider.GetRequiredService<RecommendationEffectivenessService>();
         var coverageFragilityService = scope.ServiceProvider.GetRequiredService<CoverageFragilityService>();
         var causalChainService = scope.ServiceProvider.GetRequiredService<CausalChainService>();
+        var effectivenessRefreshService = scope.ServiceProvider.GetRequiredService<InterventionEffectivenessRefreshService>();
 
         var tenantIds = await db.WorkforceSignalRecords
             .Select(s => s.TenantId)
@@ -86,6 +87,7 @@ public sealed class WorkforceIntelligenceRecomputeJob : BackgroundService
                 await scheduleQualityService.RecalculateTenantScheduleQualityAsync(tenantId, ct);
                 await causalChainService.RecalculateTenantCausalChainsAsync(tenantId, ct);
                 await coverageFragilityService.RecalculateTenantFragilityAsync(tenantId, ct);
+                await effectivenessRefreshService.RefreshTenantAsync(tenantId, ct);
             }
             catch (Exception ex)
             {

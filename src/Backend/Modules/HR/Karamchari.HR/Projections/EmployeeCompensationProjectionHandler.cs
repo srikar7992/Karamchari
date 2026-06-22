@@ -21,7 +21,7 @@ namespace Karamchari.HR.Projections;
 /// in response to compensation revision events.
 /// </summary>
 public sealed class EmployeeCompensationProjectionHandler
-    : IProjectionHandler<EmployeeCompensationRevisedIntegrationEvent>
+    : IProjectionHandler<EmployeeCompensationRevisedIntegrationEventV1>
 {
     private readonly HRDbContext _dbContext;
 
@@ -33,7 +33,7 @@ public sealed class EmployeeCompensationProjectionHandler
     /// <summary>
     /// Handles the compensation revised event by updating the corresponding read model projection in-place.
     /// </summary>
-    public async Task HandleAsync(EmployeeCompensationRevisedIntegrationEvent domainEvent, CancellationToken cancellationToken)
+    public async Task HandleAsync(EmployeeCompensationRevisedIntegrationEventV1 domainEvent, CancellationToken cancellationToken)
     {
         var existing = await _dbContext.EmployeeCompProjections
             .FirstOrDefaultAsync(p => p.TenantId == domainEvent.TenantId && p.EmployeeId == domainEvent.EmployeeId, cancellationToken);

@@ -68,7 +68,7 @@ public class TenantPropagationRegressionTests
         using (context.Establish())
         {
             // Act
-            await harness.Bus.Publish(new EmployeeOnboardedIntegrationEvent(
+            await harness.Bus.Publish(new EmployeeOnboardedIntegrationEventV1(
                 Guid.NewGuid(),
                 tenantId,
                 "EMP001",
@@ -78,7 +78,7 @@ public class TenantPropagationRegressionTests
         }
 
         // Assert
-        var published = (await harness.Published.SelectAsync<EmployeeOnboardedIntegrationEvent>().First()).Context;
+        var published = (await harness.Published.SelectAsync<EmployeeOnboardedIntegrationEventV1>().First()).Context;
         published.Headers.Get<string>(ExecutionContextHeaders.TenantId).Should().Be(tenantId);
         published.Headers.Get<string>(ExecutionContextHeaders.CorrelationId).Should().Be(correlationId);
         published.Headers.Get<string>(ExecutionContextHeaders.ExecutionEnvelope).Should().NotBeNullOrEmpty();
@@ -114,7 +114,7 @@ public class TenantPropagationRegressionTests
         // Act
         using (context.Establish())
         {
-            await harness.Bus.Publish(new EmployeeOnboardedIntegrationEvent(
+            await harness.Bus.Publish(new EmployeeOnboardedIntegrationEventV1(
                 Guid.NewGuid(),
                 tenantId,
                 "EMP-G01",
@@ -124,7 +124,7 @@ public class TenantPropagationRegressionTests
         }
 
         // Assert
-        (await harness.Consumed.Any<EmployeeOnboardedIntegrationEvent>()).Should().BeTrue();
+        (await harness.Consumed.Any<EmployeeOnboardedIntegrationEventV1>()).Should().BeTrue();
         TestConsumer.LastObservedTenantId.Should().Be(tenantId);
     }
 
@@ -159,7 +159,7 @@ public class TenantPropagationRegressionTests
         var validSignature = signer.Sign("acme", "orig-corr", "orig-conv", "orig-src", timestamp);
 
         // Act - Publish with TAMPERED values but ORIGINAL signature
-        await harness.Bus.Publish(new EmployeeOnboardedIntegrationEvent(
+        await harness.Bus.Publish(new EmployeeOnboardedIntegrationEventV1(
             Guid.NewGuid(), tenantId, "EMP-X", testName, "t@acme.com", DateOnly.FromDateTime(DateTime.Today)),
             context =>
             {
@@ -174,7 +174,7 @@ public class TenantPropagationRegressionTests
         // Assert
         await Task.Delay(1000);
         // Signature failures result in failed consumption
-        (await harness.Consumed.Any<EmployeeOnboardedIntegrationEvent>(x => x.Exception != null)).Should().BeTrue($"Tamper scenario '{testName}' must be rejected.");
+        (await harness.Consumed.Any<EmployeeOnboardedIntegrationEventV1>(x => x.Exception != null)).Should().BeTrue($"Tamper scenario '{testName}' must be rejected.");
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public class TenantPropagationRegressionTests
 
                 using (context.Establish())
                 {
-                    await harness.Bus.Publish(new EmployeeOnboardedIntegrationEvent(
+                    await harness.Bus.Publish(new EmployeeOnboardedIntegrationEventV1(
                         Guid.NewGuid(),
                         tenantId,
                         $"EMP-{tenantId}-{i}",
@@ -275,7 +275,7 @@ public class TenantPropagationRegressionTests
         var signer = provider.GetRequiredService<ExecutionContextSigner>();
         var signature = signer.Sign(tenantId, correlationId, conversationId, sourceService, timestamp);
 
-        var publishAction = (Guid actualMessageId) => harness.Bus.Publish(new EmployeeOnboardedIntegrationEvent(
+        var publishAction = (Guid actualMessageId) => harness.Bus.Publish(new EmployeeOnboardedIntegrationEventV1(
             Guid.NewGuid(), tenantId, "EMP-R01", "Replay Test", "r@a.com", DateOnly.FromDateTime(DateTime.Today)),
             context =>
             {
@@ -292,7 +292,7 @@ public class TenantPropagationRegressionTests
         // Act 1 - First attempt should pass
         await publishAction(Guid.NewGuid());
         await Task.Delay(1000);
-        (await harness.Consumed.Any<EmployeeOnboardedIntegrationEvent>()).Should().BeTrue();
+        (await harness.Consumed.Any<EmployeeOnboardedIntegrationEventV1>()).Should().BeTrue();
         TestConsumer.ConsumeCount.Should().Be(1);
 
         // Act 2 - Second attempt (DIFFERENT MessageId, SAME OriginalMessageId) should be rejected
@@ -303,10 +303,10 @@ public class TenantPropagationRegressionTests
 
         // Assert
         TestConsumer.ConsumeCount.Should().Be(1, "Second attempt with same OriginalMessageId should have been blocked.");
-        (await harness.Consumed.Any<EmployeeOnboardedIntegrationEvent>(x => x.Exception != null)).Should().BeTrue("Replayed message must result in a failed consumption entry.");
+        (await harness.Consumed.Any<EmployeeOnboardedIntegrationEventV1>(x => x.Exception != null)).Should().BeTrue("Replayed message must result in a failed consumption entry.");
     }
 
-    private class TestConsumer : IConsumer<EmployeeOnboardedIntegrationEvent>
+    private class TestConsumer : IConsumer<EmployeeOnboardedIntegrationEventV1>
     {
         public static string? LastObservedTenantId { get; set; }
         public static int ConsumeCount;
@@ -317,7 +317,7 @@ public class TenantPropagationRegressionTests
             ConsumeCount = 0;
         }
 
-        public Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+        public Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
         {
             var executionContext = TenantExecutionContext.Current;
             LastObservedTenantId = executionContext?.TenantId;
@@ -326,7 +326,7 @@ public class TenantPropagationRegressionTests
         }
     }
 
-    private class StressConsumer : IConsumer<EmployeeOnboardedIntegrationEvent>
+    private class StressConsumer : IConsumer<EmployeeOnboardedIntegrationEventV1>
     {
         public static int TotalCount;
         public static int IsolatedCount;
@@ -339,7 +339,7 @@ public class TenantPropagationRegressionTests
             LeakCount = 0;
         }
 
-        public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<EmployeeOnboardedIntegrationEventV1> context)
         {
             Interlocked.Increment(ref TotalCount);
             var message = context.Message;

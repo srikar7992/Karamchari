@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore;
 /// <summary>
 /// Provisions default Payroll settings (Standard Monthly Schedule) for a new tenant.
 /// </summary>
-public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedIntegrationEvent>
+public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedIntegrationEventV1>
 {
     private readonly PayrollDbContext _dbContext;
 
@@ -33,7 +33,7 @@ public sealed class TenantProvisionedConsumer : IConsumer<TenantProvisionedInteg
     /// Consumes the tenant provisioned event and seeds payroll defaults.
     /// </summary>
     /// <param name="context">The consumer context.</param>
-    public async Task Consume(ConsumeContext<TenantProvisionedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TenantProvisionedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 

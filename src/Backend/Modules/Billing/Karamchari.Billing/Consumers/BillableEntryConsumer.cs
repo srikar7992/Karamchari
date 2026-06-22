@@ -17,7 +17,7 @@ namespace Karamchari.Billing.Consumers;
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed class BillableEntryConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
+public sealed class BillableEntryConsumer : IConsumer<TimesheetApprovedIntegrationEventV1>
 {
     private const string ConsumerName = nameof(BillableEntryConsumer);
     private readonly BillingDbContext _db;
@@ -27,7 +27,7 @@ public sealed class BillableEntryConsumer : IConsumer<TimesheetApprovedIntegrati
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEventV1> context)
     {
         var ev = context.Message;
 

@@ -32,7 +32,7 @@ public sealed class RecruitmentAnalyticsHandler(
         var req = await dbContext.Requisitions.FirstOrDefaultAsync(r => r.Id == notification.RequisitionId, cancellationToken);
         if (req == null) return;
 
-        var integrationEvent = new RequisitionPublishedIntegrationEvent(
+        var integrationEvent = new RequisitionPublishedIntegrationEventV1(
             req.Id.Value,
             tenantProvider.GetCurrentTenantId(),
             req.Title,
@@ -53,7 +53,7 @@ public sealed class RecruitmentAnalyticsHandler(
             .Select(r => r.Title)
             .FirstOrDefaultAsync(cancellationToken) ?? "Unknown";
 
-        var integrationEvent = new CandidateAppliedIntegrationEvent(
+        var integrationEvent = new CandidateAppliedIntegrationEventV1(
             app.Id.Value,
             app.CandidateId.Value,
             app.RequisitionId.Value,
@@ -70,7 +70,7 @@ public sealed class RecruitmentAnalyticsHandler(
         var interview = await dbContext.Interviews.FirstOrDefaultAsync(i => i.Id == notification.InterviewId, cancellationToken);
         if (interview == null) return;
 
-        var integrationEvent = new InterviewCompletedIntegrationEvent(
+        var integrationEvent = new InterviewCompletedIntegrationEventV1(
             interview.Id.Value,
             interview.ApplicationId.Value,
             tenantProvider.GetCurrentTenantId(),
@@ -84,7 +84,7 @@ public sealed class RecruitmentAnalyticsHandler(
         var offer = await dbContext.Offers.FirstOrDefaultAsync(o => o.Id == notification.OfferId, cancellationToken);
         if (offer == null) return;
 
-        var integrationEvent = new OfferAcceptedIntegrationEvent(
+        var integrationEvent = new OfferAcceptedIntegrationEventV1(
             offer.Id.Value,
             offer.ApplicationId.Value,
             tenantProvider.GetCurrentTenantId(),

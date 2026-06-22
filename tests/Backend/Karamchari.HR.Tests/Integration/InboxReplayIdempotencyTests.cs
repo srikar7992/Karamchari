@@ -21,7 +21,7 @@ namespace Karamchari.HR.Tests.Integration;
 ///
 /// Prior to the idempotency guard fix, the consumer blindly called
 /// <c>dbContext.Employees.Add(employee)</c> on every invocation. Delivering the same
-/// <see cref="CandidateHiredIntegrationEvent"/> N times would create N employee rows,
+/// <see cref="CandidateHiredIntegrationEventV1"/> N times would create N employee rows,
 /// violating the single-employee-per-hire contract.
 ///
 /// After the fix: an <c>AnyAsync</c> check on <c>EmployeeNumber</c> (deterministically
@@ -40,7 +40,7 @@ public sealed class InboxReplayIdempotencyTests
         var candidateId = Guid.NewGuid();
         var message = BuildMessage(candidateId);
 
-        // Act: deliver the same CandidateHiredIntegrationEvent 10 times to the same DB
+        // Act: deliver the same CandidateHiredIntegrationEventV1 10 times to the same DB
         for (var i = 0; i < 10; i++)
         {
             await using var dbContext = HRDbContextFactory.Create("tenant-inbox", dbName);
@@ -149,7 +149,7 @@ public sealed class InboxReplayIdempotencyTests
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private static CandidateHiredIntegrationEvent BuildMessage(Guid candidateId) =>
+    private static CandidateHiredIntegrationEventV1 BuildMessage(Guid candidateId) =>
         new(
             CandidateId: candidateId,
             ApplicationId: Guid.NewGuid(),
@@ -164,10 +164,10 @@ public sealed class InboxReplayIdempotencyTests
             BaseSalary: 95_000m,
             Currency: "USD");
 
-    private static ConsumeContext<CandidateHiredIntegrationEvent> BuildConsumeContext(
-        CandidateHiredIntegrationEvent message)
+    private static ConsumeContext<CandidateHiredIntegrationEventV1> BuildConsumeContext(
+        CandidateHiredIntegrationEventV1 message)
     {
-        var ctx = Substitute.For<ConsumeContext<CandidateHiredIntegrationEvent>>();
+        var ctx = Substitute.For<ConsumeContext<CandidateHiredIntegrationEventV1>>();
         ctx.Message.Returns(message);
         ctx.CancellationToken.Returns(CancellationToken.None);
         return ctx;

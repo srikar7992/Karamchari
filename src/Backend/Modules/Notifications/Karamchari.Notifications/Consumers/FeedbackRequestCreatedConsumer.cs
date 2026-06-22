@@ -16,7 +16,7 @@ namespace Karamchari.Notifications.Consumers;
 /// <summary>
 /// Provides required documentation for this member.
 /// </summary>
-public sealed class FeedbackRequestCreatedConsumer : IConsumer<FeedbackRequestCreatedIntegrationEvent>
+public sealed class FeedbackRequestCreatedConsumer : IConsumer<FeedbackRequestCreatedIntegrationEventV1>
 {
     private readonly INotificationOrchestrator _orchestrator;
 
@@ -26,7 +26,7 @@ public sealed class FeedbackRequestCreatedConsumer : IConsumer<FeedbackRequestCr
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Task Consume(ConsumeContext<FeedbackRequestCreatedIntegrationEvent> context)
+    public Task Consume(ConsumeContext<FeedbackRequestCreatedIntegrationEventV1> context)
     {
         var e = context.Message;
 

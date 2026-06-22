@@ -17,7 +17,7 @@ namespace Karamchari.Compliance.Consumers;
 /// Minimum wage lookup: pulled from RegulatoryRegisters for the tenant.
 /// If no minimum wage register exists, underpayment check is skipped.
 /// </summary>
-public sealed class PayrollComplianceConsumer : IConsumer<PayrollRunCompletedIntegrationEvent>
+public sealed class PayrollComplianceConsumer : IConsumer<PayrollRunCompletedIntegrationEventV1>
 {
     private readonly PolicyViolationDetectionService _detectionService;
     private readonly ILogger<PayrollComplianceConsumer> _logger;
@@ -30,7 +30,7 @@ public sealed class PayrollComplianceConsumer : IConsumer<PayrollRunCompletedInt
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<PayrollRunCompletedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<PayrollRunCompletedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;

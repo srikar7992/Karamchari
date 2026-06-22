@@ -18,11 +18,11 @@ namespace Karamchari.Notifications.Consumers;
 /// Covers: geo fraud detection, consecutive absence escalation, regularization outcomes.
 /// </summary>
 public sealed class AttendanceNotificationConsumer :
-    IConsumer<GeoFraudDetectedIntegrationEvent>,
-    IConsumer<ConsecutiveAbsenceEscalatedIntegrationEvent>,
-    IConsumer<AttendanceExceptionRaisedIntegrationEvent>,
-    IConsumer<RegularizationApprovedIntegrationEvent>,
-    IConsumer<RegularizationRejectedIntegrationEvent>
+    IConsumer<GeoFraudDetectedIntegrationEventV1>,
+    IConsumer<ConsecutiveAbsenceEscalatedIntegrationEventV1>,
+    IConsumer<AttendanceExceptionRaisedIntegrationEventV1>,
+    IConsumer<RegularizationApprovedIntegrationEventV1>,
+    IConsumer<RegularizationRejectedIntegrationEventV1>
 {
     private readonly INotificationOrchestrator _notifications;
     private readonly ILogger<AttendanceNotificationConsumer> _logger;
@@ -35,7 +35,7 @@ public sealed class AttendanceNotificationConsumer :
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<GeoFraudDetectedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<GeoFraudDetectedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -62,7 +62,7 @@ public sealed class AttendanceNotificationConsumer :
             }), context.CancellationToken);
     }
 
-    public async Task Consume(ConsumeContext<ConsecutiveAbsenceEscalatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<ConsecutiveAbsenceEscalatedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -88,7 +88,7 @@ public sealed class AttendanceNotificationConsumer :
             }), context.CancellationToken);
     }
 
-    public async Task Consume(ConsumeContext<AttendanceExceptionRaisedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<AttendanceExceptionRaisedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -131,7 +131,7 @@ public sealed class AttendanceNotificationConsumer :
             }), context.CancellationToken);
     }
 
-    public async Task Consume(ConsumeContext<RegularizationApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<RegularizationApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -156,7 +156,7 @@ public sealed class AttendanceNotificationConsumer :
             }), context.CancellationToken);
     }
 
-    public async Task Consume(ConsumeContext<RegularizationRejectedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<RegularizationRejectedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 

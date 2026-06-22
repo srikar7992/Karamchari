@@ -15,14 +15,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Karamchari.TimeAttendance.Consumers;
 
 /// <summary>
-/// Consumes <see cref="TimesheetApprovedIntegrationEvent"/> and upserts
+/// Consumes <see cref="TimesheetApprovedIntegrationEventV1"/> and upserts
 /// pre-aggregated <see cref="ProjectMetrics"/> and <see cref="EmployeeMetrics"/>.
 ///
 /// Idempotency: deduplicates on <see cref="KaramchariIntegrationEvent.EventId"/> via ProcessedEventLog.
 /// Replay-safety: IsRetroactive â†’ scoped recompute for (ProjectId|EmployeeId, AffectedDates).
 /// Concurrency: UPDATE-then-INSERT pattern instead of MERGE (avoids SQL Server MERGE edge cases).
 /// </summary>
-public sealed class TimesheetApprovedAnalyticsConsumer(TimeAttendanceDbContext db) : IConsumer<TimesheetApprovedIntegrationEvent>
+public sealed class TimesheetApprovedAnalyticsConsumer(TimeAttendanceDbContext db) : IConsumer<TimesheetApprovedIntegrationEventV1>
 {
     private const string ConsumerName = nameof(TimesheetApprovedAnalyticsConsumer);
 
@@ -31,9 +31,9 @@ public sealed class TimesheetApprovedAnalyticsConsumer(TimeAttendanceDbContext d
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEventV1> context)
     {
-        TimesheetApprovedIntegrationEvent ev = context.Message;
+        TimesheetApprovedIntegrationEventV1 ev = context.Message;
 
         // 1. Event quality gate
         if (ev.ActorId == Guid.Empty)

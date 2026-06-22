@@ -157,3 +157,55 @@ internal sealed class EmployeeCompensationRecordConfiguration : IEntityTypeConfi
         });
     }
 }
+
+internal sealed class CompensationCycleConfiguration : IEntityTypeConfiguration<CompensationCycle>
+{
+    public void Configure(EntityTypeBuilder<CompensationCycle> b)
+    {
+        b.ToTable("CompensationCycles");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
+        b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+        b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.RowVersion).IsRowVersion();
+        b.HasIndex(x => new { x.TenantId, x.Year }).HasDatabaseName("IX_CompCycles_Tenant_Year");
+    }
+}
+
+internal sealed class EmployeeCompReviewConfiguration : IEntityTypeConfiguration<EmployeeCompReview>
+{
+    public void Configure(EntityTypeBuilder<EmployeeCompReview> b)
+    {
+        b.ToTable("EmployeeCompReviews");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
+        b.Property(x => x.CurrentCTC).HasPrecision(18, 2);
+        b.Property(x => x.RecommendedCTC).HasPrecision(18, 2);
+        b.Property(x => x.IncrementPercent).HasPrecision(7, 2);
+        b.Property(x => x.CurrencyCode).HasMaxLength(3);
+        b.Property(x => x.ManagerJustification).HasMaxLength(2000);
+        b.Property(x => x.RejectionReason).HasMaxLength(1000);
+        b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.RowVersion).IsRowVersion();
+        b.HasIndex(x => new { x.TenantId, x.CycleId, x.EmployeeId })
+            .IsUnique().HasDatabaseName("UIX_EmployeeCompReviews_Cycle_Employee");
+    }
+}
+
+internal sealed class BonusPoolConfiguration : IEntityTypeConfiguration<BonusPool>
+{
+    public void Configure(EntityTypeBuilder<BonusPool> b)
+    {
+        b.ToTable("BonusPools");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.TenantId).IsRequired().HasMaxLength(64);
+        b.Property(x => x.PoolName).IsRequired().HasMaxLength(200);
+        b.Property(x => x.TotalBudget).HasPrecision(18, 2);
+        b.Property(x => x.AllocatedAmount).HasPrecision(18, 2);
+        b.Property(x => x.CurrencyCode).HasMaxLength(3);
+        b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+        b.Ignore(x => x.RemainingBudget);
+        b.Property(x => x.RowVersion).IsRowVersion();
+        b.HasIndex(x => new { x.TenantId, x.CycleId }).HasDatabaseName("IX_BonusPools_Tenant_Cycle");
+    }
+}

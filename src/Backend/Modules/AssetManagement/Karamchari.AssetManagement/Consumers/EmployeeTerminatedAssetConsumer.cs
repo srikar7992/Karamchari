@@ -19,9 +19,9 @@ namespace Karamchari.AssetManagement.Consumers;
 /// This closes the onboarding↔offboarding asset lifecycle loop.
 /// </summary>
 public sealed class EmployeeTerminatedAssetConsumer(AssetManagementDbContext db)
-    : IConsumer<EmployeeTerminatedIntegrationEvent>
+    : IConsumer<EmployeeTerminatedIntegrationEventV1>
 {
-    public async Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeTerminatedIntegrationEventV1> context)
     {
         var ev = context.Message;
         var ct = context.CancellationToken;

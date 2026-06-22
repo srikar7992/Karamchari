@@ -10,7 +10,7 @@
     <AssemblyName>Karamchari.Payroll</AssemblyName>
     <IsPackable>false</IsPackable>
     <!-- CS1591: XML doc coverage for the payroll bounded context is work-in-progress. -->
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;CS1587</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

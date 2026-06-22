@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/features/auth/AuthContext';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -72,14 +73,14 @@ export default function TimesheetPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<string[]>([]);
+  const { user, isLoading: authLoading } = useAuth();
 
   const days = getWeekDays(weekStart);
 
   // Fetch employee's assigned projects from the PSA API
   useEffect(() => {
-    // TODO: Replace with real employee ID from auth context
-    const employeeId = '00000000-0000-0000-0000-000000000001';
-    fetch(`/api/psa/employees/${employeeId}/projects`)
+    if (authLoading || !user?.id) return;
+    fetch(`/api/psa/employees/${user.id}/projects`)
       .then(r => r.ok ? r.json() : [])
       .then((data: Project[]) => setProjects(data))
       .catch(() => {
@@ -89,7 +90,7 @@ export default function TimesheetPage() {
           { id: 'mock-internal', name: 'Internal Training', billingType: 'NonBillable' },
         ]);
       });
-  }, []);
+  }, [authLoading, user?.id]);
 
   const addRow = () => setRows(prev => [...prev, createEmptyRow()]);
 
@@ -196,6 +197,22 @@ export default function TimesheetPage() {
   };
 
   // ── Render ───────────────────────────────────────────────────────────────
+
+  if (authLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f1117', color: '#6b7280', fontFamily: 'Inter, sans-serif' }}>
+        Loading…
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f1117', color: '#ef4444', fontFamily: 'Inter, sans-serif' }}>
+        You must be signed in to access timesheets.
+      </div>
+    );
+  }
 
   const weekLabel = `Week of ${weekStart.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}`;
 
@@ -481,7 +498,7 @@ export default function TimesheetPage() {
           <button
             className="submit-btn"
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || authLoading || !user}
           >
             {isSubmitting ? 'Submitting…' : 'Submit for Approval'}
           </button>

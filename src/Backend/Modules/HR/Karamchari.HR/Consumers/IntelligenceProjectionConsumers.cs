@@ -54,49 +54,49 @@ public sealed class IntelligenceReportingRelationshipEndedConsumer(EmployeeIntel
 }
 
 public sealed class IntelligenceEmployeeCompensationRevisedConsumer(EmployeeIntelligenceProjectionHandler handler)
-    : IConsumer<EmployeeCompensationRevisedIntegrationEvent>
+    : IConsumer<EmployeeCompensationRevisedIntegrationEventV1>
 {
-    public async Task Consume(ConsumeContext<EmployeeCompensationRevisedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeCompensationRevisedIntegrationEventV1> context)
     {
         await handler.HandleAsync(context.Message, context.CancellationToken);
     }
 }
 
 public sealed class IntelligenceEmployeePerformanceSnapshotConsumer(EmployeeIntelligenceProjectionHandler handler)
-    : IConsumer<EmployeePerformanceSnapshotMaterializedIntegrationEvent>
+    : IConsumer<EmployeePerformanceSnapshotMaterializedIntegrationEventV1>
 {
-    public async Task Consume(ConsumeContext<EmployeePerformanceSnapshotMaterializedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeePerformanceSnapshotMaterializedIntegrationEventV1> context)
     {
         await handler.HandleAsync(context.Message, context.CancellationToken);
     }
 }
 
-public sealed class EmployeeCompensationRevisedConsumer(IProjectionHandler<EmployeeCompensationRevisedIntegrationEvent> handler)
-    : IConsumer<EmployeeCompensationRevisedIntegrationEvent>
+public sealed class EmployeeCompensationRevisedConsumer(IProjectionHandler<EmployeeCompensationRevisedIntegrationEventV1> handler)
+    : IConsumer<EmployeeCompensationRevisedIntegrationEventV1>
 {
-    public async Task Consume(ConsumeContext<EmployeeCompensationRevisedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeeCompensationRevisedIntegrationEventV1> context)
     {
         await handler.HandleAsync(context.Message, context.CancellationToken);
     }
 }
 
-public sealed class EmployeePerformanceSnapshotConsumer(IProjectionHandler<EmployeePerformanceSnapshotMaterializedIntegrationEvent> handler)
-    : IConsumer<EmployeePerformanceSnapshotMaterializedIntegrationEvent>
+public sealed class EmployeePerformanceSnapshotConsumer(IProjectionHandler<EmployeePerformanceSnapshotMaterializedIntegrationEventV1> handler)
+    : IConsumer<EmployeePerformanceSnapshotMaterializedIntegrationEventV1>
 {
-    public async Task Consume(ConsumeContext<EmployeePerformanceSnapshotMaterializedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<EmployeePerformanceSnapshotMaterializedIntegrationEventV1> context)
     {
         await handler.HandleAsync(context.Message, context.CancellationToken);
     }
 }
 
 /// <summary>
-/// MassTransit consumer that handles <see cref="SkillValidatedIntegrationEvent"/> by delegating 
+/// MassTransit consumer that handles <see cref="SkillValidatedIntegrationEventV1"/> by delegating 
 /// to the <see cref="EmployeeIntelligenceProjectionHandler"/>.
 /// </summary>
 public sealed class IntelligenceSkillValidatedConsumer(EmployeeIntelligenceProjectionHandler handler)
-    : IConsumer<SkillValidatedIntegrationEvent>
+    : IConsumer<SkillValidatedIntegrationEventV1>
 {
-    public async Task Consume(ConsumeContext<SkillValidatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<SkillValidatedIntegrationEventV1> context)
     {
         await handler.HandleAsync(context.Message, context.CancellationToken);
     }

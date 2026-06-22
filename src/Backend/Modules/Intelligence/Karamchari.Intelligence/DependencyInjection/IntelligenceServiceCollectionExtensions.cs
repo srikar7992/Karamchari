@@ -39,6 +39,7 @@ public static class IntelligenceServiceCollectionExtensions
         }
 
         // RLS setup
+        services.RegisterTenantTable("Intelligence_AnalyticsReadModels");
         services.RegisterTenantTable("Intelligence_Signals");
         services.RegisterTenantTable("Intelligence_MetricDefinitions");
         services.RegisterTenantTable("Strategy_OrgHealthSignals");
@@ -73,6 +74,13 @@ public static class IntelligenceServiceCollectionExtensions
         services.RegisterTenantTable("Intel_EmployeeScopes");
         services.RegisterTenantTable("Intel_CoverageFragility");
         services.RegisterTenantTable("Intel_CausalChains");
+        // Phase 7
+        services.RegisterTenantTable("Intel_InterventionTemplates");
+        services.RegisterTenantTable("Intel_InterventionEffectiveness");
+        // Phase 8
+        services.RegisterTenantTable("Intel_InterventionInstances");
+        // Phase 9
+        services.RegisterTenantTable("Intel_RecommendationDispositions");
 
         services.AddDbContext<IntelligenceDbContext>((sp, options) =>
         {
@@ -117,6 +125,12 @@ public static class IntelligenceServiceCollectionExtensions
         services.AddScoped<CoverageFragilityService>();
         services.AddScoped<CausalChainService>();
         services.AddScoped<WorkforceDashboardQueryService>();
+        // Phase 8
+        services.AddScoped<TemplateRecommendationService>();
+        // Phase 9
+        services.AddScoped<InterventionWorkflowService>();
+        // Phase 10
+        services.AddScoped<InterventionEffectivenessRefreshService>();
 
         return services;
     }
@@ -128,5 +142,6 @@ public static class IntelligenceServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(busConfigurator);
         busConfigurator.AddConsumer<WorkforceIntelligenceConsumer>();
+        busConfigurator.AddConsumer<RiskSignalConsumer>();
     }
 }

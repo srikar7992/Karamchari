@@ -34,8 +34,9 @@ public sealed class ProfessionalTaxRule : IStatutoryRule
     {
         ArgumentNullException.ThrowIfNull(context);
 
+        var stateCode = context.Profile.India?.StateCode ?? "TS";
         var result = _provider.GetTaxAmount(
-            context.Profile.StateCode,
+            stateCode,
             context.Breakdown.MonthlyGross,
             context.PayrollMonth,
             context.Year

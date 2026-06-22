@@ -139,7 +139,7 @@ public static class BillingEndpoints
         invoice.Finalize(request.InvoiceNumber, "Admin", snapshot);
         await db.SaveChangesAsync();
 
-        await publishEndpoint.Publish(new Karamchari.Billing.Contracts.InvoiceIssuedIntegrationEvent(
+        await publishEndpoint.Publish(new Karamchari.Billing.Contracts.InvoiceIssuedIntegrationEventV1(
             Guid.NewGuid(),
             invoice.Id,
             invoice.ContractId,
@@ -172,7 +172,7 @@ public static class BillingEndpoints
         invoice.RecordPayment(request.Amount, request.PaidAt);
         await db.SaveChangesAsync();
 
-        await publishEndpoint.Publish(new Karamchari.Billing.Contracts.PaymentReceivedIntegrationEvent(
+        await publishEndpoint.Publish(new Karamchari.Billing.Contracts.PaymentReceivedIntegrationEventV1(
             Guid.NewGuid(),
             Guid.NewGuid(),
             invoice.Id,

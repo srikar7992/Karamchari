@@ -14,9 +14,9 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Consumes the LeaveRequestApprovedIntegrationEvent and records a deduction in the Payroll ledger if the leave is unpaid.
+/// Consumes the LeaveRequestApprovedIntegrationEventV1 and records a deduction in the Payroll ledger if the leave is unpaid.
 /// </summary>
-public sealed class LeaveRequestApprovedConsumer : IConsumer<LeaveRequestApprovedIntegrationEvent>
+public sealed class LeaveRequestApprovedConsumer : IConsumer<LeaveRequestApprovedIntegrationEventV1>
 {
     private readonly PayrollDbContext _dbContext;
 
@@ -33,7 +33,7 @@ public sealed class LeaveRequestApprovedConsumer : IConsumer<LeaveRequestApprove
     /// Consumes the event and calculates the monetary deduction.
     /// </summary>
     /// <param name="context">The consumer context.</param>
-    public async Task Consume(ConsumeContext<LeaveRequestApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<LeaveRequestApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
 

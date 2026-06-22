@@ -16,10 +16,10 @@ namespace Karamchari.Capability.Consumers;
 /// Deletes <see cref="Domain.Mobility.InternalMobilityProjection"/> rows when a vacancy closes.
 /// </summary>
 public sealed class VacancyClosedMobilityConsumer(InternalMobilityProjectionHandler handler)
-    : IConsumer<VacancyClosedIntegrationEvent>
+    : IConsumer<VacancyClosedIntegrationEventV1>
 {
     /// <inheritdoc />
-    public async Task Consume(ConsumeContext<VacancyClosedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<VacancyClosedIntegrationEventV1> context)
     {
         await handler.HandleVacancyClosedAsync(context.Message, context.CancellationToken);
     }

@@ -15,22 +15,15 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Karamchari.Forecasting.Persistence;
 
-/// <summary>
-/// Provides required documentation for this member.
-/// </summary>
 public sealed class ForecastingDbContext : KaramchariDbContext
 {
     public ForecastingDbContext(DbContextOptions<ForecastingDbContext> options, ITenantProvider tenantProvider)
         : base(options, tenantProvider) { }
 
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<ForecastMetrics> ForecastMetrics => Set<ForecastMetrics>();
-    /// <summary>
-    /// Provides required documentation for this member.
-    /// </summary>
     public DbSet<ClientPaymentProfile> ClientPaymentProfiles => Set<ClientPaymentProfile>();
+    public DbSet<ForecastScenario> ForecastScenarios => Set<ForecastScenario>();
+    public DbSet<HeadcountVariance> HeadcountVariances => Set<HeadcountVariance>();
 
     // ── Phase 5: Workforce Planning ─────────────────────────────────────────
     public DbSet<WorkforceEmployeeIndex> WorkforceEmployeeIndex => Set<WorkforceEmployeeIndex>();
@@ -72,7 +65,6 @@ public sealed class ForecastingDbContext : KaramchariDbContext
             b.Property(x => x.ProjectedCash).HasPrecision(18, 2);
             b.Property(x => x.OutstandingAmount).HasPrecision(18, 2);
             b.Property(x => x.RiskAmount).HasPrecision(18, 2);
-
             b.HasIndex(x => new { x.TenantId, x.Date });
         });
 

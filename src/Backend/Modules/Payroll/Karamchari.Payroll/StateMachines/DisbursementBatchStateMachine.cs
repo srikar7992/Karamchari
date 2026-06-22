@@ -47,15 +47,15 @@ public sealed class DisbursementBatchStateMachine : MassTransitStateMachine<Disb
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Event<DisbursementBatchSubmittedIntegrationEvent> BatchSubmitted { get; private set; } = null!;
+    public Event<DisbursementBatchSubmittedIntegrationEventV1> BatchSubmitted { get; private set; } = null!;
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Event<DisbursementBatchCompletedIntegrationEvent> BatchCompleted { get; private set; } = null!;
+    public Event<DisbursementBatchCompletedIntegrationEventV1> BatchCompleted { get; private set; } = null!;
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>
-    public Event<DisbursementBatchFailedIntegrationEvent> BatchFailed { get; private set; } = null!;
+    public Event<DisbursementBatchFailedIntegrationEventV1> BatchFailed { get; private set; } = null!;
     /// <summary>
     /// Provides required documentation for this member.
     /// </summary>

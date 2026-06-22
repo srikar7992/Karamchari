@@ -34,7 +34,7 @@ public enum EventStatus
 /// <summary>
 /// Registry entry describing a single integration event version.
 /// </summary>
-/// <param name="EventName">Short class name (e.g. "EmployeeTerminatedIntegrationEvent").</param>
+/// <param name="EventName">Short class name (e.g. "EmployeeTerminatedIntegrationEventV1").</param>
 /// <param name="FullTypeName">Fully qualified type name including namespace. Used as MassTransit message type key.</param>
 /// <param name="Version">Schema version. Monotonically increasing per event family.</param>
 /// <param name="Publisher">Bounded context that owns and publishes this event.</param>
@@ -65,8 +65,8 @@ public static class KaramchariEventCatalog
         // ── Core: Employee lifecycle ───────────────────────────────────────────
 
         new(
-            "EmployeeOnboardedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.V1.EmployeeOnboardedIntegrationEvent",
+            "EmployeeOnboardedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.V1.EmployeeOnboardedIntegrationEventV1",
             Version: 1,
             Publisher: "HR",
             Consumers: ["Payroll", "Performance", "TimeAttendance"],
@@ -75,8 +75,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 1),
 
         new(
-            "EmployeeTerminatedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.EmployeeTerminatedIntegrationEvent",
+            "EmployeeTerminatedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.EmployeeTerminatedIntegrationEventV1",
             Version: 1,
             Publisher: "HR",
             Consumers: ["AssetManagement", "Helpdesk", "Forecasting"],
@@ -87,8 +87,8 @@ public static class KaramchariEventCatalog
         // ── Core: Leave ────────────────────────────────────────────────────────
 
         new(
-            "LeaveRequestCreatedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.LeaveRequestCreatedIntegrationEvent",
+            "LeaveRequestCreatedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.LeaveRequestCreatedIntegrationEventV1",
             Version: 1,
             Publisher: "TimeAttendance",
             Consumers: ["Workflow", "Notifications"],
@@ -97,8 +97,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 2),
 
         new(
-            "LeaveRequestApprovedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.LeaveRequestApprovedIntegrationEvent",
+            "LeaveRequestApprovedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.LeaveRequestApprovedIntegrationEventV1",
             Version: 1,
             Publisher: "TimeAttendance",
             Consumers: ["Payroll", "Forecasting"],
@@ -107,8 +107,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 2),
 
         new(
-            "LeaveCancelledIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.LeaveCancelledIntegrationEvent",
+            "LeaveCancelledIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.LeaveCancelledIntegrationEventV1",
             Version: 1,
             Publisher: "TimeAttendance",
             Consumers: ["Forecasting"],
@@ -119,19 +119,19 @@ public static class KaramchariEventCatalog
         // ── Core: Payroll ──────────────────────────────────────────────────────
 
         new(
-            "PayrollRunCompletedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.V1.PayrollRunCompletedIntegrationEvent",
+            "PayrollRunCompletedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.V1.PayrollRunCompletedIntegrationEventV1",
             Version: 1,
             Publisher: "Payroll",
             Consumers: ["Notifications"],
             Status: EventStatus.Deprecated,
             Description: "V1: does not include EmployeeName — consumers must look it up separately.",
             AddedInPhase: 1,
-            DeprecatedInFavorOf: "PayrollRunCompletedIntegrationEvent (V2)"),
+            DeprecatedInFavorOf: "PayrollRunCompletedIntegrationEventV1 (V2)"),
 
         new(
-            "PayrollRunCompletedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.V2.PayrollRunCompletedIntegrationEvent",
+            "PayrollRunCompletedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.V2.PayrollRunCompletedIntegrationEventV1",
             Version: 2,
             Publisher: "Payroll",
             Consumers: ["Notifications", "FinancialOps"],
@@ -140,8 +140,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 2),
 
         new(
-            "PayrollRunLockedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.PayrollRunLockedIntegrationEvent",
+            "PayrollRunLockedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.PayrollRunLockedIntegrationEventV1",
             Version: 1,
             Publisher: "Payroll",
             Consumers: ["Compliance", "FinancialOps"],
@@ -150,8 +150,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 2),
 
         new(
-            "ReimbursementSubmittedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.ReimbursementSubmittedIntegrationEvent",
+            "ReimbursementSubmittedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.ReimbursementSubmittedIntegrationEventV1",
             Version: 1,
             Publisher: "Payroll",
             Consumers: ["Workflow", "Notifications"],
@@ -160,8 +160,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 3),
 
         new(
-            "ITDeclarationRejectedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.ITDeclarationRejectedIntegrationEvent",
+            "ITDeclarationRejectedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.ITDeclarationRejectedIntegrationEventV1",
             Version: 1,
             Publisher: "Payroll",
             Consumers: ["Notifications"],
@@ -172,8 +172,8 @@ public static class KaramchariEventCatalog
         // ── Core: Timesheet ────────────────────────────────────────────────────
 
         new(
-            "TimesheetApprovedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.TimesheetApprovedIntegrationEvent",
+            "TimesheetApprovedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.TimesheetApprovedIntegrationEventV1",
             Version: 1,
             Publisher: "TimeAttendance",
             Consumers: ["Payroll", "PSA", "Billing", "TimeAttendance"],
@@ -184,8 +184,8 @@ public static class KaramchariEventCatalog
         // ── Core: Tenant ────────────────────────────────────────────────────────
 
         new(
-            "TenantProvisionedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.TenantProvisionedIntegrationEvent",
+            "TenantProvisionedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.TenantProvisionedIntegrationEventV1",
             Version: 1,
             Publisher: "Identity",
             Consumers: ["HR", "Payroll", "TimeAttendance"],
@@ -196,8 +196,8 @@ public static class KaramchariEventCatalog
         // ── Core: Skills / Workforce Planning ─────────────────────────────────
 
         new(
-            "HireOfferAcceptedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.HireOfferAcceptedIntegrationEvent",
+            "HireOfferAcceptedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.HireOfferAcceptedIntegrationEventV1",
             Version: 1,
             Publisher: "Recruitment",
             Consumers: ["Forecasting"],
@@ -206,8 +206,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 5),
 
         new(
-            "SkillAssignedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.SkillAssignedIntegrationEvent",
+            "SkillAssignedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.SkillAssignedIntegrationEventV1",
             Version: 1,
             Publisher: "Capability",
             Consumers: ["Forecasting", "Intelligence"],
@@ -216,8 +216,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 5),
 
         new(
-            "SkillExpiredIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.SkillExpiredIntegrationEvent",
+            "SkillExpiredIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.SkillExpiredIntegrationEventV1",
             Version: 1,
             Publisher: "Capability",
             Consumers: ["Notifications", "Intelligence"],
@@ -228,8 +228,8 @@ public static class KaramchariEventCatalog
         // ── Core: Workflow ─────────────────────────────────────────────────────
 
         new(
-            "WorkflowStartedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.WorkflowStartedIntegrationEvent",
+            "WorkflowStartedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.WorkflowStartedIntegrationEventV1",
             Version: 1,
             Publisher: "Workflow",
             Consumers: ["Notifications", "Compliance"],
@@ -238,8 +238,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 12),
 
         new(
-            "WorkflowTransitionedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.WorkflowTransitionedIntegrationEvent",
+            "WorkflowTransitionedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.WorkflowTransitionedIntegrationEventV1",
             Version: 1,
             Publisher: "Workflow",
             Consumers: ["Notifications", "Audit"],
@@ -248,8 +248,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 12),
 
         new(
-            "WorkflowApprovalDecisionIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.WorkflowApprovalDecisionIntegrationEvent",
+            "WorkflowApprovalDecisionIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.WorkflowApprovalDecisionIntegrationEventV1",
             Version: 1,
             Publisher: "Workflow",
             Consumers: ["Notifications", "Compliance"],
@@ -258,8 +258,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 12),
 
         new(
-            "WorkflowCompletedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.WorkflowCompletedIntegrationEvent",
+            "WorkflowCompletedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.WorkflowCompletedIntegrationEventV1",
             Version: 1,
             Publisher: "Workflow",
             Consumers: ["Payroll", "TimeAttendance", "Compliance", "Audit"],
@@ -270,8 +270,8 @@ public static class KaramchariEventCatalog
         // ── Workforce: Shift & Overtime ────────────────────────────────────────
 
         new(
-            "ShiftSwapApprovedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.Workforce.ShiftSwapApprovedIntegrationEvent",
+            "ShiftSwapApprovedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.Workforce.ShiftSwapApprovedIntegrationEventV1",
             Version: 1,
             Publisher: "TimeAttendance",
             Consumers: ["Notifications"],
@@ -280,8 +280,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 6),
 
         new(
-            "ShiftSwapRejectedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.Workforce.ShiftSwapRejectedIntegrationEvent",
+            "ShiftSwapRejectedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.Workforce.ShiftSwapRejectedIntegrationEventV1",
             Version: 1,
             Publisher: "TimeAttendance",
             Consumers: ["Notifications"],
@@ -290,8 +290,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 6),
 
         new(
-            "OvertimeAcceptedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.Workforce.OvertimeAcceptedIntegrationEvent",
+            "OvertimeAcceptedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.Workforce.OvertimeAcceptedIntegrationEventV1",
             Version: 1,
             Publisher: "TimeAttendance",
             Consumers: ["Intelligence"],
@@ -300,8 +300,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 6),
 
         new(
-            "OvertimeRejectedIntegrationEvent",
-            "Karamchari.Core.Contracts.IntegrationEvents.Workforce.OvertimeRejectedIntegrationEvent",
+            "OvertimeRejectedIntegrationEventV1",
+            "Karamchari.Core.Contracts.IntegrationEvents.Workforce.OvertimeRejectedIntegrationEventV1",
             Version: 1,
             Publisher: "TimeAttendance",
             Consumers: ["Intelligence"],
@@ -312,8 +312,8 @@ public static class KaramchariEventCatalog
         // ── Billing ────────────────────────────────────────────────────────────
 
         new(
-            "InvoiceIssuedIntegrationEvent",
-            "Karamchari.Billing.Contracts.InvoiceIssuedIntegrationEvent",
+            "InvoiceIssuedIntegrationEventV1",
+            "Karamchari.Billing.Contracts.InvoiceIssuedIntegrationEventV1",
             Version: 1,
             Publisher: "Billing",
             Consumers: ["FinancialOps"],
@@ -322,8 +322,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 9),
 
         new(
-            "PaymentReceivedIntegrationEvent",
-            "Karamchari.Billing.Contracts.PaymentReceivedIntegrationEvent",
+            "PaymentReceivedIntegrationEventV1",
+            "Karamchari.Billing.Contracts.PaymentReceivedIntegrationEventV1",
             Version: 1,
             Publisher: "Billing",
             Consumers: ["FinancialOps", "PSA"],
@@ -458,8 +458,8 @@ public static class KaramchariEventCatalog
         // ── Compensation ───────────────────────────────────────────────────────
 
         new(
-            "EmployeeCompensationRevisedIntegrationEvent",
-            "Karamchari.Compensation.Contracts.IntegrationEvents.EmployeeCompensationRevisedIntegrationEvent",
+            "EmployeeCompensationRevisedIntegrationEventV1",
+            "Karamchari.Compensation.Contracts.IntegrationEvents.EmployeeCompensationRevisedIntegrationEventV1",
             Version: 1,
             Publisher: "Compensation",
             Consumers: ["Payroll", "HR", "Notifications"],
@@ -470,8 +470,8 @@ public static class KaramchariEventCatalog
         // ── Performance ────────────────────────────────────────────────────────
 
         new(
-            "ReviewCycleCompletedIntegrationEvent",
-            "Karamchari.Performance.Contracts.IntegrationEvents.ReviewCycleCompletedIntegrationEvent",
+            "ReviewCycleCompletedIntegrationEventV1",
+            "Karamchari.Performance.Contracts.IntegrationEvents.ReviewCycleCompletedIntegrationEventV1",
             Version: 1,
             Publisher: "Performance",
             Consumers: ["Compensation", "HR"],
@@ -480,8 +480,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 4),
 
         new(
-            "EmployeeCalibrationFinalizedIntegrationEvent",
-            "Karamchari.Performance.Contracts.IntegrationEvents.EmployeeCalibrationFinalizedIntegrationEvent",
+            "EmployeeCalibrationFinalizedIntegrationEventV1",
+            "Karamchari.Performance.Contracts.IntegrationEvents.EmployeeCalibrationFinalizedIntegrationEventV1",
             Version: 1,
             Publisher: "Performance",
             Consumers: ["Succession", "Analytics", "Intelligence"],
@@ -490,8 +490,8 @@ public static class KaramchariEventCatalog
             AddedInPhase: 4),
 
         new(
-            "PromotionApprovedIntegrationEvent",
-            "Karamchari.Performance.Contracts.IntegrationEvents.PromotionApprovedIntegrationEvent",
+            "PromotionApprovedIntegrationEventV1",
+            "Karamchari.Performance.Contracts.IntegrationEvents.PromotionApprovedIntegrationEventV1",
             Version: 1,
             Publisher: "Performance",
             Consumers: ["HR", "Payroll", "Notifications"],

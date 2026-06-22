@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------
 
 using Karamchari.Core.DependencyInjection;
+using Karamchari.Forecasting.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -13,9 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Karamchari.Forecasting.DependencyInjection;
 
-/// <summary>
-/// Capability pack registration for the Forecasting module.
-/// </summary>
 public sealed class ForecastingModule : ICapabilityModule
 {
     private readonly IConfiguration _configuration;
@@ -28,11 +26,10 @@ public sealed class ForecastingModule : ICapabilityModule
     public void RegisterServices(IServiceCollection services)
     {
         services.AddKaramchariForecasting(_configuration);
+        services.AddHostedService<HeadcountBudgetReconciler>();
     }
 
-    public void MapEndpoints(IEndpointRouteBuilder app)
-    {
-    }
+    public void MapEndpoints(IEndpointRouteBuilder app) { }
 
     public void RegisterConsumers(IBusRegistrationConfigurator configurator)
     {

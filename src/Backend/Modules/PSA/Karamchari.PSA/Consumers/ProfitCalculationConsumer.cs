@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Third consumer of <see cref="TimesheetApprovedIntegrationEvent"/>.
+/// Third consumer of <see cref="TimesheetApprovedIntegrationEventV1"/>.
 ///
 /// The event pipeline now fans out to three consumers:
 ///   1. PayrollConsumer â†’ salary deductions (Payroll context)
@@ -31,7 +31,7 @@ using Microsoft.Extensions.Logging;
 ///
 /// Then atomically upserts into <see cref="ProjectMonthlyMetrics"/>.
 /// </summary>
-public sealed partial class ProfitCalculationConsumer : IConsumer<TimesheetApprovedIntegrationEvent>
+public sealed partial class ProfitCalculationConsumer : IConsumer<TimesheetApprovedIntegrationEventV1>
 {
     private readonly PSADbContext _db;
     private readonly ProjectResourceRepository _resourceRepo;
@@ -51,7 +51,7 @@ public sealed partial class ProfitCalculationConsumer : IConsumer<TimesheetAppro
     }
 
     /// <inheritdoc/>
-    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<TimesheetApprovedIntegrationEventV1> context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var msg = context.Message;
@@ -174,7 +174,7 @@ public sealed partial class ProfitCalculationConsumer : IConsumer<TimesheetAppro
     /// Groups by (ProjectId, Year, Month) and accumulates into existing rows.
     /// </summary>
     private async Task UpdateMonthlyMetricsAsync(
-        TimesheetApprovedIntegrationEvent msg,
+        TimesheetApprovedIntegrationEventV1 msg,
         IReadOnlyList<ProjectProfitLedger> profitRows,
         CancellationToken ct)
     {

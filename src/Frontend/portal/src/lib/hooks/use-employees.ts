@@ -2,9 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
-import type { EmployeeListItem, OnboardEmployeeCommand } from "@/lib/types/employee";
+import type { EmployeeListItem, OnboardEmployeeCommand, EmployeeDetail, EmployeeHistoryEvent } from "@/lib/types/employee";
 
-const EMPLOYEES_PATH = "/api/hr/employees";
+const EMPLOYEES_PATH = "/api/v1/hr/employees";
 
 export const employeesKey = ["hr", "employees"] as const;
 
@@ -23,6 +23,22 @@ export function useOnboardEmployee() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: employeesKey });
     },
+  });
+}
+
+export function useEmployee(id: string) {
+  return useQuery<EmployeeDetail>({
+    queryKey: ['hr', 'employees', id],
+    queryFn: () => api.get<EmployeeDetail>(`${EMPLOYEES_PATH}/${id}`),
+    enabled: !!id,
+  });
+}
+
+export function useEmployeeHistory(id: string) {
+  return useQuery<EmployeeHistoryEvent[]>({
+    queryKey: ['hr', 'employees', id, 'history'],
+    queryFn: () => api.get<EmployeeHistoryEvent[]>(`${EMPLOYEES_PATH}/${id}/history`),
+    enabled: !!id,
   });
 }
 

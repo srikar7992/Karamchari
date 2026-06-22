@@ -72,7 +72,7 @@ public static class ReimbursementEndpoints
             await db.SaveChangesAsync(ct);
 
             // Publish integration event to start workflow
-            await bus.Publish(new ReimbursementSubmittedIntegrationEvent(
+            await bus.Publish(new ReimbursementSubmittedIntegrationEventV1(
                 claim.Id, tenantId, employeeId.Value, category.ToString(), claim.ClaimedAmount), ct);
 
             return Results.Created($"/api/v1/payroll/reimbursements/{claim.Id}", MapToDto(claim));

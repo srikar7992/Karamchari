@@ -4,6 +4,7 @@
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core\Karamchari.Core.csproj" />
     <ProjectReference Include="..\..\..\Platform\Karamchari.Core.Contracts\Karamchari.Core.Contracts.csproj" />
     <ProjectReference Include="..\Karamchari.Intelligence.Contracts\Karamchari.Intelligence.Contracts.csproj" />
+    <ProjectReference Include="..\..\Recruitment\Karamchari.Recruitment.Contracts\Karamchari.Recruitment.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,7 +24,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <!-- CA1707: EF migration class names contain underscores by design. CS1591: XML docs in progress. -->
-    <NoWarn>$(NoWarn);CA1707;CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CA1707;CS1591;CS1574;IDE0270</NoWarn>
   </PropertyGroup>
 
 </Project>

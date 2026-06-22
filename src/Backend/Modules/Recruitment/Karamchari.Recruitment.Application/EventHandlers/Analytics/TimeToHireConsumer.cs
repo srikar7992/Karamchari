@@ -18,10 +18,10 @@ namespace Karamchari.Recruitment.Application.EventHandlers.Analytics;
 public sealed class TimeToHireConsumer(
     IRecruitmentDbContext dbContext,
     ILogger<TimeToHireConsumer> logger)
-    : IConsumer<EnterpriseEventEnvelope<CandidateHiredIntegrationEvent>>,
-      IConsumer<EnterpriseEventEnvelope<OfferAcceptedIntegrationEvent>>
+    : IConsumer<EnterpriseEventEnvelope<CandidateHiredIntegrationEventV1>>,
+      IConsumer<EnterpriseEventEnvelope<OfferAcceptedIntegrationEventV1>>
 {
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateHiredIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<CandidateHiredIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         var payload = envelope.Payload;
@@ -75,7 +75,7 @@ public sealed class TimeToHireConsumer(
             model.Id, payload.CandidateId);
     }
 
-    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<OfferAcceptedIntegrationEvent>> context)
+    public async Task Consume(ConsumeContext<EnterpriseEventEnvelope<OfferAcceptedIntegrationEventV1>> context)
     {
         var envelope = context.Message;
         var payload = envelope.Payload;
