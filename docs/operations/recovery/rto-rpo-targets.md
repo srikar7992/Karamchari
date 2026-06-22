@@ -52,6 +52,17 @@ Run against a non-production environment first, then a production-equivalent.
 
 Per-tenant restore (single tenant) becomes possible only after ADR 0018 Phase 3 (database-per-tenant for that tenant or pool-level restore).
 
+### 4a. Per-tenant restore SLA (ADR 0018 capability)
+
+Per-tenant point-in-time restore is a **product capability**, not just an internal backup detail — it is the strongest enterprise advantage of the hybrid storage model (ADR 0018). For `Regulated`-tier tenants it is a contractual deliverable.
+
+| Tenant placement | Mechanism | Per-tenant RPO target | Per-tenant RTO target | Blast radius |
+|---|---|---:|---:|---|
+| Dedicated database | Native Azure SQL PITR on that database | **15 min** | **2 hr** | Zero other tenants affected |
+| Pooled (shared DB) | Restore pool DB to side copy → extract single schema (BACPAC/`bcp`) → re-import into live pool | **15 min** | **4 hr** | Other schemas in pool untouched |
+
+> Not certified until the Phase 3 single-tenant restore drill (below) is executed and logged. The single-shared-DB status quo **cannot** do per-tenant restore at all (whole-DB restore only) — this is a net-new capability the hybrid model unlocks.
+
 ## 5. SLOs / error budget (proposed)
 
 | SLO | Target |

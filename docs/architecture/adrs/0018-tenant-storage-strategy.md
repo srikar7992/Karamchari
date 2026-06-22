@@ -1,7 +1,7 @@
 # ADR 0018 — Tenant storage strategy: scaling path beyond a single shared database
 
-- **Status:** Proposed (pending architecture review)
-- **Date:** 2026-06-21
+- **Status:** Accepted (architecture review complete, 2026-06-22) — implementation pending
+- **Date:** 2026-06-21 (accepted 2026-06-22)
 - **Deciders:** Platform architecture
 - **Supersedes:** none — **extends** [ADR 0001](0001-multi-tenancy-model.md) and [ADR 0002](0002-row-level-security.md)
 - **Driver:** Certification finding **C-1** (`CERTIFICATION.md`) — single shared SQL database with schema-per-tenant is a hard scalability ceiling and an all-tenant single point of failure.
@@ -74,10 +74,95 @@ Adopt **Option C (hybrid)**. Target end-state:
 
 Do **not** begin Phase 1 code until this ADR is **Accepted** by architecture review.
 
+## Placement authority
+
+Tenant placement is **decided by software, not by humans or tribal knowledge.** Three roles, cleanly separated:
+
+| Role | Component | Responsibility |
+|---|---|---|
+| **Authority** | Placement Service (in the provisioning path) | Evaluates placement rules; chooses target database/pool for a new tenant and for any move. |
+| **Source of truth** | `platform_directory` | Holds the canonical `tenantId → { databaseKey, region, tier }` map. Nothing routes off anything else. |
+| **Enforcement** | Rebalancer (Phase 4) | Periodically re-evaluates live tenants against thresholds and executes moves via the migration runbook below. |
+
+Placement rules are **data, not code** — a `PlacementRules` row-set in `platform_directory`, evaluated at provision time and by the rebalancer:
+
+| Signal | Threshold → dedicated database |
+|---|---|
+| Contract tier | `Enterprise` / `Regulated` flag → dedicated at birth |
+| Employee count | > 25,000 |
+| Schema size | > 50 GB |
+| Sustained write throughput | > configured share of pool DTU/vCore |
+| Data residency | region with no eligible pool → dedicated |
+
+**Audit requirement.** Every placement decision (initial allocation and every move) writes an **immutable** `PlacementAudit` record so the question "why was this tenant moved?" is answered with evidence, not inference:
+
+| Field | Meaning |
+|---|---|
+| `TenantId` | tenant affected |
+| `OldPlacement` | `{databaseKey, pool, region, tier}` before (null for initial) |
+| `NewPlacement` | `{databaseKey, pool, region, tier}` after |
+| `ReasonCode` | enum: `InitialProvision`, `SizeThreshold`, `ThroughputThreshold`, `ResidencyRequirement`, `TierUpgrade`, `ManualOverride` |
+| `MetricsSnapshot` | the metric values that triggered the decision |
+| `DecisionTimestamp` | UTC, ISO-8601 |
+| `DecisionSource` | `PlacementService` \| `Rebalancer` \| `Operator:<id>` |
+
+Records are append-only; no update or delete path.
+
+## Placement exit criteria (dedicated → shared)
+
+The reverse path is **explicitly prohibited.** Once a tenant is promoted to a dedicated database it **remains dedicated** for its lifetime.
+
+Rationale: a tenant reaches dedicated status only by exceeding size/throughput thresholds or by a contractual `Enterprise`/`Regulated` flag. Demoting back into a shared pool would (a) re-introduce the noisy-neighbour and blast-radius risk the promotion removed, (b) require a second online migration with its own cutover risk for no scale benefit, and (c) for regulated tenants, may violate the isolation guarantee they are paying for. The only situation that would shrink a tenant below threshold is off-boarding, which is a deletion, not a demotion.
+
+If a future business case ever requires demotion, it must arrive as a **superseding ADR** defining thresholds, migration process, and approval requirements — operators must not invent a demotion path ad hoc.
+
+## Online migration runbook (shared → dedicated)
+
+A tenant moves with **per-tenant** downtime only — no maintenance window for the platform, no impact on other tenants in the source pool. Six gated steps:
+
+1. **Provision** — create the empty dedicated database from the dacpac template; apply schema + indexes + RLS. Directory row `Status = Migrating`.
+2. **Seed** — bulk-copy the tenant's schema into the target (single-schema BACPAC, or `bcp` / Azure Data Factory). Record a baseline watermark (rowversion / CDC LSN). Source stays live and writable.
+3. **Sync** — CDC / replication tails source-schema changes into the target until replication lag ≈ 0.
+4. **Cutover** — write-freeze **for this `tenantId` only** (scoped via `ITenantConnectionResolver`): drain in-flight requests, flush the final CDC delta, flip `Tenants.DatabaseKey` → target, invalidate the resolver cache, write `PlacementAudit`. Other tenants never see a freeze.
+5. **Validate** — row-count + checksum per table (source vs target); run the isolation smoke subset; smoke read/write against the target. **Cutover commit is gated on validation passing.**
+6. **Rollback** — until validation passes and a grace window elapses, the source schema is left intact; rollback = flip `DatabaseKey` back to source and drop the target. Only after the grace window does the source schema get dropped.
+
+**Cutover SLO (certification gate):** the step-4 per-tenant write-freeze has **target < 60 s, hard maximum 5 min.** A migration whose freeze exceeds the maximum is a failed migration and must roll back. This makes "migration succeeded" objective, not subjective.
+
+**Pre-production gate:** `MigrationDryRunCompleted` — a full provision→seed→sync→cutover→validate→rollback cycle against synthetic tenants in non-production — **must** be recorded before the first production tenant is migrated (Phase 4 entry condition).
+
+## Analytics sourcing (physically distributed tenants)
+
+Once tenants span pooled databases, dedicated databases, and regions, **cross-tenant analytics MUST NOT query operational databases.** Querying operational stores cross-DB / cross-region couples reporting to the sharding topology, fans out unboundedly, and loads OLTP primaries.
+
+**Decision — analytics is sourced from the event stream into a warehouse, not from operational DBs:**
+
+```
+Operational DBs  →  Outbox / CDC  →  Event stream  →  Analytics warehouse (tenantId-partitioned)
+```
+
+- The **event stream is the source of truth for analytics.** The platform already emits integration events (Recruitment, onboarding saga, etc.) via the transactional outbox.
+- The **warehouse** (Synapse / Fabric / Snowflake-class) holds cross-tenant reporting data, partitioned by `tenantId`.
+- **Operational databases serve single-tenant transactional reads only** — never the cross-tenant reporting source.
+- Region-distributed tenants: stream ships to one warehouse region where residency permits, otherwise per-region warehouse + federated query for global rollups.
+
+This removes a major objection to physical tenant distribution (C-1) and decouples OLAP entirely from the storage topology. Supersedes the earlier "fan-out or warehouse later" placeholder and closes the reporting/OLAP item tracked under `CERTIFICATION.md` P2.
+
+## Per-tenant restore (product capability, not just a backup detail)
+
+Per-tenant point-in-time restore is the **strongest enterprise advantage of the hybrid model** — bigger than raw scale. It must be treated as a first-class, SLA-backed capability, not an implementation footnote.
+
+- **Dedicated-database tenant** → native Azure SQL PITR: restore one tenant to a point in time with **zero impact on any other tenant.**
+- **Pooled tenant** → restore the pool database to a *side* copy, extract the single tenant schema (BACPAC / `bcp`), re-import into the live pool database. Other schemas in the pool are never touched.
+
+The current single-shared-DB model **cannot** do this at all (whole-DB restore only) — this is a net-new capability the hybrid model unlocks.
+
+**SLA:** per-tenant restore RTO/RPO is a stated target tied to tenant tier. See `docs/operations/recovery/rto-rpo-targets.md` (per-tenant restore row). For `Regulated` tenants it is a contractual deliverable. This capability is surfaced in four places: this ADR, the recovery strategy, commercial tiering, and certification evidence.
+
 ## Consequences
 
 - **Positive:** removes the C-1 ceiling and SPOF; enables per-tenant restore and regional placement; aligns deployment with ADR 0001 intent.
-- **Negative / cost:** new directory + routing + rebalancing components; migrations and provisioning run per database; cross-tenant platform reporting must fan out or move to a warehouse (tracked under the reporting/OLAP item in `CERTIFICATION.md` P2).
+- **Negative / cost:** new directory + routing + rebalancing components; migrations and provisioning run per database; cross-tenant platform reporting moves to an event-stream-fed warehouse (see Analytics sourcing above) — operational DBs are no longer a reporting source.
 - **Risk controls:** every phase re-runs the 560-test `TenantIsolationCertification` suite; RLS fail-closed remains the failsafe throughout.
 
 ## Verification
@@ -85,3 +170,4 @@ Do **not** begin Phase 1 code until this ADR is **Accepted** by architecture rev
 - Phase 1: isolation suite green with resolver returning the legacy connection.
 - Phase 2: provision 1,000 synthetic tenants across ≥2 pool databases; assert isolation + flat provisioning latency; no cross-database leakage.
 - Phase 3: single-tenant restore produces correct row counts without touching other tenants.
+- Phase 4: `MigrationDryRunCompleted` recorded (full online-migration cycle on synthetic tenants); cutover write-freeze measured < 60 s (hard max 5 min); other tenants in the source pool observe no freeze; `PlacementAudit` row written for the move.
