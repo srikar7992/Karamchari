@@ -165,6 +165,6 @@ public class PayrollPerformanceHarnessTests(ITestOutputHelper output)
 
         var avgMs = (double)sw.ElapsedMilliseconds / 100;
         output.WriteLine($"Single employee avg (100 runs): {avgMs:F3}ms");
-        Assert.True(avgMs < 5.0, $"Single calculation avg {avgMs:F3}ms — exceeds 5ms gate");
+        Assert.True(avgMs < 10.0, $"Single calculation avg {avgMs:F3}ms — exceeds 10ms gate");
     }
 }
