@@ -34,9 +34,27 @@ public sealed class ObservabilityVerificationTests : IDisposable
     private readonly OutboxRelayMetrics _outboxMetrics;
 
     // MeterListener to capture counter readings in-process.
+    //
+    // System.Diagnostics.Metrics.MeterListener is process-global: every active
+    // listener whose InstrumentPublished predicate matches a Meter name receives
+    // measurements from ALL live Meters with that name, even those created by
+    // test classes in other test assemblies that happen to construct their own
+    // TenantMetricsCollector. When `dotnet test` runs assemblies in parallel
+    // (the default), an unrelated RecordEventRejection call from another
+    // assembly — running for example against the live RabbitMQ broker — can land
+    // in the middle of these unit tests and pollute _counterReadings.
+    //
+    // To stay deterministic the callback keys by (meter, instrument, tenant.id)
+    // so each test records only its own Add() emissions, identified by the
+    // unique tenant.id tag set on the Add() call. Tests use a per-instance
+    // unique TenantId so the inner-dict slot is guaranteed collision-free.
     private readonly MeterListener _meterListener;
-    private readonly Dictionary<string, long> _counterReadings = new();
+    private readonly Dictionary<(string MeterName, string InstrumentName, string? TenantId), long> _counterReadings = new();
     private readonly object _counterLock = new();
+
+    // Per-instance unique tenant prefix used to tag all Add() calls invoked by
+    // tests in this fixture. See the _meterListener comment for rationale.
+    private readonly string _singletonTenantId = $"obs-{Guid.NewGuid():N}";
 
     public ObservabilityVerificationTests()
     {
@@ -54,11 +72,21 @@ public sealed class ObservabilityVerificationTests : IDisposable
             }
         };
 
-        _meterListener.SetMeasurementEventCallback<long>((instrument, measurement, _, _) =>
+        _meterListener.SetMeasurementEventCallback<long>((instrument, measurement, tags, _) =>
         {
+            string? tenantId = null;
+            foreach (var tag in tags)
+            {
+                if (tag.Key == "tenant.id")
+                {
+                    tenantId = tag.Value?.ToString();
+                    break;
+                }
+            }
+
             lock (_counterLock)
             {
-                var key = $"{instrument.Meter.Name}/{instrument.Name}";
+                var key = (instrument.Meter.Name, instrument.Name, tenantId);
                 _counterReadings.TryGetValue(key, out var existing);
                 _counterReadings[key] = existing + measurement;
             }
@@ -74,15 +102,36 @@ public sealed class ObservabilityVerificationTests : IDisposable
         string correlationId = "test-corr-001") =>
         new TenantExecutionEnvelope(tenantId, correlationId, "req-test", ExecutionSource.HttpRequest, TenantSource.JwtClaim);
 
-    private long ReadCounter(string meterName, string counterName)
+    private long ReadCounterForTenant(string meterName, string counterName, string tenantId)
     {
-        // Force the MeterListener to collect pending measurements.
+        // Force the MeterListener to collect pending observable-instrument snapshots.
         _meterListener.RecordObservableInstruments();
         lock (_counterLock)
         {
-            var key = $"{meterName}/{counterName}";
+            var key = (meterName, counterName, tenantId);
             _counterReadings.TryGetValue(key, out var value);
             return value;
+        }
+    }
+
+    private long ReadCounter(string meterName, string counterName)
+    {
+        // Untagged lookup — swept across every tenant.id slot recorded under
+        // (meter, instrument). Use only for instruments that never carry a
+        // tenant.id tag (for example the OutboxRelay counters) so there is
+        // exactly one slot with tenantId==null.
+        _meterListener.RecordObservableInstruments();
+        lock (_counterLock)
+        {
+            long sum = 0;
+            foreach (var kvp in _counterReadings)
+            {
+                if (kvp.Key.MeterName == meterName && kvp.Key.InstrumentName == counterName)
+                {
+                    sum += kvp.Value;
+                }
+            }
+            return sum;
         }
     }
 
@@ -162,8 +211,10 @@ public sealed class ObservabilityVerificationTests : IDisposable
     [Fact]
     public void Validation_Failure_GeneratesStructuredLog()
     {
-        // Arrange
-        const string tenantId = "acme";
+        // Arrange — uses the per-instance unique tenant id so the listener captures
+        // only this test's Add() call regardless of any concurrent RecordEventRejection
+        // emissions leaking in from other test assemblies via the shared Meter name.
+        var tenantId = _singletonTenantId;
         const string messageType = "CreateEmployeeCommand";
         const string reason = "ValidationFailure";
 
@@ -171,16 +222,14 @@ public sealed class ObservabilityVerificationTests : IDisposable
         _metricsCollector.RecordEventRejection(tenantId, messageType, reason);
 
         // Assert — the counter must have incremented.
-        // Note: TenantMetricsCollector uses System.Diagnostics.Metrics counters. The
-        // MeterListener wired in the constructor intercepts Add() calls synchronously.
-        _meterListener.RecordObservableInstruments();
-        lock (_counterLock)
-        {
-            var key = "Karamchari.TenantIsolation/tenant.event.rejection.count";
-            _counterReadings.TryGetValue(key, out var count);
-            count.Should().Be(1,
-                "RecordEventRejection must increment the tenant.event.rejection.count counter by 1");
-        }
+        // Tags isolate the slot so pollution from other tenants can never reach
+        // this assertion, even though MeterListener is process-global.
+        var count = ReadCounterForTenant(
+            "Karamchari.TenantIsolation",
+            "tenant.event.rejection.count",
+            tenantId);
+        count.Should().Be(1,
+            "RecordEventRejection must increment the tenant.event.rejection.count counter by 1");
     }
 
     /// <summary>
@@ -189,7 +238,7 @@ public sealed class ObservabilityVerificationTests : IDisposable
     [Fact]
     public void Validation_Failure_MultipleRejections_AccumulateCount()
     {
-        const string tenantId = "initech";
+        var tenantId = _singletonTenantId;
         const int rejectionCount = 7;
 
         for (int i = 0; i < rejectionCount; i++)
@@ -197,14 +246,12 @@ public sealed class ObservabilityVerificationTests : IDisposable
             _metricsCollector.RecordEventRejection(tenantId, "SomeCommand", "ValidationFailure");
         }
 
-        _meterListener.RecordObservableInstruments();
-        lock (_counterLock)
-        {
-            var key = "Karamchari.TenantIsolation/tenant.event.rejection.count";
-            _counterReadings.TryGetValue(key, out var count);
-            count.Should().BeGreaterThanOrEqualTo(rejectionCount,
-                "all rejection events must be reflected in the counter");
-        }
+        var count = ReadCounterForTenant(
+            "Karamchari.TenantIsolation",
+            "tenant.event.rejection.count",
+            tenantId);
+        count.Should().Be(rejectionCount,
+            "all rejection events must be reflected in the counter");
     }
 
     // ── G3: OutboxRelay generates metrics ─────────────────────────────────────
@@ -224,15 +271,13 @@ public sealed class ObservabilityVerificationTests : IDisposable
         _outboxMetrics.MessagesProcessed.Add(1);
         _outboxMetrics.MessagesProcessed.Add(1);
 
-        // Assert
-        _meterListener.RecordObservableInstruments();
-        lock (_counterLock)
-        {
-            var key = "Karamchari.OutboxRelay/karamchari_outbox_relay_messages_processed_total";
-            _counterReadings.TryGetValue(key, out var count);
-            count.Should().Be(3,
-                "MessagesProcessed counter must reflect the number of successfully relayed messages");
-        }
+        // Assert — OutboxRelay counters carry no tenant.id tag, so the untagged
+        // sweep via ReadCounter returns exactly this test's three Adds.
+        var count = ReadCounter(
+            "Karamchari.OutboxRelay",
+            "karamchari_outbox_relay_messages_processed_total");
+        count.Should().Be(3,
+            "MessagesProcessed counter must reflect the number of successfully relayed messages");
     }
 
     /// <summary>
@@ -243,14 +288,12 @@ public sealed class ObservabilityVerificationTests : IDisposable
     {
         _outboxMetrics.MessagesFailed.Add(1);
 
-        _meterListener.RecordObservableInstruments();
-        lock (_counterLock)
-        {
-            var key = "Karamchari.OutboxRelay/karamchari_outbox_relay_messages_failed_total";
-            _counterReadings.TryGetValue(key, out var count);
-            count.Should().Be(1,
-                "MessagesFailed counter must increment when the relay encounters a transient publish failure");
-        }
+        // OutboxRelay counters carry no tenant.id tag — untagged sweep via ReadCounter.
+        var count = ReadCounter(
+            "Karamchari.OutboxRelay",
+            "karamchari_outbox_relay_messages_failed_total");
+        count.Should().Be(1,
+            "MessagesFailed counter must increment when the relay encounters a transient publish failure");
     }
 
     /// <summary>
@@ -283,19 +326,20 @@ public sealed class ObservabilityVerificationTests : IDisposable
     [Fact]
     public void IsolationViolation_GeneratesMetric()
     {
+        // Use this instance's unique tenant id so cross-assembly pollution cannot
+        // reach the assertion. See the _meterListener comment for rationale.
+        var tenantId = _singletonTenantId;
         _metricsCollector.RecordIsolationViolation(
-            tenantId: "acme",
+            tenantId: tenantId,
             violationType: "CrossTenantDataAccess",
             source: "EmployeeRepository");
 
-        _meterListener.RecordObservableInstruments();
-        lock (_counterLock)
-        {
-            var key = "Karamchari.TenantIsolation/tenant.isolation.violation.count";
-            _counterReadings.TryGetValue(key, out var count);
-            count.Should().Be(1,
-                "RecordIsolationViolation must increment the isolation violation counter");
-        }
+        var count = ReadCounterForTenant(
+            "Karamchari.TenantIsolation",
+            "tenant.isolation.violation.count",
+            tenantId);
+        count.Should().Be(1,
+            "RecordIsolationViolation must increment the isolation violation counter");
     }
 
     // ── G5: Tracing tags are complete ─────────────────────────────────────────

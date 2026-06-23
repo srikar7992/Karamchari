@@ -189,16 +189,8 @@ public sealed class SqlServerEndToEndFixture : IAsyncLifetime
                 [HourlyRate] DECIMAL(18,2) NOT NULL,
                 [Currency] NVARCHAR(10) NOT NULL,
                 [IsActive] BIT NOT NULL,
-                [OptedForVoluntaryPF] BIT NOT NULL,
-                [IsEsicLocked] BIT NOT NULL,
-                [StateCode] NVARCHAR(10) NOT NULL,
-                [TaxRegime] INT NOT NULL,
-                [IsMetro] BIT NOT NULL,
                 [AnnualCTC] DECIMAL(18,2) NOT NULL,
-                [SalaryTemplateId] UNIQUEIDENTIFIER NOT NULL,
-                [Pan] NVARCHAR(20) NOT NULL,
-                [Uan] NVARCHAR(20) NOT NULL,
-                [EsicNumber] NVARCHAR(20) NOT NULL
+                [SalaryTemplateId] UNIQUEIDENTIFIER NOT NULL
             );
             """);
     }
