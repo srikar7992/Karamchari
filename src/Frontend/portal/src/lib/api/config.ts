@@ -18,7 +18,7 @@ export const apiConfig = Object.freeze({
   baseUrl: requireEnv(
     "NEXT_PUBLIC_API_BASE_URL",
     process.env.NEXT_PUBLIC_API_BASE_URL,
-    "http://localhost:5000",
+    "http://localhost:60463",
   ),
   defaultTenantId: requireEnv(
     "NEXT_PUBLIC_DEFAULT_TENANT_ID",
