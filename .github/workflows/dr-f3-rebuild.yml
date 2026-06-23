@@ -1,0 +1,103 @@
+name: C-3 Disaster Recovery — F3 Full Rebuild Drill
+
+# Runs the destructive full-environment-rebuild phase of the DR certification.
+# Safe to run here because the GitHub Actions runner is ephemeral — docker
+# compose down -v destroys volumes that exist only for this job's lifetime.
+#
+# F1 (backup/restore) and F2 (worker replay reference) run first, then F3
+# tears the stack down and rebuilds from scratch, verifying seeding + health.
+#
+# Trigger manually via workflow_dispatch, or leave the weekly schedule on to
+# keep the certification green. Results are posted to the job summary.
+#
+# Required GitHub secret: CI_SQL_PASSWORD (any strong password — used only
+# for the ephemeral runner database; not a production credential).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 0'   # Sunday 03:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  dr-f3:
+    name: DR Drill — F1 + F2 + F3 (full rebuild)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      KARAMCHARI_SQL_PASSWORD: ${{ secrets.CI_SQL_PASSWORD }}
+      SQL_CONTAINER: karamchari-sqlserver-1   # docker compose project = dir name lowercase
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start full stack (build images + start containers)
+        run: |
+          docker compose up -d --build
+        env:
+          KARAMCHARI_SQL_PASSWORD: ${{ secrets.CI_SQL_PASSWORD }}
+
+      - name: Wait for SQL Server to be ready
+        run: |
+          echo "Waiting for SQL Server to accept connections..."
+          for i in $(seq 1 30); do
+            if docker exec "$SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
+                -S 127.0.0.1,1433 -U sa -P "$KARAMCHARI_SQL_PASSWORD" \
+                -C -Q "SELECT 1" >/dev/null 2>&1; then
+              echo "  SQL ready after ${i}s"
+              break
+            fi
+            echo "  attempt $i — waiting 2s..."
+            sleep 2
+          done
+
+      - name: Wait for API to become healthy
+        run: |
+          echo "Waiting for API /health/live..."
+          for i in $(seq 1 40); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://localhost:8080/health/live 2>/dev/null || echo 000)
+            echo "  t=$((i*3))s /health/live -> $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 3
+          done
+          echo "::error::API did not become healthy within 120s"
+          docker compose logs karamchari.api | tail -40
+          exit 1
+
+      - name: Run DR certification (F1 + F2 + F3)
+        run: |
+          MSYS_NO_PATHCONV=1 bash scripts/dr/certify-disaster-recovery.sh \
+            --sql-container "$SQL_CONTAINER" \
+            --base http://localhost:8080
+        env:
+          KARAMCHARI_SQL_PASSWORD: ${{ secrets.CI_SQL_PASSWORD }}
+
+      - name: Capture drill result as job summary
+        if: always()
+        run: |
+          echo "## C-3 DR Drill — F3 Full Rebuild" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Item | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Run date | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Runner | ubuntu-latest (ephemeral) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| SQL Server | SQL Server 2022 (mcr.microsoft.com/mssql/server:2022-latest) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| F3 executed | yes — docker compose down -v then fresh rebuild |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Show compose logs on failure
+        if: failure()
+        run: |
+          echo "=== karamchari.api logs ==="
+          docker compose logs karamchari.api | tail -60
+          echo "=== karamchari.worker logs ==="
+          docker compose logs karamchari.worker | tail -20
+          echo "=== sqlserver logs ==="
+          docker compose logs sqlserver | tail -20
+
+      - name: Cleanup (always)
+        if: always()
+        run: docker compose down -v --remove-orphans 2>/dev/null || true

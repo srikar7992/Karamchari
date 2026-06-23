@@ -93,9 +93,18 @@ Verified in prior CHAOS_CERTIFICATION.md (broker-restart.sh):
 
 ## F3 — Full Environment Rebuild
 
-**Status:** Deferred — F3 runs `docker compose down -v` (destroys all volumes). Schedule separately in a clean CI/test environment.
+**Status:** Automated via CI — `.github/workflows/dr-f3-rebuild.yml` runs on ephemeral Ubuntu runner; no local data at risk.
 
-**Command when executed:** `bash scripts/dr/certify-disaster-recovery.sh` (without `--skip-f3`)
+**CI trigger:** `workflow_dispatch` or weekly schedule (Sunday 03:00 UTC). Requires GitHub secret `CI_SQL_PASSWORD`.
+
+**Manual command (clean environment only):** `bash scripts/dr/certify-disaster-recovery.sh` (without `--skip-f3`)
+
+**F3 steps verified:**
+1. `docker compose down -v` — destroy all volumes
+2. `docker compose up -d --build` — fresh rebuild from source
+3. API `/health/live` → 200 within 120s — proves application starts
+4. `admin@dev.local` login → token — proves migrations + seeding ran
+5. `GET /api/v1/hr/employees/` → 200 — end-to-end smoke test
 
 ---
 

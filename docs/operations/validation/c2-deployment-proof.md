@@ -35,6 +35,8 @@ To activate the pipeline, complete the following in GitHub:
 | `AZURE_CLIENT_ID` | App registration client ID (for OIDC federated credential) |
 | `AZURE_TENANT_ID` | Azure AD tenant ID |
 | `AZURE_SUBSCRIPTION_ID` | Target Azure subscription ID |
+| `AZURE_DEPLOY_PRINCIPAL_ID` | Service principal object ID (granted Key Vault Secrets Officer in Bicep) |
+| `AZURE_SQL_ADMIN_PASSWORD` | SQL Server admin password (break-glass fallback; primary auth is Entra) |
 
 ### Repository Variables (Settings → Variables → Actions)
 

@@ -83,7 +83,11 @@ jobs:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resourceGroupName: ${{ env.RG }}
           template: ./infrastructure/bicep/main.bicep
-          parameters: environmentName=dev
+          parameters: >-
+            environmentName=dev
+            tenantId=${{ secrets.AZURE_TENANT_ID }}
+            principalId=${{ secrets.AZURE_DEPLOY_PRINCIPAL_ID }}
+            sqlAdministratorLoginPassword=${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
       - name: Deploy to staging slot
         uses: azure/webapps-deploy@v3
         with:
@@ -139,7 +143,11 @@ jobs:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resourceGroupName: ${{ env.RG }}
           template: ./infrastructure/bicep/main.bicep
-          parameters: environmentName=staging
+          parameters: >-
+            environmentName=staging
+            tenantId=${{ secrets.AZURE_TENANT_ID }}
+            principalId=${{ secrets.AZURE_DEPLOY_PRINCIPAL_ID }}
+            sqlAdministratorLoginPassword=${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
       - name: Deploy to staging slot
         uses: azure/webapps-deploy@v3
         with:
@@ -196,7 +204,11 @@ jobs:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resourceGroupName: ${{ env.RG }}
           template: ./infrastructure/bicep/main.bicep
-          parameters: environmentName=prod
+          parameters: >-
+            environmentName=prod
+            tenantId=${{ secrets.AZURE_TENANT_ID }}
+            principalId=${{ secrets.AZURE_DEPLOY_PRINCIPAL_ID }}
+            sqlAdministratorLoginPassword=${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
       - name: Deploy to staging slot
         uses: azure/webapps-deploy@v3
         with:
