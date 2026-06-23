@@ -13,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useLeaveBalances, useLeavePolicies, useCalculateLeave, useSubmitLeaveRequest } from "@/lib/hooks/use-time";
+import { useLeaveBalances, useLeavePolicies, useCalculateLeave, useSubmitLeaveRequest, useMyLeaves } from "@/lib/hooks/use-time";
+import { LeaveRequestStatus } from "@/lib/types/time";
 
 /**
  * Employee Leave Self-Service Page.
@@ -23,6 +24,7 @@ export default function LeavePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: balances, isLoading: isBalancesLoading } = useLeaveBalances();
   const { data: policies } = useLeavePolicies();
+  const { data: myLeaves } = useMyLeaves();
 
   return (
     <AppShell>
@@ -87,14 +89,36 @@ export default function LeavePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell colSpan={4} className="py-24 text-center text-on-surface-variant italic">
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="material-symbols-outlined text-4xl text-outline-variant">event_busy</span>
-                    <p>No leave requests found. Click "Request Time Off" to begin.</p>
-                  </div>
-                </TableCell>
-              </TableRow>
+              {myLeaves && myLeaves.length > 0 ? (
+                myLeaves.map((leave) => {
+                  const policy = policies?.find((p) => p.id === leave.policyId);
+                  const statusLabel = {
+                    [LeaveRequestStatus.Pending]: 'Pending',
+                    [LeaveRequestStatus.Approved]: 'Approved',
+                    [LeaveRequestStatus.Rejected]: 'Rejected',
+                    [LeaveRequestStatus.Cancelled]: 'Cancelled',
+                  }[leave.status] ?? 'Unknown';
+                  return (
+                    <TableRow key={leave.id}>
+                      <TableCell>{policy?.name ?? 'Leave'}</TableCell>
+                      <TableCell>
+                        {new Date(leave.startDate).toLocaleDateString()} – {new Date(leave.endDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>{statusLabel}</TableCell>
+                      <TableCell>{new Date(leave.requestedOnUtc).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-24 text-center text-on-surface-variant italic">
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="material-symbols-outlined text-4xl text-outline-variant">event_busy</span>
+                      <p>No leave requests found. Click "Request Time Off" to begin.</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>

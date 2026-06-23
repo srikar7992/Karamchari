@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
+import { api } from '@/lib/api/client';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -80,11 +81,9 @@ export default function TimesheetPage() {
   // Fetch employee's assigned projects from the PSA API
   useEffect(() => {
     if (authLoading || !user?.id) return;
-    fetch(`/api/psa/employees/${user.id}/projects`)
-      .then(r => r.ok ? r.json() : [])
-      .then((data: Project[]) => setProjects(data))
+    api.get<Project[]>(`/api/psa/employees/${user.id}/projects`)
+      .then((data) => setProjects(data))
       .catch(() => {
-        // Fallback to mock projects in development
         setProjects([
           { id: 'mock-alpha', name: 'Alpha Portal Migration', billingType: 'TimeAndMaterial' },
           { id: 'mock-internal', name: 'Internal Training', billingType: 'NonBillable' },
@@ -182,13 +181,8 @@ export default function TimesheetPage() {
         ),
       };
 
-      const res = await fetch('/api/time/timesheets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      setSubmitStatus(res.ok ? 'success' : 'error');
+      await api.post('/api/v1/time/timesheets', { body: payload });
+      setSubmitStatus('success');
     } catch {
       setSubmitStatus('error');
     } finally {

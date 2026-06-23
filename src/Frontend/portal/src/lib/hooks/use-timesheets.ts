@@ -1,95 +1,57 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api/client';
 import { Timesheet } from '../types/time';
 
-/**
- * Hook to fetch the current week's timesheet for the logged-in employee.
- */
+const timesheetKeys = {
+  current: ['timesheets', 'current'] as const,
+};
+
 export function useCurrentTimesheet() {
   return useQuery<Timesheet>({
-    queryKey: ['timesheets', 'current'],
-    queryFn: async () => {
-      const response = await fetch('/api/time/timesheets/current-week');
-      if (!response.ok) throw new Error('Failed to fetch current timesheet');
-      return response.json();
-    },
+    queryKey: timesheetKeys.current,
+    queryFn: () => api.get<Timesheet>('/api/v1/time/timesheets/current'),
   });
 }
 
-/**
- * Hook to submit or save a weekly timesheet.
- */
 export function useSubmitTimesheet() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (timesheet: Partial<Timesheet>) => {
-      const response = await fetch('/api/time/timesheets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(timesheet),
-      });
-
-      if (!response.ok) throw new Error('Failed to submit timesheet');
-      return response.json();
-    },
+    mutationFn: (timesheet: Partial<Timesheet>) =>
+      api.post<Timesheet>('/api/v1/time/timesheets', { body: timesheet }),
     onSuccess: () => {
-      // Invalidate the current week's query to trigger a refresh
-      queryClient.invalidateQueries({ queryKey: ['timesheets', 'current'] });
+      queryClient.invalidateQueries({ queryKey: timesheetKeys.current });
     },
   });
 }
 
-/**
- * Hook to fetch all timesheets awaiting manager approval.
- */
+// Phase 2: pending/approve/reject endpoints not yet in BFF.
+// Stubs with enabled:false so callers import without breaking.
+
 export function usePendingTimesheets() {
   return useQuery<Timesheet[]>({
     queryKey: ['timesheets', 'pending'],
-    queryFn: async () => {
-      const response = await fetch('/api/time/timesheets/pending');
-      if (!response.ok) throw new Error('Failed to fetch pending timesheets');
-      return response.json();
-    },
+    queryFn: () => api.get<Timesheet[]>('/api/v1/timesheets/pending'),
+    enabled: false,
   });
 }
 
-/**
- * Hook to approve a timesheet. Uses optimistic updates for a blazingly fast UI.
- */
 export function useApproveTimesheet() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/time/timesheets/${id}/approve`, {
-        method: 'PUT',
-      });
-      if (!response.ok) throw new Error('Failed to approve timesheet');
-    },
+    mutationFn: (id: string) => api.post<void>(`/api/v1/timesheets/${id}/approve`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timesheets', 'pending'] });
     },
   });
 }
 
-/**
- * Hook to reject a timesheet.
- */
 export function useRejectTimesheet() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
-      const response = await fetch(`/api/time/timesheets/${id}/reject`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
-      });
-      if (!response.ok) throw new Error('Failed to reject timesheet');
-    },
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      api.post<void>(`/api/v1/timesheets/${id}/reject`, { body: { reason } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timesheets', 'pending'] });
     },
   });
 }
-

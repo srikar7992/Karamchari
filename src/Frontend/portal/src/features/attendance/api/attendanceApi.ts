@@ -1,79 +1,82 @@
-import { 
-  LiveAttendanceDto, 
-  AttendanceKpiDto, 
-  DlqPunchDto, 
-  FraudDto, 
-  ReprocessJobDto, 
-  ReprocessRequest 
-} from "../types";
+import { api } from '@/lib/api/client';
+import {
+  LiveAttendanceDto,
+  AttendanceKpiDto,
+  DlqPunchDto,
+  FraudDto,
+  ReprocessJobDto,
+  ReprocessRequest,
+} from '../types';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-
-/**
- * Fetch functions for the Attendance feature.
- */
+interface LiveSessionDto {
+  id: string;
+  employeeId: string;
+  workDate: string;
+  status: string;
+  checkInTime: string | null;
+  totalWorkHours: number;
+}
 
 export const fetchLiveAttendance = async (): Promise<LiveAttendanceDto[]> => {
-  const res = await fetch(`${BASE_URL}/api/attendance/live`);
-  if (!res.ok) throw new Error("Failed to fetch live attendance");
-  return res.json();
+  const sessions = await api.get<LiveSessionDto[]>('/api/v1/workforce/attendance/sessions/live');
+  return sessions.map((s) => ({
+    employeeId: s.employeeId,
+    name: s.employeeId,
+    status: (s.status === 'Late' ? 'Late' : 'Present') as LiveAttendanceDto['status'],
+    lastCheckIn: s.checkInTime ? `${s.workDate}T${s.checkInTime}` : undefined,
+    lastCheckOut: undefined,
+    lastUpdatedAtUtc: new Date().toISOString(),
+  }));
 };
 
+// GET /api/v1/workforce/attendance/dashboard/health returns status-grouped counts.
+// Map to flat KpiDto shape the UI expects.
 export const fetchAttendanceKpis = async (): Promise<AttendanceKpiDto> => {
-  const res = await fetch(`${BASE_URL}/api/attendance/kpis`);
-  if (!res.ok) throw new Error("Failed to fetch KPIs");
-  return res.json();
+  const raw = await api.get<{
+    attendanceSummary: { status: string; count: number }[];
+  }>('/api/v1/workforce/attendance/dashboard/health');
+
+  const get = (status: string) =>
+    raw.attendanceSummary.find(s => s.status.toLowerCase() === status.toLowerCase())?.count ?? 0;
+
+  const present = get('Present');
+  const late = get('Late');
+  const absent = get('Absent');
+  const onLeave = get('OnLeave');
+  const halfDay = get('HalfDay');
+
+  return {
+    total: present + late + absent + onLeave + halfDay,
+    present,
+    late,
+    absent,
+  };
 };
 
-export const fetchDlq = async (): Promise<DlqPunchDto[]> => {
-  const res = await fetch(`${BASE_URL}/api/attendance/dlq`);
-  if (!res.ok) throw new Error("Failed to fetch DLQ");
-  return res.json();
-};
+// TODO Phase 2: DLQ/Fraud/Reprocess BFF endpoints not yet implemented.
+// Functions retained so callers compile; will 404 until Phase 2 endpoints exist.
 
-export const mapDlq = async (id: string, employeeId: string): Promise<{ jobId: string }> => {
-  const res = await fetch(`${BASE_URL}/api/attendance/dlq/${id}/map`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ employeeId }),
+export const fetchDlq = (): Promise<DlqPunchDto[]> =>
+  api.get<DlqPunchDto[]>('/api/v1/attendance/dlq');
+
+export const mapDlq = (id: string, employeeId: string): Promise<{ jobId: string }> =>
+  api.post<{ jobId: string }>(`/api/v1/attendance/dlq/${id}/map`, {
+    body: { employeeId },
   });
-  if (!res.ok) throw new Error("Failed to map DLQ punch");
-  return res.json();
-};
 
-export const fetchFraudFlags = async (): Promise<FraudDto[]> => {
-  const res = await fetch(`${BASE_URL}/api/attendance/fraud`);
-  if (!res.ok) throw new Error("Failed to fetch fraud flags");
-  return res.json();
-};
+export const fetchFraudFlags = (): Promise<FraudDto[]> =>
+  api.get<FraudDto[]>('/api/v1/attendance/fraud');
 
-export const reviewFraud = async (id: string, status: string, notes: string): Promise<void> => {
-  const res = await fetch(`${BASE_URL}/api/attendance/fraud/${id}/review`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status, notes }),
+export const reviewFraud = (id: string, status: string, notes: string): Promise<void> =>
+  api.put<void>(`/api/v1/attendance/fraud/${id}/review`, {
+    body: { status, notes },
   });
-  if (!res.ok) throw new Error("Failed to review fraud flag");
-};
 
-export const triggerReprocess = async (request: ReprocessRequest): Promise<ReprocessJobDto> => {
-  const res = await fetch(`${BASE_URL}/api/attendance/reprocess`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  });
-  if (!res.ok) throw new Error("Failed to trigger reprocessing");
-  return res.json();
-};
+export const triggerReprocess = (request: ReprocessRequest): Promise<ReprocessJobDto> =>
+  api.post<ReprocessJobDto>('/api/v1/attendance/reprocess', { body: request });
 
-export const fetchEmployees = async (): Promise<{ id: string; name: string }[]> => {
-  const res = await fetch(`${BASE_URL}/api/hr/employees/compact`);
-  if (!res.ok) throw new Error("Failed to fetch employees");
-  return res.json();
-};
+export const fetchEmployees = (): Promise<{ id: string; name: string }[]> =>
+  api.get<{ id: string; name: string }[]>('/api/v1/employees/compact');
 
-export const fetchJobProgress = async (jobId: string): Promise<ReprocessJobDto> => {
-  const res = await fetch(`${BASE_URL}/api/attendance/reprocess/${jobId}`);
-  if (!res.ok) throw new Error("Failed to fetch job progress");
-  return res.json();
-};
+export const fetchJobProgress = (jobId: string): Promise<ReprocessJobDto> =>
+  api.get<ReprocessJobDto>(`/api/v1/attendance/reprocess/${jobId}`);

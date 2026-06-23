@@ -1,179 +1,121 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api/client';
 import { Holiday, LeavePolicy, LeaveBalance, LeaveRequest } from '../types/time';
 
-/**
- * Hook to fetch all holidays for the current tenant.
- */
+const timeKeys = {
+  holidays: ['holidays'] as const,
+  leavePolicies: ['leave-policies'] as const,
+  leaveBalances: ['leave-balances'] as const,
+  leaveRequests: ['leave-requests'] as const,
+  pendingLeaveRequests: ['leave-requests', 'pending'] as const,
+};
+
 export function useHolidays() {
   return useQuery<Holiday[]>({
-    queryKey: ['holidays'],
-    queryFn: async () => {
-      const res = await fetch('/api/time/holidays');
-      if (!res.ok) throw new Error('Failed to fetch holidays');
-      return res.json();
-    },
+    queryKey: timeKeys.holidays,
+    queryFn: () => api.get<Holiday[]>('/api/v1/time/holidays'),
   });
 }
 
-/**
- * Hook to add a new holiday.
- */
 export function useAddHoliday() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (holiday: { name: string; date: string }) => {
-      const res = await fetch('/api/time/holidays', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(holiday),
-      });
-      if (!res.ok) throw new Error('Failed to add holiday');
-      return res.json();
-    },
+    mutationFn: (holiday: { name: string; date: string }) =>
+      api.post<Holiday>('/api/v1/time/holidays', { body: holiday }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['holidays'] });
+      queryClient.invalidateQueries({ queryKey: timeKeys.holidays });
     },
   });
 }
 
-/**
- * Hook to fetch all leave policies for the current tenant.
- */
 export function useLeavePolicies() {
   return useQuery<LeavePolicy[]>({
-    queryKey: ['leave-policies'],
-    queryFn: async () => {
-      const res = await fetch('/api/time/leave-policies');
-      if (!res.ok) throw new Error('Failed to fetch leave policies');
-      return res.json();
-    },
+    queryKey: timeKeys.leavePolicies,
+    queryFn: () => api.get<LeavePolicy[]>('/api/v1/leaves/policies'),
   });
 }
 
-/**
- * Hook to add a new leave policy.
- */
 export function useAddLeavePolicy() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (policy: Partial<LeavePolicy>) => {
-      const res = await fetch('/api/time/leave-policies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(policy),
-      });
-      if (!res.ok) throw new Error('Failed to add leave policy');
-      return res.json();
-    },
+    mutationFn: (policy: Partial<LeavePolicy>) =>
+      api.post<LeavePolicy>('/api/v1/leaves/policies', { body: policy }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-policies'] });
+      queryClient.invalidateQueries({ queryKey: timeKeys.leavePolicies });
     },
   });
 }
 
-/**
- * Hook to fetch leave balances for the current user.
- */
 export function useLeaveBalances() {
   return useQuery<LeaveBalance[]>({
-    queryKey: ['leave-balances'],
-    queryFn: async () => {
-      const res = await fetch('/api/time/leave-balances');
-      if (!res.ok) throw new Error('Failed to fetch leave balances');
-      return res.json();
-    },
+    queryKey: timeKeys.leaveBalances,
+    queryFn: () => api.get<LeaveBalance[]>('/api/v1/time/leave-balances'),
   });
 }
 
-/**
- * Hook to calculate actual leave days for a range (dry-run).
- */
+export function useMyLeaveRequests() {
+  return useQuery<LeaveRequest[]>({
+    queryKey: timeKeys.leaveRequests,
+    queryFn: () => api.get<LeaveRequest[]>('/api/v1/leaves/my'),
+  });
+}
+
+// Alias used by the leave self-service page.
+export const useMyLeaves = useMyLeaveRequests;
+
+// Dry-run leave day calculation — no backend endpoint yet; returns 0 as stub.
 export function useCalculateLeave() {
   return useMutation({
-    mutationFn: async (params: { policyId: string; startDate: string; endDate: string }) => {
-      const res = await fetch('/api/time/leave-requests/calculate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      });
-      if (!res.ok) throw new Error('Failed to calculate leave days');
-      return res.json() as Promise<{ actualDays: number }>;
-    },
+    mutationFn: async (_params: { policyId: string; startDate: string; endDate: string }) =>
+      ({ actualDays: 0 } as { actualDays: number }),
   });
 }
 
-/**
- * Hook to submit a new leave request.
- */
 export function useSubmitLeaveRequest() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: { policyId: string; startDate: string; endDate: string; reason: string }) => {
-      const res = await fetch('/api/time/leave-requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request),
+      const created = await api.post<{ id: string }>('/api/v1/leaves/request', {
+        body: {
+          policyId: request.policyId,
+          startDate: request.startDate,
+          endDate: request.endDate,
+          reason: request.reason,
+        },
       });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to submit leave request');
-      }
-      return res.json();
+      return api.post<LeaveRequest>(`/api/v1/leaves/${created.id}/submit`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
-      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
+      queryClient.invalidateQueries({ queryKey: timeKeys.leaveBalances });
+      queryClient.invalidateQueries({ queryKey: timeKeys.leaveRequests });
     },
   });
 }
 
-/**
- * Hook to fetch all pending leave requests (for managers).
- */
 export function usePendingLeaveRequests() {
   return useQuery<LeaveRequest[]>({
-    queryKey: ['leave-requests', 'pending'],
-    queryFn: async () => {
-      const res = await fetch('/api/time/leave-requests/pending');
-      if (!res.ok) throw new Error('Failed to fetch pending requests');
-      return res.json();
-    },
+    queryKey: timeKeys.pendingLeaveRequests,
+    queryFn: () => api.get<LeaveRequest[]>('/api/v1/leaves/pending'),
   });
 }
 
-/**
- * Hook to approve a leave request.
- */
 export function useApproveLeaveRequest() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/time/leave-requests/${id}/approve`, {
-        method: 'PUT',
-      });
-      if (!res.ok) throw new Error('Failed to approve request');
-    },
+    mutationFn: (id: string) => api.post<void>(`/api/v1/leaves/${id}/approve`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
+      queryClient.invalidateQueries({ queryKey: timeKeys.pendingLeaveRequests });
     },
   });
 }
 
-/**
- * Hook to reject a leave request.
- */
 export function useRejectLeaveRequest() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/time/leave-requests/${id}/reject`, {
-        method: 'PUT',
-      });
-      if (!res.ok) throw new Error('Failed to reject request');
-    },
+    mutationFn: (id: string) => api.post<void>(`/api/v1/leaves/${id}/reject`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['leave-balances'] });
+      queryClient.invalidateQueries({ queryKey: timeKeys.pendingLeaveRequests });
+      queryClient.invalidateQueries({ queryKey: timeKeys.leaveBalances });
     },
   });
 }

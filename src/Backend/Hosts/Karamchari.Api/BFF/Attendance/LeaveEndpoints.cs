@@ -34,6 +34,15 @@ public static class LeaveEndpoints
         group.MapGet("/balance/{policyId:guid}", GetBalance).WithName("Leave.Balance");
         group.MapGet("/balance/history/{policyId:guid}", GetBalanceHistory).WithName("Leave.BalanceHistory");
 
+        // Leave policies
+        group.MapGet("/policies", GetLeavePolicies).WithName("Leave.Policies.List");
+        group.MapPost("/policies", CreateLeavePolicy).WithName("Leave.Policies.Create").WithIdempotency();
+
+        // Manager approval workflow
+        group.MapGet("/pending", GetPendingLeaves).WithName("Leave.Pending");
+        group.MapPost("/{id:guid}/approve", ApproveLeaveRequest).WithName("Leave.Approve");
+        group.MapPost("/{id:guid}/reject", RejectLeaveRequest).WithName("Leave.Reject");
+
         return app;
     }
 
@@ -236,6 +245,114 @@ public static class LeaveEndpoints
         return leave is null ? Results.NotFound() : Results.Ok(new LeaveRequestResponse(leave));
     }
 
+    private static async Task<IResult> GetLeavePolicies(
+        TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        var policies = await db.LeavePolicies
+            .Where(p => p.IsActive)
+            .Select(p => new LeavePolicyResponse(p))
+            .ToListAsync(ct);
+
+        return Results.Ok(policies);
+    }
+
+    private static async Task<IResult> CreateLeavePolicy(
+        [FromBody] CreateLeavePolicyRequest request,
+        TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        try
+        {
+            var rules = new LeavePolicyRules
+            {
+                Category = request.Category,
+                AnnualAllowance = request.AnnualAllowance,
+                AccrualFrequency = request.AccrualFrequency,
+                RequiresManagerApproval = request.RequiresManagerApproval,
+                AllowHalfDays = request.AllowHalfDays,
+                MaximumCarryForward = request.MaximumCarryForward,
+            };
+
+            var policy = LeavePolicy.Create(
+                request.LeaveTypeId ?? Guid.Empty,
+                request.Level,
+                request.Name,
+                request.Description ?? string.Empty,
+                rules);
+
+            db.LeavePolicies.Add(policy);
+            await db.SaveChangesAsync(ct);
+
+            return Results.Created($"/api/v1/leaves/policies/{policy.Id}", new LeavePolicyResponse(policy));
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> GetPendingLeaves(
+        TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        var pending = await db.Set<LeaveRequest>()
+            .Where(l => l.Status == LeaveRequestStatus.Submitted
+                     || l.Status == LeaveRequestStatus.PendingApproval)
+            .OrderBy(l => l.RequestedOnUtc)
+            .Select(l => new LeaveRequestResponse(l))
+            .ToListAsync(ct);
+
+        return Results.Ok(pending);
+    }
+
+    private static async Task<IResult> ApproveLeaveRequest(
+        Guid id,
+        ClaimsPrincipal user,
+        TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        if (user.GetEmployeeId() is null) return Results.Unauthorized();
+
+        var leave = await db.Set<LeaveRequest>().FindAsync([id], ct);
+        if (leave is null) return Results.NotFound();
+
+        try
+        {
+            leave.FinalizeApproved();
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(new LeaveRequestResponse(leave));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> RejectLeaveRequest(
+        Guid id,
+        [FromBody] RejectLeaveRequest request,
+        ClaimsPrincipal user,
+        TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        if (user.GetEmployeeId() is null) return Results.Unauthorized();
+
+        var leave = await db.Set<LeaveRequest>().FindAsync([id], ct);
+        if (leave is null) return Results.NotFound();
+
+        try
+        {
+            leave.FinalizeRejected(request.Reason);
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(new LeaveRequestResponse(leave));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    }
+
     private static async Task<IResult> GetBalance(
         Guid policyId,
         ClaimsPrincipal user,
@@ -266,6 +383,18 @@ public static class LeaveEndpoints
 }
 
 public record CreateLeaveRequestRequest(Guid PolicyId, DateOnly StartDate, DateOnly EndDate, string? Reason);
+public record CreateLeavePolicyRequest(
+    string Name,
+    string? Description,
+    Guid? LeaveTypeId,
+    PolicyLevel Level,
+    LeaveCategory Category,
+    double AnnualAllowance,
+    AccrualFrequency AccrualFrequency,
+    bool RequiresManagerApproval,
+    bool AllowHalfDays,
+    double MaximumCarryForward);
+public record RejectLeaveRequest(string? Reason);
 public record CreateHalfDayRequest(Guid PolicyId, DateOnly Date, HalfDayPeriod Period, string? Reason);
 public record CreateHourlyRequest(Guid PolicyId, DateOnly Date, double Hours, string? Reason);
 
@@ -286,5 +415,25 @@ public record LeaveRequestResponse(
     public LeaveRequestResponse(LeaveRequest r) : this(
         r.Id, r.EmployeeId, r.PolicyId, r.StartDate, r.EndDate, r.ActualDays,
         r.Mode, r.HalfDayPeriod, r.HoursRequested, r.Status, r.Reason, r.RequestedOnUtc)
+    { }
+}
+
+public record LeavePolicyResponse(
+    Guid Id,
+    string Name,
+    string Description,
+    bool IsActive,
+    PolicyLevel Level,
+    LeaveCategory Category,
+    double AnnualAllowance,
+    AccrualFrequency AccrualFrequency,
+    bool RequiresManagerApproval,
+    bool AllowHalfDays,
+    double MaximumCarryForward)
+{
+    public LeavePolicyResponse(LeavePolicy p) : this(
+        p.Id, p.Name, p.Description, p.IsActive, p.Level,
+        p.Rules.Category, p.Rules.AnnualAllowance, p.Rules.AccrualFrequency,
+        p.Rules.RequiresManagerApproval, p.Rules.AllowHalfDays, p.Rules.MaximumCarryForward)
     { }
 }
