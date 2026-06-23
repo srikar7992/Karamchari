@@ -37,10 +37,25 @@ public static class RecruitmentEndpoints
             .RequireAuthorization(Permissions.RecruitmentUpdate);
 
         // Candidate
+        recruitment.MapGet("/candidates", ListCandidates)
+            .RequireAuthorization(Permissions.RecruitmentRead);
+
+        recruitment.MapGet("/candidates/{id}", GetCandidate)
+            .RequireAuthorization(Permissions.RecruitmentRead);
+
+        recruitment.MapGet("/candidates/{id}/timeline", GetCandidateTimeline)
+            .RequireAuthorization(Permissions.RecruitmentRead);
+
         recruitment.MapPost("/candidates", CreateCandidate)
             .RequireAuthorization(Permissions.RecruitmentCreate);
 
         // Application
+        recruitment.MapGet("/applications", ListApplications)
+            .RequireAuthorization(Permissions.RecruitmentRead);
+
+        recruitment.MapGet("/applications/{id}", GetApplication)
+            .RequireAuthorization(Permissions.RecruitmentRead);
+
         recruitment.MapPost("/applications", ApplyCandidate)
             .RequireAuthorization(Permissions.RecruitmentCreate);
 
@@ -55,6 +70,12 @@ public static class RecruitmentEndpoints
             .RequireAuthorization(Permissions.RecruitmentInterview);
 
         // Offer
+        recruitment.MapGet("/offers", ListOffers)
+            .RequireAuthorization(Permissions.RecruitmentRead);
+
+        recruitment.MapGet("/offers/{id}", GetOffer)
+            .RequireAuthorization(Permissions.RecruitmentRead);
+
         recruitment.MapPost("/offers", CreateOffer)
             .RequireAuthorization(Permissions.RecruitmentOffer);
 
@@ -70,6 +91,10 @@ public static class RecruitmentEndpoints
         // Hire
         recruitment.MapPost("/applications/{id}/hire", HireCandidate)
             .RequireAuthorization(Permissions.RecruitmentHire);
+
+        // Pipeline projection (grouped view across all live applications)
+        recruitment.MapGet("/pipeline", GetPipeline)
+            .RequireAuthorization(Permissions.RecruitmentRead);
     }
 
     private static async Task<IResult> CreateRequisition(
@@ -171,6 +196,61 @@ public static class RecruitmentEndpoints
     {
         await mediator.Send(new HireCandidateCommand(new Karamchari.Recruitment.Domain.ApplicationId(id), user.Identity?.Name ?? "system"));
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> ListCandidates([FromServices] IMediator mediator)
+    {
+        var result = await mediator.Send(new GetCandidatesQuery());
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> GetCandidate(Guid id, [FromServices] IMediator mediator)
+    {
+        var result = await mediator.Send(new GetCandidateDetailQuery(id));
+        return result != null ? Results.Ok(result) : Results.NotFound();
+    }
+
+    private static async Task<IResult> GetCandidateTimeline(Guid id, [FromServices] IMediator mediator)
+    {
+        var result = await mediator.Send(new GetCandidateTimelineQuery(id));
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> ListApplications(
+        [FromQuery] Guid? candidateId,
+        [FromQuery] Guid? requisitionId,
+        [FromQuery] string? status,
+        [FromServices] IMediator mediator)
+    {
+        var result = await mediator.Send(new GetApplicationsQuery(candidateId, requisitionId, status));
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> GetApplication(Guid id, [FromServices] IMediator mediator)
+    {
+        var result = await mediator.Send(new GetApplicationDetailQuery(id));
+        return result != null ? Results.Ok(result) : Results.NotFound();
+    }
+
+    private static async Task<IResult> ListOffers(
+        [FromQuery] Guid? applicationId,
+        [FromQuery] string? status,
+        [FromServices] IMediator mediator)
+    {
+        var result = await mediator.Send(new GetOffersQuery(applicationId, status));
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> GetOffer(Guid id, [FromServices] IMediator mediator)
+    {
+        var result = await mediator.Send(new GetOfferDetailQuery(id));
+        return result != null ? Results.Ok(result) : Results.NotFound();
+    }
+
+    private static async Task<IResult> GetPipeline([FromServices] IMediator mediator)
+    {
+        var result = await mediator.Send(new GetPipelineQuery());
+        return Results.Ok(result);
     }
 }
 

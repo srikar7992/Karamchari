@@ -13,6 +13,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/directory", label: "Directory", icon: "groups" },
+  { href: "/recruitment", label: "Recruitment", icon: "person_search" },
   { href: "/payroll", label: "Payroll", icon: "payments" },
   { href: "/reports", label: "Reports", icon: "insights" },
   { href: "/settings", label: "Settings", icon: "settings" },
