@@ -6,9 +6,9 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 using Xunit;
 
 namespace Karamchari.ArchitectureTests;
@@ -33,10 +33,38 @@ public sealed class RepositoryStructureTests
         "scripts"
     };
 
+    // Directories that contain non-.NET dependency trees — enumerate would exhaust OS file handles.
+    private static readonly HashSet<string> SkippedDirectoryNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "node_modules", ".git", "artifacts",
+    };
+
+    private static IEnumerable<string> FindCsprojFiles(string directory)
+    {
+        IEnumerable<string> subdirs;
+        try { subdirs = Directory.EnumerateDirectories(directory); }
+        catch (IOException) { yield break; }
+
+        foreach (var sub in subdirs)
+        {
+            if (SkippedDirectoryNames.Contains(Path.GetFileName(sub)))
+                continue;
+            foreach (var f in FindCsprojFiles(sub))
+                yield return f;
+        }
+
+        IEnumerable<string> files;
+        try { files = Directory.EnumerateFiles(directory, "*.csproj"); }
+        catch (IOException) { yield break; }
+
+        foreach (var f in files)
+            yield return f;
+    }
+
     [Fact]
     public void NoProjectOutsideApprovedRoots()
     {
-        var csprojFiles = Directory.GetFiles(RootPath, "*.csproj", SearchOption.AllDirectories);
+        var csprojFiles = FindCsprojFiles(RootPath).ToArray();
         var violations = csprojFiles
             .Select(path => Path.GetRelativePath(RootPath, path).Replace("\\", "/"))
             // Exclude agent worktrees and plugin cache — not production code
@@ -50,7 +78,7 @@ public sealed class RepositoryStructureTests
     [Fact]
     public void AllProjectsFollowNamespaceConvention()
     {
-        var csprojFiles = Directory.GetFiles(RootPath, "*.csproj", SearchOption.AllDirectories);
+        var csprojFiles = FindCsprojFiles(RootPath).ToArray();
         var violations = csprojFiles
             .Select(path => new { Path = path, FileName = Path.GetFileNameWithoutExtension(path) })
             .Where(x => !x.FileName.StartsWith("Karamchari.", StringComparison.Ordinal))

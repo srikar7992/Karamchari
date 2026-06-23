@@ -83,6 +83,7 @@ public sealed class EmployeeOnboardingSagaTests
         var sagaHarness = harness.GetSagaStateMachineHarness<EmployeeOnboardingSaga, EmployeeOnboardingSagaState>();
 
         await harness.Bus.Publish(Onboarded(employeeId));
+        (await harness.Consumed.Any<EmployeeOnboardedIntegrationEventV1>()).Should().BeTrue();
         (await sagaHarness.Created.Any(x => x.CorrelationId == employeeId)).Should().BeTrue();
 
         await harness.Bus.Publish(new BenefitEnrollmentActivatedIntegrationEventV1(

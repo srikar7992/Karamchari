@@ -59,9 +59,10 @@ public class KeyRotationCertificationTests
             .BuildServiceProvider();
 
         var harness = provider.GetRequiredService<ITestHarness>();
-        // 30s budget: under parallel test-suite load the thread pool can be saturated,
-        // delaying in-memory message delivery beyond the previous 15s threshold.
-        harness.TestTimeout = TimeSpan.FromSeconds(30);
+        // 60s budget: under parallel test-suite load the thread pool can be saturated,
+        // delaying in-memory message delivery. Previous 30s threshold proved insufficient
+        // when Docker integration tests run concurrently.
+        harness.TestTimeout = TimeSpan.FromSeconds(60);
         await harness.Start();
 
         var signerOld = new ExecutionContextSigner(OldSecret);

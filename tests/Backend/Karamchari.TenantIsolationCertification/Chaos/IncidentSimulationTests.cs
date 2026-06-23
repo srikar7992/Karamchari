@@ -102,6 +102,8 @@ public class IncidentSimulationTests
             .BuildServiceProvider();
 
         var harness = provider.GetRequiredService<ITestHarness>();
+        // 60s budget: under parallel load the thread pool may delay in-memory message delivery.
+        harness.TestTimeout = TimeSpan.FromSeconds(60);
         await harness.Start();
 
         // 2. Act - Tamper with message
@@ -111,15 +113,11 @@ public class IncidentSimulationTests
             context.Headers.Set(ExecutionContextHeaders.ExecutionContextSignature, "invalid");
         });
 
-        // 3. Assert
-        // We wait for the message to be received by the endpoint
-        await Task.Delay(2000);
-
-        // Consumer SHOULD NOT run
-        SyntheticConsumer.ConsumeCount.Should().Be(0, "Enforce mode must block tampered messages.");
-
-        // Verification: The harness should show a failed consumption
+        // 3. Assert: wait for the filter to run and reject the message before checking the count.
         (await harness.Consumed.Any<SyntheticPingIntegrationEventV1>(x => x.Exception != null)).Should().BeTrue("Tampered message must result in a failed consumption entry.");
+
+        // Consumer SHOULD NOT run (checked after the filter has had time to execute)
+        SyntheticConsumer.ConsumeCount.Should().Be(0, "Enforce mode must block tampered messages.");
     }
 
     private class SyntheticConsumer : IConsumer<SyntheticPingIntegrationEventV1>

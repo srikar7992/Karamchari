@@ -115,7 +115,7 @@ public sealed class RabbitMqBrokerChainTests(RabbitMqBrokerFixture fixture)
                 new ImportJobQueued(jobId, "dev", "EmployeeImport"));
         }
 
-        var finalStatus = await fixture.WaitForTerminalStatusAsync(jobId);
+        var finalStatus = await fixture.WaitForTerminalStatusAsync(jobId, TimeSpan.FromSeconds(60));
 
         finalStatus.Should().Be(ImportJobStatus.CompletedWithErrors,
             "both CSV rows are invalid (missing employee number / first name) so success=0, failed=2");
