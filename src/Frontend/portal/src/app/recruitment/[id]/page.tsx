@@ -243,9 +243,20 @@ function CandidateProfileView({
                       </span>
                     </div>
                     <span className="text-sm text-on-surface-variant">
-                      {entry.entityType} · {entry.entityId} {entry.oldState ? `· ${entry.oldState} → ${entry.newState}` : `· ${entry.newState}`}
+                      {entry.entityType} · <span className="font-mono">{shortenId(entry.entityId)}</span>
+                      {entry.oldState ? " · transition" : " · snapshot"}
                     </span>
                     <span className="text-sm text-on-surface-variant">by {entry.userId}</span>
+                    {entry.newState ? (
+                      <details className="mt-1">
+                        <summary className="cursor-pointer text-caps uppercase text-on-surface-variant">
+                          {entry.oldState ? "diff" : "payload"}
+                        </summary>
+                        <pre className="mt-2 overflow-x-auto rounded bg-surface-container-low p-2 font-mono text-mono text-on-surface-variant">
+{prettyJson(entry.newState)}
+                        </pre>
+                      </details>
+                    ) : null}
                   </li>
                 ))}
               </ol>
@@ -278,6 +289,19 @@ function Metadata({ label, value, mono }: { label: string; value: string; mono?:
       </dd>
     </div>
   );
+}
+
+function shortenId(id: string): string {
+  if (id.length <= 13) return id;
+  return id.slice(0, 8) + "…" + id.slice(-4);
+}
+
+function prettyJson(raw: string): string {
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2);
+  } catch {
+    return raw;
+  }
 }
 
 function DetailSkeleton() {
