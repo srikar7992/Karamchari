@@ -101,8 +101,16 @@ public sealed class SqlServerRlsCollection : ICollectionFixture<SqlServerRlsFixt
 
 public sealed class SqlServerRlsFixture : IAsyncLifetime
 {
-    private readonly MsSqlContainer _container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
-        .Build();
+    private readonly MsSqlContainer _container;
+
+    public SqlServerRlsFixture()
+    {
+        // Testcontainers MatchImage uses [GeneratedRegex] which inherits the AppDomain
+        // REGEX_DEFAULT_MATCH_TIMEOUT. Under parallel test load the default can be a
+        // finite value and the image-name regex times out before completing. Force infinite.
+        AppContext.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", Timeout.InfiniteTimeSpan);
+        _container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build();
+    }
 
     private string _connectionString = string.Empty;
 
