@@ -79,6 +79,9 @@ public static class AttendanceEndpoints
         time.MapGet("/holidays", GetHolidaysAsync);
         time.MapGet("/leave-balances", GetLeaveBalancesAsync);
         time.MapGet("/timesheets/current", GetCurrentTimesheetAsync);
+        time.MapGet("/timesheets/pending", GetPendingTimesheetsAsync).WithName("Time.Timesheets.Pending");
+        time.MapPost("/timesheets/{id:guid}/approve", ApproveTimesheetAsync).WithName("Time.Timesheets.Approve");
+        time.MapPost("/timesheets/{id:guid}/reject", RejectTimesheetAsync).WithName("Time.Timesheets.Reject");
 
         var legacyRosters = app.MapGroup("/api/v1/workforce/rosters").RequireAuthorization();
         legacyRosters.MapGet("/shifts", GetShiftsAsync);
@@ -882,6 +885,73 @@ public static class AttendanceEndpoints
     private static async Task<IResult> GetCurrentTimesheetAsync(TimeAttendanceDbContext db, CancellationToken ct)
         => Results.Ok(await db.Timesheets.Take(1).ToListAsync(ct));
 
+    private static async Task<IResult> GetPendingTimesheetsAsync(
+        ClaimsPrincipal user,
+        TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        var (tenantId, _) = user.GetTenantAndEmployee();
+        if (tenantId is null) return Results.Unauthorized();
+
+        var pending = await db.Timesheets
+            .Where(t => t.TenantId == tenantId && t.Status == TimesheetStatus.Submitted)
+            .OrderBy(t => t.WeekStartDate)
+            .ToListAsync(ct);
+
+        return Results.Ok(pending);
+    }
+
+    private static async Task<IResult> ApproveTimesheetAsync(
+        Guid id,
+        ClaimsPrincipal user,
+        TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        var (tenantId, approverId) = user.GetTenantAndEmployee();
+        if (tenantId is null || approverId is null) return Results.Unauthorized();
+
+        var timesheet = await db.Timesheets.FindAsync([id], ct);
+        if (timesheet is null) return Results.NotFound();
+        if (timesheet.TenantId != tenantId) return Results.Forbid();
+
+        try
+        {
+            timesheet.Approve(approverId.Value);
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(new { status = timesheet.Status.ToString() });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Conflict(new { error = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> RejectTimesheetAsync(
+        Guid id,
+        [FromBody] RejectTimesheetRequest request,
+        ClaimsPrincipal user,
+        TimeAttendanceDbContext db,
+        CancellationToken ct)
+    {
+        var (tenantId, actorId) = user.GetTenantAndEmployee();
+        if (tenantId is null || actorId is null) return Results.Unauthorized();
+
+        var timesheet = await db.Timesheets.FindAsync([id], ct);
+        if (timesheet is null) return Results.NotFound();
+        if (timesheet.TenantId != tenantId) return Results.Forbid();
+
+        try
+        {
+            timesheet.Reject(request.Reason, actorId.Value);
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(new { status = timesheet.Status.ToString() });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Conflict(new { error = ex.Message });
+        }
+    }
+
     private static async Task<IResult> GetShiftsAsync(TimeAttendanceDbContext db, CancellationToken ct)
         => Results.Ok(await db.ShiftDefinitions.ToListAsync(ct));
 
@@ -925,6 +995,7 @@ public sealed record SubmitRegularizationRequest(
     string? Evidence = null);
 
 public sealed record RejectRegularizationRequest(string Reason);
+public sealed record RejectTimesheetRequest(string Reason);
 
 public sealed record CreateAttendancePolicyRequest(
     string Name,

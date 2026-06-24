@@ -24,21 +24,17 @@ export function useSubmitTimesheet() {
   });
 }
 
-// Phase 2: pending/approve/reject endpoints not yet in BFF.
-// Stubs with enabled:false so callers import without breaking.
-
 export function usePendingTimesheets() {
   return useQuery<Timesheet[]>({
     queryKey: ['timesheets', 'pending'],
-    queryFn: () => api.get<Timesheet[]>('/api/v1/timesheets/pending'),
-    enabled: false,
+    queryFn: () => api.get<Timesheet[]>('/api/v1/time/timesheets/pending'),
   });
 }
 
 export function useApproveTimesheet() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.post<void>(`/api/v1/timesheets/${id}/approve`),
+    mutationFn: (id: string) => api.post<void>(`/api/v1/time/timesheets/${id}/approve`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timesheets', 'pending'] });
     },
@@ -49,7 +45,7 @@ export function useRejectTimesheet() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-      api.post<void>(`/api/v1/timesheets/${id}/reject`, { body: { reason } }),
+      api.post<void>(`/api/v1/time/timesheets/${id}/reject`, { body: { reason } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timesheets', 'pending'] });
     },
