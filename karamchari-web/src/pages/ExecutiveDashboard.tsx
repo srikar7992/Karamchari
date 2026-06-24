@@ -34,9 +34,9 @@ export function ExecutiveDashboard() {
         sub="Institutional health, talent topography, and strategic risk vectors for the current fiscal quarter."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-grid-12">
         {/* Institutional Health Score */}
-        <section className="col-span-1 md:col-span-4 structural-hairline bg-surface-container-low p-8 corner-tick flex flex-col justify-between min-h-[320px]">
+        <section className="col-span-1 lg:col-span-4 structural-hairline bg-surface-container-low p-8 corner-tick flex flex-col justify-between min-h-[320px]">
           <div>
             <h3 className="font-mono-label text-mono-label text-on-surface-variant uppercase mb-2">
               Institutional Pulse
@@ -65,7 +65,7 @@ export function ExecutiveDashboard() {
         </section>
 
         {/* Workforce Risk Forecast */}
-        <section className="col-span-1 md:col-span-8 structural-hairline bg-surface p-8">
+        <section className="col-span-1 lg:col-span-8 structural-hairline bg-surface p-8">
           <div className="flex justify-between items-start mb-8 border-b border-outline-variant pb-4">
             <div>
               <h3 className="font-mono-label text-mono-label text-on-surface-variant uppercase mb-2">
@@ -77,7 +77,7 @@ export function ExecutiveDashboard() {
             </div>
             <BinduButton>Generate Report</BinduButton>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             <RiskCard severity="critical" title="High Flight Risk" value="12%" body="Engineering (Senior)" />
             <RiskCard severity="elevated" title="Burnout Indicators" value="28%" body="Sales & Operations" />
             <RiskCard severity="neutral" title="Voluntary Turnover (YTD)" value="4.2%" body="Org Average" />
@@ -85,7 +85,7 @@ export function ExecutiveDashboard() {
         </section>
 
         {/* 9-Box Talent Topography */}
-        <section className="col-span-1 md:col-span-12 structural-hairline bg-surface-container-lowest p-8 mt-4">
+        <section className="col-span-1 lg:col-span-12 structural-hairline bg-surface-container-lowest p-8 mt-4">
           <header className="mb-8">
             <h3 className="font-mono-label text-mono-label text-on-surface-variant uppercase mb-2">
               Talent Distribution
@@ -126,7 +126,7 @@ export function ExecutiveDashboard() {
         </section>
 
         {/* Buddhi Strategic Recommendations */}
-        <section className="col-span-1 md:col-span-12 structural-hairline bg-yantra-indigo text-on-primary p-8 mt-4 relative overflow-hidden">
+        <section className="col-span-1 lg:col-span-12 structural-hairline bg-yantra-indigo text-on-primary p-8 mt-4 relative overflow-hidden">
           <div
             className="absolute inset-0 opacity-10"
             style={{

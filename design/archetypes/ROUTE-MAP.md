@@ -15,7 +15,7 @@ Implemented screens (karamchari-web) are marked ●.
 | Global Search | registry |
 | Notification Center ● | timeline |
 | Approvals Inbox (Unified) ● | approval |
-| My Profile | record-detail |
+| My Profile ● | record-detail |
 
 ## Employee Self-Service
 
@@ -23,12 +23,13 @@ Implemented screens (karamchari-web) are marked ●.
 |---|---|
 | My Dashboard ● | dashboard |
 | My Attendance ● (Attendance Ops) | command-center |
-| My Leave | registry |
-| My Payslips & Pay | registry |
+| My Time ● | dashboard |
+| My Payslips & Pay ● | registry |
+| My Benefits ● | record-detail |
+| My Goals & Reviews ● | dashboard |
+| My Skills & Learning ● | registry |
 | My Reimbursements | registry |
 | My Loans & Advances | registry |
-| My Goals & Reviews | case |
-| My Skills & Learning | record-detail |
 | My Assets | registry |
 | My Helpdesk Tickets | case |
 
@@ -38,9 +39,12 @@ Implemented screens (karamchari-web) are marked ●.
 |---|---|
 | Manager Dashboard ● | dashboard |
 | Team Attendance Board ● | command-center |
+| Team Overview ● | registry |
+| Team Performance & Reviews ● | approval |
+| Team Learning & Skills ● | registry |
+| Team Compensation View ● | registry |
 | Regularization Approval Queue | approval |
 | Team Leave Calendar & Approvals | approval |
-| Review Inbox & Team Goals | approval |
 | Talent Heatmap & Promotion Pipeline (Team) | topology |
 | Team Risk Panel | intelligence |
 

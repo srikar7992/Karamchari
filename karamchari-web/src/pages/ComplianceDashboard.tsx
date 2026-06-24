@@ -56,9 +56,9 @@ export function ComplianceDashboard() {
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-min">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-min">
         {/* Global Compliance Score */}
-        <div className="md:col-span-4 bg-ivory-2 border border-outline-variant p-6 relative flex flex-col justify-between min-h-[240px] corner-tick">
+        <div className="lg:col-span-4 bg-ivory-2 border border-outline-variant p-6 relative flex flex-col justify-between min-h-[240px] corner-tick">
           <div className="flex justify-between items-start">
             <span className="font-mono-label text-mono-label text-ink uppercase tracking-widest">
               Global Posture
@@ -78,7 +78,7 @@ export function ComplianceDashboard() {
         </div>
 
         {/* Violation Queue */}
-        <div className="md:col-span-8 bg-surface-container-lowest border border-outline-variant p-0 flex flex-col relative">
+        <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant p-0 flex flex-col relative">
           <div className="p-4 border-b border-outline-variant bg-surface flex justify-between items-center">
             <span className="font-mono-label text-mono-label text-primary uppercase tracking-widest">
               Violation Queue [Active]
@@ -129,7 +129,7 @@ export function ComplianceDashboard() {
         </div>
 
         {/* Regulatory Register */}
-        <div className="md:col-span-5 bg-surface-container-lowest border border-outline-variant flex flex-col">
+        <div className="lg:col-span-5 bg-surface-container-lowest border border-outline-variant flex flex-col">
           <div className="p-4 border-b border-outline-variant bg-surface">
             <span className="font-mono-label text-mono-label text-primary uppercase tracking-widest">
               Regulatory Register
@@ -160,7 +160,7 @@ export function ComplianceDashboard() {
         </div>
 
         {/* Audit Trail Explorer */}
-        <div className="md:col-span-7 bg-surface-container-lowest border border-outline-variant p-6 relative">
+        <div className="lg:col-span-7 bg-surface-container-lowest border border-outline-variant p-6 relative">
           <div className="flex justify-between items-center mb-6">
             <span className="font-mono-label text-mono-label text-primary uppercase tracking-widest">
               Audit Trail Explorer

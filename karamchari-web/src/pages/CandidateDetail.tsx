@@ -1,4 +1,4 @@
-import { Icon } from '@/components/shell/Icon'
+﻿import { Icon } from '@/components/shell/Icon'
 import {
   SignalCard,
   RiskCard,
@@ -155,7 +155,7 @@ export function CandidateDetail() {
               </div>
             </div>
             <div className="aspect-square w-32 bg-ivory-2 hairline-all mb-6 flex items-center justify-center">
-              <span className="font-serif font-light text-[44px] text-graphite tracking-tight">DS</span>
+              <span className="font-serif font-light text-[28px] md:text-[44px] text-graphite tracking-tight">DS</span>
             </div>
             <div className="space-y-4 font-tabular-data text-tabular-data">
               <div>

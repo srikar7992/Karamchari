@@ -39,9 +39,9 @@ export function ManagerDashboard() {
     <>
       <PageHeader kicker="Overview" title="Team Pulse" />
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-grid-12">
         {/* Attendance Board */}
-        <div className="col-span-1 md:col-span-8 bg-ivory-2 hairline-all p-6 plate-container flex flex-col h-[420px]">
+        <div className="col-span-1 lg:col-span-8 bg-ivory-2 hairline-all p-6 plate-container flex flex-col h-[420px]">
           <div className="flex justify-between items-end mb-6 hairline-b pb-4">
             <div>
               <h3 className="font-pull-quote text-pull-quote text-primary">Attendance Board</h3>
@@ -86,7 +86,7 @@ export function ManagerDashboard() {
         </div>
 
         {/* Action Queue */}
-        <div className="col-span-1 md:col-span-4 bg-surface-container-lowest hairline-all p-6 plate-container flex flex-col h-[420px]">
+        <div className="col-span-1 lg:col-span-4 bg-surface-container-lowest hairline-all p-6 plate-container flex flex-col h-[420px]">
           <div className="mb-6 hairline-b pb-4 flex justify-between items-center">
             <h3 className="font-pull-quote text-pull-quote text-primary !text-[24px]">Action Queue</h3>
             <span className="bg-primary text-on-primary font-mono-label text-mono-label px-2 py-1">
@@ -121,9 +121,9 @@ export function ManagerDashboard() {
 
       <div className="h-8" />
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-grid-12">
         {/* Q3 Objectives */}
-        <div className="col-span-1 md:col-span-7 bg-surface-container-lowest hairline-all p-6">
+        <div className="col-span-1 lg:col-span-7 bg-surface-container-lowest hairline-all p-6">
           <div className="mb-6">
             <h3 className="font-pull-quote text-pull-quote text-primary !text-[28px] mb-2">Q3 Objectives</h3>
             <p className="font-mono-label text-mono-label text-on-surface-variant uppercase">
@@ -147,7 +147,7 @@ export function ManagerDashboard() {
         </div>
 
         {/* Risk Signals */}
-        <div className="col-span-1 md:col-span-5 bg-yantra-indigo text-on-primary p-6 plate-container">
+        <div className="col-span-1 lg:col-span-5 bg-yantra-indigo text-on-primary p-6 plate-container">
           <div className="mb-6">
             <h3 className="font-pull-quote text-pull-quote text-on-primary !text-[28px] mb-2">Risk Signals</h3>
             <p className="font-mono-label text-mono-label text-outline-variant uppercase">

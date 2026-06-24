@@ -28,3 +28,8 @@ dist-ssr
 
 # Generated single-file bundle (rebuild: pnpm build + html-inline)
 bundle.html
+.vercel
+
+# Python artifacts from encoding fix scripts
+src/pages/__pycache__/
+src/pages/*.pyc

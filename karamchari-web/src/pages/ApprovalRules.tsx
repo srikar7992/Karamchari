@@ -66,9 +66,9 @@ export function ApprovalRules() {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-grid-12 mb-10">
         {/* The register */}
-        <section className="md:col-span-9">
+        <section className="lg:col-span-9">
           <h3 className="font-mono-label text-mono-label text-on-surface-variant mb-4 uppercase tracking-widest">
             1. Rule Register
           </h3>
@@ -82,7 +82,7 @@ export function ApprovalRules() {
           </div>
         </section>
 
-        <div className="md:col-span-3">
+        <div className="lg:col-span-3">
           <SignalCard
             label="SLA Breaches (30d)"
             value="3"

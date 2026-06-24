@@ -119,9 +119,9 @@ export function ShiftDefinitions() {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-grid-12 mb-10">
         {/* The register */}
-        <section className="md:col-span-8">
+        <section className="lg:col-span-8">
           <h3 className="font-mono-label text-mono-label text-on-surface-variant mb-4 uppercase tracking-widest">
             1. Definition Register
           </h3>
@@ -150,7 +150,7 @@ export function ShiftDefinitions() {
         </section>
 
         {/* Editor + count */}
-        <div className="md:col-span-4 flex flex-col gap-grid-12">
+        <div className="lg:col-span-4 flex flex-col gap-grid-12">
           <SignalCard
             label="Active Definitions"
             value={state === 'ready' ? String(activeCount) : '—'}

@@ -83,6 +83,28 @@ function IField({ label, value, code = false }: { label: string; value: string; 
 
 interface RecordEntry { ts: string; tag: string; body: string; meta: string }
 
+// Demo fallback — shown when BFF is not reachable (Vercel preview, offline, no .env.local).
+const MOCK_PROFILE: ProfileDto = {
+  id: 'demo-0001',
+  employeeNumber: 'EMP-88271',
+  legalName: 'Asha Venkatesan',
+  workEmail: 'asha.venkatesan@karamchari.dev',
+  hiredOn: '2023-03-15',
+  status: 'Active',
+  timeZoneId: 'Asia/Kolkata',
+  employmentType: 'Full-Time',
+  departmentName: 'Zone Operations',
+  designationName: 'Zone Operator',
+  designationLevel: 4,
+  branchName: 'Zone A',
+  managerName: 'Ananya Rajesh',
+}
+const MOCK_RECORD: RecordEntry[] = [
+  { ts: '2024-04-01', tag: 'DESIGNATION CHANGE', body: 'Designation set to Zone Operator.', meta: 'Changed by MGRANANYA' },
+  { ts: '2023-09-01', tag: 'DEPARTMENT TRANSFER', body: 'Department set to Zone Operations.', meta: 'Changed by HRSYSTEM' },
+  { ts: '2023-03-15', tag: 'ONBOARD', body: 'Asha Venkatesan joined the institution as EMP-88271.', meta: 'Source: employee record' },
+]
+
 const HUMAN_TAG: Record<string, string> = {
   ManagerChange: 'Reporting manager',
   DepartmentTransfer: 'Department',
@@ -143,10 +165,13 @@ export function Employee360() {
         setRecord(entries)
         setProfile(p)
         setState('ready')
-      } catch (err) {
+      } catch (_err) {
         if (!alive) return
-        setError(err instanceof ApiError ? `${err.status} ${err.statusText}` : (err as Error).message)
-        setState('error')
+        // BFF unreachable (no .env.local, offline, Vercel preview). Show demo data.
+        setProfile(MOCK_PROFILE)
+        setRecord(MOCK_RECORD)
+        setError('demo')
+        setState('ready')
       }
     })()
     return () => { alive = false }
@@ -159,14 +184,15 @@ export function Employee360() {
       </div>
     )
   }
-  if (state === 'error' || !profile) {
+  if (!profile) {
     return (
       <div className="obs obs-canvas" style={{ minHeight: '100vh', padding: '32px 24px' }}>
-        <div className="voice-mono" style={{ color: 'var(--obs-copper)' }}>Could not load the biography: {error}</div>
+        <div className="voice-mono" style={{ color: 'var(--obs-copper)' }}>Could not load the biography.</div>
       </div>
     )
   }
 
+  const isDemo = error === 'demo'
   const tenure = tenureYears(profile.hiredOn)
   const daysEmployed = Math.max(0, Math.round((Date.now() - new Date(profile.hiredOn).getTime()) / 86_400_000))
   const isActive = profile.status === 'Active'
@@ -181,10 +207,17 @@ export function Employee360() {
 
   return (
     <div className="obs obs-canvas" style={{ minHeight: '100vh', padding: '32px 24px 80px' }}>
+      {isDemo && (
+        <div style={{ marginBottom: 20, padding: '8px 12px', background: 'rgba(177,106,60,0.12)', border: '1px solid rgba(177,106,60,0.3)' }}>
+          <span className="voice-mono" style={{ fontSize: 9.5, color: 'var(--obs-copper)', letterSpacing: '0.12em' }}>
+            DEMO DATA · BFF not reachable from this environment. Connect .env.local to see live records.
+          </span>
+        </div>
+      )}
       {/* Screen head */}
       <div style={{ marginBottom: 40 }}>
         <div className="voice-mono" style={{ fontSize: 9.5, color: 'var(--obs-mute)', letterSpacing: '0.16em', marginBottom: 14 }}>
-          EMPLOYEE DIRECTORY / {profile.employeeNumber} / INSTITUTIONAL BIOGRAPHY · LIVE
+          EMPLOYEE DIRECTORY / {profile.employeeNumber} / INSTITUTIONAL BIOGRAPHY · {isDemo ? 'DEMO' : 'LIVE'}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
           <div>

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Icon } from './Icon'
 import { Glyph } from '@/components/observatory/surfaces'
 import {
@@ -13,8 +14,6 @@ interface AppShellProps {
   children: React.ReactNode
 }
 
-// The directory is an always-dark indigo panel (Yantra Indigo — navigation /
-// trust), so its type is ivory in both themes, not driven by light/dark tokens.
 const IVORY = '#f4efe7'
 const IVORY_70 = 'rgba(244,239,231,0.70)'
 const IVORY_46 = 'rgba(244,239,231,0.46)'
@@ -29,7 +28,6 @@ function StateRow({ k, v, copper = false }: { k: string; v: string; copper?: boo
   )
 }
 
-// Background chakra — faint construction yantra (squares · circles · triangles · spokes).
 function ChakraWatermark() {
   return (
     <div className="kx-watermark" aria-hidden="true">
@@ -46,22 +44,22 @@ function ChakraWatermark() {
   )
 }
 
-export function AppShell({ active, onNavigate, theme, onToggleTheme, children }: AppShellProps) {
+// Shared nav content — rendered in both desktop sidebar and mobile drawer.
+function NavBody({
+  active,
+  onNavigate,
+  showMasthead = false,
+}: {
+  active: PageId
+  onNavigate: (id: PageId) => void
+  showMasthead?: boolean
+}) {
   const activeItem = findNavItem(active)
   const persona = PERSONA_META[activeItem.persona]
-  const ctx = PAGE_CONTEXT[active]
-  const tel = PAGE_TELEMETRY[active]
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface dark:bg-[#171a1f] dark:text-[#ece6db] relative">
-      <ChakraWatermark />
-
-      {/* Institutional Directory (desktop) — Yantra Indigo panel, a library index */}
-      <nav
-        className="hidden md:flex flex-col h-screen w-72 fixed left-0 top-0 z-40 bg-[#1a2b47] dark:bg-[#0a0b0e]"
-        style={{ borderRight: '1px solid rgba(0,0,0,0.28)' }}
-      >
-        {/* Masthead — sutra glyph + wordmark */}
+    <>
+      {showMasthead && (
         <div className="px-6 pt-7 pb-4 flex items-center gap-3" style={{ borderBottom: `1px solid rgba(244,239,231,0.11)` }}>
           <Glyph size={26} stroke={IVORY} bindu="#c68a60" />
           <div>
@@ -76,104 +74,185 @@ export function AppShell({ active, onNavigate, theme, onToggleTheme, children }:
             </p>
           </div>
         </div>
+      )}
 
-        {/* Institutional State */}
-        <div className="px-6 pb-5" style={{ borderBottom: `1px solid rgba(244,239,231,0.11)` }}>
-          <div className="font-mono-label text-[9px] tracking-[0.16em] uppercase mb-2.5" style={{ color: IVORY_34 }}>
-            Institutional State
-          </div>
-          <div className="space-y-1.5 font-mono text-[10px] tracking-[0.06em] uppercase">
-            <StateRow k="Cycle" v={INSTITUTIONAL_STATE.cycle} />
-            <StateRow k="Active Workflows" v={String(INSTITUTIONAL_STATE.activeWorkflows)} />
-            <StateRow k="Open Risks" v={String(INSTITUTIONAL_STATE.openRisks)} copper />
-            <StateRow k="In-Flight" v={String(INSTITUTIONAL_STATE.inFlight)} />
-          </div>
+      {/* Institutional State */}
+      <div className="px-6 pb-5" style={{ borderBottom: `1px solid rgba(244,239,231,0.11)` }}>
+        <div className="font-mono-label text-[9px] tracking-[0.16em] uppercase mb-2.5" style={{ color: IVORY_34 }}>
+          Institutional State
         </div>
+        <div className="space-y-1.5 font-mono text-[10px] tracking-[0.06em] uppercase">
+          <StateRow k="Cycle" v={INSTITUTIONAL_STATE.cycle} />
+          <StateRow k="Active Workflows" v={String(INSTITUTIONAL_STATE.activeWorkflows)} />
+          <StateRow k="Open Risks" v={String(INSTITUTIONAL_STATE.openRisks)} copper />
+          <StateRow k="In-Flight" v={String(INSTITUTIONAL_STATE.inFlight)} />
+        </div>
+      </div>
 
-        {/* Directory — macro spine threading the rhythms of institutional life */}
-        <div className="flex-1 overflow-y-auto py-5 relative">
-          <div className="absolute left-[26px] top-7 bottom-5 w-px" style={{ background: 'rgba(244,239,231,0.16)' }} />
-          {NAV_GROUPS.map((group) => {
-            const bandActive = group.items.some((i) => i.id === active)
-            return (
-              <div key={group.label} className="mb-6 relative">
-                <span
-                  className="absolute left-[22px] top-[5px] w-2 h-2 rotate-45"
-                  style={{
-                    background: bandActive ? 'var(--tw-copper, #b16a3c)' : 'rgba(244,239,231,0.28)',
-                    backgroundColor: bandActive ? '#b16a3c' : 'rgba(244,239,231,0.28)',
-                    boxShadow: bandActive ? '0 0 0 3px rgba(177,106,60,0.22)' : undefined,
-                  }}
-                />
-                <div className="pl-11 pr-6 mb-2">
-                  <div className="flex items-baseline gap-2">
-                    <div
-                      className="font-mono-label text-[10px] tracking-[0.16em] uppercase"
-                      style={{ color: bandActive ? '#c68a60' : 'rgba(244,239,231,0.82)' }}
-                    >
-                      {group.rhythm}
-                    </div>
-                    <span className="font-serif text-[12px] leading-none" style={{ color: bandActive ? '#c68a60' : IVORY_34 }}>
-                      {group.sanskrit}
-                    </span>
+      {/* Directory */}
+      <div className="flex-1 overflow-y-auto py-5 relative">
+        <div className="absolute left-[26px] top-7 bottom-5 w-px" style={{ background: 'rgba(244,239,231,0.16)' }} />
+        {NAV_GROUPS.map((group) => {
+          const bandActive = group.items.some((i) => i.id === active)
+          return (
+            <div key={group.label} className="mb-6 relative">
+              <span
+                className="absolute left-[22px] top-[5px] w-2 h-2 rotate-45"
+                style={{
+                  background: bandActive ? 'var(--tw-copper, #b16a3c)' : 'rgba(244,239,231,0.28)',
+                  backgroundColor: bandActive ? '#b16a3c' : 'rgba(244,239,231,0.28)',
+                  boxShadow: bandActive ? '0 0 0 3px rgba(177,106,60,0.22)' : undefined,
+                }}
+              />
+              <div className="pl-11 pr-6 mb-2">
+                <div className="flex items-baseline gap-2">
+                  <div
+                    className="font-mono-label text-[10px] tracking-[0.16em] uppercase"
+                    style={{ color: bandActive ? '#c68a60' : 'rgba(244,239,231,0.82)' }}
+                  >
+                    {group.rhythm}
                   </div>
-                  <div className="font-mono-label text-[8.5px] tracking-[0.14em] uppercase mt-0.5" style={{ color: IVORY_34 }}>
-                    {group.layer}
-                  </div>
+                  <span className="font-serif text-[12px] leading-none" style={{ color: bandActive ? '#c68a60' : IVORY_34 }}>
+                    {group.sanskrit}
+                  </span>
                 </div>
-                <ul className="pl-[26px]">
-                  {group.items.map((item) => {
-                    const isActive = item.id === active
-                    return (
-                      <li key={item.id}>
-                        <button
-                          onClick={() => onNavigate(item.id)}
-                          className="group flex items-center gap-3 w-full text-left pl-4 pr-6 py-[7px] border-l-2 transition-colors duration-150"
-                          style={{
-                            borderColor: isActive ? '#b16a3c' : 'transparent',
-                            background: isActive ? 'rgba(244,239,231,0.07)' : 'transparent',
-                          }}
-                          onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(244,239,231,0.05)' }}
-                          onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
-                        >
-                          <span className="w-5 shrink-0 flex items-center" style={{ color: isActive ? '#c68a60' : IVORY_46 }}>
-                            <Icon name={item.icon} filled={isActive} className="!text-[19px]" />
-                          </span>
-                          <span
-                            className="font-tabular-data text-[13px]"
-                            style={{ color: isActive ? '#d8a781' : IVORY_70, fontWeight: isActive ? 500 : 400 }}
-                          >
-                            {item.label}
-                          </span>
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
+                <div className="font-mono-label text-[8.5px] tracking-[0.14em] uppercase mt-0.5" style={{ color: IVORY_34 }}>
+                  {group.layer}
+                </div>
               </div>
-            )
-          })}
-        </div>
+              <ul className="pl-[26px]">
+                {group.items.map((item) => {
+                  const isActive = item.id === active
+                  return (
+                    <li key={item.id}>
+                      <button
+                        onClick={() => onNavigate(item.id)}
+                        className="group flex items-center gap-3 w-full text-left pl-4 pr-6 py-[7px] border-l-2 transition-colors duration-150"
+                        style={{
+                          borderColor: isActive ? '#b16a3c' : 'transparent',
+                          background: isActive ? 'rgba(244,239,231,0.07)' : 'transparent',
+                        }}
+                        onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(244,239,231,0.05)' }}
+                        onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
+                      >
+                        <span className="w-5 shrink-0 flex items-center" style={{ color: isActive ? '#c68a60' : IVORY_46 }}>
+                          <Icon name={item.icon} filled={isActive} className="!text-[19px]" />
+                        </span>
+                        <span
+                          className="font-tabular-data text-[13px]"
+                          style={{ color: isActive ? '#d8a781' : IVORY_70, fontWeight: isActive ? 500 : 400 }}
+                        >
+                          {item.label}
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )
+        })}
+      </div>
 
-        {/* Officer seal — copper square identity */}
-        <div className="px-4 py-4 flex items-center gap-3" style={{ borderTop: `1px solid rgba(244,239,231,0.11)` }}>
-          <div className="cham-sm w-8 h-8 bg-tamra-copper flex items-center justify-center shrink-0">
-            <span className="font-mono-label text-[10px]" style={{ color: '#fff' }}>{activeItem.persona}</span>
-          </div>
-          <div className="min-w-0">
-            <div className="font-medium text-[13px] truncate" style={{ color: IVORY }}>{persona.name}</div>
-            <div className="font-mono-label text-[9px] tracking-[0.08em]" style={{ color: IVORY_46 }}>{persona.role}</div>
+      {/* Officer seal */}
+      <div className="px-4 py-4 flex items-center gap-3" style={{ borderTop: `1px solid rgba(244,239,231,0.11)` }}>
+        <div className="cham-sm w-8 h-8 bg-tamra-copper flex items-center justify-center shrink-0">
+          <span className="font-mono-label text-[10px]" style={{ color: '#fff' }}>{activeItem.persona}</span>
+        </div>
+        <div className="min-w-0">
+          <div className="font-medium text-[13px] truncate" style={{ color: IVORY }}>{persona.name}</div>
+          <div className="font-mono-label text-[9px] tracking-[0.08em]" style={{ color: IVORY_46 }}>{persona.role}</div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+export function AppShell({ active, onNavigate, theme, onToggleTheme, children }: AppShellProps) {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const ctx = PAGE_CONTEXT[active]
+  const tel = PAGE_TELEMETRY[active]
+
+  const handleNavigate = (id: PageId) => {
+    setDrawerOpen(false)
+    onNavigate(id)
+  }
+
+  return (
+    <div className="min-h-screen bg-surface text-on-surface dark:bg-[#171a1f] dark:text-[#ece6db] relative">
+      <ChakraWatermark />
+
+      {/* Desktop sidebar — hidden below lg */}
+      <nav
+        className="hidden lg:flex flex-col h-screen w-72 fixed left-0 top-0 z-40 bg-[#1a2b47] dark:bg-[#0a0b0e]"
+        style={{ borderRight: '1px solid rgba(0,0,0,0.28)' }}
+      >
+        <div className="px-6 pt-7 pb-4 flex items-center gap-3" style={{ borderBottom: `1px solid rgba(244,239,231,0.11)` }}>
+          <Glyph size={26} stroke={IVORY} bindu="#c68a60" />
+          <div>
+            <div className="flex items-baseline gap-2">
+              <h1 className="font-serif font-light text-[24px] tracking-tight leading-none" style={{ color: IVORY }}>
+                Karamchari
+              </h1>
+              <span className="font-serif text-[15px] leading-none" style={{ color: IVORY_70 }}>कर्मचारी</span>
+            </div>
+            <p className="font-mono-label text-[9px] tracking-[0.16em] uppercase mt-1.5" style={{ color: IVORY_46 }}>
+              Institutional OS
+            </p>
           </div>
         </div>
+        <NavBody active={active} onNavigate={handleNavigate} />
       </nav>
 
-      {/* Top chrome — surface context, always visible */}
-      <header className="flex justify-between items-center gap-4 px-6 md:px-gutter w-full md:ml-72 md:w-[calc(100%-18rem)] bg-surface dark:bg-[#1b1f26] h-16 border-b border-outline-variant dark:border-[#2b313a] fixed top-0 right-0 z-30">
-        <div className="flex items-center gap-4 md:hidden">
-          <span className="font-serif font-light text-xl tracking-tight text-primary dark:text-[#ece6db]">Karamchari</span>
+      {/* Mobile drawer overlay */}
+      {drawerOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50"
+          onClick={() => setDrawerOpen(false)}
+        >
+          {/* backdrop */}
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+          {/* panel — click does not propagate to backdrop */}
+          <nav
+            className="absolute left-0 top-0 bottom-0 w-[280px] bg-[#1a2b47] dark:bg-[#0a0b0e] flex flex-col overflow-hidden"
+            style={{ borderRight: '1px solid rgba(0,0,0,0.28)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* drawer header */}
+            <div className="px-4 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom: `1px solid rgba(244,239,231,0.11)` }}>
+              <div className="flex items-center gap-3">
+                <Glyph size={22} stroke={IVORY} bindu="#c68a60" />
+                <span className="font-serif font-light text-[20px] tracking-tight" style={{ color: IVORY }}>Karamchari</span>
+              </div>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="flex items-center justify-center w-8 h-8 rounded"
+                style={{ color: IVORY_46 }}
+              >
+                <Icon name="close" className="!text-[20px]" />
+              </button>
+            </div>
+            <NavBody active={active} onNavigate={handleNavigate} />
+          </nav>
         </div>
-        {/* Surface context cluster: where am I in the institution */}
-        <div className="hidden md:flex items-center gap-3 font-mono text-[10px] tracking-[0.12em] uppercase whitespace-nowrap overflow-hidden">
+      )}
+
+      {/* Top chrome */}
+      <header className="flex justify-between items-center gap-4 px-4 lg:px-gutter w-full lg:ml-72 lg:w-[calc(100%-18rem)] bg-surface dark:bg-[#1b1f26] h-14 border-b border-outline-variant dark:border-[#2b313a] fixed top-0 right-0 z-30">
+        {/* Mobile/tablet: hamburger + wordmark */}
+        <div className="flex items-center gap-3 lg:hidden">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex items-center justify-center w-9 h-9 -ml-1 text-on-surface-variant dark:text-[#9a958c] hover:text-tamra-copper transition-colors"
+            aria-label="Open navigation"
+          >
+            <Icon name="menu" className="!text-[24px]" />
+          </button>
+          <span className="font-serif font-light text-lg tracking-tight text-primary dark:text-[#ece6db]">Karamchari</span>
+        </div>
+
+        {/* Desktop: surface context cluster */}
+        <div className="hidden lg:flex items-center gap-3 font-mono text-[10px] tracking-[0.12em] uppercase whitespace-nowrap overflow-hidden">
           <span className="text-on-surface dark:text-[#ece6db]">{tel.surface}</span>
           <span className="text-outline">·</span>
           <span className="text-on-surface-variant dark:text-[#9a958c]">{tel.layer}</span>
@@ -186,7 +265,9 @@ export function AppShell({ active, onNavigate, theme, onToggleTheme, children }:
             </>
           )}
         </div>
-        <div className="flex items-center gap-5 shrink-0">
+
+        {/* Actions */}
+        <div className="flex items-center gap-4 shrink-0">
           <div className="relative hidden xl:flex items-center group w-56">
             <Icon
               name="search"
@@ -198,7 +279,6 @@ export function AppShell({ active, onNavigate, theme, onToggleTheme, children }:
               type="text"
             />
           </div>
-          {/* Day / Night — institutional lighting */}
           <button
             onClick={onToggleTheme}
             title={theme === 'day' ? 'Switch to Night Institution' : 'Switch to Day Institution'}
@@ -210,7 +290,7 @@ export function AppShell({ active, onNavigate, theme, onToggleTheme, children }:
             <Icon name="notifications" className="!text-[22px]" />
             <span className="absolute top-0 right-0 w-2 h-2 bg-tamra-copper rounded-full" />
           </button>
-          <button className="text-on-surface-variant dark:text-[#9a958c] hover:text-tamra-copper transition-colors">
+          <button className="hidden sm:block text-on-surface-variant dark:text-[#9a958c] hover:text-tamra-copper transition-colors">
             <Icon name="move_to_inbox" className="!text-[22px]" />
           </button>
           <button className="text-on-surface-variant dark:text-[#9a958c] hover:text-tamra-copper transition-colors">
@@ -220,41 +300,58 @@ export function AppShell({ active, onNavigate, theme, onToggleTheme, children }:
       </header>
 
       {/* Main canvas */}
-      <main className="md:ml-72 pt-16 min-h-screen yantra-grid pb-24 md:pb-8 flex flex-col relative z-10">
-        <div className="max-w-[1280px] mx-auto px-5 md:px-page-margin py-10 md:py-12 w-full flex-1">
+      <main className="lg:ml-72 pt-14 min-h-screen yantra-grid pb-20 lg:pb-8 flex flex-col relative z-10">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-page-margin py-6 lg:py-12 w-full flex-1">
           {children}
         </div>
-        {/* Telemetry band — universal page skeleton, DOCTRINE §5 */}
-        <div className="max-w-[1280px] mx-auto px-5 md:px-page-margin w-full">
+        {/* Telemetry band */}
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-page-margin w-full">
           <div className="border-t border-outline-variant dark:border-[#2b313a] mt-8 py-4 flex flex-wrap gap-x-8 gap-y-2 items-center font-mono text-[10px] tracking-[0.12em] uppercase text-on-surface-variant dark:text-[#8b8b90]">
             <span>{tel.surface}</span>
             <span>{tel.layer}</span>
             <span>{ctx.archetype.toUpperCase()} ARCHETYPE</span>
             {ctx.laws && <span className="text-tamra-copper">ACTIVE LAW · {ctx.laws.join(' · ')}</span>}
             <span>DATA FRESH · 00:00:42</span>
-            <span className="ml-auto">SUTRA LEDGER · IMMUTABLE</span>
+            <span className="ml-auto hidden sm:block">SUTRA LEDGER · IMMUTABLE</span>
           </div>
         </div>
       </main>
 
-      {/* Mobile bottom navigation */}
-      <nav className="md:hidden fixed bottom-0 w-full bg-[#1a2b47] dark:bg-[#0a0b0e] z-50 flex justify-around items-center h-16 px-2" style={{ borderTop: '1px solid rgba(244,239,231,0.11)' }}>
-        {(['pulse', 'my-dashboard', 'attendance', 'manager'] as PageId[]).map((id) => {
+      {/* Mobile/tablet bottom nav — quick-access 4 items */}
+      <nav
+        className="lg:hidden fixed bottom-0 w-full bg-[#1a2b47] dark:bg-[#0a0b0e] z-40 flex justify-around items-center h-14 px-2"
+        style={{ borderTop: '1px solid rgba(244,239,231,0.11)' }}
+      >
+        {([
+          { id: 'pulse',        short: 'Pulse'    },
+          { id: 'my-dashboard', short: 'Home'     },
+          { id: 'approvals',    short: 'Approve'  },
+          { id: 'my-time',      short: 'Time'     },
+        ] as { id: PageId; short: string }[]).map(({ id, short }) => {
           const item = findNavItem(id)
           const isActive = id === active
           return (
             <button
               key={id}
-              onClick={() => onNavigate(id)}
+              onClick={() => handleNavigate(id)}
               className="flex flex-col items-center justify-center w-full h-full relative"
               style={{ color: isActive ? '#c68a60' : IVORY_70 }}
             >
               {isActive && <span className="absolute top-0 w-8 h-[2px] bg-tamra-copper" />}
-              <Icon name={item.icon} filled={isActive} className="!text-[22px] mb-1" />
-              <span className="font-mono-label text-[10px] uppercase">{item.label.split(' ')[0]}</span>
+              <Icon name={item.icon} filled={isActive} className="!text-[20px] mb-0.5" />
+              <span className="font-mono-label text-[9px] uppercase">{short}</span>
             </button>
           )
         })}
+        {/* "More" opens the full drawer */}
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="flex flex-col items-center justify-center w-full h-full"
+          style={{ color: IVORY_70 }}
+        >
+          <Icon name="grid_view" className="!text-[20px] mb-0.5" />
+          <span className="font-mono-label text-[9px] uppercase">More</span>
+        </button>
       </nav>
     </div>
   )

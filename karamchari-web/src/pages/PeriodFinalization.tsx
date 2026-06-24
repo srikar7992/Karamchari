@@ -188,9 +188,9 @@ export function PeriodFinalization() {
         <SignalCard label="Payroll Dependency" value="PR-06-A" note="Payroll draft consumes this period on finalize" bindu="neutral" />
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-grid-12 mb-10">
         {/* Pending queue */}
-        <section className="md:col-span-8">
+        <section className="lg:col-span-8">
           <div className="flex justify-between items-end mb-4">
             <h3 className="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest">
               2. Regularization Queue
@@ -211,7 +211,7 @@ export function PeriodFinalization() {
         </section>
 
         {/* Finalization controls */}
-        <section className="md:col-span-4">
+        <section className="lg:col-span-4">
           <h3 className="font-mono-label text-mono-label text-on-surface-variant mb-4 uppercase tracking-widest">
             3. Finalization
           </h3>

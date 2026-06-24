@@ -212,9 +212,9 @@ export function PayrollRunConsole() {
         <SignalCard label="Calc Duration" value="44:16" unit="min" note="Includes checkpoint resume after batch 31 halt" bindu="neutral" />
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-grid-12 mb-10">
         {/* Anomaly queue */}
-        <section className="md:col-span-7">
+        <section className="lg:col-span-7">
           <div className="flex justify-between items-end mb-4">
             <h3 className="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest">
               2. Anomaly Queue
@@ -235,7 +235,7 @@ export function PayrollRunConsole() {
         </section>
 
         {/* Run controls */}
-        <section className="md:col-span-5">
+        <section className="lg:col-span-5">
           <h3 className="font-mono-label text-mono-label text-on-surface-variant mb-4 uppercase tracking-widest">
             3. Run Controls
           </h3>

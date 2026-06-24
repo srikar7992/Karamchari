@@ -1,4 +1,4 @@
-import { Icon } from '@/components/shell/Icon'
+﻿import { Icon } from '@/components/shell/Icon'
 import { SignalCard, NarrativePlate, BinduButton } from '@/components/institutional'
 import type { PageClassification } from '@/lib/doctrine'
 
@@ -26,11 +26,11 @@ export function MyDashboard() {
       {/* Greeting header */}
       <header className="mb-12 border-b border-outline-variant pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="font-serif font-light text-[44px] md:text-[56px] leading-[1.02] tracking-tight text-primary">
+          <h2 className="font-serif font-light text-[28px] md:text-[56px] leading-[1.02] tracking-tight text-primary">
             Namaskaram, Asha.
           </h2>
           <p className="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest mt-3">
-            Operator Dashboard • Session 04
+            Operator Dashboard â€¢ Session 04
           </p>
         </div>
         <div className="flex items-center gap-3 hairline-all px-4 py-2 bg-surface-container-lowest">
@@ -45,7 +45,7 @@ export function MyDashboard() {
         <h3 className="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest mb-4">
           Operational Pulse
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-grid-12">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-grid-12">
           <SignalCard
             label="Attendance Score"
             value="98.4%"

@@ -28,6 +28,16 @@ export type PageId =
   | 'asset-registry'
   | 'asset-detail'
   | 'asset-assignment'
+  | 'my-profile'
+  | 'my-benefits'
+  | 'my-learning'
+  | 'my-performance'
+  | 'my-payroll'
+  | 'my-time'
+  | 'team-overview'
+  | 'team-performance'
+  | 'team-learning'
+  | 'team-compensation'
 
 export type Persona = 'EMP' | 'MGR' | 'EXEC' | 'CMP' | 'SYS'
 
@@ -49,6 +59,32 @@ export interface NavGroup {
 // Ordered by cadence of human contact (design/DOCTRINE.md §2), not layer number.
 // `rhythm` names the band as a movement of institutional life, not a module folder.
 export const NAV_GROUPS: NavGroup[] = [
+  {
+    label: 'Manager Workspace',
+    rhythm: 'Manager Workspace',
+    sanskrit: 'प्रबंधक-क्षेत्र',
+    layer: 'Karma · Nāyakatva',
+    items: [
+      { id: 'team-overview',     label: 'Team Overview',     icon: 'groups',          persona: 'MGR' },
+      { id: 'team-performance',  label: 'Team Performance',  icon: 'trending_up',     persona: 'MGR' },
+      { id: 'team-learning',     label: 'Team Learning',     icon: 'school',          persona: 'MGR' },
+      { id: 'team-compensation', label: 'Team Compensation', icon: 'payments',        persona: 'MGR' },
+    ],
+  },
+  {
+    label: 'Self Service',
+    rhythm: 'Employee Self Service',
+    sanskrit: 'स्व-सेवा',
+    layer: 'Karma · Svātantrya',
+    items: [
+      { id: 'my-profile',     label: 'My Profile',     icon: 'manage_accounts', persona: 'EMP' },
+      { id: 'my-time',        label: 'My Time',        icon: 'schedule',        persona: 'EMP' },
+      { id: 'my-payroll',     label: 'My Payroll',     icon: 'receipt_long',    persona: 'EMP' },
+      { id: 'my-benefits',    label: 'My Benefits',    icon: 'health_and_safety', persona: 'EMP' },
+      { id: 'my-learning',    label: 'My Learning',    icon: 'school',          persona: 'EMP' },
+      { id: 'my-performance', label: 'My Performance', icon: 'trending_up',     persona: 'EMP' },
+    ],
+  },
   {
     label: 'Daily',
     rhythm: 'Daily Rhythm',
@@ -143,6 +179,16 @@ export const PAGE_TELEMETRY: Record<PageId, { surface: string; layer: string }> 
   'asset-registry': { surface: 'SRF-AST-101', layer: 'L05 STHITI' },
   'asset-detail': { surface: 'SRF-AST-102', layer: 'L05 STHITI' },
   'asset-assignment': { surface: 'SRF-AST-103', layer: 'L05 STHITI' },
+  'my-profile':        { surface: 'SRF-ESS-101', layer: 'L06 JALA' },
+  'my-benefits':       { surface: 'SRF-ESS-102', layer: 'L02 KARMA' },
+  'my-learning':       { surface: 'SRF-ESS-103', layer: 'L07 KALA' },
+  'my-performance':    { surface: 'SRF-ESS-104', layer: 'L04 BUDDHI' },
+  'my-payroll':        { surface: 'SRF-ESS-105', layer: 'L02 KARMA' },
+  'my-time':           { surface: 'SRF-ESS-106', layer: 'L02 KARMA' },
+  'team-overview':     { surface: 'SRF-MGR-023', layer: 'L06 JALA' },
+  'team-performance':  { surface: 'SRF-MGR-024', layer: 'L04 BUDDHI' },
+  'team-learning':     { surface: 'SRF-MGR-025', layer: 'L07 KALA' },
+  'team-compensation': { surface: 'SRF-MGR-026', layer: 'L02 KARMA' },
 }
 
 // Surface context exposed in the chrome (cavecrew §5): which archetype the page
@@ -179,6 +225,16 @@ export const PAGE_CONTEXT: Record<PageId, { archetype: string; laws?: string[] }
   'asset-registry': { archetype: 'registry' },
   'asset-detail': { archetype: 'record-detail' },
   'asset-assignment': { archetype: 'registry' },
+  'my-profile':        { archetype: 'record-detail' },
+  'my-benefits':       { archetype: 'record-detail' },
+  'my-learning':       { archetype: 'registry' },
+  'my-performance':    { archetype: 'dashboard' },
+  'my-payroll':        { archetype: 'registry' },
+  'my-time':           { archetype: 'dashboard', laws: ['LV-SLA-02'] },
+  'team-overview':     { archetype: 'registry' },
+  'team-performance':  { archetype: 'approval' },
+  'team-learning':     { archetype: 'registry' },
+  'team-compensation': { archetype: 'registry' },
 }
 
 // Institutional situational awareness, surfaced at the head of the directory.

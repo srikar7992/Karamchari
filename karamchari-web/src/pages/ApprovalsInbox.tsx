@@ -123,9 +123,9 @@ export function ApprovalsInbox() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-grid-12">
         {/* Queue rail */}
-        <div className="md:col-span-4 space-y-3">
+        <div className="lg:col-span-4 space-y-3">
           {queue.map((item) => (
             <button
               key={item.id}
@@ -150,7 +150,7 @@ export function ApprovalsInbox() {
         </div>
 
         {/* Evidence panel */}
-        <div className="md:col-span-8 bg-surface-container-lowest hairline-all p-6 flex flex-col">
+        <div className="lg:col-span-8 bg-surface-container-lowest hairline-all p-6 flex flex-col">
           <div className="flex justify-between items-start hairline-b pb-4 mb-6">
             <div>
               <div className="font-mono text-[11px] text-on-surface-variant mb-1">{selected.id}</div>

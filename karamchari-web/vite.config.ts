@@ -9,4 +9,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    host: true,   // binds to 0.0.0.0 — accessible from other machines on same network
+    port: 5191,
+  },
 });

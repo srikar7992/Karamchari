@@ -30,6 +30,16 @@ import { ApprovalRules } from '@/pages/ApprovalRules'
 import { AssetRegistry } from '@/pages/AssetRegistry'
 import { AssetDetail } from '@/pages/AssetDetail'
 import { AssetAssignment } from '@/pages/AssetAssignment'
+import { MyProfile } from '@/pages/MyProfile'
+import { MyBenefits } from '@/pages/MyBenefits'
+import { MyLearning } from '@/pages/MyLearning'
+import { MyPerformance } from '@/pages/MyPerformance'
+import { MyPayroll } from '@/pages/MyPayroll'
+import { MyTime } from '@/pages/MyTime'
+import { TeamOverview } from '@/pages/TeamOverview'
+import { TeamPerformance } from '@/pages/TeamPerformance'
+import { TeamLearning } from '@/pages/TeamLearning'
+import { TeamCompensation } from '@/pages/TeamCompensation'
 import { LabShell, type LabId } from '@/labs/LabShell'
 import { ConstitutionalLedger } from '@/labs/ConstitutionalLedger'
 import { Observatory } from '@/labs/Observatory'
@@ -54,6 +64,8 @@ function pageFromHash(): PageId {
     'succession', 'compliance', 'workflow-studio',
     'leave-policies', 'approval-rules',
     'asset-registry', 'asset-detail', 'asset-assignment',
+    'my-profile', 'my-benefits', 'my-learning', 'my-performance', 'my-payroll', 'my-time',
+    'team-overview', 'team-performance', 'team-learning', 'team-compensation',
   ]
   return (valid as string[]).includes(h) ? (h as PageId) : 'pulse'
 }
@@ -133,6 +145,16 @@ function App() {
       {page === 'asset-registry' && <AssetRegistry />}
       {page === 'asset-detail' && <AssetDetail />}
       {page === 'asset-assignment' && <AssetAssignment />}
+      {page === 'my-profile' && <MyProfile />}
+      {page === 'my-benefits' && <MyBenefits />}
+      {page === 'my-learning' && <MyLearning />}
+      {page === 'my-performance' && <MyPerformance />}
+      {page === 'my-payroll' && <MyPayroll />}
+      {page === 'my-time' && <MyTime />}
+      {page === 'team-overview' && <TeamOverview />}
+      {page === 'team-performance' && <TeamPerformance />}
+      {page === 'team-learning' && <TeamLearning />}
+      {page === 'team-compensation' && <TeamCompensation />}
     </AppShell>
   )
 }

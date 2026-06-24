@@ -79,7 +79,7 @@ export function PulseHome({ onNavigate }: { onNavigate: (id: PageId) => void }) 
             8 NOMINAL · 1 WATCH · 0 CRISIS
           </span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-grid-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-grid-12">
           {layers.map((layer) => (
             <button
               key={layer.no}

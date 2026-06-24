@@ -113,9 +113,9 @@ export function TeamAttendanceBoard() {
         <SignalCard label="On Leave" value="6" note="All approved before cutoff" bindu="neutral" />
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-grid-12 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-grid-12 mb-10">
         {/* Coverage topology */}
-        <div className="md:col-span-7">
+        <div className="lg:col-span-7">
           <MapSurface
             kicker="Coverage Topology · Morning Shift"
             axes={{ x: 'Zone', y: 'Present / Minimum' }}
@@ -156,7 +156,7 @@ export function TeamAttendanceBoard() {
         </div>
 
         {/* Risk column */}
-        <div className="md:col-span-5 bg-surface-container-lowest hairline-all p-6 space-y-6">
+        <div className="lg:col-span-5 bg-surface-container-lowest hairline-all p-6 space-y-6">
           <h3 className="font-mono-label text-mono-label text-on-surface-variant uppercase tracking-widest">
             Emergent Risks
           </h3>

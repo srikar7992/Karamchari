@@ -100,9 +100,9 @@ export function PayrollCockpit() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Reconciliation Summary */}
-        <section className="col-span-1 md:col-span-8 flex flex-col">
+        <section className="col-span-1 lg:col-span-8 flex flex-col">
           <h3 className="font-mono-label text-mono-label text-on-surface-variant mb-4 uppercase tracking-widest">
             2. Reconciliation Summary
           </h3>
@@ -125,7 +125,7 @@ export function PayrollCockpit() {
         </section>
 
         {/* Right column */}
-        <div className="col-span-1 md:col-span-4 flex flex-col gap-6">
+        <div className="col-span-1 lg:col-span-4 flex flex-col gap-6">
           {/* Resolve Queue */}
           <section className="flex-1 flex flex-col">
             <div className="flex justify-between items-end mb-4">

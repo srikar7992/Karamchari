@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Icon } from '@/components/shell/Icon'
 import {
   SignalCard,
@@ -28,7 +28,7 @@ export const PAGE_CLASSIFICATION: PageClassification = {
   bindu: false,
 }
 
-// ── BFF contract (GetAsset serializes the whole aggregate) ────────────────────
+// â”€â”€ BFF contract (GetAsset serializes the whole aggregate) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type Wrapped = string | { value: string }
 interface AssignmentDto {
   id: string
